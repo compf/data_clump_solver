@@ -6,6 +6,7 @@ import { PipeLineStep } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
 import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { sys } from "typescript";
+import { TrivialNameFinder } from "./pipeline/stepHandler/nameFinding/TrivialNameFinder";
 
 async function main(){
     console.log("hello world")
@@ -16,12 +17,13 @@ async function main(){
     let project_path=sys.args[0];
     PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler(project_path));
     PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetector],new DataClumpDetectorStep());
+    PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFinder());
     
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")
     })*/
     await PipeLine.Instance.executeAllSteps( DataContext)
-    console.log(DataContext)
+    //console.log(DataContext.NameFinding.names)
 }
 main();
 

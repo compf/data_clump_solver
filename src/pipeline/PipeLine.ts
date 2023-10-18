@@ -28,7 +28,7 @@ export class PipeLine{
             for(let step in PipeLineStep){
                 for(let registeredSteps of this.stepHandlerList){
                     if(registeredSteps.steps.includes(PipeLineStep[step] as any as PipeLineStep)){
-                        await registeredSteps.handler.handle(context);
+                        await registeredSteps.handler.handle(context,null);
                     }
                 }
                

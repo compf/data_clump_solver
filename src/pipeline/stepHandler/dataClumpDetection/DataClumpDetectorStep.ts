@@ -6,7 +6,7 @@ import {resolve} from "path"
 import { DataClumpTypeContext, DataClumpsTypeContext } from "data-clumps-type-context";
 import fs from "fs";
 export class DataClumpDetectorStep extends AbstractStepHandler {
-    async handle(context: DataContextInterface) {
+    async handle(context: DataContextInterface, params:any) {
         let project_path=context.CodeObtaining.path
         const temp_path=resolve("./temp")
         const output_path=resolve("./stuff/output.json")

@@ -4,7 +4,7 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
     private path: string;
-    handle(context: DataContextInterface) {
+    handle(context: DataContextInterface, params:any) {
         context.CodeObtaining.path=this.path;
     }
     getExecutableSteps(): PipeLineStep[] {

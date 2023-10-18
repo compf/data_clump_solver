@@ -7,6 +7,9 @@ export interface DataContextInterface{
         DataClumpDetector:{
             dataClumpDetectionResult:DataClumpsTypeContext|null
         }
+        NameFinding:{
+            names:{[key:string]: string}
+        }
 }
 export const DataContext:DataContextInterface={
     CodeObtaining:{
@@ -14,5 +17,8 @@ export const DataContext:DataContextInterface={
     },
     DataClumpDetector:{
         dataClumpDetectionResult:null
+    },
+    NameFinding:{
+        names:{}
     }
 };
