@@ -1,6 +1,6 @@
-import { DataContextInterface } from "../../context/DataContext";
-import { PipeLineStep } from "../PipeLineStep";
-import { AbstractStepHandler } from "./AbstractStepHandler";
+import { DataContextInterface } from "../../../context/DataContext";
+import { PipeLineStep } from "../../PipeLineStep";
+import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
     private path: string;

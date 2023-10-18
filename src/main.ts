@@ -3,8 +3,8 @@ import { Analyzer } from "./data-clumps-doctor/analyse/src/ignoreCoverage/Analyz
 import { PipeLine } from "./pipeline/PipeLine"
 import { DataContext } from "./context/DataContext";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
-import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/SimpleCodeObtainingStepHandler";
-import { DataClumpDetectorStep } from "./pipeline/stepHandler/DataClumpDetectorStep";
+import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
+import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { sys } from "typescript";
 
 async function main(){
