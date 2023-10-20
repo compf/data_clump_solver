@@ -1,5 +1,6 @@
 import fs from "fs"
-export class ChatGPTInterface{
+import { LanguageModelInterface } from "./LanguageModelInterface";
+export class ChatGPTInterface extends LanguageModelInterface{
     private api:any=null
     private chatID:string="";
     loadToken():string{
@@ -17,9 +18,5 @@ export class ChatGPTInterface{
         this.chatID=res.id
         return res.text;
     }
-     constructor(){
-        
-        
-          
-    }
+ 
 }

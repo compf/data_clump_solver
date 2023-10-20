@@ -3,7 +3,7 @@ import { DataContextInterface } from "../../../context/DataContext";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
-export class TrivialNameFinder extends AbstractStepHandler{
+export class TrivialNameFindingStep extends AbstractStepHandler{
     handle(context: DataContextInterface, params:any) {
         for(let dataClumpKey of Object.keys(context.DataClumpDetector.dataClumpDetectionResult!.data_clumps)){
             
