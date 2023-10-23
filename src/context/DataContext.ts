@@ -8,7 +8,9 @@ export interface DataContextInterface{
             dataClumpDetectionResult:DataClumpsTypeContext|null
         }
         NameFinding:{
-            names:{[key:string]: string}
+            dataClumpKeyName:Map<string,string>
+            nameDataClumpKey:Map<string,string>
+
         }
 }
 export const DataContext:DataContextInterface={
@@ -19,6 +21,7 @@ export const DataContext:DataContextInterface={
         dataClumpDetectionResult:null
     },
     NameFinding:{
-        names:{}
+        dataClumpKeyName:new Map(),
+        nameDataClumpKey:new Map()
     }
 };

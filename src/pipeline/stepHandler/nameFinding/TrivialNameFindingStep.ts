@@ -2,27 +2,12 @@ import { DataClumpTypeContext, DataClumpsVariableFromContext, Dictionary } from 
 import { DataContextInterface } from "../../../context/DataContext";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
+import { AbstractNameFindingStepHandler } from "./AbstractNameFindingStep";
 
-export class TrivialNameFindingStep extends AbstractStepHandler{
-    handle(context: DataContextInterface, params:any) {
-        for(let dataClumpKey of Object.keys(context.DataClumpDetector.dataClumpDetectionResult!.data_clumps)){
-            
-            let dataClump=context.DataClumpDetector.dataClumpDetectionResult!.data_clumps[dataClumpKey]
-            let result:string[]=[]
-            for(let k of  Object.keys(dataClump.data_clump_data)){
-                let name=dataClump.data_clump_data[k].name
-            
-                result.push(name)
-    
-            }
-            context.NameFinding.names[dataClump.key]=result.join(",")
-            console.log(context.NameFinding.names[dataClump.key])
-        }
-        
-        
+export class TrivialNameFindingStep extends AbstractNameFindingStepHandler{
+   async getSuggestedName(names: string[]): Promise<string> {
+       return  names.join("_")
     }
-    getExecutableSteps(): PipeLineStep[] {
-        return [PipeLineStep.NameFinding]
-    }
-
+   
+  
 }
