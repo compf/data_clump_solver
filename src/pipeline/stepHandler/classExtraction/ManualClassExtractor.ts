@@ -7,6 +7,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     abstract createGetter(fieldName:string, type:string):string;
     abstract createSetter(fieldName:string, type:string):string;
     abstract createHead(className:string);
+    abstract createConstructor(className:string,types:string[],fieldNames:string[]):string;
     abstract createTail():string;
     override getExecutableSteps(): PipeLineStep[] {
         return [PipeLineStep.ClassExtraction]
@@ -18,13 +19,17 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
 
             let dataClump=context.DataClumpDetector.dataClumpDetectionResult?.data_clumps[dataClumpKey]
             let classBody=this.createHead(suggestedName);
+            let fieldNames:string[]=[]
+            let types:string[]=[]
             for(let param of Object.values(dataClump?.data_clump_data!)){
                 classBody+=this.createField(param.name,param.type)
                 classBody+=this.createGetter(param.name,param.type)
                 classBody+=this.createSetter(param.name,param.type)
-
+                fieldNames.push(param.name)
+                types.push(param.type);
 
             }
+            classBody+=this.createConstructor(suggestedName,types,fieldNames)
             classBody+=this.createTail();
             console.log(classBody)
 
