@@ -11,6 +11,7 @@ import { LanguageModelNameFindingsStep } from "./pipeline/stepHandler/nameFindin
 import { ChatGPTInterface } from "./util/languageModel/ChatGPTInterface";
 import { ManualClassExtractor } from "./pipeline/stepHandler/classExtraction/ManualClassExtractor";
 import { JavaManualClassExtractor } from "./pipeline/stepHandler/classExtraction/JavaManualClassExtractor";
+import { GeorgeFraserRefactoring } from "./pipeline/stepHandler/refactoring/languageServer/GeorgeFraserLSPRefactoring";
 
 async function main(){
     console.log("hello world")
@@ -23,6 +24,7 @@ async function main(){
     PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetector],new DataClumpDetectorStep());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
+    PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],  new GeorgeFraserRefactoring());
     
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")
