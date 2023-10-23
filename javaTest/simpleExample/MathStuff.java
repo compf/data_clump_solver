@@ -1,4 +1,4 @@
-package simpleExample;
+package javaTest.simpleExample;
 
 public class MathStuff {
 
