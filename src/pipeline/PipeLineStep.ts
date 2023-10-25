@@ -7,5 +7,6 @@ export enum PipeLineStep {
     DataClumpFiltering,
     NameFinding,
     ClassExtraction,
+    UsageFinding,
     Refactoring
 }
