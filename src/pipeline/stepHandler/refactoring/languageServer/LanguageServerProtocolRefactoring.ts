@@ -24,6 +24,7 @@ export  abstract class LanguageServerProtocolRefatcoring extends AbstractStepHan
       console.log("hallo")
       for(let dataClumpKey of Object.keys(context.DataClumpDetector.dataClumpDetectionResult?.data_clumps!)){
         let dc=context.DataClumpDetector.dataClumpDetectionResult?.data_clumps[dataClumpKey]!
+        let first=true;
         for(let variableKey of Object.keys(dc.data_clump_data)){
             let usageRequest:ReferenceParams={
                 context:{includeDeclaration:true},
@@ -37,6 +38,30 @@ export  abstract class LanguageServerProtocolRefatcoring extends AbstractStepHan
 
                 }
             };
+            if(first && dc.from_method_name!=null){
+                first=false;
+            let wholeFile=readFileSync(resolve(context.CodeObtaining.path)+"/"+dc?.from_file_path).toString().split("\n");
+            let methodPos=wholeFile[usageRequest.position.line].indexOf(dc.from_method_name)
+            let methodDeclUsageRequest:ReferenceParams={
+                context:{includeDeclaration:true},
+                textDocument:{
+                    uri:"file://"+resolve(context.CodeObtaining.path)+"/"+dc?.from_file_path
+                },
+                position:{
+                    line:dc.data_clump_data[variableKey]!.position.startLine-1,
+                    character:methodPos
+                   
+
+                }
+            };
+            let toSend=this.create_request_message( globalCounter,Methods.References,methodDeclUsageRequest)
+            console.log("TO_SEND (method)");
+            console.log(toSend)
+            socket.writer.write(toSend)
+            
+            globalCounter+=1
+                
+            }
             /*let wholeFile=readFileSync(resolve(context.CodeObtaining.path)+"/"+dc?.from_file_path).toString();
 
             (usageRequest.position as any).char=wholeFile.split("\n")[usageRequest.position.line][usageRequest.position.character]*/
