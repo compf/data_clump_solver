@@ -8,24 +8,32 @@ import {resolve} from "path"
 import { MyCapabilities } from "./capabilities";
 import {readFileSync} from "fs"
 import { LanguageServerAPI, Methods } from "./LanguageServerAPI";
+import { UsageType } from "../../../context/VariableOrMethodUsage";
 
-let globalCounter=2;
+
 export  class LanguageServerUsageAPI extends AbstractStepHandler{
     api: LanguageServerAPI;
+    globalCounter=3
+    counterDataClumpInfoMap:Map<number,{variableKey:string,variableName:string,usageType:UsageType}>=new Map();
     constructor(api:LanguageServerAPI){
         super();
         this.api=api;
+    }
+    nextCounterValue():number{
+        return this.globalCounter++;
     }
    
     async handle(context: DataContextInterface, params: any) {
       const socket=await  this.api.init(context.CodeObtaining.path,(data)=>{
             console.log(JSON.stringify(data))
+            console.log(data.id,this.counterDataClumpInfoMap.get(data.id))
       });
       console.log("hallo")
       for(let dataClumpKey of Object.keys(context.DataClumpDetector.dataClumpDetectionResult?.data_clumps!)){
         let dc=context.DataClumpDetector.dataClumpDetectionResult?.data_clumps[dataClumpKey]!
         let first=true;
         for(let variableKey of Object.keys(dc.data_clump_data)){
+            let dcVariable=dc.data_clump_data[variableKey]
             let usageRequest:ReferenceParams={
                 context:{includeDeclaration:true},
                 textDocument:{
@@ -54,23 +62,25 @@ export  class LanguageServerUsageAPI extends AbstractStepHandler{
 
                 }
             };
-            let toSend=this.api.create_request_message( globalCounter,Methods.References,methodDeclUsageRequest)
+            let counter=this.nextCounterValue();
+            this.counterDataClumpInfoMap.set(counter,{variableKey,variableName:dcVariable.name,usageType:UsageType.MethodCalled})
+            let toSend=this.api.create_request_message( counter,Methods.References,methodDeclUsageRequest)
             console.log("TO_SEND (method)");
             console.log(toSend)
             socket.writer.write(toSend)
-            
-            globalCounter+=1
-                
+               
             }
             /*let wholeFile=readFileSync(resolve(context.CodeObtaining.path)+"/"+dc?.from_file_path).toString();
 
             (usageRequest.position as any).char=wholeFile.split("\n")[usageRequest.position.line][usageRequest.position.character]*/
-            let toSend=this.api.create_request_message( globalCounter,Methods.References,usageRequest)
+            let counter=this.nextCounterValue();
+            this.counterDataClumpInfoMap.set(counter,{variableKey,variableName:dcVariable.name,usageType:UsageType.VariableUsed})
+
+            let toSend=this.api.create_request_message( counter,Methods.References,usageRequest)
           console.log("TO_SEND");
             console.log(toSend)
            //wait(2)
             socket.writer.write(toSend)
-            globalCounter+=1
             
         }
        

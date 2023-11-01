@@ -1,5 +1,6 @@
 import { DataClumpsTypeContext } from "data-clumps-type-context";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
+import { VariableOrMethodUsage } from "./VariableOrMethodUsage";
 export interface DataContextInterface{
         CodeObtaining:{
             path:string
@@ -11,6 +12,9 @@ export interface DataContextInterface{
             dataClumpKeyName:Map<string,string>
             nameDataClumpKey:Map<string,string>
 
+        },
+        UsageFinding:{
+            usages:Map<string,VariableOrMethodUsage[]>
         }
 }
 export const DataContext:DataContextInterface={
@@ -23,5 +27,8 @@ export const DataContext:DataContextInterface={
     NameFinding:{
         dataClumpKeyName:new Map(),
         nameDataClumpKey:new Map()
+    },
+    UsageFinding:{
+        usages:new Map(),
     }
 };
