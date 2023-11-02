@@ -13,6 +13,7 @@ import { ManualClassExtractor } from "./pipeline/stepHandler/classExtraction/Man
 import { JavaManualClassExtractor } from "./pipeline/stepHandler/classExtraction/JavaManualClassExtractor";
 import { GeorgeFraserRefactoring } from "./pipeline/stepHandler/languageServer/GeorgeFraserLSP_API";
 import { LanguageServerUsageAPI } from "./pipeline/stepHandler/languageServer/LanguageServerUsageAPI";
+import { EclipseLSP_API } from "./pipeline/stepHandler/languageServer/EclipseLSP_API";
 
 async function main(){
     console.log("hello world")
@@ -25,7 +26,7 @@ async function main(){
     PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetector],new DataClumpDetectorStep());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
-    PipeLine.Instance.registerHandler([PipeLineStep.UsageFinding],   new LanguageServerUsageAPI(new GeorgeFraserRefactoring()));
+    PipeLine.Instance.registerHandler([PipeLineStep.UsageFinding],   new LanguageServerUsageAPI(new EclipseLSP_API()));
     
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")

@@ -1,7 +1,7 @@
-export enum UsageType{VariableUsed,MethodCalled}
+export enum SymbolType{Variable,Method}
 export interface VariableOrMethodUsage {
-    type: UsageType;
-    line: number;
-    column: number;
+    symbolType: SymbolType;
+    range:{"start":{"line":number,"character":number},"end":{"line":number,"character":number}};
     filePath: string;
+    name:string
 }
