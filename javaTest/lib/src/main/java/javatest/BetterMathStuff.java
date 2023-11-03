@@ -1,4 +1,4 @@
-package javaTest.simpleExample;
+package javatest;
 
 public class BetterMathStuff extends MathStuff{
 

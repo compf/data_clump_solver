@@ -2,7 +2,7 @@ import fs from "fs"
 import { LanguageModelInterface } from "./LanguageModelInterface";
 export class ChatGPTInterface extends LanguageModelInterface{
     private api:any=null
-    private chatID:string="";
+    private chatID:string|undefined=undefined
     loadToken():string{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
     }
@@ -14,7 +14,9 @@ export class ChatGPTInterface extends LanguageModelInterface{
               })
         }
        
-        const res = await this.api.sendMessage(message)
+        const res = await this.api.sendMessage(message,{
+            parentMessageId: this.chatID
+          })
         this.chatID=res.id
         return res.text;
     }

@@ -20,7 +20,7 @@ export abstract class LanguageServerAPI {
     create_request_message(id: string | number, method: Methods, params: any): string {
         let content = JSON.stringify({ jsonrpc: "2.0", id, method, params })
         let header = "Content-Length: " + content.length + "\r\n\r\n";
-        //console.log("sending", header + content)
+        console.log("sending",  content)
         return header + content;
     }
     callInitialize(socket: Writable, path:string) {

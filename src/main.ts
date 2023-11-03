@@ -14,6 +14,7 @@ import { JavaManualClassExtractor } from "./pipeline/stepHandler/classExtraction
 import { GeorgeFraserRefactoring } from "./util/languageServer/GeorgeFraserLSP_API";
 import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
 import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
+import { LanguageModelRefactoringStep } from "./pipeline/stepHandler/refactoring/LanguageModelRefactoringStep";
 
 async function main(){
     console.log("hello world")
@@ -27,6 +28,7 @@ async function main(){
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
     PipeLine.Instance.registerHandler([PipeLineStep.UsageFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));
+    PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],   new LanguageModelRefactoringStep());
     
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")
