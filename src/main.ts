@@ -11,9 +11,9 @@ import { LanguageModelNameFindingsStep } from "./pipeline/stepHandler/nameFindin
 import { ChatGPTInterface } from "./util/languageModel/ChatGPTInterface";
 import { ManualClassExtractor } from "./pipeline/stepHandler/classExtraction/ManualClassExtractor";
 import { JavaManualClassExtractor } from "./pipeline/stepHandler/classExtraction/JavaManualClassExtractor";
-import { GeorgeFraserRefactoring } from "./pipeline/stepHandler/languageServer/GeorgeFraserLSP_API";
-import { LanguageServerUsageAPI } from "./pipeline/stepHandler/languageServer/LanguageServerUsageAPI";
-import { EclipseLSP_API } from "./pipeline/stepHandler/languageServer/EclipseLSP_API";
+import { GeorgeFraserRefactoring } from "./util/languageServer/GeorgeFraserLSP_API";
+import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
+import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
 
 async function main(){
     console.log("hello world")
@@ -26,7 +26,7 @@ async function main(){
     PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetector],new DataClumpDetectorStep());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
-    PipeLine.Instance.registerHandler([PipeLineStep.UsageFinding],   new LanguageServerUsageAPI(new EclipseLSP_API()));
+    PipeLine.Instance.registerHandler([PipeLineStep.UsageFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));
     
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")

@@ -2,16 +2,16 @@ import { DataContextInterface } from "../../../context/DataContext";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Readable, Writable } from "stream"
-import { ResponseMessage } from "./TypeDefinitions";
+import { ResponseMessage } from "../../../util/languageServer/TypeDefinitions";
 import { InitializeParams, ReferenceParams } from "ts-lsp-client";
 import { resolve } from "path"
-import { MyCapabilities } from "./capabilities";
+import { MyCapabilities } from "../../../util/languageServer/capabilities";
 import { readFileSync } from "fs"
-import { LanguageServerAPI, Methods } from "./LanguageServerAPI";
+import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
 import { SymbolType } from "../../../context/VariableOrMethodUsage";
 
 
-export class LanguageServerUsageAPI extends AbstractStepHandler {
+export class LanguageServerReferenceAPI extends AbstractStepHandler {
     api: LanguageServerAPI;
     globalCounter = 3
     counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: SymbolType }> = new Map();
