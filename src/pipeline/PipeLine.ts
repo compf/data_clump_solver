@@ -1,4 +1,4 @@
-import { DataContextInterface } from "../context/DataContext";
+import { DataClumpRefactoringContext } from "../context/DataContext";
 import { PipeLineStep } from "./PipeLineStep";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler";
 function getEnums<T extends {[key: string]: number | string}>(enumType: T): Array<[key: keyof T, value: T[keyof T]]> {
@@ -23,12 +23,12 @@ export class PipeLine{
             throw new Error(`Cannot register ${handler} to step ${steps.join(",")} ` )
         }
     }
-    async executeAllSteps(context:DataContextInterface){
+    async executeAllSteps(context:DataClumpRefactoringContext){
         
             for(let step in PipeLineStep){
                 for(let registeredSteps of this.stepHandlerList){
                     if(registeredSteps.steps.includes(PipeLineStep[step] as any as PipeLineStep)){
-                        await registeredSteps.handler.handle(context,null);
+                        context=await registeredSteps.handler.handle(context,null);
                     }
                 }
                

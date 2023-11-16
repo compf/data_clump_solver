@@ -1,4 +1,3 @@
-import { DataContextInterface } from "../../../context/DataContext";
 import { LanguageModelInterface } from "../../../util/languageModel/LanguageModelInterface";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";

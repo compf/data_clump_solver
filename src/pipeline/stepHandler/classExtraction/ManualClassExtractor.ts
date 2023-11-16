@@ -1,4 +1,5 @@
-import { DataContextInterface } from "../../../context/DataContext";
+import { DataClumpTypeContext } from "data-clumps-type-context";
+import { ClassExtractionContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
@@ -12,12 +13,14 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     override getExecutableSteps(): PipeLineStep[] {
         return [PipeLineStep.ClassExtraction]
     }
-    override handle(context: DataContextInterface, params: any) {
-        for(let nameDataClumpKey of (context.NameFinding.nameDataClumpKey)){
-            let suggestedName=nameDataClumpKey[0]
-            let dataClumpKey=nameDataClumpKey[1]
+    override handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
+        let detectorContext=context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext;
+        let nameFindingContext=context.getByType(NameFindingContext) as NameFindingContext;
+        let dataClumpKeyClassBody=new Map<string,string>();
+        for(let dataClumpKey of detectorContext.getDataClumpKeys()){
+            let suggestedName=nameFindingContext.getNameByDataClumpKey(dataClumpKey);
 
-            let dataClump=context.DataClumpDetector.dataClumpDetectionResult?.data_clumps[dataClumpKey]
+            let dataClump=detectorContext.getDataClumpDetectionResult()[dataClumpKey]! as DataClumpTypeContext;
             let classBody=this.createHead(suggestedName);
             let fieldNames:string[]=[]
             let types:string[]=[]
@@ -31,9 +34,11 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             }
             classBody+=this.createConstructor(suggestedName,types,fieldNames)
             classBody+=this.createTail();
-            console.log(classBody)
+            dataClumpKeyClassBody.set(dataClumpKey,classBody);
+            
 
         }
+        return Promise.resolve(context.buildNewContext(new ClassExtractionContext(dataClumpKeyClassBody)))
     }
 
 

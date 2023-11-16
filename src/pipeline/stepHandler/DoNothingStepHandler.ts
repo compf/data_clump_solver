@@ -1,10 +1,10 @@
+import { DataClumpRefactoringContext } from "../../context/DataContext";
 import { PipeLineStep } from "../PipeLineStep";
 import { AbstractStepHandler } from "./AbstractStepHandler";
-import { DataContextInterface } from "../../context/DataContext";
 
 export class DoNothingStepHandler extends AbstractStepHandler {
-    handle(context: DataContextInterface, params:any) {
-        // do nothing
+    handle(context: DataClumpRefactoringContext, params:any) {
+        return Promise.resolve(context);
     }
     getExecutableSteps(): PipeLineStep[] {
         return [PipeLineStep.FileFiltering,PipeLineStep.DataClumpFiltering]

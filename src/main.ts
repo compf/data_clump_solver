@@ -1,7 +1,7 @@
 import { Detector } from "./data-clumps-doctor/analyse/src"
 import { Analyzer } from "./data-clumps-doctor/analyse/src/ignoreCoverage/Analyzer"
 import { PipeLine } from "./pipeline/PipeLine"
-import { DataContext } from "./context/DataContext";
+import { DataClumpRefactoringContext } from "./context/DataContext";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
 import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
@@ -33,7 +33,8 @@ async function main(){
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")
     })*/
-    await PipeLine.Instance.executeAllSteps( DataContext)
+    let context=new DataClumpRefactoringContext();
+    await PipeLine.Instance.executeAllSteps( context)
     //console.log(DataContext.NameFinding.names)
 }
 main();

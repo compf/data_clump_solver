@@ -1,4 +1,4 @@
-import { DataContextInterface } from "../../../context/DataContext";
+import { DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Readable, Writable } from "stream"
@@ -8,7 +8,7 @@ import { resolve } from "path"
 import { MyCapabilities } from "../../../util/languageServer/capabilities";
 import { readFileSync } from "fs"
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
-import { SymbolType } from "../../../context/VariableOrMethodUsage";
+import { SymbolType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
 
 
 export class LanguageServerReferenceAPI extends AbstractStepHandler {
@@ -25,35 +25,38 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         return this.globalCounter++;
     }
 
-    async handle(context: DataContextInterface, params: any) {
-        await new Promise<void>(async handleResolver =>  {
-            const socket = await this.api.init(context.CodeObtaining.path, (data) => {
+    async handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
+        let usages=new Map<string,VariableOrMethodUsage[]>();
+        return await new Promise<DataClumpRefactoringContext>(async handleResolver =>  {
+            const socket = await this.api.init(context.getProjectPath(), (data) => {
                 console.log(JSON.stringify(data))
                let info= this.counterDataClumpInfoMap.get(data.id)!
                 if(info==undefined)return;
                 this.balance--
-                if(!context.UsageFinding.usages.has(info.variableKey)){
-                    context.UsageFinding.usages.set(info.variableKey,[])
+                if(!usages.has(info.variableKey)){
+                    usages.set(info.variableKey,[])
                 }
                 for(let  result of data.result!){
-                    context.UsageFinding.usages.get(info.variableKey)!.push({name:info.variableName,symbolType:info.usageType, range:result.range,filePath:result.uri})
+                   usages.get(info.variableKey)!.push({name:info.variableName,symbolType:info.usageType, range:result.range,filePath:result.uri})
     
                 }
                 console.log("balance",this.balance)
                 if(this.balance==0){
-                    handleResolver()
+                    handleResolver(context.buildNewContext(new UsageFindingContext(usages)))
                 }
             });
             console.log("hallo")
-            for (let dataClumpKey of Object.keys(context.DataClumpDetector.dataClumpDetectionResult?.data_clumps!)) {
-                let dc = context.DataClumpDetector.dataClumpDetectionResult?.data_clumps[dataClumpKey]!
+            let detectorContext=context.getByType(DataClumpDetectorContext)
+            for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
+                let dc = detectorContext.getDataClumpTypeContext(dataClumpKey)
                 let first = true;
                 for (let variableKey of Object.keys(dc.data_clump_data)) {
                     let dcVariable = dc.data_clump_data[variableKey]
+                    console.log(variableKey,"VARIABLE",dcVariable)
                     const variableUsageRequest: ReferenceParams = {
                         context: { includeDeclaration: true },
                         textDocument: {
-                            uri: "file://" + resolve(context.CodeObtaining.path) + "/" + dc?.from_file_path
+                            uri: "file://" + resolve(context.getProjectPath()) + "/" + dc?.from_file_path
                         },
                         position: {
                             line: dc.data_clump_data[variableKey]!.position.startLine - 1,
@@ -64,12 +67,12 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     };
                     if (dc.from_method_name != null ) {
                         first = false;
-                        let wholeFile = readFileSync(resolve(context.CodeObtaining.path) + "/" + dc?.from_file_path).toString().split("\n");
+                        let wholeFile = readFileSync(resolve(context.getProjectPath()) + "/" + dc?.from_file_path).toString().split("\n");
                         let methodPos = wholeFile[variableUsageRequest.position.line].indexOf(dc.from_method_name)
                         let methodDeclUsageRequest: ReferenceParams = {
                             context: { includeDeclaration: true },
                             textDocument: {
-                                uri: "file://" + resolve(context.CodeObtaining.path) + "/" + dc?.from_file_path
+                                uri: "file://" + resolve(context.getProjectPath()) + "/" + dc?.from_file_path
                             },
                             position: {
                                 line: dc.data_clump_data[variableKey]!.position.startLine - 1,

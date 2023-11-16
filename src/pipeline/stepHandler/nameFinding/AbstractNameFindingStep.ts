@@ -1,17 +1,20 @@
-import { DataContextInterface } from "../../../context/DataContext";
+import { DataClumpTypeContext } from "data-clumps-type-context";
+import { DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler {
 
-   async  handle(context: DataContextInterface, params: any) {
+   async  handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
        
 
             let cache=new Set<string>();
-            for (let dataClumpKey of Object.keys(context.DataClumpDetector.dataClumpDetectionResult!.data_clumps)) {
+            let detectorContext=context.getByType(DataClumpDetectorContext)
+            for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
 
-                let dataClump = context.DataClumpDetector.dataClumpDetectionResult!.data_clumps[dataClumpKey]
+                let dataClump = detectorContext.getDataClumpDetectionResult()[dataClumpKey]!;
                 let names: string[] = []
+                console.log(dataClumpKey,"helloQ",dataClump)
                 for (let k of Object.keys(dataClump.data_clump_data)) {
                     let name = dataClump.data_clump_data[k].name
 
@@ -25,11 +28,15 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
                 }
 
                 let reply = await this.getSuggestedName(names);
-                context.NameFinding.nameDataClumpKey.set( reply,dataClumpKey)
-                context.NameFinding.dataClumpKeyName.set( dataClumpKey,reply)
+            
                 cache.add(commaSeparated)
+                if(!(context instanceof NameFindingContext)){
+                   context=context.buildNewContext(new NameFindingContext());
+                }
+                (context as NameFindingContext).setNameKeyPair(reply,dataClumpKey)
 
             }
+            return context;
 
         
 

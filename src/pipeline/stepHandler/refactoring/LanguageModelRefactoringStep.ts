@@ -1,12 +1,11 @@
-import { DataContextInterface } from "../../../context/DataContext";
+import { DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
 import { PipeLineStep } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export class LanguageModelRefactoringStep extends AbstractStepHandler{
-    handle(context: DataContextInterface, params: any) {
+    handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
         console.log("START!!!! refactoring")
-        console.log(context.UsageFinding.usages)
-        for(let [key,usages] of context.UsageFinding.usages){
+        for(let [key,usages] of context.getByType(UsageFindingContext).usages){
           
             for(let usage of usages){
                 console.log("WWWWW")
@@ -15,6 +14,7 @@ export class LanguageModelRefactoringStep extends AbstractStepHandler{
             }
             
         }
+        return Promise.resolve(context);
         
     }
     getExecutableSteps(): PipeLineStep[] {
