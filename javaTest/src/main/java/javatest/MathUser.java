@@ -1,7 +1,9 @@
 package javatest;
 
 public class MathUser {
-
+    private boolean sign;
+    private double mantissa;
+    private int exponent;
     public void doLengthCalc(){
         MathStuff stuff=new MathStuff();
         stuff.printLength(5,6,4);
