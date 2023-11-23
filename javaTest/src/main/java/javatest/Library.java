@@ -6,7 +6,10 @@ package javatest;
 public class Library {
     public boolean someLibraryMethod() {
         MathStuff stuff=new MathStuff(true,1,1);
-        stuff.calcValue();
+        if(sign){
+            stuff.calcValue();
+        }
+       
         return true;
     }
     private boolean sign;
