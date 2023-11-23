@@ -2,7 +2,7 @@ plugins {
    application
 }
 
-group = "org.example"
+group = "javaTest"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -13,6 +13,11 @@ repositories {
 
 application {
     mainClass.set( "org.example.Main")
+}
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(19))
+    }
 }
 
 
