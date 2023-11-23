@@ -1,4 +1,4 @@
-package javatest;
+package org.example;
 
 public class MathUser {
     private boolean sign;
