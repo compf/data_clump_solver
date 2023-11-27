@@ -30,6 +30,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
             let allMessages=response.choices.map((x)=>x.message.content)
             for(let choice of response.choices){
                 console.log(choice.message.content)
+                this.completions.messages.push({role:"assistant",content:choice.message.content})
                 console.log("####")
             }
             return allMessages.join("---\n---\n")
