@@ -15,11 +15,14 @@ import { GeorgeFraserRefactoring } from "./util/languageServer/GeorgeFraserLSP_A
 import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
 import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
 import { LanguageModelRefactoringStep } from "./pipeline/stepHandler/refactoring/LanguageModelRefactoringStep";
+import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/DetectAndRefactorWithLanguageModelStep";
 
 async function main(){
-   let api=new ChatGPTInterface()
-   let response=await api.prepareMessage("What is 1+1?").sendMessages(false)
-   console.log(response)
+   PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest"));
+   PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection,PipeLineStep.Refactoring],new DetectAndRefactorWithLanguageModelStep())
+   let context=new DataClumpRefactoringContext()
+   
+   PipeLine.Instance.executeAllSteps(context)
 }
 main();
 

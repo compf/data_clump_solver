@@ -24,7 +24,7 @@ async function main(){
     }
     let project_path=sys.args[0];
     PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler(project_path));
-    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetector],new DataClumpDetectorStep());
+    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DataClumpDetectorStep());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
     PipeLine.Instance.registerHandler([PipeLineStep.UsageFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));

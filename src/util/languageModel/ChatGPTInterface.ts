@@ -14,7 +14,8 @@ export class ChatGPTInterface extends LanguageModelInterface{
     private chatID:string|undefined=undefined
     private completions:OpenAI.ChatCompletionCreateParamsNonStreaming={
         messages:[],
-        model:"gpt-3.5-turbo"
+        model:"gpt-3.5-turbo-1106",
+        response_format:{type:"json_object"}
     }
     loadToken():string{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
@@ -24,8 +25,14 @@ export class ChatGPTInterface extends LanguageModelInterface{
         if(clear){
             this.completions.messages=[]
         }
+        console.log(JSON.stringify(response,undefined,4))
         if(response.choices.length>0){
-            return response.choices[0].message.content!!
+            let allMessages=response.choices.map((x)=>x.message.content)
+            for(let choice of response.choices){
+                console.log(choice.message.content)
+                console.log("####")
+            }
+            return allMessages.join("---\n---\n")
         }
         return null
     }

@@ -21,7 +21,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
       
     }
     getExecutableSteps(): PipeLineStep[] {
-        return [PipeLineStep.ASTGeneration, PipeLineStep.SimilarityDetector, PipeLineStep.DataClumpDetector]
+        return [PipeLineStep.ASTGeneration, PipeLineStep.SimilarityDetection, PipeLineStep.DataClumpDetection]
     }
 
 }

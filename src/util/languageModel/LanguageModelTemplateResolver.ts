@@ -12,11 +12,11 @@ export class LanguageModelTemplateResolver {
     static fromPath(path:string):LanguageModelTemplateResolver{
         return new LanguageModelTemplateResolver(fs.readFileSync(`${path}`, 'utf-8'));
     }
-    resolveTemplate(replaceMap:Map<string,string>):string{
+    resolveTemplate(replaceMap:{[key:string]:string}):string{
         let result=this.template;
-        replaceMap.forEach((value,key)=>{
-            result=result.replace(key,value);
-        })
+        for(let key of Object.keys(replaceMap)){
+            result=result.replace(key,replaceMap[key]);
+        }
         return result;
       
     }
