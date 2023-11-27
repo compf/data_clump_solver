@@ -28,7 +28,9 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
                 }
 
                 let reply = await this.getSuggestedName(names);
-            
+                if(reply==null){
+                    reply="Dummy"
+                }
                 cache.add(commaSeparated)
                 if(!(context instanceof NameFindingContext)){
                    context=context.buildNewContext(new NameFindingContext());
@@ -47,5 +49,5 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
     getExecutableSteps(): PipeLineStep[] {
         return [PipeLineStep.NameFinding]
      }
-    abstract getSuggestedName(names:string[]):Promise<string>
+    abstract getSuggestedName(names:string[]):Promise<string|null>
 }

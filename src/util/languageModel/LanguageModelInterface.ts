@@ -1,3 +1,4 @@
 export abstract class LanguageModelInterface{
-     abstract sendMessage(message:string):Promise<string>;
+     abstract prepareMessage(message:string):LanguageModelInterface;
+     abstract sendMessages(clear:boolean):Promise<string|null>
 }
