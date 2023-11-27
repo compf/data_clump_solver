@@ -9,7 +9,9 @@ public class Library {
         if(sign){
             stuff.calcValue();
         }
-       
+       System.out.println(sign);
+       System.out.println(mantissa);
+       System.out.println(exponent);
         return true;
     }
     private boolean sign;

@@ -13,7 +13,13 @@ public class MathUser {
         int x1=4;
         int y1=3;
         int z1=-80;
-        stuff.printMax(x1,y1,z1);
+        if(sign){
+            z1=z1+exponent;
+        }
+        else{
+            x1=(int)(x1*mantissa);
+        }
+        stuff.printMax(x1, y1, z1);
     }
     public void executeSumOperation(){
         MathStuff stuff=new MathStuff();

@@ -2,8 +2,7 @@ package org.example;
 
 public class BetterMathStuff extends MathStuff{
 
-    @Override
-    public void printMax(int x, int y, int z) {
+    @Override public void printMax(int x, int y, int z) {
         //MathStuff stuff=new MathStuff();
         //stuff.printMax(x, y, z);
         x=Math.abs(x);
