@@ -1,5 +1,5 @@
 import { DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
-import { PipeLineStep } from "../../PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Readable, Writable } from "stream"
 import { ResponseMessage } from "../../../util/languageServer/TypeDefinitions";
@@ -117,7 +117,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
 
 
 
-    getExecutableSteps(): PipeLineStep[] {
+    getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.UsageFinding]
     }
 

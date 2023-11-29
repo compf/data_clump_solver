@@ -1,5 +1,5 @@
 import { DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
-import { PipeLineStep } from "../../PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export class LanguageModelRefactoringStep extends AbstractStepHandler{
@@ -17,7 +17,7 @@ export class LanguageModelRefactoringStep extends AbstractStepHandler{
         return Promise.resolve(context);
         
     }
-    getExecutableSteps(): PipeLineStep[] {
+    getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.Refactoring]
     }
 

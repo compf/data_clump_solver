@@ -1,5 +1,5 @@
 import { DataClumpRefactoringContext } from "../context/DataContext";
-import { PipeLineStep } from "./PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "./PipeLineStep";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler";
 function getEnums<T extends {[key: string]: number | string}>(enumType: T): Array<[key: keyof T, value: T[keyof T]]> {
     const keys = Object.keys(enumType).filter(key => isNaN(Number(key)));
@@ -7,9 +7,9 @@ function getEnums<T extends {[key: string]: number | string}>(enumType: T): Arra
   }
 export class PipeLine{
     public static readonly Instance=new PipeLine()
-    private stepHandlerList: {steps:PipeLineStep[],handler:AbstractStepHandler}[]=[]
+    private stepHandlerList: {steps:PipeLineStepType[],handler:AbstractStepHandler}[]=[]
 
-    registerHandler(steps:PipeLineStep[],handler:AbstractStepHandler){
+    registerHandler(steps:PipeLineStepType[],handler:AbstractStepHandler){
         if(steps.every((s)=>handler.canDoStep(s))){
             for(let registeredSteps of this.stepHandlerList){
                 if(steps.some((s)=>registeredSteps.steps.includes(s))){
@@ -27,7 +27,7 @@ export class PipeLine{
         
             for(let step in PipeLineStep){
                 for(let registeredSteps of this.stepHandlerList){
-                    if(registeredSteps.steps.includes(PipeLineStep[step] as any as PipeLineStep)){
+                    if(registeredSteps.steps.includes(PipeLineStep[step])){
                         context=await registeredSteps.handler.handle(context,null);
                     }
                 }

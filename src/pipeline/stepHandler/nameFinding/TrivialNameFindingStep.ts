@@ -1,5 +1,5 @@
 import { DataClumpTypeContext, DataClumpsVariableFromContext, Dictionary } from "data-clumps-type-context";
-import { PipeLineStep } from "../../PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { AbstractNameFindingStepHandler } from "./AbstractNameFindingStep";
 

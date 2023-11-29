@@ -1,6 +1,6 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { ClassExtractionContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
-import { PipeLineStep } from "../../PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export abstract class ManualClassExtractor extends AbstractStepHandler{
@@ -10,7 +10,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     abstract createHead(className:string);
     abstract createConstructor(className:string,types:string[],fieldNames:string[]):string;
     abstract createTail():string;
-    override getExecutableSteps(): PipeLineStep[] {
+    override getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ClassExtraction]
     }
     override handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {

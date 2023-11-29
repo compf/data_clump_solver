@@ -1,5 +1,5 @@
 import { DataClumpTypeContext, DataClumpsTypeContext, Dictionary } from "data-clumps-type-context";
-import { PipeLineStep } from "../pipeline/PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "../pipeline/PipeLineStep";
 import { VariableOrMethodUsage } from "./VariableOrMethodUsage";
 import { nodeModuleNameResolver } from "typescript";
 

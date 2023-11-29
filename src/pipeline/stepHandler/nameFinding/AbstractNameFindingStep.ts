@@ -1,6 +1,6 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
-import { PipeLineStep } from "../../PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler {
@@ -46,7 +46,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
     getQueryKey(identifiers: string[]):string {
         return identifiers.join(", ");
     }
-    getExecutableSteps(): PipeLineStep[] {
+    getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.NameFinding]
      }
     abstract getSuggestedName(names:string[]):Promise<string|null>

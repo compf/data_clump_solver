@@ -1,7 +1,7 @@
 import { DataClumpRefactoringContext } from "../../context/DataContext";
 import { ChatGPTInterface } from "../../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../util/languageModel/LanguageModelTemplateResolver";
-import { PipeLineStep } from "../PipeLineStep";
+import { PipeLineStep, PipeLineStepType } from "../PipeLineStep";
 import { AbstractStepHandler } from "./AbstractStepHandler";
 import fs from "fs"
 import { files } from "node-dir"
@@ -50,7 +50,7 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
             }
         }
     }
-    getExecutableSteps(): PipeLineStep[] {
+    getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.NameFinding, PipeLineStep.ClassExtraction, PipeLineStep.UsageFinding, PipeLineStep.Refactoring]
     }
 

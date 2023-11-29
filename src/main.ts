@@ -2,7 +2,7 @@ import { Detector } from "./data-clumps-doctor/analyse/src"
 import { Analyzer } from "./data-clumps-doctor/analyse/src/ignoreCoverage/Analyzer"
 import { PipeLine } from "./pipeline/PipeLine"
 import { DataClumpRefactoringContext } from "./context/DataContext";
-import { PipeLineStep } from "./pipeline/PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
 import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { sys } from "typescript";

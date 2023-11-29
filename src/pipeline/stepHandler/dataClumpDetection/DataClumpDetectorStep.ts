@@ -1,4 +1,4 @@
-import { PipeLineStep } from "../../PipeLineStep";
+import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Analyzer } from "../../../data-clumps-doctor/analyse/src/ignoreCoverage/Analyzer";
@@ -20,7 +20,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         return context.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
       
     }
-    getExecutableSteps(): PipeLineStep[] {
+    getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.SimilarityDetection, PipeLineStep.DataClumpDetection]
     }
 
