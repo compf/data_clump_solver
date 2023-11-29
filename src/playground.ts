@@ -16,13 +16,15 @@ import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
 import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
 import { LanguageModelRefactoringStep } from "./pipeline/stepHandler/refactoring/LanguageModelRefactoringStep";
 import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/DetectAndRefactorWithLanguageModelStep";
+import { GradleBuildValidationStepHandler } from "./pipeline/validation/GradleBuildValidationStepHandler";
 
 async function main(){
    PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest"));
-   PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection,PipeLineStep.Refactoring],new DetectAndRefactorWithLanguageModelStep())
+   PipeLine.Instance.registerHandler([PipeLineStep.Validation],new GradleBuildValidationStepHandler())
    let context=new DataClumpRefactoringContext()
    
-   PipeLine.Instance.executeAllSteps(context)
+   context=await PipeLine.Instance.executeAllSteps(context)
+   console.log(JSON.stringify(context))
 }
 main();
 

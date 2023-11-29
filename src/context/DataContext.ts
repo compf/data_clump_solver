@@ -89,6 +89,17 @@ export class UsageFindingContext extends DataClumpRefactoringContext {
         return this.usages
     }
 }
+export class ValidationContext extends DataClumpRefactoringContext{
+    validationResult:{
+        success:boolean,
+        message:string|null
+    }
+    constructor(validationResult:{  success:boolean,    message:string|null}){
+            
+            super()
+            this.validationResult=validationResult;
+        }
+}
 
 
 

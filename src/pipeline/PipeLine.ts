@@ -23,7 +23,7 @@ export class PipeLine{
             throw new Error(`Cannot register ${handler} to step ${steps.join(",")} ` )
         }
     }
-    async executeAllSteps(context:DataClumpRefactoringContext){
+    async executeAllSteps(context:DataClumpRefactoringContext):Promise<DataClumpRefactoringContext>{
         
             for(let step in PipeLineStep){
                 for(let registeredSteps of this.stepHandlerList){
@@ -33,6 +33,7 @@ export class PipeLine{
                 }
                
             }
+            return context
     }
 
 }

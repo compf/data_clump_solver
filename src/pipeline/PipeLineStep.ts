@@ -67,6 +67,12 @@ export namespace PipeLineStep {
         isRequired: false,
         defaultHandler: undefined
     };
+    export const Validation: PipeLineStepType = {
+        name: "Validation",
+
+        isRequired: false,
+        defaultHandler: undefined
+    };
         
 
  
