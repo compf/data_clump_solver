@@ -20,7 +20,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
     loadToken():string{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
     }
-    async  sendMessages(clear:boolean): Promise<string|null> {
+    async  sendMessages(clear:boolean): Promise<any> {
         let response= await this.api.chat.completions.create(this.completions);
         if(clear){
             this.completions.messages=[]
@@ -33,7 +33,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
                 this.completions.messages.push({role:"assistant",content:choice.message.content})
                 console.log("####")
             }
-            return allMessages.join("---\n---\n")
+            return allMessages
         }
         return null
     }

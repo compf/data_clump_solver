@@ -1,5 +1,7 @@
 import fs from 'fs';
-export enum LanguageModelTemplateType {FullyRefactor="refactor_data_clump_fully"}
+export enum LanguageModelTemplateType {FullyRefactor="refactor_data_clump_fully",
+    SuggestName="suggest_name",
+}
 export class LanguageModelTemplateResolver {
     private template: string;
     private constructor(text:string) {
