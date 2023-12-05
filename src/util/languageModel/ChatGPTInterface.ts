@@ -7,6 +7,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
         super();
         this.api=new OpenAI({
             apiKey:this.loadToken(),
+            
         
         });
         
@@ -14,8 +15,8 @@ export class ChatGPTInterface extends LanguageModelInterface{
     private chatID:string|undefined=undefined
     private completions:OpenAI.ChatCompletionCreateParamsNonStreaming={
         messages:[],
-        model:"gpt-3.5-turbo-1106",
-        response_format:{type:"json_object"}
+        model:"gpt-4-1106-preview",
+        response_format:{type:"json_object"},temperature:0.9
     }
     loadToken():string{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})

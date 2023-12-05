@@ -8,7 +8,7 @@ import { files } from "node-dir"
 import path from "path";
 export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let templateResolver = LanguageModelTemplateResolver.fromTemplateType(LanguageModelTemplateType.FullyRefactor)
+        let templateResolver = LanguageModelTemplateResolver.fromTemplateType(LanguageModelTemplateType.FindDataClumps)
         let api = new ChatGPTInterface()
         api.prepareMessage(templateResolver.resolveTemplate({
             "${programming_language}": "Java",
@@ -22,7 +22,10 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
             api.prepareMessage(content)
         }
 
-        let response=await api.sendMessages(true)
+        let response=await api.sendMessages(false)
+        console.log(response)
+        api.prepareMessage(LanguageModelTemplateResolver.fromTemplateType(LanguageModelTemplateType.FullyRefactor).resolveTemplate({}))
+        response=await api.sendMessages(false)
         console.log(response)
         return Promise.resolve(context);
     }
