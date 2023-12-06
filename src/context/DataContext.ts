@@ -12,16 +12,19 @@ export class DataClumpRefactoringContext {
     }
 
     protected sharedData: Map<string, any> = new Map<string, any>();
-    getByType<T>(ctor: new (...a: any) => T): T {
+    getByType<T>(ctor: new (...a: any) => T): T|null {
         let curr: DataClumpRefactoringContext = this;
         while (!(curr instanceof ctor) ) {
             curr = curr.previousContext!
+            if(curr==null){
+                return null;
+            }
 
         }
         return curr as T
     }
     getProjectPath(): string {
-        return this.getByType(CodeObtainingContext).getPath()
+        return this.getByType(CodeObtainingContext)!!.getPath()
     }
 }
 class InitalDataClumpRefactoringContext extends DataClumpRefactoringContext {
@@ -36,6 +39,15 @@ export class CodeObtainingContext extends DataClumpRefactoringContext {
         super()
         this.sharedData.set("path", path)
         this.path = path
+    }
+}
+export class FileFilteringContext extends DataClumpRefactoringContext {
+    includeGlobs: string[];
+    excludeGlobs: string[];
+    constructor(includeGlobs: string[], excludeGlobs: string[]) {
+        super()
+        this.includeGlobs = includeGlobs
+        this.excludeGlobs = excludeGlobs
     }
 }
 export class DataClumpDetectorContext extends DataClumpRefactoringContext {

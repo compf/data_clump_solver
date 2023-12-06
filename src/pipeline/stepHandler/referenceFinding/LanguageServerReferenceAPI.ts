@@ -29,6 +29,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         let usages=new Map<string,VariableOrMethodUsage[]>();
         return await new Promise<DataClumpRefactoringContext>(async handleResolver =>  {
             const socket = await this.api.init(context.getProjectPath(), (data) => {
+                console.log("begin")
                 console.log(JSON.stringify(data))
                let info= this.counterDataClumpInfoMap.get(data.id)!
                 if(info==undefined)return;
@@ -46,7 +47,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                 }
             });
             console.log("hallo")
-            let detectorContext=context.getByType(DataClumpDetectorContext)
+            let detectorContext=context.getByType(DataClumpDetectorContext)!!
             for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
                 let dc = detectorContext.getDataClumpTypeContext(dataClumpKey)
                 let first = true;

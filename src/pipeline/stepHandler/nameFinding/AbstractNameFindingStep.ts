@@ -9,7 +9,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
        
 
             let cache=new Set<string>();
-            let detectorContext=context.getByType(DataClumpDetectorContext)
+            let detectorContext=context.getByType(DataClumpDetectorContext)!!
             for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
 
                 let dataClump = detectorContext.getDataClumpDetectionResult()[dataClumpKey]!;
