@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 //#### example 1 ##################################
 // 'Parameters to parameters' data clump
 class Example1A {
+
+    //Both methods have the same parameters, so we can extract them into a class
     void processUserData(int userID, String username, String email) {
         System.out.println("Processing user data: ID-" + userID + ", Username-" + username + ", Email-" + email);
     }
@@ -63,6 +65,7 @@ class Example1A {
 //// 'Parameters to parameters' data clump
 // Example2A.java
 class Example2A {
+    //The methods in both classes have the same parameters, so we can extract them into a class
     void processProductData(int productID, String name, String description) {
         System.out.println("Processing product data: ID-" + productID + ", Name-" + name + ", Description-" + description);
     }
@@ -123,6 +126,7 @@ class Example2B {
 //#### example 3 ##################################
 //'fields to fields' data clump
 class Example3A {
+    // both classes have the same fields, so we can extract them into a class
     private int orderId;
     private int customerId;
     private int[] productIds;
@@ -221,6 +225,7 @@ class Example4A {
 // Example4B.java
 class Example4B {
     void showEmployeeInfo(int employeeID, String firstName, String lastName) {
+        //this method has the same parameters as the fields in Example4A, so we can extract them into a class
         System.out.println("Showing employee info: ID-" + employeeID + ", First Name-" + firstName + ", Last Name-" + lastName);
     }
 }
@@ -273,6 +278,8 @@ class Example4B {
 // ### example 5#########################
 //'method parameters to method parameters' data clump
 class Example5A {
+
+    // both methods share at least 3 parameters, so we can extract those 3 parameters into a class
     void processCustomerData(int customerID, String firstName, String lastName,int offset) {
         System.out.println("Processing customer data: ID-" + customerID+offset + ", First Name-" + firstName + ", Last Name-" + lastName);
     }
@@ -327,6 +334,8 @@ class Example5A {
 //### Example 6 #############
 // method parameters to method parameters' data clump
 class Example6A {
+
+    // both classes have methods which share at least 3 parameters, so we can extract those 3 parameters into a class
     void processTaskData(int taskID, String description, String status,String prefix) {
         System.out.println("Processing task data: ID-" + taskID + ", Description-" + description + ", Status-" + prefix+":"+status);
     }
@@ -390,6 +399,8 @@ class Example6B {
 //## example 7 ##################################
 // 'fields to fields' data clump
 class Example7A {
+
+    // both classes share at least 3 fields, so we can extract those 3 fields into a class
     private int postID;
     private String title;
     private String content;
@@ -488,6 +499,7 @@ class Example7B {
 // 'method parameters to fields' data clump
 class Example8A {
     void processEventData(int eventID, String title, LocalDateTime dateTime,boolean isGlobalEvent) {
+        // this method shares at least 3 parameters with the fields in Example8B, so we can extract those 3 parameters into a class
         System.out.println("Processing event data: EventID-" + eventID + ", Title-" + title + ", Date and Time-" + dateTime+", Is Global Event-"+isGlobalEvent);
     }   
 }
@@ -570,7 +582,7 @@ class Example9A {
 class Example9B extends Example9A {
     @Override
     void processPaymentData(int paymentID, int orderID, double paymentAmount) {
-        // Not a data clump even if signature is copied because the method is overridden
+        // This method constitutes not a data clump even if signature is copied because the method is overridden and therefore must have the same paremeters
         System.out.println("Confirming payment: PaymentID-" + paymentID + ", OrderID-" + orderID + ", Amount-" + paymentAmount);
     }
 }
