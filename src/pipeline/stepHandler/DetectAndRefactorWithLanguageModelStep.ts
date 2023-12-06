@@ -54,7 +54,7 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         }
     }
     getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.NameFinding, PipeLineStep.ClassExtraction, PipeLineStep.UsageFinding, PipeLineStep.Refactoring]
+        return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.NameFinding, PipeLineStep.ClassExtraction, PipeLineStep.ReferenceFinding, PipeLineStep.Refactoring]
     }
 
 }

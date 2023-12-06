@@ -55,8 +55,8 @@ export namespace PipeLineStep {
         defaultHandler: undefined
     };
       
-    export  const UsageFinding: PipeLineStepType = {
-        name: "UsageFinding",
+    export  const ReferenceFinding: PipeLineStepType = {
+        name: "ReferenceFinding",
 
         isRequired: false,
         defaultHandler: undefined

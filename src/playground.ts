@@ -17,15 +17,18 @@ import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFind
 import { LanguageModelRefactoringStep } from "./pipeline/stepHandler/refactoring/LanguageModelRefactoringStep";
 import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/DetectAndRefactorWithLanguageModelStep";
 import { GradleBuildValidationStepHandler } from "./pipeline/validation/GradleBuildValidationStepHandler";
+import { StepHandlerResolver } from "./pipeline/stepHandler/StepHandlerResolver";
 
 async function main(){
-   PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest"));
+   /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest"));
    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DetectAndRefactorWithLanguageModelStep());
    PipeLine.Instance.registerHandler([PipeLineStep.Validation],new GradleBuildValidationStepHandler())
    let context=new DataClumpRefactoringContext()
    
    context=await PipeLine.Instance.executeAllSteps(context)
-   console.log(JSON.stringify(context))
+   console.log(JSON.stringify(context))*/
+   let resolver= StepHandlerResolver.Instance
+   resolver.resolveFromName("SimpleCodeObtainingStepHandler",PipeLineStep.CodeObtaining.name,null)
 }
 main();
 

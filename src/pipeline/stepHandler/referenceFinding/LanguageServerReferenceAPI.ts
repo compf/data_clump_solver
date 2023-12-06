@@ -119,7 +119,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
 
 
     getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.UsageFinding]
+        return [PipeLineStep.ReferenceFinding]
     }
 
 

@@ -27,7 +27,7 @@ async function main(){
     PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DataClumpDetectorStep());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
-    PipeLine.Instance.registerHandler([PipeLineStep.UsageFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));
+    PipeLine.Instance.registerHandler([PipeLineStep.ReferenceFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));
     PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],   new LanguageModelRefactoringStep());
     
     /*let result=analyser.analyse(null).then((x)=>{
