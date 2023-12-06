@@ -12,6 +12,7 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         let api = new ChatGPTInterface()
         api.prepareMessage(templateResolver.resolveTemplate({
             "${programming_language}": "Java",
+            "${examples}":fs.readFileSync("chatgpt_templates/DataClumpExamples.java", { encoding: "utf-8" })
         }));
 
         let projectPath = context.getProjectPath();

@@ -120,7 +120,7 @@ class Example2B {
 }
 //#### example 2 end ##################################
 
-// Example3A.java
+//#### example 3 ##################################
 //'fields to fields' data clump
 class Example3A {
     private int orderId;
@@ -205,14 +205,16 @@ class Example3B {
     }
 }
 //#### example 3 end ##################################
-// Example4A.java
-class Example4A {
-    void processEmployeeData(int employeeID, String firstName, String lastName) {
-        System.out.println("Processing employee data: ID-" + employeeID + ", First Name-" + firstName + ", Last Name-" + lastName);
-    }
 
-    void displayEmployeeInfo(int employeeID, String firstName, String lastName) {
-        System.out.println("Displaying employee info: ID-" + employeeID + ", First Name-" + firstName + ", Last Name-" + lastName);
+
+//#### example 4 ##################################
+// 'method parameters to fields' data clump
+class Example4A {
+    private int employeeID;
+    private String firstName;
+    private String lastName;
+    void processEmployeeData() {
+        System.out.println("Processing employee data: ID-" + employeeID + ", First Name-" + firstName + ", Last Name-" + lastName);
     }
 }
 
@@ -222,111 +224,355 @@ class Example4B {
         System.out.println("Showing employee info: ID-" + employeeID + ", First Name-" + firstName + ", Last Name-" + lastName);
     }
 }
+//### refactored ##################################
+class EmployeeRecord{
+    int employeeID;
+    String firstName;
+    String lastName;
+    EmployeeRecord(int employeeID, String firstName, String lastName){
+        this.employeeID = employeeID;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    public int getEmployeeID() {
+        return employeeID;
+    }
+    public String getFirstName() {
+        return firstName;
+    }
+    public String getLastName() {
+        return lastName;
+    }
 
-// Example5A.java
+    public void setEmployeeID(int employeeID) {
+        this.employeeID = employeeID;
+    }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    } 
+       
+}
+class Example4A {
+    private EmployeeRecord employeeRecord;
+    void processEmployeeData() {
+        System.out.println("Processing employee data: ID-" + employeeRecord.getEmployeeID() + ", First Name-" + employeeRecord.getFirstName() + ", Last Name-" + employeeRecord.getLastName());
+    }
+
+}
+class Example4B {
+    void showEmployeeInfo(EmployeeRecord employeeRecord) {
+        System.out.println("Showing employee info: ID-" + employeeRecord.getEmployeeID() + ", First Name-" + employeeRecord.getFirstName() + ", Last Name-" + employeeRecord.getLastName());
+    }
+}
+//#### example 4 end ##################################
+
+
+// ### example 5#########################
+//'method parameters to method parameters' data clump
 class Example5A {
-    void processCustomerData(int customerID, String firstName, String lastName) {
-        System.out.println("Processing customer data: ID-" + customerID + ", First Name-" + firstName + ", Last Name-" + lastName);
+    void processCustomerData(int customerID, String firstName, String lastName,int offset) {
+        System.out.println("Processing customer data: ID-" + customerID+offset + ", First Name-" + firstName + ", Last Name-" + lastName);
     }
 
-    void sendCustomerNotification(int customerID, String firstName, String lastName) {
-        System.out.println("Sending customer notification: ID-" + customerID + ", First Name-" + firstName + ", Last Name-" + lastName);
-    }
-}
-
-// Example5B.java
-class Example5B {
-    void notifyCustomer(int customerID, String firstName, String lastName) {
-        System.out.println("Notifying customer: ID-" + customerID + ", First Name-" + firstName + ", Last Name-" + lastName);
+    void sendCustomerNotification(int customerID, String firstName, String lastName,double factor) {
+        System.out.println("Sending customer notification: ID-" + customerID*factor + ", First Name-" + firstName + ", Last Name-" + lastName);
     }
 }
 
-// Example6A.java
+//## refactored ##################################
+class CustomerData{
+    int customerID;
+    String firstName;
+    String lastName;
+    CustomerData(int customerID, String firstName, String lastName){
+        this.customerID = customerID;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    public int getCustomerID() {
+        return customerID;
+    }
+    public String getFirstName() {
+        return firstName;
+    }
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setCustomerID(int customerID) {
+        this.customerID = customerID;
+    }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    } 
+       
+}
+class Example5A {
+    void processCustomerData(CustomerData customerData, int offset) {
+        System.out.println("Processing customer data: ID-" + customerData.getCustomerID()+offset + ", First Name-" + customerData.getFirstName() + ", Last Name-" + customerData.getLastName());
+    }
+
+    void sendCustomerNotification(CustomerData customerData, double factor) {
+        System.out.println("Sending customer notification: ID-" + customerData.getCustomerID()*factor + ", First Name-" + customerData.getFirstName() + ", Last Name-" + customerData.getLastName());
+    }
+}
+//#### example 5 end ##################################
+
+//### Example 6 #############
+// method parameters to method parameters' data clump
 class Example6A {
-    void processTaskData(int taskID, String description, String status) {
-        System.out.println("Processing task data: ID-" + taskID + ", Description-" + description + ", Status-" + status);
+    void processTaskData(int taskID, String description, String status,String prefix) {
+        System.out.println("Processing task data: ID-" + taskID + ", Description-" + description + ", Status-" + prefix+":"+status);
     }
 
-    void completeTask(int taskID, String description, String status) {
-        System.out.println("Completing task: ID-" + taskID + ", Description-" + description + ", Status-" + status);
-    }
+ 
 }
 
-// Example6B.java
+
 class Example6B {
-    void finishTask(int taskID, String description, String status) {
-        System.out.println("Finishing task: ID-" + taskID + ", Description-" + description + ", Status-" + status);
+    void finishTask(int taskID, String description, String status,boolean lowerCase) {
+        System.out.println("Finishing task: ID-" + taskID + ", Description-" + description + ", Status-" + lowerCase?status.toLowerCase():status);
     }
 }
+//## refactored ##################################
 
-// Example7A.java
+class TaskData{
+    int taskID;
+    String description;
+    String status;
+    TaskData(int taskID, String description, String status){
+        this.taskID = taskID;
+        this.description = description;
+        this.status = status;
+    }
+    public int getTaskID() {
+        return taskID;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setTaskID(int taskID) {
+        this.taskID = taskID;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    } 
+       
+}
+class Example6A {
+    void processTaskData(TaskData taskData, String prefix) {
+        System.out.println("Processing task data: ID-" + taskData.getTaskID() + ", Description-" + taskData.getDescription() + ", Status-" + prefix+":"+taskData.getStatus());
+    }
+
+ 
+}
+class Example6B {
+    void finishTask(TaskData taskData, boolean lowerCase) {
+        System.out.println("Finishing task: ID-" + taskData.getTaskID() + ", Description-" + taskData.getDescription() + ", Status-" + lowerCase?taskData.getStatus().toLowerCase():taskData.getStatus());
+    }
+}
+//## Example 6 end ##################################
+
+
+//## example 7 ##################################
+// 'fields to fields' data clump
 class Example7A {
-    void processBlogPostData(int postID, String title, String content) {
-        System.out.println("Processing blog post data: PostID-" + postID + ", Title-" + title + ", Content-" + content);
-    }
+    private int postID;
+    private String title;
+    private String content;
+    private String author;
 
-    void shareBlogPost(int postID, String title, String content) {
-        System.out.println("Sharing blog post: PostID-" + postID + ", Title-" + title + ", Content-" + content);
+    void processBlogPostData() {
+        System.out.println("Processing blog post data: PostID-" + postID + ", Title-" + title + ", Content-" + content+", Author-"+author);
     }
+    Example7A(int postID, String title, String content, String author){
+        this.postID = postID;
+        this.title = title;
+        this.content = content;
+        this.author = author;
+    }
+   
 }
 
 // Example7B.java
 class Example7B {
+    private int postID;
+    private String title;
+    private String content;
+    private int length;
     void distributeBlogPost(int postID, String title, String content) {
-        System.out.println("Distributing blog post: PostID-" + postID + ", Title-" + title + ", Content-" + content);
+        System.out.println("Distributing blog post: PostID-" + postID + ", Title-" + title + ", Content-" + content+ ", Length-" + length+ "words");
+    }
+    Example7B(int postID, String title, String content){
+        this.postID = postID;
+        this.title = title;
+        this.content = content;
+        this.length = content.split(" ").length;
     }
 }
+//## refactored ##################################
 
-// Example8A.java
+class BlogPost{
+    int postID;
+    String title;
+    String content;
+    BlogPost(int postID, String title, String content, String author){
+        this.postID = postID;
+        this.title = title;
+        this.content = content;
+    }
+    public int getPostID() {
+        return postID;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public String getContent() {
+        return content;
+    }
+
+
+    public void setPostID(int postID) {
+        this.postID = postID;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
+   
+       
+}
+
+class Example7A {
+    private BlogPost blogPost;
+    private String author;
+    void processBlogPostData() {
+        System.out.println("Processing blog post data: PostID-" + blogPost.getPostID() + ", Title-" + blogPost.getTitle() + ", Content-" + blogPost.getContent()+", Author-"+author);
+    }
+    Example7A(int postID, String title, String content, String author){
+        this.blogPost = new BlogPost(postID, title, content);
+        this.author = author;
+    }
+   
+}
+class Example7B {
+    private BlogPost blogPost;
+    private int length;
+    void distributeBlogPost() {
+        System.out.println("Distributing blog post: PostID-" + blogPost.getPostID() + ", Title-" + blogPost.getTitle() + ", Content-" + blogPost.getContent()+ ", Length-" + length+ "words");
+    }
+    Example7B(int postID, String title, String content){
+        this.blogPost = new BlogPost(postID, title, content);
+        this.length= content.split(" ").length;
+    }
+}
+//## example 7 end ##################################
+
+
+//## example 8 ##################################
+// 'method parameters to fields' data clump
 class Example8A {
-    void processEventData(int eventID, String title, LocalDateTime dateTime) {
-        System.out.println("Processing event data: EventID-" + eventID + ", Title-" + title + ", Date and Time-" + dateTime);
-    }
-
-    void organizeEvent(int eventID, String location, int organizerID) {
-        System.out.println("Organizing event: EventID-" + eventID + ", Location-" + location + ", OrganizerID-" + organizerID);
-    }
+    void processEventData(int eventID, String title, LocalDateTime dateTime,boolean isGlobalEvent) {
+        System.out.println("Processing event data: EventID-" + eventID + ", Title-" + title + ", Date and Time-" + dateTime+", Is Global Event-"+isGlobalEvent);
+    }   
 }
 
 // Example8B.java
 class Example8B {
-    void attendEvent(int eventID, String title, LocalDateTime dateTime) {
-        System.out.println("Attending event: EventID-" + eventID + ", Title-" + title + ", Date and Time-" + dateTime);
+    private int eventID;
+    private String title;
+    private LocalDateTime dateTime;
+    private Object params;
+
+    void attendEvent() {
+        System.out.println("Attending event: EventID-" + eventID + ", Title-" + title + ", Date and Time-" + dateTime + ", Params-" + params.toString());
     }
 }
+//## refactored ##################################
+class EventData{
+    int eventID;
+    String title;
+    LocalDateTime dateTime;
+    EventData(int eventID, String title, LocalDateTime dateTime){
+        this.eventID = eventID;
+        this.title = title;
+        this.dateTime = dateTime;
+    }
+    public int getEventID() {
+        return eventID;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
 
-// Example9A.java
+    public void setEventID(int eventID) {
+        this.eventID = eventID;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+ 
+       
+}
+class Example8A {
+    private EventData eventData;
+    private  boolean isGlobalEvent;
+    void processEventData() {
+        System.out.println("Processing event data: EventID-" + eventData.getEventID() + ", Title-" + eventData.getTitle() + ", Date and Time-" + eventData.getDateTime()+", Is Global Event-"+eventData.getIsGlobalEvent());
+    }   
+    Example8A(int eventID, String title, LocalDateTime dateTime,boolean isGlobalEvent){
+        this.eventData = new EventData(eventID, title, dateTime);
+        this.isGlobalEvent = isGlobalEvent;
+    }
+}
+class Example8B {
+    private EventData eventData;
+    private Object params;
+    void attendEvent() {
+        System.out.println("Attending event: EventID-" + eventData.getEventID() + ", Title-" + eventData.getTitle() + ", Date and Time-" + eventData.getDateTime() + ", Params-" + params.toString());
+    }
+    Example8B(int eventID, String title, LocalDateTime dateTime){
+        this.eventData = new EventData(eventID, title, dateTime);
+        this.params = params;
+    }
+}
+//## example 8 end ##################################
+
+//## example 9 ##################################
 class Example9A {
     void processPaymentData(int paymentID, int orderID, double paymentAmount) {
         System.out.println("Processing payment data: PaymentID-" + paymentID + ", OrderID-" + orderID + ", Amount-" + paymentAmount);
     }
-
-    void recordPayment(int paymentID, int orderID, Date paymentDate) {
-        System.out.println("Recording payment: PaymentID-" + paymentID + ", OrderID-" + orderID + ", Payment Date-" + paymentDate);
-    }
 }
 
 // Example9B.java
-class Example9B {
-    void confirmPayment(int paymentID, int orderID, double paymentAmount) {
+class Example9B extends Example9A {
+    @Override
+    void processPaymentData(int paymentID, int orderID, double paymentAmount) {
+        // Not a data clump even if signature is copied because the method is overridden
         System.out.println("Confirming payment: PaymentID-" + paymentID + ", OrderID-" + orderID + ", Amount-" + paymentAmount);
     }
 }
+//## example 9 end ##################################
 
-// Example10A.java
-class Example10A {
-    void processBookData(String ISBN, String title, String author) {
-        System.out.println("Processing book data: ISBN-" + ISBN + ", Title-" + title + ", Author-" + author);
-    }
-
-    void updateBookGenre(String ISBN, String genre) {
-        System.out.println("Updating book genre: ISBN-" + ISBN + ", Genre-" + genre);
-    }
-}
-
-// Example10B.java
-class Example10B {
-    void displayBookDetails(String ISBN, String title, String author) {
-        System.out.println("Displaying book details: ISBN-" + ISBN + ", Title-" + title + ", Author-" + author);
-    }
-}
