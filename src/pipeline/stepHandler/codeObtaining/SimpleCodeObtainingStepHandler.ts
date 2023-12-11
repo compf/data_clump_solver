@@ -2,7 +2,8 @@ import { CodeObtainingContext, DataClumpRefactoringContext } from "../../../cont
 import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 type SimpleCodeObtainingStepHandlerParams={
-    path:string
+    path:string|null|undefined
+    useArgPath:boolean
 }
 export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
     private path: string;
@@ -14,7 +15,13 @@ export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
     }
     constructor(args:SimpleCodeObtainingStepHandlerParams){
         super();
-        this.path=args.path;
+        if(args.useArgPath){
+            this.path=process.argv[2];
+        }
+        else{
+            this.path=args.path!!;
+        }
+        
     }
     
 }
