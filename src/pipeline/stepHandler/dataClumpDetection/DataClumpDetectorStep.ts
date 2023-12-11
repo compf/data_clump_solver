@@ -71,6 +71,10 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.SimilarityDetection, PipeLineStep.DataClumpDetection]
     }
+    constructor(args:any){
+        super();
+        console.log("initialized with",args)
+    }
 
 }
 

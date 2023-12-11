@@ -9,17 +9,23 @@ import { MyCapabilities } from "../../../util/languageServer/capabilities";
 import { readFileSync } from "fs"
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
 import { SymbolType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
+import { registerFromName, resolveFromName } from "../../../config/Configuration";
 
-
+type LanguageServerReferenceAPIParams = {
+    apiName: string,
+    apiArgs: any
+}
 export class LanguageServerReferenceAPI extends AbstractStepHandler {
-    api: LanguageServerAPI;
+    api: LanguageServerAPI|null=null;
+    apiArgs:LanguageServerReferenceAPIParams
     globalCounter = 3
     balance=0;
     visitedMethods: Set<string> = new Set();
     counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: SymbolType }> = new Map();
-    constructor(api: LanguageServerAPI) {
+    constructor(args: LanguageServerReferenceAPIParams) {
         super();
-        this.api = api;
+        registerFromName(args.apiName, "LanguageServerAPI", args.apiArgs)
+        this.apiArgs = args;
     }
     nextCounterValue(): number {
         return this.globalCounter++;
@@ -27,8 +33,11 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
 
     async handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
         let usages=new Map<string,VariableOrMethodUsage[]>();
+        if(this.api==null){
+            this.api=resolveFromName("LanguageServerAPI") as LanguageServerAPI;
+        }
         return await new Promise<DataClumpRefactoringContext>(async handleResolver =>  {
-            const socket = await this.api.init(context.getProjectPath(), (data) => {
+            const socket = await this.api!!.init(context.getProjectPath(), (data) => {
                 console.log("begin")
                 console.log(JSON.stringify(data))
                let info= this.counterDataClumpInfoMap.get(data.id)!
@@ -89,7 +98,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                         let counter = this.nextCounterValue();
                         this.counterDataClumpInfoMap.set(counter, { variableKey:dc.from_method_key!, variableName: dc.from_method_name, usageType: SymbolType.Method })
                         this.balance++;
-                        let toSend = this.api.create_request_message(counter, Methods.References, methodDeclUsageRequest)
+                        let toSend = this.api!!.create_request_message(counter, Methods.References, methodDeclUsageRequest)
                        
                         this.visitedMethods.add(dc.from_method_key!)
                         
@@ -102,7 +111,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     let counter = this.nextCounterValue();
                     this.counterDataClumpInfoMap.set(counter, { variableKey, variableName: dcVariable.name, usageType: SymbolType.Variable })
     
-                    let toSend = this.api.create_request_message(counter, Methods.References, variableUsageRequest)
+                    let toSend = this.api!!.create_request_message(counter, Methods.References, variableUsageRequest)
                    
                     //wait(2)
                     this.balance++;
@@ -119,7 +128,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
 
 
     getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.UsageFinding]
+        return [PipeLineStep.ReferenceFinding]
     }
 
 
