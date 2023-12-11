@@ -35,7 +35,7 @@ async function main(){
         console.log("finnish")
     })*/
     let context=new DataClumpRefactoringContext();
-    let detector=resolveFromName("DataClumpDetectorStep",PipeLineStep.DataClumpDetection.name)
+    let detector=resolveFromName(PipeLineStep.DataClumpDetection.name)
     console.log((detector))
     await PipeLine.Instance.executeAllSteps( context)
     //console.log(DataContext.NameFinding.names)

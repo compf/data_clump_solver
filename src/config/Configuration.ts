@@ -2,7 +2,7 @@ import { ContainerBuilder } from "node-dependency-injection"
 import { AbstractStepHandler } from "../pipeline/stepHandler/AbstractStepHandler"
 import fs from "fs"
 import { PipeLineStep } from "../pipeline/PipeLineStep"
-type PipeLineStepConf={
+export type PipeLineStepConf={
     handler:string,
     args:any
 }
@@ -12,7 +12,7 @@ export type Configuration={
         CodeObtaining:PipeLineStepConf,
          FileFiltering:PipeLineStepConf,
          ASTGeneration:PipeLineStepConf,
-         SilarityDetection:PipeLineStepConf,
+         SimilarityDetection:PipeLineStepConf,
          DataClumpDetection:PipeLineStepConf,
          DataClumpFiltering:PipeLineStepConf,
          NameFinding:PipeLineStepConf,
@@ -23,16 +23,28 @@ export type Configuration={
     }
     
 }
-const container=new ContainerBuilder();
 const pathPrefix="../pipeline/stepHandler/"
-export function registerFromName(name:string,dependencyCategory:string,args:any){
-    const directoryName= getDirectoryFromCategory(dependencyCategory);
-    const loadedScript=require(pathPrefix+directoryName+"/"+name+".js");
-    container.register(`${pathPrefix}${directoryName}/${name}`,loadedScript[name]).addArgument(args);
+
+const nameScriptFileMap={
+    SimpleCodeObtainingStepHandler:pathPrefix+"codeObtaining/SimpleCodeObtainingStepHandler.js",
+    DataClumpDetectorStep:pathPrefix+"dataClumpDetection/DataClumpDetectorStep.js",
+    TrivialNameFindingStep:pathPrefix+"nameFinding/TrivialNameFindingStep.js",
+    LanguageModelNameFindingsStep:pathPrefix+"nameFinding/LanguageModelNameFindingStep.js",
+    JavaManualClassExtractor:pathPrefix+"classExtraction/JavaManualClassExtractor.js",
+    LanguageServerReferenceAPI:pathPrefix+"referenceFinding/LanguageServerReferenceAPI.js",
+    ChatGPTInterface:"../util/languageModel/ChatGPTInterface.js",
 }
-export function resolveFromName(name:string,dependencyCategory:string):AbstractStepHandler{
-    const directoryName= getDirectoryFromCategory(dependencyCategory);
-    return container.get(`${pathPrefix}${directoryName}/${name}`) as AbstractStepHandler;
+const container=new ContainerBuilder();
+export function registerFromName(name:string,dependencyCategory:string,args:any){
+    let requirePath=name
+    if(Object.keys(nameScriptFileMap).includes(name)){
+        requirePath=nameScriptFileMap[name]
+    }
+    const loadedScript=require(requirePath);
+    container.register(dependencyCategory,loadedScript[name]).addArgument(args);
+}
+export function resolveFromName(dependencyCategory:string):AbstractStepHandler{
+    return container.get(dependencyCategory) as AbstractStepHandler;
 }
 
 export function loadConfiguration(){
@@ -44,7 +56,5 @@ export function loadConfiguration(){
         }
     }
 }
+export const LanguageModelCategory="LanguageModel"
 
-function getDirectoryFromCategory(stepName:string):string{
-   return  stepName.substring(0,1).toLowerCase()+stepName.substring(1)
-}
