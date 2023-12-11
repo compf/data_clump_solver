@@ -27,8 +27,8 @@ async function main(){
    
    context=await PipeLine.Instance.executeAllSteps(context)
    console.log(JSON.stringify(context))*/
-   let resolver= StepHandlerResolver.Instance
-   resolver.resolveFromName("SimpleCodeObtainingStepHandler",PipeLineStep.CodeObtaining.name,null)
+   /*let resolver= StepHandlerResolver.Instance
+   resolver.resolveFromName("SimpleCodeObtainingStepHandler",PipeLineStep.CodeObtaining.name,null)*/
 }
 main();
 

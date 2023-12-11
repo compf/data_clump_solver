@@ -15,6 +15,7 @@ import { GeorgeFraserRefactoring } from "./util/languageServer/GeorgeFraserLSP_A
 import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
 import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
 import { LanguageModelRefactoringStep } from "./pipeline/stepHandler/refactoring/LanguageModelRefactoringStep";
+import { loadConfiguration, resolveFromName } from "./config/Configuration";
 
 async function main(){
     console.log("hello world")
@@ -23,17 +24,19 @@ async function main(){
         throw new Error ("Please provide a path to a project")
     }
     let project_path=sys.args[0];
-    PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler(project_path));
+    /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler(project_path));
     PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DataClumpDetectorStep());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
     PipeLine.Instance.registerHandler([PipeLineStep.ReferenceFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));
-    PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],   new LanguageModelRefactoringStep());
-    
+    PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],   new LanguageModelRefactoringStep());*/
+    loadConfiguration();
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")
     })*/
     let context=new DataClumpRefactoringContext();
+    let detector=resolveFromName("DataClumpDetectorStep",PipeLineStep.DataClumpDetection.name)
+    console.log((detector))
     await PipeLine.Instance.executeAllSteps( context)
     //console.log(DataContext.NameFinding.names)
 }
