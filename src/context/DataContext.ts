@@ -137,7 +137,7 @@ export class ValidationContext extends DataClumpRefactoringContext {
         this.validationResult = validationResult;
     }
 }
-export const MandatoryContextNames=[CodeObtainingContext.name,DataClumpDetectorContext.name,NameFindingContext.name,RefactoredContext.name]
+export const MandatoryContextNames=[CodeObtainingContext.name,RefactoredContext.name]
 
 
 

@@ -53,4 +53,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
      addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
             createdContexts.add(NameFindingContext.name)
      }
+     addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
+        requirements.add(DataClumpDetectorContext.name)
+     }
     }

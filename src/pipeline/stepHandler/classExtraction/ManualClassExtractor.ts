@@ -43,6 +43,10 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(ClassExtractionContext.name)
     }
+    addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
+        requirements.add(DataClumpDetectorContext.name)
+        requirements.add(NameFindingContext.name)
+    }
 
 
 }

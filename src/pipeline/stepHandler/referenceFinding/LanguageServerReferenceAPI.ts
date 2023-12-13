@@ -33,6 +33,9 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
    addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
          createdContexts.add(UsageFindingContext.name)
    }
+   addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
+       requirements.add(DataClumpDetectorContext.name)
+   }
 
     async handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
         let usages=new Map<string,VariableOrMethodUsage[]>();
