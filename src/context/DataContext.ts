@@ -2,28 +2,7 @@ import { DataClumpTypeContext, DataClumpsTypeContext, Dictionary } from "data-cl
 import { PipeLineStep, PipeLineStepType } from "../pipeline/PipeLineStep";
 import { VariableOrMethodUsage } from "./VariableOrMethodUsage";
 import { nodeModuleNameResolver } from "typescript";
-export function getPositionByName(name: string|null): number {
-    switch (name) {
-        case CodeObtainingContext.name:
-            return 0;
-        case FileFilteringContext.name:
-            return 1;
-        case DataClumpDetectorContext.name:
-            return 3;
-        case NameFindingContext.name:
-            return 4;
-        case ClassExtractionContext.name:
-            return 5;
-        case UsageFindingContext.name:
-            return 6;
-        case RefactoredContext.name:
-            return 7;
-        case ValidationContext.name:
-            return 8;
-        default:
-            return -1;
-    }
-}
+
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
@@ -158,6 +137,7 @@ export class ValidationContext extends DataClumpRefactoringContext {
         this.validationResult = validationResult;
     }
 }
+export const MandatoryContextNames=[CodeObtainingContext.name,DataClumpDetectorContext.name,NameFindingContext.name,RefactoredContext.name]
 
 
 

@@ -30,12 +30,9 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     nextCounterValue(): number {
         return this.globalCounter++;
     }
-    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
-        return DataClumpDetectorContext.name
-    }
-    getReturnedContextType(pipeLineStep: PipeLineStepType, contextName: string | null): string | null {
-        return UsageFindingContext.name
-    }
+   addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
+         createdContexts.add(UsageFindingContext.name)
+   }
 
     async handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
         let usages=new Map<string,VariableOrMethodUsage[]>();

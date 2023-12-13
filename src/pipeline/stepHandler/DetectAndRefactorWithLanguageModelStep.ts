@@ -1,4 +1,4 @@
-import { CodeObtainingContext, DataClumpRefactoringContext, RefactoredContext } from "../../context/DataContext";
+import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext } from "../../context/DataContext";
 import { ChatGPTInterface } from "../../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../util/languageModel/LanguageModelTemplateResolver";
 import { PipeLineStep, PipeLineStepType } from "../PipeLineStep";
@@ -57,11 +57,11 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.NameFinding, PipeLineStep.ClassExtraction, PipeLineStep.ReferenceFinding, PipeLineStep.Refactoring]
     }
-    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
-        return CodeObtainingContext.name;
-    }
-    getReturnedContextType(pipeLineStep: PipeLineStepType, context: string | null): string | null {
-        return RefactoredContext.name
-    }
+  addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
+    
+    createdContexts.add(DataClumpDetectorContext.name) 
+    createdContexts.add(NameFindingContext.name);   
+    createdContexts.add(RefactoredContext.name)
+  }
 
 }

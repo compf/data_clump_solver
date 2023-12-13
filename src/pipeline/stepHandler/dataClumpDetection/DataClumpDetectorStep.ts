@@ -75,11 +75,8 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         super();
         console.log("initialized with",args)
     }
-    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
-        return CodeObtainingContext.name;
-    }
-    getReturnedContextType(pipeLineStep: PipeLineStepType, context: string | null): string | null {
-        return DataClumpDetectorContext.name;
+    addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
+        createdContexts.add(DataClumpDetectorContext.name)
     }
 
 }

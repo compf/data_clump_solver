@@ -11,10 +11,7 @@ export abstract class ValidationStepHandler extends AbstractStepHandler{
         return [PipeLineStep.Validation]
     }
     abstract validate(context:DataClumpRefactoringContext):Promise<{success:boolean,message:string|null}>;
-    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
-        return CodeObtainingContext.name;
-    }
-    getReturnedContextType(pipeLineStep: PipeLineStepType, contextName: string | null): string | null {
-        return ValidationContext.name;
-    }
+   addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
+       createdContexts.add(ValidationContext.name)
+   }
 }

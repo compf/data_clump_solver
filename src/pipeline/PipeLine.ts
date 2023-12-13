@@ -1,9 +1,15 @@
-import { DataClumpRefactoringContext, getPositionByName } from "../context/DataContext";
+import { DataClumpRefactoringContext, MandatoryContextNames } from "../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "./PipeLineStep";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler";
-function getEnums<T extends { [key: string]: number | string }>(enumType: T): Array<[key: keyof T, value: T[keyof T]]> {
-    const keys = Object.keys(enumType).filter(key => isNaN(Number(key)));
-    return keys.map(key => [key, enumType[key] as T[keyof T]]);
+function difference<T> (set1:Set<T>, set2:Set<T>):Set<T>{
+    let result=new Set<T>();
+    for(let item of set1){
+        if(!set2.has(item)){
+            result.add(item)
+        }
+    }
+    return result;
+
 }
 const NumberPipeLineSteps = Object.keys(PipeLineStep).length
 export class PipeLine {
@@ -21,23 +27,23 @@ export class PipeLine {
         }
     }
     checkPipeLine(): boolean {
-        let previousContext:string|null=null;
+        let requiredContextNames=new Set<string>();
+        
+        let createdContextNames=new Set<string>();
         for(let i=0;i<NumberPipeLineSteps;i++){
             if(this.stepHandlerList[i]!=null){
-                let stepHandler=this.stepHandlerList[i];
-                let step=stepHandler.getExecutableSteps().filter((s)=>s.position==i)[0];
-                const requiredPosition=getPositionByName(previousContext);
-                let returnedContext=stepHandler.getReturnedContextType(step,previousContext);
-                const returnedPosition=getPositionByName(returnedContext);
-                if(requiredPosition>returnedPosition){
-                    return false;
-                }
-                previousContext=returnedContext;
-
+                this.stepHandlerList[i].addAditionalContextRequirementNames(PipeLineStep[i],requiredContextNames)
+               if(difference(requiredContextNames,createdContextNames).size>0){
+                console.log("created",createdContextNames)
+                  return false;
+               }
+               this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i],createdContextNames)
             }
+            console.log(this.stepHandlerList[i])
             
         }
-        return true;
+        console.log("created",createdContextNames)
+        return MandatoryContextNames.every((name)=>createdContextNames.has(name));
     }
     async executeAllSteps(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         if(!this.checkPipeLine()){
