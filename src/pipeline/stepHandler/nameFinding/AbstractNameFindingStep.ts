@@ -50,4 +50,10 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
         return [PipeLineStep.NameFinding]
      }
     abstract getSuggestedName(names:string[]):Promise<string|null>
+    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
+        return DataClumpDetectorContext.name;
+    }
+    getReturnedContextType(pipeLineStep: PipeLineStepType, context: string | null): string | null {
+        return NameFindingContext.name;
+    }
 }

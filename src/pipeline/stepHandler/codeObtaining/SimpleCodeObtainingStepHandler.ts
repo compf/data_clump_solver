@@ -23,5 +23,11 @@ export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
         }
         
     }
+    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
+        return null;
+    }
+    getReturnedContextType(pipeLineStep: PipeLineStepType, context: string | null): string | null {
+        return CodeObtainingContext.name;
+    }
     
 }

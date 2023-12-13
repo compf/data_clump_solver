@@ -1,5 +1,5 @@
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
-import { DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
+import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Analyzer } from "../../../data-clumps-doctor/analyse/src/ignoreCoverage/Analyzer";
 import { resolve } from "path"
@@ -74,6 +74,12 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
     constructor(args:any){
         super();
         console.log("initialized with",args)
+    }
+    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
+        return CodeObtainingContext.name;
+    }
+    getReturnedContextType(pipeLineStep: PipeLineStepType, context: string | null): string | null {
+        return DataClumpDetectorContext.name;
     }
 
 }

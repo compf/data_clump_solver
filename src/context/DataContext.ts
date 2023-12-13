@@ -1,22 +1,42 @@
 import { DataClumpTypeContext, DataClumpsTypeContext, Dictionary } from "data-clumps-type-context";
-import { PipeLineStep,PipeLineStepType } from "../pipeline/PipeLineStep";
+import { PipeLineStep, PipeLineStepType } from "../pipeline/PipeLineStep";
 import { VariableOrMethodUsage } from "./VariableOrMethodUsage";
 import { nodeModuleNameResolver } from "typescript";
-
-export class DataClumpRefactoringContext {
-    protected previousContext: DataClumpRefactoringContext|null = null;
+export function getPositionByName(name: string|null): number {
+    switch (name) {
+        case CodeObtainingContext.name:
+            return 0;
+        case FileFilteringContext.name:
+            return 1;
+        case DataClumpDetectorContext.name:
+            return 3;
+        case NameFindingContext.name:
+            return 4;
+        case ClassExtractionContext.name:
+            return 5;
+        case UsageFindingContext.name:
+            return 6;
+        case RefactoredContext.name:
+            return 7;
+        case ValidationContext.name:
+            return 8;
+        default:
+            return -1;
+    }
+}
+export  class DataClumpRefactoringContext {
+    protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
         context.previousContext = this
         context.sharedData = this.sharedData
         return context
     }
-
     protected sharedData: Map<string, any> = new Map<string, any>();
-    getByType<T>(ctor: new (...a: any) => T): T|null {
+    getByType<T>(ctor: new (...a: any) => T): T | null {
         let curr: DataClumpRefactoringContext = this;
-        while (!(curr instanceof ctor) ) {
+        while (!(curr instanceof ctor)) {
             curr = curr.previousContext!
-            if(curr==null){
+            if (curr == null) {
                 return null;
             }
 
@@ -27,13 +47,14 @@ export class DataClumpRefactoringContext {
         return this.getByType(CodeObtainingContext)!!.getPath()
     }
 }
-class InitalDataClumpRefactoringContext extends DataClumpRefactoringContext {
 
-}
 export class CodeObtainingContext extends DataClumpRefactoringContext {
     path: string;
     getPath(): string {
         return this.path
+    }
+    getPosition(): number {
+        return 0;
     }
     constructor(path: string) {
         super()
@@ -49,6 +70,9 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
         this.includeGlobs = includeGlobs
         this.excludeGlobs = excludeGlobs
     }
+    getPosition(): number {
+        return 1;
+    }
 }
 export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     dataClumpDetectionResult: Dictionary<DataClumpTypeContext>
@@ -62,21 +86,16 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     getDataClumpKeys(): Iterable<string> {
         return this.dataClumpKeys;
     }
+    getPosition(): number {
+        return 3;
+    }
     constructor(dataClumpDetectionResult: DataClumpsTypeContext) {
         super();
         this.dataClumpDetectionResult = dataClumpDetectionResult.data_clumps
         this.dataClumpKeys = Object.keys(dataClumpDetectionResult.data_clumps)
     }
 }
-export class ClassExtractionContext extends DataClumpRefactoringContext{
-    dataClumpKeyClassBody:Map<string,string>;
-    constructor( dataClumpKeyClassBody:Map<string,string>){
-        super();
 
-        this.dataClumpKeyClassBody=dataClumpKeyClassBody;
-    }
-  
-}
 export class NameFindingContext extends DataClumpRefactoringContext {
     private nameDataClumpKey: Map<string, string> = new Map<string, string>()
     private dataClumpKeyName: Map<string, string> = new Map<string, string>()
@@ -86,31 +105,58 @@ export class NameFindingContext extends DataClumpRefactoringContext {
     getDataClumpKeyByName(name: string): string {
         return this.dataClumpKeyName.get(name)!
     }
+    getPosition(): number {
+        return 4;
+    }
     setNameKeyPair(name: string, dataClumpKey: string) {
         this.nameDataClumpKey.set(name, dataClumpKey)
         this.dataClumpKeyName.set(dataClumpKey, name)
     }
+
+}
+export class ClassExtractionContext extends DataClumpRefactoringContext {
+    dataClumpKeyClassBody: Map<string, string>;
+    constructor(dataClumpKeyClassBody: Map<string, string>) {
+        super();
+
+        this.dataClumpKeyClassBody = dataClumpKeyClassBody;
+    }
+    getPosition(): number {
+        return 5;
+    }
+
 }
 export class UsageFindingContext extends DataClumpRefactoringContext {
     usages: Map<string, VariableOrMethodUsage[]>;
-    constructor (usages: Map<string, VariableOrMethodUsage[]>) {
+    constructor(usages: Map<string, VariableOrMethodUsage[]>) {
         super();
         this.usages = usages;
     }
     getUsages(): Map<string, VariableOrMethodUsage[]> {
         return this.usages
     }
-}
-export class ValidationContext extends DataClumpRefactoringContext{
-    validationResult:{
-        success:boolean,
-        message:string|null
+    getPosition(): number {
+        return 6;
     }
-    constructor(validationResult:{  success:boolean,    message:string|null}){
-            
-            super()
-            this.validationResult=validationResult;
-        }
+}
+export class RefactoredContext extends DataClumpRefactoringContext {
+    constructor(refactoredCode: string) {
+        super();
+    }
+  
+
+}
+export class ValidationContext extends DataClumpRefactoringContext {
+    validationResult: {
+        success: boolean,
+        message: string | null
+    }
+ 
+    constructor(validationResult: { success: boolean, message: string | null }) {
+
+        super()
+        this.validationResult = validationResult;
+    }
 }
 
 

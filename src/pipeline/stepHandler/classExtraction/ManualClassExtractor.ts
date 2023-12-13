@@ -40,6 +40,12 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
         }
         return Promise.resolve(context.buildNewContext(new ClassExtractionContext(dataClumpKeyClassBody)))
     }
+    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
+        return NameFindingContext.name;
+    }
+    getReturnedContextType(pipeLineStep: PipeLineStepType, context: string | null): string | null {
+        return ClassExtractionContext.name;
+    }
 
 
 }

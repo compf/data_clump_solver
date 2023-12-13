@@ -9,5 +9,11 @@ export class DoNothingStepHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.FileFiltering,PipeLineStep.DataClumpFiltering]
     }
+    getReturnedContextType(pipeLineStep: PipeLineStepType,contextName:string|null): string|null {
+        return contextName;
+    }
+    getRequiredContextType(pipeLineStep: PipeLineStepType): string|null {
+       return null;
+    }
     
 }

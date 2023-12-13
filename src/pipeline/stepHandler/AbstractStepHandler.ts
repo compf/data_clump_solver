@@ -7,4 +7,8 @@ export abstract class AbstractStepHandler{
      canDoStep(step:PipeLineStepType):boolean{
         return this.getExecutableSteps().includes(step);
      }
+
+     abstract getReturnedContextType(pipeLineStep:PipeLineStepType,contextName:string|null):string|null;
+     abstract getRequiredContextType(pipeLineStep:PipeLineStepType):string|null;
+
 }

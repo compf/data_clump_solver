@@ -1,4 +1,4 @@
-import { DataClumpRefactoringContext, ValidationContext } from "../../context/DataContext";
+import { CodeObtainingContext, DataClumpRefactoringContext, ValidationContext } from "../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../PipeLineStep";
 import { AbstractStepHandler } from "../stepHandler/AbstractStepHandler";
 
@@ -11,5 +11,10 @@ export abstract class ValidationStepHandler extends AbstractStepHandler{
         return [PipeLineStep.Validation]
     }
     abstract validate(context:DataClumpRefactoringContext):Promise<{success:boolean,message:string|null}>;
-    
+    getRequiredContextType(pipeLineStep: PipeLineStepType): string | null {
+        return CodeObtainingContext.name;
+    }
+    getReturnedContextType(pipeLineStep: PipeLineStepType, contextName: string | null): string | null {
+        return ValidationContext.name;
+    }
 }
