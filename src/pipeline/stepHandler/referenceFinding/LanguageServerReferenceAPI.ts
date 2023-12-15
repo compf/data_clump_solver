@@ -1,145 +1,195 @@
 import { DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
-import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
+import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Readable, Writable } from "stream"
 import { ResponseMessage } from "../../../util/languageServer/TypeDefinitions";
-import { InitializeParams, ReferenceParams } from "ts-lsp-client";
+import { DefinitionParams, InitializeParams, ReferenceParams } from "ts-lsp-client";
 import { resolve } from "path"
 import { MyCapabilities } from "../../../util/languageServer/capabilities";
 import { readFileSync } from "fs"
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
-import { SymbolType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
+import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
 import { registerFromName, resolveFromName } from "../../../config/Configuration";
+import { DataClumpTypeContext, Position } from "data-clumps-type-context";
 
 type LanguageServerReferenceAPIParams = {
     apiName: string,
     apiArgs: any
 }
 export class LanguageServerReferenceAPI extends AbstractStepHandler {
-    api: LanguageServerAPI|null=null;
-    apiArgs:LanguageServerReferenceAPIParams
+    api: LanguageServerAPI | null = null;
+    apiArgs: LanguageServerReferenceAPIParams
     globalCounter = 3
-    balance=0;
+    balance = 0;
     visitedMethods: Set<string> = new Set();
-    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: SymbolType }> = new Map();
+    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType }> = new Map();
     constructor(args: LanguageServerReferenceAPIParams) {
         super();
         registerFromName(args.apiName, "LanguageServerAPI", args.apiArgs)
         this.apiArgs = args;
     }
     nextCounterValue(): number {
+        this.balance++;
         return this.globalCounter++;
     }
-   addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
-         createdContexts.add(UsageFindingContext.name)
-   }
-   addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
-       requirements.add(DataClumpDetectorContext.name)
-   }
-
-    async handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
-        let usages=new Map<string,VariableOrMethodUsage[]>();
-        if(this.api==null){
-            this.api=resolveFromName("LanguageServerAPI") as LanguageServerAPI;
+    addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
+        createdContexts.add(UsageFindingContext.name)
+    }
+    addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
+        requirements.add(DataClumpDetectorContext.name)
+    }
+    getIdentifierPosition(relativePath: string, identifier: string, fileMap: Map<string, string>, context: DataClumpRefactoringContext, startLine: number): Position {
+        const filePath = resolve(context.getProjectPath(), relativePath)
+        if (!fileMap.has(filePath)) {
+            fileMap.set(filePath, readFileSync(filePath).toString())
         }
-        return await new Promise<DataClumpRefactoringContext>(async handleResolver =>  {
-            const socket = await this.api!!.init(context.getProjectPath(), (data) => {
-                console.log("begin")
-                console.log(JSON.stringify(data))
-               let info= this.counterDataClumpInfoMap.get(data.id)!
-                if(info==undefined)return;
-                this.balance--
-                if(!usages.has(info.variableKey)){
-                    usages.set(info.variableKey,[])
-                }
-                for(let  result of data.result!){
-                   usages.get(info.variableKey)!.push({name:info.variableName,symbolType:info.usageType, range:result.range,filePath:result.uri})
-    
-                }
-                console.log("balance",this.balance)
-                if(this.balance==0){
-                    handleResolver(context.buildNewContext(new UsageFindingContext(usages)))
+        let wholeFile = fileMap.get(filePath)!!.split("\n");
+        console.log(wholeFile)
+        console.log(startLine)
+        let line = wholeFile[startLine]
+        let character = line.indexOf(identifier);
+        return { startLine: startLine, startColumn: character, endLine: startLine, endColumn: character + identifier.length };
+    }
+
+    sendMethodUsageAndDeclarationRequest(socket:Writable,dcKey:string,methodFile: string, methodName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, line: number) {
+        let methodPos = this.getIdentifierPosition(methodFile, methodName, fileMap, context, line)
+
+        let methodDefRequest: DefinitionParams = {
+
+            textDocument: {
+                uri: "file://" + resolve(context.getProjectPath(),methodFile)
+            },
+            position: {
+                line: methodPos.startLine ,
+                character: methodPos.startColumn
+            }
+        }
+        let nextId=this.nextCounterValue();
+        let request=this.api?.create_request_message(nextId,Methods.Definition,methodDefRequest)
+        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:methodName,usageType:UsageType.MethodDeclared})
+        socket.write(request)
+
+        let methodUsageRequest:ReferenceParams={
+            textDocument: {
+                uri: "file://" + resolve(context.getProjectPath(),methodFile)
+            },
+            position: {
+                line: methodPos.startLine ,
+                character: methodPos.startColumn
+            },
+            context:{
+                includeDeclaration:false
+            }
+
+        }
+         nextId=this.nextCounterValue();
+         request=this.api?.create_request_message(nextId,Methods.References,methodUsageRequest)
+        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:methodName,usageType:UsageType.MethodUsed})
+        socket.write(request)
+    }
+    sendFieldUsageAndDeclarationRequest(socket:Writable,dcKey:string,fieldFile: string, fieldName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, line: number) {
+        let fieldPos = this.getIdentifierPosition(fieldFile, fieldName, fileMap, context, line)
+
+        let fieldDefRequest: DefinitionParams = {
+
+            textDocument: {
+                uri: "file://" + resolve(context.getProjectPath(),fieldFile)
+            },
+            position: {
+                line: fieldPos.startLine ,
+                character: fieldPos.startColumn
+            }
+        }
+        let nextId=this.nextCounterValue();
+        let request=this.api?.create_request_message(nextId,Methods.Definition,fieldDefRequest)
+        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:fieldName,usageType:UsageType.FieldDeclared})
+        socket.write(request)
+
+        let fieldUsageRequest:ReferenceParams={
+            textDocument: {
+                uri: "file://" + resolve(context.getProjectPath(),fieldFile)
+            },
+            position: {
+                line: fieldPos.startLine ,
+                character: fieldPos.startColumn
+            },
+            context:{
+                includeDeclaration:false
+            }
+
+        }
+         nextId=this.nextCounterValue();
+         request=this.api?.create_request_message(nextId,Methods.References,fieldUsageRequest)
+        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:fieldName,usageType:UsageType.FieldUsed})
+        socket.write(request)
+    }
+    sendRequestsForDataClump(socket:Writable,dataClump: DataClumpTypeContext, fileMap: Map<string, string>,context:DataClumpRefactoringContext){
+            const isFromMethod = dataClump.from_method_name != null;
+            const isToMethod = dataClump.to_method_name != null;
+            if (isFromMethod) {
+                let startLine=Object.values(dataClump.data_clump_data)[0].position.startLine-1
+                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key!,dataClump.from_file_path, dataClump.from_method_name!!, context, fileMap, startLine )
+            }
+            if(isToMethod){
+                let startLine=Object.values(dataClump.data_clump_data)[0].to_variable.position.startLine-1
+
+                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path, dataClump.to_method_name!!, context, fileMap, startLine)
+            }
+            for(let variableKey of Object.keys(dataClump.data_clump_data)){
+                let variable=dataClump.data_clump_data[variableKey]!
+                this.sendFieldUsageAndDeclarationRequest(socket,dataClump.key,dataClump.from_file_path,variable.name,context,fileMap,variable.position.startLine-1)
+                this.sendFieldUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path,variable.name,context,fileMap,variable.to_variable.position.startLine-1)
+            
+            }
+          
+        }
+
+    async handle(context: DataClumpRefactoringContext, params: any): Promise < DataClumpRefactoringContext > {
+                let usages=new Map<string, VariableOrMethodUsage[]>();
+                if(this.api == null){
+                this.api = resolveFromName("LanguageServerAPI") as LanguageServerAPI;
+            }
+            return await new Promise<DataClumpRefactoringContext>(async handleResolver => {
+                const socket = await this.api!!.init(context.getProjectPath(), (data) => {
+                    console.log("begin")
+                    console.log(JSON.stringify(data))
+                    let info = this.counterDataClumpInfoMap.get(data.id)!
+                    if (info == undefined) return;
+                    this.balance--
+                    if (!usages.has(info.variableKey)) {
+                        usages.set(info.variableKey, [])
+                    }
+                    for (let result of data.result!) {
+                        usages.get(info.variableKey)!.push({ name: info.variableName, symbolType: info.usageType, range: result.range, filePath: result.uri })
+
+                    }
+                    console.log("balance", this.balance)
+                    if (this.balance == 0) {
+                        handleResolver(context.buildNewContext(new UsageFindingContext(usages)))
+                    }
+                });
+                console.log("hallo")
+                let fileMap = new Map<string, string>();
+                let detectorContext = context.getByType(DataClumpDetectorContext)!!
+                for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
+                    let dc = detectorContext.getDataClumpTypeContext(dataClumpKey)
+                    this.sendRequestsForDataClump(socket.writer,dc, fileMap,context)
+
+
                 }
             });
-            console.log("hallo")
-            let detectorContext=context.getByType(DataClumpDetectorContext)!!
-            for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
-                let dc = detectorContext.getDataClumpTypeContext(dataClumpKey)
-                let first = true;
-                for (let variableKey of Object.keys(dc.data_clump_data)) {
-                    let dcVariable = dc.data_clump_data[variableKey]
-                    console.log(variableKey,"VARIABLE",dcVariable)
-                    const variableUsageRequest: ReferenceParams = {
-                        context: { includeDeclaration: true },
-                        textDocument: {
-                            uri: "file://" + resolve(context.getProjectPath()) + "/" + dc?.from_file_path
-                        },
-                        position: {
-                            line: dc.data_clump_data[variableKey]!.position.startLine - 1,
-                            character: dc.data_clump_data[variableKey]!.position.startColumn - 1
-    
-    
-                        }
-                    };
-                    if (dc.from_method_name != null ) {
-                        first = false;
-                        let wholeFile = readFileSync(resolve(context.getProjectPath()) + "/" + dc?.from_file_path).toString().split("\n");
-                        let methodPos = wholeFile[variableUsageRequest.position.line].indexOf(dc.from_method_name)
-                        let methodDeclUsageRequest: ReferenceParams = {
-                            context: { includeDeclaration: true },
-                            textDocument: {
-                                uri: "file://" + resolve(context.getProjectPath()) + "/" + dc?.from_file_path
-                            },
-                            position: {
-                                line: dc.data_clump_data[variableKey]!.position.startLine - 1,
-                                character: methodPos
-    
-    
-                            }
-                            
-                        };
+
+        }
 
 
-                  
-                        let counter = this.nextCounterValue();
-                        this.counterDataClumpInfoMap.set(counter, { variableKey:dc.from_method_key!, variableName: dc.from_method_name, usageType: SymbolType.Method })
-                        this.balance++;
-                        let toSend = this.api!!.create_request_message(counter, Methods.References, methodDeclUsageRequest)
-                       
-                        this.visitedMethods.add(dc.from_method_key!)
-                        
-                        socket.writer.write(toSend)
-    
-                    }
-                    /*let wholeFile=readFileSync(resolve(context.CodeObtaining.path)+"/"+dc?.from_file_path).toString();
-        
-                    (usageRequest.position as any).char=wholeFile.split("\n")[usageRequest.position.line][usageRequest.position.character]*/
-                    let counter = this.nextCounterValue();
-                    this.counterDataClumpInfoMap.set(counter, { variableKey, variableName: dcVariable.name, usageType: SymbolType.Variable })
-    
-                    let toSend = this.api!!.create_request_message(counter, Methods.References, variableUsageRequest)
-                   
-                    //wait(2)
-                    this.balance++;
-                    socket.writer.write(toSend)
-    
-                }
-    
-    
-            }
-        });
-       
+
+        getExecutableSteps(): PipeLineStepType[] {
+            return [PipeLineStep.ReferenceFinding]
+        }
+
+
+
     }
-
-
-
-    getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.ReferenceFinding]
-    }
-
-
-
-}
 
 
 function wait(sec: number) {
