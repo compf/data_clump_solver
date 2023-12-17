@@ -36,7 +36,7 @@ const nameScriptFileMap={
     ChatGPTInterface:"../util/languageModel/ChatGPTInterface.js",
     GeorgeFraserRefactoring:"../util/languageServer/GeorgeFraserLSP_API.js",
     EclipseLSP_API:"../util/languageServer/EclipseLSP_API.js",
-    LanguageModelRefactoringStep:"../pipeline/stepHandler/refactoring/LanguageModelRefactoringStep.js",
+    ManualRefactorStep:"../pipeline/stepHandler/refactoring/ManualRefactorStep.js",
 }
 const container=new ContainerBuilder();
 export function registerFromName(name:string,dependencyCategory:string,args:any){

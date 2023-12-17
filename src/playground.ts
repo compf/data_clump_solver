@@ -14,7 +14,6 @@ import { JavaManualClassExtractor } from "./pipeline/stepHandler/classExtraction
 import { GeorgeFraserRefactoring } from "./util/languageServer/GeorgeFraserLSP_API";
 import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
 import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
-import { LanguageModelRefactoringStep } from "./pipeline/stepHandler/refactoring/LanguageModelRefactoringStep";
 import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/DetectAndRefactorWithLanguageModelStep";
 import { GradleBuildValidationStepHandler } from "./pipeline/validation/GradleBuildValidationStepHandler";
 

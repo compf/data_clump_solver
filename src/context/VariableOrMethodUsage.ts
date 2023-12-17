@@ -1,7 +1,9 @@
-export enum UsageType{FieldUsed,FieldDeclared,MethodUsed,MethodDeclared,MethodParameterUsed,MethodParameterDeclared}
+import { Position } from "data-clumps-type-context";
+
+export enum UsageType{VariableUsed,VariableDeclared,MethodUsed,MethodDeclared}
 export interface VariableOrMethodUsage {
     symbolType: UsageType;
-    range:{"start":{"line":number,"character":number},"end":{"line":number,"character":number}};
+    range:Position
     filePath: string;
     name:string
 }

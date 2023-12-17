@@ -79,7 +79,7 @@ export class NameFindingContext extends DataClumpRefactoringContext {
     private nameDataClumpKey: Map<string, string> = new Map<string, string>()
     private dataClumpKeyName: Map<string, string> = new Map<string, string>()
     getNameByDataClumpKey(name: string): string {
-        return this.nameDataClumpKey.get(name)!
+        return this.dataClumpKeyName.get(name)!
     }
     getDataClumpKeyByName(name: string): string {
         return this.dataClumpKeyName.get(name)!

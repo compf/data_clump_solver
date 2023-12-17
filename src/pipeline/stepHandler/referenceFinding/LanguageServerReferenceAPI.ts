@@ -102,7 +102,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         }
         let nextId=this.nextCounterValue();
         let request=this.api?.create_request_message(nextId,Methods.Definition,fieldDefRequest)
-        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:fieldName,usageType:UsageType.FieldDeclared})
+        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:fieldName,usageType:UsageType.VariableDeclared})
         socket.write(request)
 
         let fieldUsageRequest:ReferenceParams={
@@ -120,7 +120,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         }
          nextId=this.nextCounterValue();
          request=this.api?.create_request_message(nextId,Methods.References,fieldUsageRequest)
-        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:fieldName,usageType:UsageType.FieldUsed})
+        this.counterDataClumpInfoMap.set(nextId,{variableKey:dcKey,variableName:fieldName,usageType:UsageType.VariableUsed})
         socket.write(request)
     }
     sendRequestsForDataClump(socket:Writable,dataClump: DataClumpTypeContext, fileMap: Map<string, string>,context:DataClumpRefactoringContext){
@@ -160,7 +160,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                         usages.set(info.variableKey, [])
                     }
                     for (let result of data.result!) {
-                        usages.get(info.variableKey)!.push({ name: info.variableName, symbolType: info.usageType, range: result.range, filePath: result.uri })
+                        usages.get(info.variableKey)!.push({ name: info.variableName, symbolType: info.usageType, range:{startLine:result.range.start.line,startColumn:result.range.start.character,endLine:result.range.end.line,endColumn:result.range.end.character}, filePath: result.uri })
 
                     }
                     console.log("balance", this.balance)
