@@ -8,6 +8,9 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
         let capitalized=this.cpaitalize(fieldName)
         return "public "+type +" get"+capitalized+"(){\n"+"return " +fieldName+";\n}\n"; 
     }
+    getExtension(): string {
+        return "java";
+    }
     createSetter(fieldName: string, type: string): string {
         let capitalized=this.cpaitalize(fieldName)
 

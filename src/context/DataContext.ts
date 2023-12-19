@@ -78,8 +78,8 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
 export class NameFindingContext extends DataClumpRefactoringContext {
     private nameDataClumpKey: Map<string, string> = new Map<string, string>()
     private dataClumpKeyName: Map<string, string> = new Map<string, string>()
-    getNameByDataClumpKey(name: string): string {
-        return this.dataClumpKeyName.get(name)!
+    getNameByDataClumpKey(name: string): string|undefined {
+        return this.dataClumpKeyName.get(name)
     }
     getDataClumpKeyByName(name: string): string {
         return this.dataClumpKeyName.get(name)!
@@ -94,12 +94,14 @@ export class NameFindingContext extends DataClumpRefactoringContext {
 
 }
 export class ClassExtractionContext extends DataClumpRefactoringContext {
-    dataClumpKeyClassBody: Map<string, string>;
-    constructor(dataClumpKeyClassBody: Map<string, string>) {
-        super();
-
-        this.dataClumpKeyClassBody = dataClumpKeyClassBody;
+    getExtractedClassPath(variableKey: string):string {
+       return this.dataClumpKeyClassPath.get(variableKey)!
     }
+    setExtractedClassPath(variableKey: string, classPath: string) {
+        this.dataClumpKeyClassPath.set(variableKey, classPath)
+    }
+    private dataClumpKeyClassPath: Map<string, string> = new Map<string, string>()
+ 
     getPosition(): number {
         return 5;
     }

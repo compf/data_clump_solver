@@ -5,5 +5,7 @@ export interface VariableOrMethodUsage {
     symbolType: UsageType;
     range:Position
     filePath: string;
-    name:string
+    name:string,
+    extractedClassPath?:string,
+    variableNames:string[]
 }

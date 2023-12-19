@@ -5,7 +5,8 @@ import { AbstractNameFindingStepHandler } from "./AbstractNameFindingStep";
 
 export class TrivialNameFindingStep extends AbstractNameFindingStepHandler{
    async getSuggestedName(names: string[]): Promise<string> {
-       return  names.join("_")
+       let result=  names.sort().join("_")
+       return result.at(0)?.toUpperCase()+result.substring(1)
     }
    
   
