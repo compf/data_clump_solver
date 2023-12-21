@@ -8,7 +8,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
    async  handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
        
 
-            let cache=new Set<string>();
+            let cache=new Map<string,string>();
             let detectorContext=context.getByType(DataClumpDetectorContext)!!
             for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
 
@@ -22,16 +22,18 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
 
                 }
                 let commaSeparated = this.getQueryKey(names)
-
+                let reply=""
                 if (cache.has(commaSeparated)) {
-                    continue;
+                    reply=cache.get(commaSeparated)!!
+                   
+                }
+                else{
+                    reply = (await this.getSuggestedName(names))!!;
+                    cache.set(commaSeparated,reply)
                 }
 
-                let reply = await this.getSuggestedName(names);
-                if(reply==null){
-                    reply="Dummy"
-                }
-                cache.add(commaSeparated)
+              
+               
                 if(!(context instanceof NameFindingContext)){
                    context=context.buildNewContext(new NameFindingContext());
                 }

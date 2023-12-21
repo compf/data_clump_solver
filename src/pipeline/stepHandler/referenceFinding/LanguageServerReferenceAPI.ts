@@ -22,7 +22,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     globalCounter = 3
     balance = 0;
     visitedMethods: Set<string> = new Set();
-    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[] }> = new Map();
+    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[],originKey:string }> = new Map();
     constructor(args: LanguageServerReferenceAPIParams) {
         super();
         registerFromName(args.apiName, "LanguageServerAPI", args.apiArgs)
@@ -51,7 +51,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         return { startLine: startLine, startColumn: character, endLine: startLine, endColumn: character + identifier.length };
     }
 
-    sendMethodUsageAndDeclarationRequest(socket:Writable,dcKey:string,methodFile: string, methodName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, line: number,variableNames:string[]) {
+    sendMethodUsageAndDeclarationRequest(socket:Writable,dcKey:string,methodFile: string, methodName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, line: number,variableNames:string[],methodKey:string) {
         let methodPos = this.getIdentifierPosition(methodFile, methodName, fileMap, context, line)
 
         let methodDefRequest: DefinitionParams = {
@@ -70,7 +70,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             {variableKey:dcKey,
                 variableName:methodName,
                 usageType:UsageType.MethodDeclared,
-                variableNames:variableNames
+                variableNames:variableNames,
+                originKey:methodKey
             })
         socket.write(request)
 
@@ -93,39 +94,45 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             {variableKey:dcKey,
                 variableName:methodName,
                 usageType:UsageType.MethodUsed,
-                variableNames:variableNames
+                variableNames:variableNames,
+                originKey:methodKey
             })
         socket.write(request)
     }
-    sendFieldUsageAndDeclarationRequest(socket:Writable,dcKey:string,fieldFile: string, fieldName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, line: number,variableNames:string[]) {
-        let fieldPos = this.getIdentifierPosition(fieldFile, fieldName, fileMap, context, line)
+    sendVariableUsageAndDeclarationRequest(socket:Writable,dcKey:string,fieldFile: string, fieldName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, pos: Position,variableNames:string[],fieldKey:string,isParameter:boolean) {
+        let nextId=0
+        let request:string|undefined=""
+        if(!isParameter){
+            let fieldDefRequest: DefinitionParams = {
 
-        let fieldDefRequest: DefinitionParams = {
-
-            textDocument: {
-                uri: "file://" + resolve(context.getProjectPath(),fieldFile)
-            },
-            position: {
-                line: fieldPos.startLine ,
-                character: fieldPos.startColumn
+                textDocument: {
+                    uri: "file://" + resolve(context.getProjectPath(),fieldFile)
+                },
+                position: {
+                    line: pos.startLine-1,
+                    character: pos.startColumn
+                }
             }
+            nextId=this.nextCounterValue();
+            request=this.api?.create_request_message(nextId,Methods.Definition,fieldDefRequest)
+            this.counterDataClumpInfoMap.set(nextId,
+                {variableKey:dcKey,
+                    variableName:fieldName
+                    ,usageType:UsageType.VariableDeclared,
+                    variableNames:variableNames,
+                    originKey:fieldKey
+                })
+            socket.write(request)
         }
-        let nextId=this.nextCounterValue();
-        let request=this.api?.create_request_message(nextId,Methods.Definition,fieldDefRequest)
-        this.counterDataClumpInfoMap.set(nextId,
-            {variableKey:dcKey,
-                variableName:fieldName
-                ,usageType:UsageType.VariableDeclared,
-                variableNames:variableNames})
-        socket.write(request)
-
+       
+        
         let fieldUsageRequest:ReferenceParams={
             textDocument: {
                 uri: "file://" + resolve(context.getProjectPath(),fieldFile)
             },
             position: {
-                line: fieldPos.startLine ,
-                character: fieldPos.startColumn
+                line: pos.startLine-1 ,
+                character: pos.startColumn
             },
             context:{
                 includeDeclaration:false
@@ -138,11 +145,12 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             {variableKey:dcKey,
                 variableName:fieldName,
                 usageType:UsageType.VariableUsed,
-                variableNames:[]
+                variableNames:[],
+                originKey:fieldKey
+
             }
                 );
         
-        (this.counterDataClumpInfoMap.get(nextId) as any).requestPosition=fieldPos
         socket.write(request)
     }
     sendRequestsForDataClump(socket:Writable,dataClump: DataClumpTypeContext, fileMap: Map<string, string>,context:DataClumpRefactoringContext){
@@ -150,17 +158,18 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             const isToMethod = dataClump.to_method_name != null;
             if (isFromMethod) {
                 let startLine=Object.values(dataClump.data_clump_data)[0].position.startLine-1
-                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key!,dataClump.from_file_path, dataClump.from_method_name!!, context, fileMap, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.name) )
+                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key!,dataClump.from_file_path, dataClump.from_method_name!!, context, fileMap, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.name),dataClump.from_method_key! )
             }
             if(isToMethod){
                 let startLine=Object.values(dataClump.data_clump_data)[0].to_variable.position.startLine-1
 
-                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path, dataClump.to_method_name!!, context, fileMap, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name))
+                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path, dataClump.to_method_name!!, context, fileMap, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name),dataClump.to_method_key!)
             }
             for(let variableKey of Object.keys(dataClump.data_clump_data)){
                 let variable=dataClump.data_clump_data[variableKey]!
-                this.sendFieldUsageAndDeclarationRequest(socket,dataClump.key,dataClump.from_file_path,variable.name,context,fileMap,variable.position.startLine-1,Object.values(dataClump.data_clump_data).map((it)=>it.name))
-                this.sendFieldUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path,variable.name,context,fileMap,variable.to_variable.position.startLine-1,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name))
+                console.log("AUTO",variable.name,variable.to_variable.name,dataClump.from_file_path,dataClump.to_file_path)
+                this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.from_file_path,variable.name,context,fileMap,variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.name),variable.key,isFromMethod)
+                this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path,variable.to_variable.name,context,fileMap,variable.to_variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name),variable.to_variable.key,isToMethod)
             
             }
           
@@ -194,13 +203,21 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                             filePath: result.uri.substring("file://".length).replace(context.getProjectPath(),""),
                             name: info.variableName,
                             extractedClassPath:classExtractionContext.getExtractedClassPath(info.variableKey)?.replace(context.getProjectPath(),""),
-                            variableNames:info.variableNames
+                            variableNames:info.variableNames,
+                            originKey:info.originKey
                         }
                         usages.get(info.variableKey)!.push(usage)
 
                     }
                     console.log("balance", this.balance)
                     if (this.balance == 0) {
+                        for(let usg of usages){
+                       
+                            usages.set(usg[0],usages.get(usg[0])!.sort(function(a,b){
+                                console.log("sort",a,b)
+                                return a.symbolType-b.symbolType
+                            }));
+                        }
                         handleResolver(context.buildNewContext(new UsageFindingContext(usages)))
                     }
                 });
