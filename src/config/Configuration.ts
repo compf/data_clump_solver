@@ -5,6 +5,7 @@ import { PipeLineStep } from "../pipeline/PipeLineStep"
 import { PipeLine } from "../pipeline/PipeLine"
 export type PipeLineStepConf={
     handler:string,
+    contextSerializationPath?:string,
     args:any
 }
 export type Configuration={
@@ -36,7 +37,7 @@ const nameScriptFileMap={
     ChatGPTInterface:"../util/languageModel/ChatGPTInterface.js",
     GeorgeFraserRefactoring:"../util/languageServer/GeorgeFraserLSP_API.js",
     EclipseLSP_API:"../util/languageServer/EclipseLSP_API.js",
-    ManualRefactorStep:"../pipeline/stepHandler/refactoring/ManualRefactorStep.js",
+    RedcliffManualRefactoringStep:pathPrefix+"refactoring/RedcliffManualRefactoringStep.js",
 }
 const container=new ContainerBuilder();
 export function registerFromName(name:string,dependencyCategory:string,args:any){
@@ -50,11 +51,15 @@ export function registerFromName(name:string,dependencyCategory:string,args:any)
 export function resolveFromName(dependencyCategory:string):any{
     return container.get(dependencyCategory) 
 }
-
+const contextSerializationPathMap=new Map<number,string>()
+export function getContextSerializationPath(index:number):string|undefined{
+    return contextSerializationPathMap.get(index)
+}
 export function loadConfiguration(){
     let config=JSON.parse(fs.readFileSync("./config.json").toString()) as Configuration
     for(let step of Object.keys(PipeLineStep)){
         if(config.PipeLine[step] && config.PipeLine[step].handler){
+            contextSerializationPathMap.set( Object.keys(PipeLineStep).indexOf(step),config.PipeLine[step].contextSerializationPath)
             registerFromName(config.PipeLine[step].handler,step,config.PipeLine[step].args)
            
         }

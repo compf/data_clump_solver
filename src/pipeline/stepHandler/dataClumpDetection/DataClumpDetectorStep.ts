@@ -6,6 +6,7 @@ import { resolve } from "path"
 import { DataClumpTypeContext, DataClumpsTypeContext } from "data-clumps-type-context";
 import fs from "fs";
 import AdmZip from "adm-zip";
+import { getContextSerializationPath } from "../../../config/Configuration";
 export class DataClumpDetectorStep extends AbstractStepHandler {
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let project_path = context.getProjectPath();
@@ -25,8 +26,9 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
 
 
         let result = JSON.parse(fs.readFileSync(output_path, { encoding: "utf-8" }))
-
-        return context.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
+        let newContext=context.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
+        fs.copyFileSync(output_path, newContext.getSerializationPath(getContextSerializationPath(Object.keys(PipeLineStep).indexOf(PipeLineStep.DataClumpDetection.name))))
+        return newContext
 
     }
     applyIncludeExclude(context: DataClumpRefactoringContext, jarPath: string) {

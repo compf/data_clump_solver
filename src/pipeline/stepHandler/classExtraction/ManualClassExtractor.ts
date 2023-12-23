@@ -4,19 +4,35 @@ import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import {join,resolve,dirname} from "path"
 import fs from "fs"
+export interface ClassExtractionLocationProvider{
+    getClassLocation(projectPath:string,context:DataClumpTypeContext):string;
+    getPackageName(projectPath:string,context:DataClumpTypeContext):string;
+}
+export class JavaAlwaysFromLocationProvider implements ClassExtractionLocationProvider{
+    getClassLocation(projectPath:string,context:DataClumpTypeContext):string{
+        return context.from_file_path;
+    }
+    getPackageName(projectPath:string,context:DataClumpTypeContext):string{
+        let fromPath= resolve(projectPath,context.from_file_path)
+        let splttedBySemicolon =fs.readFileSync(fromPath).toString().split(";")[0]
+        let splittedBySpace=splttedBySemicolon.split(" ")
+        return splittedBySpace[splittedBySpace.length-1]
+    }
+}
 export abstract class ManualClassExtractor extends AbstractStepHandler{
+    protected locationProvider=new JavaAlwaysFromLocationProvider()
     abstract createField(fieldName:string, type:string):string;
     abstract createGetter(fieldName:string, type:string):string;
     abstract createSetter(fieldName:string, type:string):string;
-    abstract createHead(className:string);
+    abstract createHead(className:string,context:DataClumpTypeContext,projectPath:string);
     abstract createConstructor(className:string,types:string[],fieldNames:string[]):string;
     abstract createTail():string;
     abstract getExtension():string;
     override getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ClassExtraction]
     }
-    getClassLocation(projectPath:string,className:string,dataClumpTypeContext:DataClumpTypeContext):string{
-        let basePath=dirname(join(projectPath,dataClumpTypeContext.from_file_path))
+    getClassLocation(projectPath:string,className:string,dataClumpTypeContext:DataClumpTypeContext,locationProvider:ClassExtractionLocationProvider):string{
+        let basePath=dirname(join(projectPath,locationProvider.getClassLocation(projectPath,dataClumpTypeContext)))
         return join(basePath,className+"."+this.getExtension())
     }
     override handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
@@ -27,7 +43,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             let suggestedName=nameFindingContext.getNameByDataClumpKey(dataClumpKey);
             if(suggestedName==undefined)continue;
             let dataClump=detectorContext.getDataClumpDetectionResult()[dataClumpKey]! as DataClumpTypeContext;
-            let classBody=this.createHead(suggestedName);
+            let classBody=this.createHead(suggestedName,dataClump,context.getProjectPath());
             let fieldNames:string[]=[]
             let types:string[]=[]
             for(let param of Object.values(dataClump?.data_clump_data!)){
@@ -40,7 +56,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             }
             classBody+=this.createConstructor(suggestedName,types,fieldNames)
             classBody+=this.createTail();
-            let classPath=this.getClassLocation(context.getProjectPath(),suggestedName,detectorContext.getDataClumpTypeContext(dataClumpKey))
+            let classPath=this.getClassLocation(context.getProjectPath(),suggestedName,detectorContext.getDataClumpTypeContext(dataClumpKey),this.locationProvider)
             if(!fs.existsSync(resolve(context.getProjectPath(),classPath))){
                 fs.writeFileSync(classPath,classBody)
 

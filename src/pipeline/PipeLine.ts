@@ -1,3 +1,4 @@
+import { getContextSerializationPath } from "../config/Configuration";
 import { DataClumpRefactoringContext, MandatoryContextNames } from "../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "./PipeLineStep";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler";
@@ -34,7 +35,6 @@ export class PipeLine {
             if(this.stepHandlerList[i]!=null){
                 this.stepHandlerList[i].addAditionalContextRequirementNames(PipeLineStep[i],requiredContextNames)
                if(difference(requiredContextNames,createdContextNames).size>0){
-                console.log("created",createdContextNames)
                   return false;
                }
                this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i],createdContextNames)
@@ -42,7 +42,6 @@ export class PipeLine {
             console.log(this.stepHandlerList[i])
             
         }
-        console.log("created",createdContextNames)
         return MandatoryContextNames.every((name)=>createdContextNames.has(name));
     }
     async executeAllSteps(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
@@ -52,6 +51,7 @@ export class PipeLine {
         for (let i = 0; i < NumberPipeLineSteps; i++) {
             if (this.stepHandlerList[i] != null) {
                 context = await this.stepHandlerList[i].handle(context, null);
+                context.serialize(getContextSerializationPath(i))
             }
         }
 

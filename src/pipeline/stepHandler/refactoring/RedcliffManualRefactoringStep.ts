@@ -2,28 +2,28 @@ import { DataClumpRefactoringContext, NameFindingContext, RefactoredContext, Usa
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
+import { spawn } from "child_process"
+
 import {parse,BaseJavaCstVisitorWithDefaults, MethodHeaderCtx} from "java-parser"
 class MyVisitor extends BaseJavaCstVisitorWithDefaults{
  methodHeader(ctx: MethodHeaderCtx, param?: any) {
      console.log(ctx.methodDeclarator)
  }
 }
-export class ManualRefactorStep extends AbstractStepHandler{
+export class RedcliffManualRefactoringStep extends AbstractStepHandler{
     handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let usageContext= context.getByType<UsageFindingContext>(UsageFindingContext)
-        let fileContentMap=new Map<string,string>();
-        let usages={}
-        for(let key of usageContext!!.usages!!.keys()){
-            usages[key]=[]
-            for(let usg of usageContext!!.usages.get(key)!!){
-                usages[key].push(usg)
-                usg["suggestedName"]=context.getByType(NameFindingContext)?.getNameByDataClumpKey(key)!!
-                console.log(usg["suggestedName"])
-            }
-        }
-        console.log(usages)
-        fs.writeFileSync("stuff/usages.json",JSON.stringify(usages))
-        return Promise.resolve(context)
+       let args=[
+        "demo-cli:runDemoPluginCLI",
+        "-Prunner=DemoPluginCLI",
+        "-PusageContextPath=/home/compf/data/uni/master/sem4/data_clump_solver/stuff/usages.json",
+         "-Poutput=/home/compf/data/uni/master/sem4/data_clump_solver/stuff/refac",
+          "-PmyProjectPath=/home/compf/data/uni/master/sem4/data_clump_solver/javaTest/"
+       ]
+        let cp=spawn("gradle",args,{cwd:"REDCLIFF-Java"})
+        cp.stdout.on("data",(data)=>{
+            console.log(data.toString())
+        })
+        return Promise.resolve(context);
     }
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.Refactoring]

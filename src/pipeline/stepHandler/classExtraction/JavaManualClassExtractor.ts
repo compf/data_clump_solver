@@ -1,4 +1,5 @@
-import { ManualClassExtractor } from "./ManualClassExtractor";
+import { DataClumpTypeContext } from "data-clumps-type-context";
+import { JavaAlwaysFromLocationProvider, ManualClassExtractor } from "./ManualClassExtractor";
 import capitalize from "capitalize";
 export class JavaManualClassExtractor extends ManualClassExtractor{
     createField(fieldName: string, type: string): string {
@@ -16,8 +17,8 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
 
         return "public void" +" set"+capitalized+`(${type} value)`+"{\n" +fieldName+"=value;\n}\n"; 
     }
-    createHead(className: string) {
-       return "public class "+ className+"{\n";
+    createHead(className: string,context:DataClumpTypeContext,projectPath:string) {
+       return "package "+this.locationProvider.getPackageName(projectPath,context)+";\npublic class "+ className+"{\n";
     }
     createTail(): string {
         return "}"
