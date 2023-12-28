@@ -22,7 +22,7 @@ async function main(){
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
     PipeLine.Instance.registerHandler([PipeLineStep.ReferenceFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));
     PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],   new LanguageModelRefactoringStep());*/
-    loadConfiguration();
+    loadConfiguration("./config.json");
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")
     })*/

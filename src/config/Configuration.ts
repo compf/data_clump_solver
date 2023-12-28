@@ -38,6 +38,9 @@ const nameScriptFileMap={
     GeorgeFraserRefactoring:"../util/languageServer/GeorgeFraserLSP_API.js",
     EclipseLSP_API:"../util/languageServer/EclipseLSP_API.js",
     RedcliffManualRefactoringStep:pathPrefix+"refactoring/RedcliffManualRefactoringStep.js",
+    DetectAndRefactorWithLanguageModelStep:pathPrefix+"languageModelSpecific/DetectAndRefactorWithLanguageModelStep.js",
+    AllFilesIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
+    KeepCurrentInstructionUntilDataIteratorIsDoneIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
 }
 const container=new ContainerBuilder();
 export function registerFromName(name:string,dependencyCategory:string,args:any){
@@ -55,8 +58,8 @@ const contextSerializationPathMap=new Map<number,string>()
 export function getContextSerializationPath(index:number):string|undefined{
     return contextSerializationPathMap.get(index)
 }
-export function loadConfiguration(){
-    let config=JSON.parse(fs.readFileSync("./config.json").toString()) as Configuration
+export function loadConfiguration(path:string){
+    let config=JSON.parse(fs.readFileSync(path).toString()) as Configuration
     for(let step of Object.keys(PipeLineStep)){
         if(config.PipeLine[step] && config.PipeLine[step].handler){
             contextSerializationPathMap.set( Object.keys(PipeLineStep).indexOf(step),config.PipeLine[step].contextSerializationPath)

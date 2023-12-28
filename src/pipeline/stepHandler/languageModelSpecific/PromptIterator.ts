@@ -1,6 +1,7 @@
-import { DataIterator, DependentOnAnotherIterator, DependentOnAnotherIteratorReturnType, InstructionIterator, InstructionReturnType } from "./DependentOnAnotherIterator";
+import { DataClumpRefactoringContext } from "../../../context/DataContext";
+import { DataIterator, DependentOnAnotherIterator, DependentOnAnotherIteratorReturnType, InstructionIterator, InstructionReturnType, StateInformationType } from "./DependentOnAnotherIterator";
 
-export class PromptIterator implements Iterator<InstructionReturnType> {
+export class PromptIterator implements Iterator<InstructionReturnType,any,DataClumpRefactoringContext> {
     private instructionsIterator: InstructionIterator;
     private dataIterator: DataIterator;
     private instructionIteratorDone: boolean = false;
@@ -15,10 +16,10 @@ export class PromptIterator implements Iterator<InstructionReturnType> {
     throw?(e?: any): IteratorResult<InstructionReturnType, any> {
         return { done: true, value: { messages: [], clear: false, doWrite: false } }
     }
-    next(): IteratorResult<DependentOnAnotherIteratorReturnType, any> {
+    next(context:DataClumpRefactoringContext): IteratorResult<DependentOnAnotherIteratorReturnType, any> {
         let messages: string[] = []
-        let instructions = this.instructionsIterator.next(this.dataIteratorDone)
-        let data = this.dataIterator.next(this.instructionIteratorDone)
+        let instructions = this.instructionsIterator.next({hasOtherFinished:this.dataIteratorDone,context})
+        let data = this.dataIterator.next({hasOtherFinished:this.instructionIteratorDone,context})
         for (let message of instructions.value.messages) {
             messages.push(message)
         }

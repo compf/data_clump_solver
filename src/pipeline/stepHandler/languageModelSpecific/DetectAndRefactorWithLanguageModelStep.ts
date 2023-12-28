@@ -1,3 +1,4 @@
+import { DataClumpsTypeContext } from "data-clumps-type-context";
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext } from "../../../context/DataContext";
 import { ChatGPTInterface } from "../../../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
@@ -6,54 +7,70 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
 import { files } from "node-dir"
 import path from "path";
+import { PromptIterator } from "./PromptIterator";
+import { registerFromName, resolveFromName } from "../../../config/Configuration";
+import { DataIterator, InstructionIterator } from "./DependentOnAnotherIterator";
+export type ChatType={input:string[],output:string[]}[]
+export class LargeLanguageModelDetectorContext extends DataClumpDetectorContext{
+    public chat: ChatType
+    constructor(typeContext:DataClumpsTypeContext,chat:ChatType){
+        super(typeContext)
+        this.chat=chat
+    }
+   
+}
 export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let templateResolver = LanguageModelTemplateResolver.fromTemplateType(LanguageModelTemplateType.FindDataClumps)
         let api = new ChatGPTInterface()
-        api.prepareMessage(templateResolver.resolveTemplate({
+       let replaceMap={
             "${programming_language}": "Java",
-            "${examples}":fs.readFileSync("chatgpt_templates/DataClumpExamples.java", { encoding: "utf-8" })
-        }));
-
-        let projectPath = context.getProjectPath();
-        let allFiles = []
-        this.getRelevantFilesRec(projectPath, allFiles)
-        for (let f of allFiles) {
-            let content = fs.readFileSync(f, { encoding: "utf-8" })
-            api.prepareMessage(content)
-        }
-
-        let response=await api.sendMessages(false)
-        console.log(response)
-        api.prepareMessage(LanguageModelTemplateResolver.fromTemplateType(LanguageModelTemplateType.FullyRefactor).resolveTemplate({}))
-        response=await api.sendMessages(false)
-        console.log(response)
-        return Promise.resolve(context);
-    }
-
-
-    private shallIgnore(filePath: string): boolean { // Add shallIgnore method
-        return !filePath.endsWith(".java")
-    }
-    /**
-* Recursively traverse through the directory and find all relavant files
-* @param baseDir the current directory to enumerate the files there
-* @param resultArray will be filled during the recursion to store all relevant files
-*/
-    private getRelevantFilesRec(baseDir: string, resultArray: string[]): void {
-        let entries = fs.readdirSync(baseDir, { withFileTypes: true });
-        for (let entry of entries) {
-            let fullname = path.join(baseDir, entry.name);
-            if (entry.isDirectory()) {
-                this.getRelevantFilesRec(fullname, resultArray);
-            } else {
-                if (this.shallIgnore(fullname)) {
-                    continue;
+            "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" })
+        };
+        let chat:ChatType=[]
+        
+        let isDone=false
+        do{
+            let curr=this.promptIterator.next(context);
+            isDone=curr.done!
+            let currMessages=curr.value.messages;
+            for (let r of Object.keys(replaceMap)) {
+                for (let i = 0; i < currMessages.length; i++) {
+                    currMessages[i] = currMessages[i].replace(r, replaceMap[r])
                 }
-                resultArray.push(fullname);
             }
-        }
+            console.log("MESSAGES",currMessages)
+
+            for(let msg of currMessages){
+                api.prepareMessage(msg)
+            }
+            console.log("SEND")
+            let response=await api.sendMessages(curr.value.clear!)
+            console.log("RESPONDED")
+            let chatResult={
+                input:currMessages,
+                output:response
+            }
+            chat.push(chatResult)
+
+
+            console.log("Done",isDone)
+        }while(!isDone && false)
+        let newContext=context.buildNewContext(new LargeLanguageModelDetectorContext(this.buildTypeContext(chat),chat))
+        return  newContext;
     }
+    constructor(args:{instructionIterator:any,dataIterator:any}){
+        super();
+        registerFromName(args.instructionIterator.name,InstructionIterator.name,args.instructionIterator.args)
+        registerFromName(args.dataIterator.name,DataIterator.name,args.dataIterator.args)
+
+        this.promptIterator=new PromptIterator(resolveFromName(InstructionIterator.name),resolveFromName(DataIterator.name)) 
+    }
+    buildTypeContext(chat:ChatType):DataClumpsTypeContext{
+        return  {data_clumps:{}} as any;
+    }
+
+    private promptIterator:PromptIterator;
+   
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.NameFinding, PipeLineStep.ClassExtraction, PipeLineStep.ReferenceFinding, PipeLineStep.Refactoring]
     }
