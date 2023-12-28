@@ -6,6 +6,10 @@ import { createHash } from 'node:crypto'
 import { ChatGPTInterface } from "./util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "./util/languageModel/LanguageModelTemplateResolver";
 async function main(){
+    /*
+    args:
+    2:
+    */
     if(process.argv.length<3){
         throw new Error("Please provide the path to the template file")
     }
@@ -13,7 +17,7 @@ async function main(){
     let api = new ChatGPTInterface()
     let input=templateResolver.resolveTemplate({
         "${programming_language}": "Java",
-        "${examples}":fs.readFileSync("chatgpt_templates/DataClumpExamples.java", { encoding: "utf-8" })
+        "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" })
     })
     api.prepareMessage(input);
     

@@ -1,8 +1,8 @@
-import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext } from "../../context/DataContext";
-import { ChatGPTInterface } from "../../util/languageModel/ChatGPTInterface";
-import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../util/languageModel/LanguageModelTemplateResolver";
-import { PipeLineStep, PipeLineStepType } from "../PipeLineStep";
-import { AbstractStepHandler } from "./AbstractStepHandler";
+import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext } from "../../../context/DataContext";
+import { ChatGPTInterface } from "../../../util/languageModel/ChatGPTInterface";
+import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
+import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
+import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
 import { files } from "node-dir"
 import path from "path";
