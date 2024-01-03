@@ -33,7 +33,7 @@ async function main(){
         time:startTimestamp,
     }
     jsonObj["config"]=JSON.parse(fs.readFileSync("chatGPT_config.json",{encoding:"utf8"}))
-    fs.writeFileSync(`${outDir}/metadata.json`,JSON.stringify(jsonObj))
+    fs.writeFileSync(`${outDir}/metadata.json`,JSON.stringify(jsonObj,undefined,2))
 
 }
   
