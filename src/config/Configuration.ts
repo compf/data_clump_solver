@@ -41,6 +41,7 @@ const nameScriptFileMap={
     DetectAndRefactorWithLanguageModelStep:pathPrefix+"languageModelSpecific/DetectAndRefactorWithLanguageModelStep.js",
     AllFilesIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
     KeepCurrentInstructionUntilDataIteratorIsDoneIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
+    AllFilesThenPairsOfFileIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
 }
 const container=new ContainerBuilder();
 export function registerFromName(name:string,dependencyCategory:string,args:any){

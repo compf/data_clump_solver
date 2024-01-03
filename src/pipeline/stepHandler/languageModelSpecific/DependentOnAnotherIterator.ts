@@ -2,7 +2,7 @@ import { DataClumpRefactoringContext, FileFilteringContext } from "../../../cont
 import fs from "fs"
 import { Minimatch } from "minimatch";
 import path from "path";
-export type DependentOnAnotherIteratorReturnType = { messages: string[]; clear: boolean; doWrite: boolean; }
+export type DependentOnAnotherIteratorReturnType = { messages: string[]; clear: boolean;shallSend:boolean }
 export type InstructionReturnType = DependentOnAnotherIteratorReturnType & { doWrite: boolean }
 export type StateInformationType = { hasOtherFinished: boolean, context: DataClumpRefactoringContext }
 export abstract class DependentOnAnotherIterator<T> implements Iterator<T, any, {
@@ -40,19 +40,20 @@ export class KeepCurrentInstructionUntilDataIteratorIsDoneIterator extends Instr
         this.needToClear = params.needToClear
     }
     next(info:StateInformationType): IteratorResult<InstructionReturnType, any> {
-
+        let hasNewInstruction=false;
         if (info.hasOtherFinished||this.counter==-1) {
             this.counter++;
             if(this.counter<this.allInstructionPaths.length){
                 this.lastInstruction=fs.readFileSync(this.allInstructionPaths[this.counter],{encoding:"utf-8"})
-
+                hasNewInstruction=true;
             }
         }
         
         let result: InstructionReturnType = {
             clear: this.needToClear,
             doWrite: this.doesInstructionWrite.includes(this.counter),
-            messages: [this.lastInstruction]
+            messages: hasNewInstruction?[this.lastInstruction]:[],
+            shallSend:false
         }
         return { done: this.counter + 1 >= this.allInstructionPaths.length, value: result }
     }
@@ -69,12 +70,12 @@ export class AllFilesIterator extends DataIterator {
         let nextFiles = this.getNextFiles()
         let messages:string[]=[]
         for(let file of   nextFiles.files){
-           let name=path.basename(file)
+           let name=path.relative(info.context.getProjectPath(),file)
            let content=fs.readFileSync(file,{encoding:"utf-8"})
               messages.push("//"+name+"\n"+content)
 
         }
-        return { done: nextFiles.done, value: { messages: messages, clear: false, doWrite: false } }
+        return { done: nextFiles.done, value: { messages: messages, clear: false,shallSend:false } }
 
 
     }
@@ -128,4 +129,26 @@ export class AllFilesIterator extends DataIterator {
         return isExcluded || !isIncluded
     }
 
+}
+export class AllFilesThenPairsOfFileIterator extends AllFilesIterator{
+    private firstPhase=true;
+    private index1:number=0;
+    private index2:number=1;
+    next(info: StateInformationType): IteratorResult<DependentOnAnotherIteratorReturnType, any> {
+        if(this.firstPhase){
+            this.firstPhase=false;
+            return super.next(info)
+        }
+        else{
+            let name1=path.relative(info.context.getProjectPath(),this.allFiles![this.index1])
+            let name2=path.relative(info.context.getProjectPath(),this.allFiles![this.index2])
+            let combined=name1+" & "+name2
+            this.index2++;
+            if(this.index2>=this.allFiles!.length){
+                this.index2=0;
+                this.index1++;
+            }
+            return { done: this.index1+1>=this.allFiles!.length, value: { messages: [combined], clear: false,shallSend:false } }
+        }
+    }
 }

@@ -24,7 +24,8 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         let api = new ChatGPTInterface()
        let replaceMap={
             "${programming_language}": "Java",
-            "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" })
+            "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" }),
+            "${output_format}":fs.readFileSync("chatGPT_templates/json_output_format.json", { encoding: "utf-8" }),
         };
         let chat:ChatType=[]
         
@@ -44,7 +45,11 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
                 api.prepareMessage(msg)
             }
             console.log("SEND")
-            let response=await api.sendMessages(curr.value.clear!)
+            let response:string[]=[]
+            if(curr.value.shallSend){
+                 response=await api.sendMessages(curr.value.clear!)
+            }
+          
             console.log("RESPONDED")
             let chatResult={
                 input:currMessages,
@@ -54,7 +59,12 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
 
 
             console.log("Done",isDone)
-        }while(!isDone && false)
+        }while(!isDone)
+        let response=await api.sendMessages(true)
+        chat.push({
+            input:[],
+            output: response
+        })
         let newContext=context.buildNewContext(new LargeLanguageModelDetectorContext(this.buildTypeContext(chat),chat))
         return  newContext;
     }

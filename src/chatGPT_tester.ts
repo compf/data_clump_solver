@@ -24,6 +24,7 @@ async function main(){
     fs.mkdirSync(outDir,{recursive:true})
     for(let c of newContext.chat){
         c.output=c.output.map((x)=>JSON.parse(x))
+        c.input=c.input.map((x)=>x.split("\n")) as any
     }
     fs.writeFileSync(`${outDir}/${responseHashed}.json`,JSON.stringify(newContext.chat))
     let jsonObj=fs.existsSync(`${outDir}/metadata.json`)?JSON.parse(fs.readFileSync(`${outDir}/metadata.json`,{encoding:"utf8"})):{}
