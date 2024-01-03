@@ -26,7 +26,7 @@ async function main(){
         c.output=c.output.map((x)=>JSON.parse(x))
         c.input=c.input.map((x)=>x.split("\n")) as any
     }
-    fs.writeFileSync(`${outDir}/${responseHashed}.json`,JSON.stringify(newContext.chat))
+    fs.writeFileSync(`${outDir}/${responseHashed}.json`,JSON.stringify(newContext.chat,undefined,2))
     let jsonObj=fs.existsSync(`${outDir}/metadata.json`)?JSON.parse(fs.readFileSync(`${outDir}/metadata.json`,{encoding:"utf8"})):{}
     jsonObj[responseHashed]={
         elapsedMS:elapsed,
