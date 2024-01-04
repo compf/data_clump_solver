@@ -7,9 +7,8 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
 import { files } from "node-dir"
 import path from "path";
-import { PromptIterator } from "./PromptIterator";
 import { registerFromName, resolveFromName } from "../../../config/Configuration";
-import { DataIterator, InstructionIterator, LargeLanguageModelHandler } from "./DependentOnAnotherIterator";
+import { DataIterator, InstructionIterator, LargeLanguageModelHandler } from "./LargeLanguageModelHandlers";
 import { ChatMessage } from "../../../util/languageModel/LanguageModelInterface";
 export class LargeLanguageModelDetectorContext extends DataClumpDetectorContext{
     public chat: ChatMessage[]

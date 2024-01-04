@@ -110,3 +110,38 @@ export class SendAndClearHandler extends LargeLanguageModelHandler {
         })
     }
 }
+export class SendHandler extends LargeLanguageModelHandler {
+    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, replacementMap: { [key: string]: string; }): Promise<ChatMessage[]> {
+        return api.sendMessages(false).then((x) => {
+            return [x]
+        })
+    }
+}
+export interface RandomDecider{
+    decide(context:DataClumpRefactoringContext):boolean
+}
+export class RandomIterationsDecider implements RandomDecider{
+    private iterations:number
+    private counter:number=0
+    decide(context: DataClumpRefactoringContext): boolean {
+        return this.counter++ <this.iterations
+    }
+    constructor(args:{minIterations:number,maxIterations:number}){
+        this.iterations=Math.floor(Math.random()*(args.maxIterations-args.minIterations))+args.minIterations
+    }
+}
+export class RepeatInstructionRandomlyHandler extends SimpleInstructionHandler{
+    private decider:RandomDecider=new RandomIterationsDecider({minIterations:1,maxIterations:5})
+    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, replacementMap: { [key: string]: string; }): Promise<ChatMessage[]> {
+       let results:ChatMessage[]=[]
+        while(this.decider.decide(context)){
+             let res= await  super.handle(context, api, replacementMap)
+             for(let r of res){
+                results.push(r)
+             }
+            results.push(await api.sendMessages(false))
+            
+        }
+        return results
+    }
+}
