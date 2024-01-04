@@ -17,15 +17,22 @@ async function main(){
     let context=new DataClumpRefactoringContext();
     let newContext=await PipeLine.Instance.executeAllSteps(context) as LargeLanguageModelDetectorContext
     let elapsed=Date.now()-startTimestamp
+    let inputOnly=newContext.chat.filter((x)=>x.messageType=="input")
+    let outputOnly=newContext.chat.filter((x)=>x.messageType=="output")
     
-    let responseHashed= sha256(newContext.chat.map((x)=>x.output).join("\n"))
-    let inputHashed= sha256(newContext.chat.map((x)=>x.input.join("\n")).join("\n"))
+    let responseHashed= sha256(outputOnly.join("\n"))
+    let inputHashed= sha256(inputOnly.join("\n"))
     let outDir=`chatGPT_results/${inputHashed}`
     fs.mkdirSync(outDir,{recursive:true})
     for(let c of newContext.chat){
-        c.output=c.output.map((x)=>JSON.parse(x))
-        c.input=c.input.map((x)=>x.split("\n")) as any
+        c.messages=c.messages.map((x)=>{
+            if(c.messageType=="input"){
+                return x.split("\n") as any
+            }else
+                return JSON.parse(x)
+            });
     }
+      
     fs.writeFileSync(`${outDir}/${responseHashed}.json`,JSON.stringify(newContext.chat,undefined,2))
     let jsonObj=fs.existsSync(`${outDir}/metadata.json`)?JSON.parse(fs.readFileSync(`${outDir}/metadata.json`,{encoding:"utf8"})):{}
     jsonObj[responseHashed]={

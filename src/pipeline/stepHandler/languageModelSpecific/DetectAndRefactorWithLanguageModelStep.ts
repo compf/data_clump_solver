@@ -9,17 +9,18 @@ import { files } from "node-dir"
 import path from "path";
 import { PromptIterator } from "./PromptIterator";
 import { registerFromName, resolveFromName } from "../../../config/Configuration";
-import { DataIterator, InstructionIterator } from "./DependentOnAnotherIterator";
-export type ChatType={input:string[],output:string[]}[]
+import { DataIterator, InstructionIterator, LargeLanguageModelHandler } from "./DependentOnAnotherIterator";
+import { ChatMessage } from "../../../util/languageModel/LanguageModelInterface";
 export class LargeLanguageModelDetectorContext extends DataClumpDetectorContext{
-    public chat: ChatType
-    constructor(typeContext:DataClumpsTypeContext,chat:ChatType){
+    public chat: ChatMessage[]
+    constructor(typeContext:DataClumpsTypeContext,chat:ChatMessage[]){
         super(typeContext)
         this.chat=chat
     }
    
 }
 export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
+    private handlers: LargeLanguageModelHandler[] = []
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let api = new ChatGPTInterface()
        let replaceMap={
@@ -27,59 +28,31 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
             "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" }),
             "${output_format}":fs.readFileSync("chatGPT_templates/json_output_format.json", { encoding: "utf-8" }),
         };
-        let chat:ChatType=[]
+        let chat:ChatMessage[]=[]
+        for (let handler of this.handlers) {
+            let messages=await handler.handle(context, api, replaceMap)
+            chat.push(...messages)
+        }
         
-        let isDone=false
-        do{
-            let curr=this.promptIterator.next(context);
-            isDone=curr.done!
-            let currMessages=curr.value.messages;
-            for (let r of Object.keys(replaceMap)) {
-                for (let i = 0; i < currMessages.length; i++) {
-                    currMessages[i] = currMessages[i].replace(r, replaceMap[r])
-                }
-            }
-            console.log("MESSAGES",currMessages)
-
-            for(let msg of currMessages){
-                api.prepareMessage(msg)
-            }
-            console.log("SEND")
-            let response:string[]=[]
-            if(curr.value.shallSend){
-                 response=await api.sendMessages(curr.value.clear!)
-            }
-          
-            console.log("RESPONDED")
-            let chatResult={
-                input:currMessages,
-                output:response
-            }
-            chat.push(chatResult)
-
-
-            console.log("Done",isDone)
-        }while(!isDone)
-        let response=await api.sendMessages(true)
-        chat.push({
-            input:[],
-            output: response
-        })
+        
+       
         let newContext=context.buildNewContext(new LargeLanguageModelDetectorContext(this.buildTypeContext(chat),chat))
         return  newContext;
     }
-    constructor(args:{instructionIterator:any,dataIterator:any}){
+    constructor(args:{handlers:{name:string,args:any}[]}){
         super();
-        registerFromName(args.instructionIterator.name,InstructionIterator.name,args.instructionIterator.args)
-        registerFromName(args.dataIterator.name,DataIterator.name,args.dataIterator.args)
+        let i=0
+        for(let handler of args.handlers){
+            registerFromName(handler.name,LargeLanguageModelHandler.name+i,handler.args)
+            this.handlers.push(resolveFromName(LargeLanguageModelHandler.name+i) as LargeLanguageModelHandler)
+            i++;
+        }
 
-        this.promptIterator=new PromptIterator(resolveFromName(InstructionIterator.name),resolveFromName(DataIterator.name)) 
     }
-    buildTypeContext(chat:ChatType):DataClumpsTypeContext{
+    buildTypeContext(chat:ChatMessage[]):DataClumpsTypeContext{
         return  {data_clumps:{}} as any;
     }
 
-    private promptIterator:PromptIterator;
    
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.NameFinding, PipeLineStep.ClassExtraction, PipeLineStep.ReferenceFinding, PipeLineStep.Refactoring]

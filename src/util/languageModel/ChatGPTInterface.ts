@@ -1,6 +1,6 @@
 import fs from "fs"
 import OpenAI from 'openai';
-import { LanguageModelInterface } from "./LanguageModelInterface";
+import { ChatMessage, LanguageModelInterface } from "./LanguageModelInterface";
 export class ChatGPTInterface extends LanguageModelInterface{
     private api:OpenAI;
     constructor(){
@@ -21,31 +21,31 @@ export class ChatGPTInterface extends LanguageModelInterface{
     loadToken():string{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
     }
-    async  sendMessages(clear:boolean): Promise<any> {
+    async  sendMessages(clear:boolean): Promise<ChatMessage> {
         let response= await this.api.chat.completions.create(this.completions);
         if(clear){
             this.completions.messages=[]
         }
         console.log(JSON.stringify(response,undefined,4))
         if(response.choices.length>0){
-            let allMessages=response.choices.map((x)=>x.message.content)
+            let allMessages=response.choices.map((x)=>x.message.content!!)
             for(let choice of response.choices){
                 console.log(choice.message.content)
                 this.completions.messages.push({role:"assistant",content:choice.message.content})
                 console.log("####")
             }
-            return allMessages
+            return {messages:allMessages,messageType:"output"}
         }
-        return null
+        return {messages:["No response"],messageType:"output"}
     }
-     prepareMessage(message:string):LanguageModelInterface{
+     prepareMessage(message:string):ChatMessage{
         this.completions.messages.push(
             {content:message,
                 role:"user",
                
             
             })
-            return this
+           return {messages:[message],messageType:"input"}
            
     }
  

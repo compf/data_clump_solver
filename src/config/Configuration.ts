@@ -39,9 +39,10 @@ const nameScriptFileMap={
     EclipseLSP_API:"../util/languageServer/EclipseLSP_API.js",
     RedcliffManualRefactoringStep:pathPrefix+"refactoring/RedcliffManualRefactoringStep.js",
     DetectAndRefactorWithLanguageModelStep:pathPrefix+"languageModelSpecific/DetectAndRefactorWithLanguageModelStep.js",
-    AllFilesIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
-    KeepCurrentInstructionUntilDataIteratorIsDoneIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
-    AllFilesThenPairsOfFileIterator:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
+    SimpleInstructionHandler:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
+    AllFilesHandler:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
+    PairsOfFilesHandler:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
+    SendAndClearHandler:pathPrefix+"languageModelSpecific/DependentOnAnotherIterator.js",
 }
 const container=new ContainerBuilder();
 export function registerFromName(name:string,dependencyCategory:string,args:any){

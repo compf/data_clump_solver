@@ -16,8 +16,9 @@ export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandle
         }
         let resolver = LanguageModelTemplateResolver.fromTemplateType(LanguageModelTemplateType.SuggestName);
         let query = resolver.resolveTemplate({ field_names_comma_separated: this.getQueryKey(names) });
-        let suggestedName = await this.languageModel.prepareMessage(query).sendMessages(true);
-        return suggestedName.suggested_name
+        this.languageModel.prepareMessage(query)
+        let suggestedName=await this.languageModel.sendMessages(true);
+        return suggestedName.messages[0]
     }
     languageModel: LanguageModelInterface | null = null;
     args: any
