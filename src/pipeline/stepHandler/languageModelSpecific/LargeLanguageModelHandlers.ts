@@ -84,24 +84,60 @@ export class PairsOfFilesHandler extends LargeLanguageModelHandler {
     private firstPhase = true;
     private index1: number = 0;
     private index2: number = 1;
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, replacementMap: { [key: string]: string; }): Promise<ChatMessage[]> {
-        let allFiles:string[] = []
+    getFileTuples(context): { name1: string, name2: string }[] {
+        let result: { name1: string, name2: string }[] = []
+        let allFiles:string[]=[]
         getRelevantFilesRec(context.getProjectPath(), allFiles,context.getByType(FileFilteringContext))
-        let chatMessages: ChatMessage[] = []
         for(let index1=0;index1<allFiles.length;index1++){
             for(let index2=index1+1;index2<allFiles.length;index2++){
                 let name1 = path.relative(context.getProjectPath(), allFiles[index1])
                 let name2 = path.relative(context.getProjectPath(), allFiles[index2])
-                let combined = name1 + " & " + name2
-                chatMessages.push(api.prepareMessage(combined))
+                
+                result.push({name1,name2})
             }
         }
+        return result
+    }
+    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, replacementMap: { [key: string]: string; }): Promise<ChatMessage[]> {
+        let chatMessages: ChatMessage[] = []
+        let files=this.getFileTuples   (context)
+        for(let f of files){
+            let combined = f.name1 + " & " + f.name2
+            chatMessages.push(api.prepareMessage(combined))
+        }
+       
         return Promise.resolve(chatMessages)
        
     }
    
 
     
+}
+export interface ReExecutePreviousHandlers{
+    shallReExecute():boolean
+}
+export class PairOfFileContentHandler extends PairsOfFilesHandler implements ReExecutePreviousHandlers{
+    private files:{name1:string,name2:string}[]|null=null
+    private index=0
+    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, replacementMap: { [key: string]: string; }): Promise<ChatMessage[]> {
+        if(this.files==null){
+            this.files=this.getFileTuples(context);
+        }
+        let f=this.files[this.index]
+        let content1=fs.readFileSync(path.resolve(context.getProjectPath(),f.name1),{encoding:"utf-8"})
+        let content2=fs.readFileSync(path.resolve(context.getProjectPath(),f.name2),{encoding:"utf-8"})
+        let message="//"+f.name1+"\n"+content1+"\n//"+f.name2+"\n"+content2;
+        this.index++;
+        let messages:ChatMessage[]=[  api.prepareMessage(message)]
+        let reply=await api.sendMessages(true)
+        messages.push(reply)
+         return   messages
+       
+    }
+    shallReExecute(): boolean {
+        return this.index<this.files!.length;
+    }
+
 }
 export class SendAndClearHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, replacementMap: { [key: string]: string; }): Promise<ChatMessage[]> {

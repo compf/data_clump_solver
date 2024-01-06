@@ -8,7 +8,7 @@ import fs from "fs"
 import { files } from "node-dir"
 import path from "path";
 import { registerFromName, resolveFromName } from "../../../config/Configuration";
-import { DataIterator, InstructionIterator, LargeLanguageModelHandler } from "./LargeLanguageModelHandlers";
+import { DataIterator, InstructionIterator, LargeLanguageModelHandler,ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage } from "../../../util/languageModel/LanguageModelInterface";
 export class LargeLanguageModelDetectorContext extends DataClumpDetectorContext{
     public chat: ChatMessage[]
@@ -17,6 +17,10 @@ export class LargeLanguageModelDetectorContext extends DataClumpDetectorContext{
         this.chat=chat
     }
    
+}
+function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
+    // replace 'property' with a unique property of ReExecutePreviousHandlers
+    return 'shallReExecute' in object;
 }
 export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
@@ -28,8 +32,13 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
             "${output_format}":fs.readFileSync("chatGPT_templates/json_output_format.json", { encoding: "utf-8" }),
         };
         let chat:ChatMessage[]=[]
-        for (let handler of this.handlers) {
+        let handlerIndex=0
+        for (handlerIndex=0;handlerIndex<this.handlers.length;handlerIndex++) {
+            let handler=this.handlers[handlerIndex]
             let messages=await handler.handle(context, api, replaceMap)
+            if( isReExecutePreviousHandlers(handler) && handler.shallReExecute()){
+                handlerIndex=-1;
+            }
             chat.push(...messages)
         }
         

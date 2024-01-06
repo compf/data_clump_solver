@@ -45,6 +45,9 @@ const nameScriptFileMap={
     SendAndClearHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     RepeatInstructionRandomlyHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     SendHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
+    PairOfFileContentHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
+
+    
 }
 const container=new ContainerBuilder();
 export function registerFromName(name:string,dependencyCategory:string,args:any){
