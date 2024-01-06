@@ -22,7 +22,8 @@ export type Configuration={
          UsageFinding:PipeLineStepConf,
          Refactoring:PipeLineStepConf,
          Validation:PipeLineStepConf,
-    }
+    },
+    Objects:{[key:string]:{name:string,args:any}}
     
 }
 const pathPrefix="../pipeline/stepHandler/"
@@ -67,6 +68,7 @@ export function getContextSerializationPath(index:number):string|undefined{
 }
 export function loadConfiguration(path:string){
     let config=JSON.parse(fs.readFileSync(path).toString()) as Configuration
+    // register as objects
     for(let step of Object.keys(PipeLineStep)){
         if(config.PipeLine[step] && config.PipeLine[step].handler){
             contextSerializationPathMap.set( Object.keys(PipeLineStep).indexOf(step),config.PipeLine[step].contextSerializationPath)
@@ -74,6 +76,13 @@ export function loadConfiguration(path:string){
            
         }
     }
+    if("Objects" in config){
+        for(let object of Object.keys(config.Objects)){
+            registerFromName(config.Objects[object].name,object,config.Objects[object].args)
+        }
+    }
+    
+    // register in the pipeline
     for(let step of Object.keys(PipeLineStep)){
         if(PipeLineStep[step].isRequired && !config.PipeLine[step]){
             throw new Error("Missing configuration for step "+step)

@@ -3,8 +3,25 @@ import OpenAI from 'openai';
 import { ChatMessage, LanguageModelInterface } from "./LanguageModelInterface";
 export class ChatGPTInterface extends LanguageModelInterface{
     private api:OpenAI;
-    constructor(){
+
+    constructor(args:{model:string,temperature:number}|undefined){
         super();
+        let model:string
+        let temperature:number
+        if(args){
+            model=args.model
+            temperature=args.temperature
+        }
+        else{
+            model="gpt-4-1106-preview"
+            temperature=0.9
+        }
+        this.completions={
+            messages:[],
+            model:model,
+            response_format:{type:"json_object"},
+            temperature:temperature,
+        }
         this.api=new OpenAI({
             apiKey:this.loadToken(),
             
@@ -12,12 +29,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
         });
         
     }
-    private chatID:string|undefined=undefined
-    private completions:OpenAI.ChatCompletionCreateParamsNonStreaming={
-        messages:[],
-        model:"gpt-4-1106-preview",
-        response_format:{type:"json_object"},temperature:0.9
-    }
+    private completions:OpenAI.ChatCompletionCreateParamsNonStreaming
     loadToken():string{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
     }

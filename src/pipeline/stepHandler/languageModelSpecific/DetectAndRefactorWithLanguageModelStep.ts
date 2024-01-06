@@ -9,7 +9,7 @@ import { files } from "node-dir"
 import path from "path";
 import { registerFromName, resolveFromName } from "../../../config/Configuration";
 import { DataIterator, InstructionIterator, LargeLanguageModelHandler,ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
-import { ChatMessage } from "../../../util/languageModel/LanguageModelInterface";
+import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } from "../../../util/languageModel/LanguageModelInterface";
 export class LargeLanguageModelDetectorContext extends DataClumpDetectorContext{
     public chat: ChatMessage[]
     constructor(typeContext:DataClumpsTypeContext,chat:ChatMessage[]){
@@ -25,7 +25,7 @@ function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHa
 export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let api = new ChatGPTInterface()
+        let api = resolveFromName(LanguageModelInterfaceCategory) as LanguageModelInterface
        let replaceMap={
             "${programming_language}": "Java",
             "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" }),
