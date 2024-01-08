@@ -24,8 +24,17 @@ function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHa
 }
 export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
+    private providedApi:LanguageModelInterface|null=null
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let api = resolveFromName(LanguageModelInterfaceCategory) as LanguageModelInterface
+        let api:LanguageModelInterface;
+        if(this.providedApi!=null){
+            api=this.providedApi
+        }
+        else{
+            api = resolveFromName(LanguageModelInterfaceCategory) as LanguageModelInterface
+        }
+         
+        api.clear();
        let replaceMap={
             "${programming_language}": "Java",
             "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" }),
@@ -47,6 +56,12 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         let newContext=context.buildNewContext(new LargeLanguageModelDetectorContext(this.buildTypeContext(chat),chat))
         return  newContext;
     }
+   static createFromCreatedHandlers(handlers:LargeLanguageModelHandler[],api:LanguageModelInterface):DetectAndRefactorWithLanguageModelStep{
+       let step=new DetectAndRefactorWithLanguageModelStep({handlers:[]})
+       step.handlers=handlers
+       step.providedApi=api
+       return step
+   }
     constructor(args:{handlers:{name:string,args:any}[]}){
         super();
         let i=0

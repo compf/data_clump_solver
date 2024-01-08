@@ -5,58 +5,96 @@ import path from "path";
 import { createHash } from 'node:crypto'
 import { ChatGPTInterface } from "./util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "./util/languageModel/LanguageModelTemplateResolver";
-import { loadConfiguration } from "./config/Configuration";
+import { loadConfiguration, registerFromName, resolveFromName } from "./config/Configuration";
 import { PipeLine } from "./pipeline/PipeLine";
-import { DataClumpRefactoringContext } from "./context/DataContext";
-import { LargeLanguageModelDetectorContext } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
-import { PairOfFileContentHandler, SimpleInstructionHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext } from "./context/DataContext";
+import { DetectAndRefactorWithLanguageModelStep, LargeLanguageModelDetectorContext } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
+import { AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function createInstructionHandler(instructionPath:string){
-    return new SimpleInstructionHandler({instructionPath})
+function createInstructionHandler(instructionPath: string) {
+    return new SimpleInstructionHandler({ instructionPath })
 }
-const temperatures=[0.1,0.9]
-const models=["gpt-4-1106-preview" , "gpt-3.5-turbo-1106"]
-const instructionType=["definitionBased","exampleBased","noDefinitionBased"];
-const dataFormat=["source","ast"]
-const dataHandler=["AllFilesHandler","PairOfFileContentHandler","SingleFileHandler"]
-async function main(){
-
-    
-    loadConfiguration("chatGPT_config.json")
-    let startTimestamp=Date.now()
-    let context=new DataClumpRefactoringContext();
-    let newContext=await PipeLine.Instance.executeAllSteps(context) as LargeLanguageModelDetectorContext
-    let elapsed=Date.now()-startTimestamp
-    let inputOnly=newContext.chat.filter((x)=>x.messageType=="input")
-    let outputOnly=newContext.chat.filter((x)=>x.messageType=="output")
-    
-    let responseHashed= sha256(outputOnly.join("\n"))
-    let inputHashed= sha256(inputOnly.join("\n"))
-    let outDir=`chatGPT_results/${inputHashed}`
-    fs.mkdirSync(outDir,{recursive:true})
-    for(let c of newContext.chat){
-        c.messages=c.messages.map((x)=>{
-            if(c.messageType=="input"){
-                return x.split("\n") as any
-            }else
-                return JSON.parse(x)
-            });
+const apis = ["ChatGPTInterface"]
+const temperatures = [0.1, 0.9]
+const models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
+const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
+const dataFormat = ["source", "ast"]
+const dataHandler = ["AllFilesHandler", "PairOfFileContentHandler", "SingleFileHandler"]
+const repetionCount = 3;
+function createDataHandler(name:string):LargeLanguageModelHandler{
+    switch(name){
+        case "AllFilesHandler":
+            return new AllFilesHandler()
+        case "PairOfFileContentHandler":
+            return new PairOfFileContentHandler()
+        case "SingleFileHandler":
+            return new SingleFileHandler()
+        default:
+            throw new Error("Unknown data handler")
     }
-      
-    fs.writeFileSync(`${outDir}/${responseHashed}.json`,JSON.stringify(newContext.chat,undefined,2))
-    let jsonObj=fs.existsSync(`${outDir}/metadata.json`)?JSON.parse(fs.readFileSync(`${outDir}/metadata.json`,{encoding:"utf8"})):{}
-    jsonObj[responseHashed]={
-        elapsedMS:elapsed,
-        time:startTimestamp,
+}
+function createAPI(apiType: string, model: string, temperature: number): LanguageModelInterface {
+    return new ChatGPTInterface({ model, temperature })
+}
+async function main() {
+    let codeObtainingContext=new CodeObtainingContext("javaTest");
+    for (let apiType of apis) {
+        for (let model of models) {
+            for (let temperature of temperatures) {
+                for (let instrType of instructionType) {
+                    for (let dFormat of dataFormat) {
+                        for (let handlerName of dataHandler) {
+                            for (let i = 0; i < repetionCount; i++) {
+                                console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
+                                const instructionPath=`chatGPT_templates/${instrType}/${dFormat}/instruction.template`
+                                let handlers = {handlers:[
+                                    new SimpleInstructionHandler({instructionPath}),
+                                    createDataHandler(handlerName),
+                                    new SendAndClearHandler()
+                                ]}
+
+
+                                const api=createAPI(apiType,model,temperature)
+                                let langRefactorer=DetectAndRefactorWithLanguageModelStep.createFromCreatedHandlers(handlers.handlers,api)
+                                let context=codeObtainingContext.buildNewContext(new FileFilteringContext([dFormat=="source"?"*.java":"*.json"],[]))
+                                let startTimestamp = Date.now()
+                                console.log("STARTING")
+                                let newContext=await( langRefactorer.handle(context,null)) as LargeLanguageModelDetectorContext
+                                let elapsed = Date.now() - startTimestamp
+                                console.log("FINISHED")
+                                let inputOnly = newContext.chat.filter((x) => x.messageType == "input")
+                                let outputOnly = newContext.chat.filter((x) => x.messageType == "output")
+                                console.log("INPUT")
+                                console.log(inputOnly)
+                                console.log("OUTPUT")
+                                console.log(outputOnly)
+                                let path="llm_results/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
+                                fs.mkdirSync(path, { recursive: true })
+                                for (let c of newContext.chat) {
+                                    c.messages = c.messages.map((x) => {
+                                        if (c.messageType == "input") {
+                                            return x.split("\n") as any
+                                        } else
+                                            return JSON.parse(x)
+                                    });
+                                }
+                            
+                                fs.writeFileSync(path+"/output.json", JSON.stringify(newContext.chat, undefined, 2))
+                                let metadata={elapsed:elapsed,time:startTimestamp,usage:api.getTokenStats()}
+                                fs.writeFileSync(path+"/metadata.json", JSON.stringify(metadata, undefined, 2))
+                                await sleep(1000)
+
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
     }
-    jsonObj["config"]=JSON.parse(fs.readFileSync("chatGPT_config.json",{encoding:"utf8"}))
-    fs.writeFileSync(`${outDir}/metadata.json`,JSON.stringify(jsonObj,undefined,2))
-
+   
 }
-  
 
-
-function sha256(content:string):string {  
-    return createHash('sha256').update(content).digest('hex')
-}
-  main()
+main()

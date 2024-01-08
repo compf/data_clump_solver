@@ -2,6 +2,7 @@ import { Minimatch } from "minimatch";
 import { FileFilteringContext } from "../context/DataContext";
 import fs from "fs"
 import path from "path";
+export const MiniMatchConf = { dot: true, matchBase: true };
   /** 
 * Recursively traverse through the directory and find all relavant files
 * @param baseDir the current directory to enumerate the files there
@@ -22,7 +23,8 @@ export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileF
     }
 }
 function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext|null): boolean {
-    if (!filePath.endsWith(".java")) {
+    if ( fileFilteringContext==null && !filePath.endsWith(".java")) {
+        console.log("ignore",filePath)
         return true;
     }
     if (fileFilteringContext == null) {
@@ -34,13 +36,13 @@ function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext
     let isIncluded = includeGlobs.length == 0
     let isExcluded = false
     for (let includeGlob of includeGlobs) {
-        if (new Minimatch(includeGlob).match(filePath)) {
+        if (new Minimatch(includeGlob,MiniMatchConf).match(filePath,true)) {
             isIncluded = true
             break
         }
     }
     for (let excludeGlob of excludeGlobs) {
-        if (new Minimatch(excludeGlob).match(filePath)) {
+        if (new Minimatch(excludeGlob,MiniMatchConf).match(filePath)) {
             isExcluded = true
             break
         }

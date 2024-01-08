@@ -29,15 +29,25 @@ export class ChatGPTInterface extends LanguageModelInterface{
         });
         
     }
+    clear(): void {
+        this.completions.messages=[]
+    }
     private completions:OpenAI.ChatCompletionCreateParamsNonStreaming
+    private lastUsage:OpenAI.CompletionUsage={
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0
+    }
     loadToken():string{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
     }
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
+        console.log("SENDING")
         let response= await this.api.chat.completions.create(this.completions);
         if(clear){
-            this.completions.messages=[]
+            this.clear()
         }
+        this.lastUsage=response.usage!
         console.log(JSON.stringify(response,undefined,4))
         if(response.choices.length>0){
             let allMessages=response.choices.map((x)=>x.message.content!!)
@@ -49,6 +59,10 @@ export class ChatGPTInterface extends LanguageModelInterface{
             return {messages:allMessages,messageType:"output"}
         }
         return {messages:["No response"],messageType:"output"}
+    }
+    getTokenStats(): { prompt_tokens: number; completion_tokens: number; total_tokens: number; } {
+        return this.lastUsage
+    
     }
      prepareMessage(message:string):ChatMessage{
         this.completions.messages.push(
