@@ -48,6 +48,9 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
             if( isReExecutePreviousHandlers(handler) && handler.shallReExecute()){
                 handlerIndex=-1;
             }
+            else if(isReExecutePreviousHandlers(handler) && !handler.shallReExecute()){
+                api.clear();
+            }
             chat.push(...messages)
         }
         

@@ -148,6 +148,7 @@ export class SingleFileHandler extends LargeLanguageModelHandler implements ReEx
             getRelevantFilesRec(context.getProjectPath(), this.files, context.getByType(FileFilteringContext))
         }
         let f = this.files[this.index]
+        f=path.relative(context.getProjectPath(),f)
         let content1 = fs.readFileSync(path.resolve(context.getProjectPath(), f), { encoding: "utf-8" })
         let message = f + "\n" + content1;
         this.index++;

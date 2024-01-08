@@ -42,7 +42,8 @@ export class ChatGPTInterface extends LanguageModelInterface{
         return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
     }
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
-        console.log("SENDING")
+        if(this.completions.messages.length==0)return {messages:[],messageType:"output"}
+        console.log("SENDING",this.completions.messages)
         let response= await this.api.chat.completions.create(this.completions);
         if(clear){
             this.clear()

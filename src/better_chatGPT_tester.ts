@@ -23,6 +23,7 @@ const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"]
 const dataFormat = ["source", "ast"]
 const dataHandler = ["AllFilesHandler", "PairOfFileContentHandler", "SingleFileHandler"]
 const repetionCount = 3;
+const IGNORE_EXISTING=true;
 function createDataHandler(name:string):LargeLanguageModelHandler{
     switch(name){
         case "AllFilesHandler":
@@ -49,6 +50,10 @@ async function main() {
                             for (let i = 0; i < repetionCount; i++) {
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
                                 const instructionPath=`chatGPT_templates/${instrType}/${dFormat}/instruction.template`
+                                let path="llm_results/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
+                                if( IGNORE_EXISTING && fs.existsSync(path)){
+                                    continue;
+                                }
                                 let handlers = {handlers:[
                                     new SimpleInstructionHandler({instructionPath}),
                                     createDataHandler(handlerName),
@@ -57,6 +62,7 @@ async function main() {
 
 
                                 const api=createAPI(apiType,model,temperature)
+                                
                                 let langRefactorer=DetectAndRefactorWithLanguageModelStep.createFromCreatedHandlers(handlers.handlers,api)
                                 let context=codeObtainingContext.buildNewContext(new FileFilteringContext([dFormat=="source"?"*.java":"*.json"],[]))
                                 let startTimestamp = Date.now()
@@ -70,7 +76,7 @@ async function main() {
                                 console.log(inputOnly)
                                 console.log("OUTPUT")
                                 console.log(outputOnly)
-                                let path="llm_results/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
+                               
                                 fs.mkdirSync(path, { recursive: true })
                                 for (let c of newContext.chat) {
                                     c.messages = c.messages.map((x) => {
