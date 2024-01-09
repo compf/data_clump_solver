@@ -39,7 +39,7 @@ function standardize(dcData:DataClumpsTypeContext){
 }
 function main(){
 }
-function get_output_file_paths(){
+function get_output_file_paths():string[]{
     let result=[]
     getRelevantFilesRec("llm_results",result,new FileFilteringContext(["*output.json"],[]))
     return result;
@@ -85,6 +85,10 @@ function get_class_method_tuples(dcContext:DataClumpsTypeContext):string[]{
 }
 let ground_truth_standardized=standardize(ground_truth)
 let paths=get_output_file_paths();
+let max_d_in_o=0;
+let max_o_in_d=0;
+let max_d_in_o_path=""
+let max_o_in_d_path=""
 console.log(paths)
 let original=get_class_method_tuples(ground_truth_standardized)
 for(let p of paths){
@@ -93,21 +97,40 @@ for(let p of paths){
     let original_in_detected=0;
     let detected_in_original=0;
     for(let o of original){
-        if(!detected.includes(o)){
-            console.log(p,"Unknown in detected",o)
+        if(detected.includes(o)){
 
             original_in_detected++;
         }
+        else{
+            console.log(p,"Unknown in detected",o)
+
+        }
     }
     for(let d of detected){
-        if(!original.includes(d)){
-            console.log(p,"Unknown in original",d)
+        if(original.includes(d)){
             detected_in_original++;
+        }
+        else{
+            console.log(p,"Unknown in original",d)
+
         }
     }
     detected_in_original/=detected.length
     original_in_detected/=original.length
+    if(detected_in_original>max_d_in_o && p.includes("source")){
+        max_d_in_o=detected_in_original
+        max_d_in_o_path=p
+    
+    }
+    if(original_in_detected>max_o_in_d && p.includes("source")){
+        max_o_in_d=original_in_detected
+        max_o_in_d_path=p
+    }
     console.log(p,"D in O",detected_in_original*100,"%","O in D",original_in_detected*100,"%")
 
     
 }
+console.log()
+console.log();
+console.log("Max D in O",max_d_in_o*100,"%",max_d_in_o_path)
+console.log("Max O in D",max_o_in_d*100,"%",max_o_in_d_path)
