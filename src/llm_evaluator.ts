@@ -11,6 +11,7 @@ function standardize(dcData:DataClumpsTypeContext){
     result.data_clumps={}
     for(let dcKey of Object.keys(dcData.data_clumps)){
         let dcValue=dcData.data_clumps[dcKey];
+        if(dcValue["key"]==undefined)continue
         dcValue.key=undefined as any
         dcValue.from_method_key=undefined as any
         dcValue.to_method_key=undefined as any
@@ -37,7 +38,6 @@ function standardize(dcData:DataClumpsTypeContext){
     return result
 }
 function main(){
-    console.log(ground_truth)
 }
 function get_output_file_paths(){
     let result=[]
@@ -46,16 +46,68 @@ function get_output_file_paths(){
 }
 function parse_chat_file(path:string){
     let chat=JSON.parse(fs.readFileSync(path,{encoding:"utf-8"})) as ChatMessage[]
-    let outputs=chat.filter((x)=>x.messageType=="output");
-    console.log(outputs)
+    let outputs=chat.filter((x)=>x.messageType=="output" && x.messages.length>0 && x.messages[0]["data_clumps"]!=undefined);
+    let combined:DataClumpsTypeContext={
+        data_clumps:{}
+    } as any;
+    let tooLarge=outputs.some((x)=>x.messages.length>1)
+    for(let output of outputs){
+        let msg=output.messages[0] as any as DataClumpsTypeContext
+        let standardized=standardize(msg)
+
+        for(let key of Object.keys(standardized.data_clumps)){
+            combined.data_clumps[key]=standardized.data_clumps[key]
+        }
+
+    }
+
+    return combined
 
 }
 function sha256(content:string):string {  
     return createHash('sha256').update(content).digest('hex')
 }
+function get_class_method_tuples(dcContext:DataClumpsTypeContext):string[]{
+    let detectedClassMethodPairs:string[]=[]
+    for(let dcKey of Object.keys(dcContext.data_clumps)){
+        let dc=dcContext.data_clumps[dcKey]
+        let class_identifier=[dc.from_class_or_interface_name,dc.to_class_or_interface_name].sort()
+        if(class_identifier.includes("X_y_z") || class_identifier.includes("Exponent_mantissa_sign")){
+            continue;
+        }
+        let method_identifier=[dc.from_method_name,dc.to_method_name].sort()
+        let all=[...class_identifier,...method_identifier]
+        let stringified=JSON.stringify(all)
+        detectedClassMethodPairs.push(stringified)
+
+    }
+    return detectedClassMethodPairs;
+}
 let ground_truth_standardized=standardize(ground_truth)
 let paths=get_output_file_paths();
 console.log(paths)
+let original=get_class_method_tuples(ground_truth_standardized)
 for(let p of paths){
-    parse_chat_file(p)
+    let combined=parse_chat_file(p)
+    let detected=get_class_method_tuples(combined)
+    let original_in_detected=0;
+    let detected_in_original=0;
+    for(let o of original){
+        if(!detected.includes(o)){
+            console.log(p,"Unknown in detected",o)
+
+            original_in_detected++;
+        }
+    }
+    for(let d of detected){
+        if(!original.includes(d)){
+            console.log(p,"Unknown in original",d)
+            detected_in_original++;
+        }
+    }
+    detected_in_original/=detected.length
+    original_in_detected/=original.length
+    console.log(p,"D in O",detected_in_original*100,"%","O in D",original_in_detected*100,"%")
+
+    
 }
