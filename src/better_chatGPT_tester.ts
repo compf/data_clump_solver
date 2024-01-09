@@ -18,7 +18,7 @@ function createInstructionHandler(instructionPath: string) {
 }
 const apis = ["ChatGPTInterface"]
 const temperatures = [0.1, 0.9]
-const models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
+const models = [/*"gpt-4-1106-preview",*/ "gpt-3.5-turbo-1106"]
 const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
 const dataFormat = ["source", "ast"]
 const dataHandler = ["AllFilesHandler", "PairOfFileContentHandler", "SingleFileHandler"]
