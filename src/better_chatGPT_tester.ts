@@ -11,12 +11,13 @@ import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext
 import { DetectAndRefactorWithLanguageModelStep, LargeLanguageModelDetectorContext } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
 import { AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
+import { PhindraInterface } from "./util/languageModel/PhindraInterface";
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
 }
-const apis = ["ChatGPTInterface"]
+const apis = [/*"ChatGPTInterface",*/"PhindraInterface"]
 const temperatures = [0.1, 0.9]
 const models = [/*"gpt-4-1106-preview",*/ "gpt-3.5-turbo-1106"]
 const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
@@ -36,7 +37,12 @@ function createDataHandler(name:string):LargeLanguageModelHandler{
             throw new Error("Unknown data handler")
     }
 }
+let phindra:PhindraInterface|null=null;
 function createAPI(apiType: string, model: string, temperature: number): LanguageModelInterface {
+    if(apiType=="PhindraInterface"){
+        if(phindra==null)phindra=new PhindraInterface({model,temperature});
+        return phindra;
+    }
     return new ChatGPTInterface({ model, temperature })
 }
 async function main() {

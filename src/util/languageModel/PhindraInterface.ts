@@ -14,8 +14,11 @@ private cp:ChildProcessWithoutNullStreams.ChildProcessWithoutNullStreams
         }
       
         this.cp=ChildProcessWithoutNullStreams.spawn("phython3",["scripts/phindra_server.py"])
-        this.cp.stdin.write("set_temperature "+temperature+"\n")
+        this.setTemperature(temperature)
         
+    }
+    setTemperature(temperature:number){
+        this.cp.stdin.write("set_temperature "+temperature+"\n")
     }
     clear(): void {
         this.messages=[]
