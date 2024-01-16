@@ -24,7 +24,7 @@ const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"]
 const dataFormat = ["source", "ast"]
 const dataHandler = [/*"AllFilesHandler",*/ "PairOfFileAndSingleHandler"]
 const repetionCount = 3;
-const IGNORE_EXISTING=false;
+const IGNORE_EXISTING=true;
 function createDataHandler(name:string):LargeLanguageModelHandler{
     switch(name){
         case "AllFilesHandler":
@@ -83,7 +83,6 @@ async function main() {
                                 console.log("OUTPUT")
                                 console.log(outputOnly)
                                
-                                fs.mkdirSync(path, { recursive: true })
                                 for (let c of newContext.chat) {
                                     c.messages = c.messages.map((x) => {
                                         if (c.messageType == "input") {
@@ -92,6 +91,7 @@ async function main() {
                                             return JSON.parse(x)
                                     });
                                 }
+                                fs.mkdirSync(path, { recursive: true })
                             
                                 fs.writeFileSync(path+"/output.json", JSON.stringify(newContext.chat, undefined, 2))
                                 let metadata={elapsed:elapsed,time:startTimestamp,usage:api.getTokenStats()}
