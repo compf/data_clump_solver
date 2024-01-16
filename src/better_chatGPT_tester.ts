@@ -19,7 +19,7 @@ function createInstructionHandler(instructionPath: string) {
 }
 const apis = ["ChatGPTInterface"/*"PhindraInterface"*/]
 const temperatures = [0.1, 0.9]
-const models = [/*"gpt-4-1106-preview",*/ "gpt-3.5-turbo-1106"]
+const models = ["gpt-4-1106-preview" /*"gpt-3.5-turbo-1106"*/]
 const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
 const dataFormat = ["source", "ast"]
 const dataHandler = [/*"AllFilesHandler",*/ "PairOfFileAndSingleHandler"]
@@ -54,6 +54,7 @@ async function main() {
                     for (let dFormat of dataFormat) {
                         for (let handlerName of dataHandler) {
                             for (let i = 0; i < repetionCount; i++) {
+                                await sleep(15*60*1000)
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
                                 const instructionPath=`chatGPT_templates/${instrType}/${dFormat}/instruction.template`
                                 let path="llm_results/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
@@ -96,7 +97,7 @@ async function main() {
                                 fs.writeFileSync(path+"/output.json", JSON.stringify(newContext.chat, undefined, 2))
                                 let metadata={elapsed:elapsed,time:startTimestamp,usage:api.getTokenStats()}
                                 fs.writeFileSync(path+"/metadata.json", JSON.stringify(metadata, undefined, 2))
-                                await sleep(1000)
+                                
 
 
                             }
