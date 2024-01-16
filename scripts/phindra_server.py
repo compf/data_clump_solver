@@ -1,6 +1,8 @@
 import json,os
 import requests
 import time
+import socket
+import struct
 from transformers import AutoTokenizer, LlamaForCausalLM
 
 
@@ -23,14 +25,25 @@ print(generate_one_completion("What is 1+1?"))
 end_time=time.time()
 elapsed=end_time-start_time
 #print("elapsed",elapsed)
+PORT=1997
+HOST="127.0.0.1"
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind((HOST, PORT))
+    s.listen()
+    conn, addr = s.accept()
+    with conn:
+        while True:
+            l=conn.recv(4)
+            l=struct.unpack("i",l)[0]
+            request=conn.recv(l).decode("utf-8")
+            if request=="exit":
+                break
+            elif request.startswith("set_temperature"):
+                global_temperature=float(request.split()[1])
+                print("temperature set to",global_temperature)
 
-while True:
-    request=input()
-    if request=="exit":
-        break
-    elif request.startswith("set_temperature"):
-        global_temperature=float(request.split()[1])
-        print("temperature set to",global_temperature)
-
-    else:
-        print(generate_one_completion(request))
+            else:
+                reps=generate_one_completion(request)
+                print(reps)
+                conn.sendall(struct.pack("i",len(reps)))
+                conn.sendall(reps.encode("utf-8"))

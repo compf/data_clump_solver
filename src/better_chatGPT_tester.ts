@@ -17,19 +17,19 @@ export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
 }
-const apis = [/*"ChatGPTInterface",*/"PhindraInterface"]
+const apis = ["ChatGPTInterface"/*"PhindraInterface"*/]
 const temperatures = [0.1, 0.9]
 const models = [/*"gpt-4-1106-preview",*/ "gpt-3.5-turbo-1106"]
 const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
 const dataFormat = ["source", "ast"]
-const dataHandler = ["AllFilesHandler", "PairOfFileContentHandler", "SingleFileHandler"]
+const dataHandler = [/*"AllFilesHandler",*/ "PairOfFileAndSingleHandler"]
 const repetionCount = 3;
-const IGNORE_EXISTING=true;
+const IGNORE_EXISTING=false;
 function createDataHandler(name:string):LargeLanguageModelHandler{
     switch(name){
         case "AllFilesHandler":
             return new AllFilesHandler()
-        case "PairOfFileContentHandler":
+        case "PairOfFileAndSingleHandler":
             return new PairOfFileContentHandler()
         case "SingleFileHandler":
             return new SingleFileHandler()
@@ -97,6 +97,7 @@ async function main() {
                                 let metadata={elapsed:elapsed,time:startTimestamp,usage:api.getTokenStats()}
                                 fs.writeFileSync(path+"/metadata.json", JSON.stringify(metadata, undefined, 2))
                                 await sleep(1000)
+
 
                             }
 

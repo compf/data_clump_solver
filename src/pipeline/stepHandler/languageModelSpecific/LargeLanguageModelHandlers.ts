@@ -117,13 +117,19 @@ export interface ReExecutePreviousHandlers {
     shallReExecute(): boolean
 }
 export class PairOfFileContentHandler extends PairsOfFilesHandler implements ReExecutePreviousHandlers {
-    private files: { name1: string, name2: string }[] | null = null
-    private index = 0
+    private fileTuples: { name1: string, name2: string }[] | null = null
+    private index = 0;
+    private singleFileHandler:SingleFileHandler|null=null;
+    private singleFileMode=false;
     async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, replacementMap: { [key: string]: string; }): Promise<ChatMessage[]> {
-        if (this.files == null) {
-            this.files = this.getFileTuples(context);
+        if (this.fileTuples == null) {
+            this.fileTuples = this.getFileTuples(context);
+           this.singleFileHandler=new SingleFileHandler();
         }
-        let f = this.files[this.index]
+        if(this.singleFileMode){
+            return this.singleFileHandler!.handle(context,api,replacementMap);
+        }
+        let f = this.fileTuples[this.index]
         let content1 = fs.readFileSync(path.resolve(context.getProjectPath(), f.name1), { encoding: "utf-8" })
         let content2 = fs.readFileSync(path.resolve(context.getProjectPath(), f.name2), { encoding: "utf-8" })
         let message = "//" + f.name1 + "\n" + content1 + "\n//" + f.name2 + "\n" + content2;
@@ -131,11 +137,17 @@ export class PairOfFileContentHandler extends PairsOfFilesHandler implements ReE
         let messages: ChatMessage[] = [api.prepareMessage(message)]
         let reply = await api.sendMessages(true)
         messages.push(reply)
+        if(this.index>=this.fileTuples.length){
+            this.singleFileMode=true;
+        }
         return messages
 
     }
     shallReExecute(): boolean {
-        return this.index < this.files!.length;
+        if(this.singleFileMode){
+            return this.singleFileHandler!.shallReExecute();
+        }
+        return this.index < this.fileTuples!.length;
     }
 
 }
@@ -161,6 +173,7 @@ export class SingleFileHandler extends LargeLanguageModelHandler implements ReEx
 
     }
     shallReExecute(): boolean {
+        if(this.files==null)return true;
         return this.index < this.files!.length;
     
     }

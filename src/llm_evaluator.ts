@@ -84,7 +84,28 @@ function get_class_method_tuples(dcContext: DataClumpsTypeContext): string[] {
 }
 let ground_truth_standardized = standardize(ground_truth)
 let original = get_class_method_tuples(ground_truth_standardized)
-
+function median(array:number[]){
+    array.sort((a,b)=>a-b)
+    if(array.length%2==0){
+        return (array[array.length/2]+array[array.length/2-1])/2
+    }
+    else{
+        return array[Math.floor(array.length/2)]
+    }
+}
+function mean(array:number[]){
+    let result=array.reduce((a,b)=>a+b)/array.length
+    if(isNaN(result)){
+        console.log(array)
+        for( let i of array){
+            console.log(i)
+        }
+        console.log("sum",array.reduce((a,b)=>a+b))
+        console.log("length",array.length)
+        throw ""
+    }
+    return result;
+}
 function findBestMethod(paths: string[]) {
     let max_d_in_o = 0;
     let max_o_in_d = 0;
@@ -95,6 +116,9 @@ function findBestMethod(paths: string[]) {
     let min_o_in_d = 1;
     let min_d_in_o_path = ""
     let min_o_in_d_path = ""
+    let originalInDetected:number[]=[]
+    let detectedInOriginal:number[]=[]
+
     for (let p of paths) {
         let combined = parse_chat_file(p)
         let detected = get_class_method_tuples(combined)
@@ -119,8 +143,15 @@ function findBestMethod(paths: string[]) {
 
             }
         }
-        detected_in_original /= detected.length
-        original_in_detected /= original.length
+        if(detected.length>0){
+            detected_in_original /= detected.length
+
+        }
+        if(original.length>0){
+            original_in_detected /= original.length
+        }
+        originalInDetected.push(original_in_detected)
+        detectedInOriginal.push(detected_in_original)
         if (detected_in_original > max_d_in_o ) {
             max_d_in_o = detected_in_original
             max_d_in_o_path = p
@@ -152,6 +183,11 @@ function findBestMethod(paths: string[]) {
         SpecifityWorst:min_o_in_d*100,
         SensitivityWorstPath:min_d_in_o_path,
         SpecifityWorstPath:min_o_in_d_path,
+        whiteSpace2:"##############################################################################",
+        medianSensitivity:median(detectedInOriginal)*100,
+        medianSpecifity:median(originalInDetected)*100,
+        meanSensitivity:mean(detectedInOriginal)*100,
+        meanSpecifity:mean(originalInDetected)*100,
         
     }
 }
