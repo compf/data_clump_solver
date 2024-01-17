@@ -54,7 +54,7 @@ async function main() {
                     for (let dFormat of dataFormat) {
                         for (let handlerName of dataHandler) {
                             for (let i = 0; i < repetionCount; i++) {
-                                await sleep(15*60*1000)
+                                await sleep(1000)
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
                                 const instructionPath=`chatGPT_templates/${instrType}/${dFormat}/instruction.template`
                                 let path="llm_results/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
