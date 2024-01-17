@@ -22,7 +22,9 @@ function standardize(dcData: DataClumpsTypeContext) {
 
         for (let dcDataKey of Object.keys(dcValue.data_clump_data)) {
             let dcDataValue = dcValue.data_clump_data[dcDataKey]
-            dcDataValue.to_variable.key = undefined as any
+            if(dcDataValue.to_variable){
+                dcDataValue.to_variable.key = undefined as any
+            }
             dcDataValue.key = undefined as any
             let hashed = sha256(JSON.stringify(dcDataValue))
             dcDataValue.key = hashed
@@ -94,15 +96,15 @@ function median(array:number[]){
     }
 }
 function mean(array:number[]){
-    let result=array.reduce((a,b)=>a+b)/array.length
+    let result=array.reduce((a,b)=>a+b,0)/array.length
     if(isNaN(result)){
         console.log(array)
         for( let i of array){
             console.log(i)
         }
-        console.log("sum",array.reduce((a,b)=>a+b))
+        console.log("sum",array.reduce((a,b)=>a+b,0))
         console.log("length",array.length)
-        throw ""
+        //throw ""
     }
     return result;
 }
@@ -191,29 +193,65 @@ function findBestMethod(paths: string[]) {
         
     }
 }
+const dataTypeFilters={
+    "Source":(x:string)=>x.includes("source"),
+    "ast":(x:string)=>x.includes("ast"),
+  
+}
+const dataSizeFilters={
+    "AllFiles":(x:string)=>x.includes("AllFiles"),
+    "PairOfFileAndSingle":(x:string)=>x.includes("PairOfFileAndSingle")
+}
+const apiFilters={
+    "gpt-4":(x:string)=>x.includes("gpt-4"),
+    "gpt-3":(x:string)=>x.includes("gpt-3"),
+}
+const  temperatureFilters={
+    "0.1":(x:string)=>x.includes("0.1"),
+    "0.9":(x:string)=>x.includes("0.9"),
+}
+const instructionFilters={
+    "definitionBased":(x:string)=>x.includes("definitionBased"),
+    "exampleBased":(x:string)=>x.includes("exampleBased"),
+    "noDefinition":(x:string)=>x.includes("noDefinition"),
+}
 function main() {
-    let paths = get_output_file_paths()
-    const filters={
-        "All":(x:string)=>true,
-        "Source":(x:string)=>x.includes("source"),
-        "ast":(x:string)=>x.includes("ast"),
-        "pairOfFileAndSingle":(x:string)=>x.includes("PairOfFileAndSingle"),
-        "AllFiles":(x:string)=>x.includes("AllFiles"),
-        "gpt-4":(x:string)=>x.includes("gpt-4"),
-        "gpt-3":(x:string)=>x.includes("gpt-3"),
-        "definitionBased":(x:string)=>x.includes("definitionBased"),
-        "exampleBased":(x:string)=>x.includes("exampleBased"),
-        "noDefinition":(x:string)=>x.includes("noDefinition"),
-
-    }
     let evalResult={}
-    for(let filterKey of Object.keys(filters)){
-        console.log(filterKey)
-        let result=findBestMethod(paths.filter(filters[filterKey]))
-       evalResult[filterKey]=result
-       console.log(result)
-       console.log()
+    let allPaths=get_output_file_paths()
+    let filtered=allPaths;
+    for(let apiFilterKey of Object.keys(apiFilters)){
+
+        filtered=allPaths
+        filtered=filtered.filter(apiFilters[apiFilterKey])
+        evalResult[apiFilterKey]={all:findBestMethod(allPaths.filter(apiFilters[apiFilterKey]))}
+        
+        for(let temperatureFilterKey of Object.keys(temperatureFilters)){
+
+            evalResult[apiFilterKey][temperatureFilterKey]={all:findBestMethod(allPaths.filter(apiFilters[apiFilterKey]).filter(temperatureFilters[temperatureFilterKey]))}
+            
+            for(let instructionFilterKey of Object.keys(instructionFilters)){
+
+                evalResult[apiFilterKey][temperatureFilterKey][instructionFilterKey]={all:findBestMethod(allPaths.filter(apiFilters[apiFilterKey]).filter(temperatureFilters[temperatureFilterKey]).filter(instructionFilters[instructionFilterKey]))}
+                
+                for(let dataTypeFilterKey of Object.keys(dataTypeFilters)){
+
+                  
+                    evalResult[apiFilterKey][temperatureFilterKey][instructionFilterKey][dataTypeFilterKey]={all:findBestMethod(allPaths.filter(apiFilters[apiFilterKey]).filter(temperatureFilters[temperatureFilterKey]).filter(instructionFilters[instructionFilterKey]).filter(dataTypeFilters[dataTypeFilterKey]))}
+                    
+                    for(let dataSizeFilterKey of Object.keys(dataSizeFilters)){
+                        let paths = allPaths.filter(dataTypeFilters[dataTypeFilterKey]).filter(dataSizeFilters[dataSizeFilterKey]).filter(apiFilters[apiFilterKey]).filter(temperatureFilters[temperatureFilterKey]).filter(instructionFilters[instructionFilterKey])
+                        const keyCombined=apiFilterKey+"/"+temperatureFilterKey+"_/"+instructionFilterKey+"/"+dataTypeFilterKey+"/"+dataSizeFilterKey
+                        console.log(dataTypeFilterKey,dataSizeFilterKey,apiFilterKey,temperatureFilterKey,instructionFilterKey)
+                       let result= findBestMethod(paths)
+                        evalResult[apiFilterKey][temperatureFilterKey][instructionFilterKey][dataTypeFilterKey][dataSizeFilterKey]=result;
+
+                        console.log()
+                    }
+                }
+            }
+        }
     }
+    
     fs.writeFileSync("llm_results/evaluator.json",JSON.stringify(evalResult,null,2))
 }
 main();
