@@ -9,7 +9,8 @@ export enum Methods {
     Initialized = "initialized",
     DidOpen = "textDocument/didOpen",
     References = "textDocument/references",
-    Definition = "textDocument/definition"
+    Definition = "textDocument/definition",
+    Implementation="textDocument/implementation"
 }
 export abstract class LanguageServerAPI {
     abstract init(path:string,callback:{(data:ResponseMessage):void}): Promise<{ reader: Readable; writer: Writable; }>

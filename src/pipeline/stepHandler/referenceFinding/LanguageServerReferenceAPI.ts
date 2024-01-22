@@ -73,7 +73,19 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                 variableNames:variableNames,
                 originKey:methodKey
             })
+
         socket.write(request)
+
+        nextId=this.nextCounterValue();
+        this.counterDataClumpInfoMap.set(nextId,
+            {variableKey:dcKey,
+                variableName:methodName,
+                usageType:UsageType.MethodDeclared,
+                variableNames:variableNames,
+                originKey:methodKey
+            })
+        request=this.api?.create_request_message(nextId,Methods.Implementation,methodDefRequest)
+        //socket.write(request)
 
         let methodUsageRequest:ReferenceParams={
             textDocument: {

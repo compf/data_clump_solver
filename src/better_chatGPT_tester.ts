@@ -46,7 +46,7 @@ function createAPI(apiType: string, model: string, temperature: number): Languag
     return new ChatGPTInterface({ model, temperature })
 }
 async function main() {
-    let codeObtainingContext=new CodeObtainingContext("javaTest");
+    let codeObtainingContext=new CodeObtainingContext("javaTest/javaTest");
     for (let apiType of apis) {
         for (let model of models) {
             for (let temperature of temperatures) {

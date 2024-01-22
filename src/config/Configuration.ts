@@ -29,6 +29,7 @@ export type Configuration={
 const pathPrefix="../pipeline/stepHandler/"
 
 const nameScriptFileMap={
+    DoNothingStepHandler:pathPrefix+"DoNothingStepHandler.js",
     SimpleCodeObtainingStepHandler:pathPrefix+"codeObtaining/SimpleCodeObtainingStepHandler.js",
     DataClumpDetectorStep:pathPrefix+"dataClumpDetection/DataClumpDetectorStep.js",
     TrivialNameFindingStep:pathPrefix+"nameFinding/TrivialNameFindingStep.js",
