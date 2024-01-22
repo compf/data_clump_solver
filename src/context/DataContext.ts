@@ -4,6 +4,7 @@ import { VariableOrMethodUsage } from "./VariableOrMethodUsage";
 import { nodeModuleNameResolver } from "typescript";
 import fs from "fs"
 import { resolve } from "path";
+import { AST_Class, AST_Type } from "./AST_Type";
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
@@ -59,6 +60,29 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
     }
     getPosition(): number {
         return 1;
+    }
+}
+export class ASTBuildingContext extends DataClumpRefactoringContext {
+    private ast_type:AST_Type={}
+    load(path:string){
+        let parsed=JSON.parse(fs.readFileSync(path,{encoding:"utf-8"})) as AST_Class
+        this.ast_type[parsed.file_path]=parsed
+    }
+    getByPath(path:string):AST_Class{
+        return this.ast_type[path]
+    }
+    getExtendingOrImplementingClassKeys(filePath:string):string[]{
+        let astKey=this.getByPath(filePath).key;
+        let result:string[]=[]
+        for(let key of Object.keys(this.ast_type)){
+            console.log("extending?",this.ast_type[key].extends_,astKey)
+            console.log("extending?",this.ast_type[key].implements_,astKey)
+            if(this.ast_type[key].extends_.some((it)=>it.endsWith(astKey))||this.ast_type[key].implements_.some((it)=>it.endsWith(astKey))){
+                result.push(this.ast_type[key].file_path)
+            }
+        }
+        return result;
+        
     }
 }
 export class DataClumpDetectorContext extends DataClumpRefactoringContext {

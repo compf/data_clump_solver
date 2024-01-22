@@ -1,5 +1,5 @@
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
-import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
+import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Analyzer } from "../../../data-clumps-doctor/analyse/src/ignoreCoverage/Analyzer";
 import { resolve } from "path"
@@ -7,10 +7,11 @@ import { DataClumpTypeContext, DataClumpsTypeContext } from "data-clumps-type-co
 import fs from "fs";
 import AdmZip from "adm-zip";
 import { getContextSerializationPath } from "../../../config/Configuration";
+import { AST } from "minimatch";
 export class DataClumpDetectorStep extends AbstractStepHandler {
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let project_path = context.getProjectPath();
-        const temp_path = resolve("./temp")
+        const ast_out_path = resolve("./temp")
         const ast_generator_path = "src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/"
         const ruleset_jar_location = resolve(ast_generator_path, "pmd-bin-7.0.0-rc3/lib/pmd-java-custom-1.0.0-SNAPSHOT.jar")
         let output_path = resolve("./stuff")
@@ -21,12 +22,16 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         console.log(project_path)
         this.applyIncludeExclude(context, ruleset_jar_location);
         let analyser = new Analyzer(project_path, ast_generator_path,
-            output_path, project_path, "java", temp_path, null, null, "ArgoUML", 1.0, true, null)
+            output_path, project_path, "java", ast_out_path, null, null, null, 1.0, true, null)
         await analyser.analyse(null);
 
 
         let result = JSON.parse(fs.readFileSync(output_path, { encoding: "utf-8" }))
-        let newContext=context.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
+        let newContext=context.buildNewContext(new ASTBuildingContext())
+        for(let p of fs.readdirSync(ast_out_path)){
+            (newContext as ASTBuildingContext).load(resolve(ast_out_path,p))
+        }
+        newContext=newContext.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
         fs.copyFileSync(output_path, newContext.getSerializationPath(getContextSerializationPath(Object.keys(PipeLineStep).indexOf(PipeLineStep.DataClumpDetection.name))))
         return newContext
 
@@ -79,6 +84,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(DataClumpDetectorContext.name)
+        createdContexts.add(ASTBuildingContext.name)
     }
 
 }

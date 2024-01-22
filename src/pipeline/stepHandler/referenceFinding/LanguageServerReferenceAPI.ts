@@ -1,4 +1,4 @@
-import { ClassExtractionContext, DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
+import { ASTBuildingContext, ClassExtractionContext, DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Readable, Writable } from "stream"
@@ -51,67 +51,85 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         return { startLine: startLine, startColumn: character, endLine: startLine, endColumn: character + identifier.length };
     }
 
-    sendMethodUsageAndDeclarationRequest(socket:Writable,dcKey:string,methodFile: string, methodName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, line: number,variableNames:string[],methodKey:string) {
-        let methodPos = this.getIdentifierPosition(methodFile, methodName, fileMap, context, line)
+    sendMethodUsageAndDeclarationRequest(socket:Writable,dcKey:string,methodFile: string, methodName: string, context: DataClumpRefactoringContext,  line: number,variableNames:string[],methodKey:string) {
 
-        let methodDefRequest: DefinitionParams = {
-
-            textDocument: {
-                uri: "file://" + resolve(context.getProjectPath(),methodFile)
-            },
-            position: {
-                line: methodPos.startLine ,
-                character: methodPos.startColumn
-            }
-        }
-        let nextId=this.nextCounterValue();
-        let request=this.api?.create_request_message(nextId,Methods.Definition,methodDefRequest)
-        this.counterDataClumpInfoMap.set(nextId,
-            {variableKey:dcKey,
-                variableName:methodName,
-                usageType:UsageType.MethodDeclared,
-                variableNames:variableNames,
-                originKey:methodKey
-            })
-
-        socket.write(request)
-
-        nextId=this.nextCounterValue();
-        this.counterDataClumpInfoMap.set(nextId,
-            {variableKey:dcKey,
-                variableName:methodName,
-                usageType:UsageType.MethodDeclared,
-                variableNames:variableNames,
-                originKey:methodKey
-            })
-        request=this.api?.create_request_message(nextId,Methods.Implementation,methodDefRequest)
-        //socket.write(request)
-
-        let methodUsageRequest:ReferenceParams={
-            textDocument: {
-                uri: "file://" + resolve(context.getProjectPath(),methodFile)
-            },
-            position: {
-                line: methodPos.startLine ,
-                character: methodPos.startColumn
-            },
-            context:{
-                includeDeclaration:false
-            }
-
-        }
-         nextId=this.nextCounterValue();
-         request=this.api?.create_request_message(nextId,Methods.References,methodUsageRequest)
-        this.counterDataClumpInfoMap.set(nextId,
-            {variableKey:dcKey,
-                variableName:methodName,
-                usageType:UsageType.MethodUsed,
-                variableNames:variableNames,
-                originKey:methodKey
-            })
-        socket.write(request)
+        this.loadMethodDeclarations(socket,methodFile,methodName,context,dcKey,methodKey,variableNames,context.getByType(ClassExtractionContext)!!.getExtractedClassPath(dcKey)!!)
+      
+       
     }
-    sendVariableUsageAndDeclarationRequest(socket:Writable,dcKey:string,fieldFile: string, fieldName: string, context: DataClumpRefactoringContext, fileMap: Map<string, string>, pos: Position,variableNames:string[],fieldKey:string,isParameter:boolean) {
+    loadMethodDeclarations(socket:Writable ,methodFile: string, methodName: string, context: DataClumpRefactoringContext, dcKey: string, methodKey: string, variableNames: string[],extractedClassPath:string) {
+       let astContext=context.getByType(ASTBuildingContext)!;
+       let originalClass=astContext.getByPath(methodFile)
+       let fileQueue=[methodFile]
+       let visited=new Set<string>()
+       do{
+        console.log(astContext)
+        let currPath=fileQueue.pop()!!
+        if(visited.has(currPath))continue;
+        visited.add(currPath)
+        console.log("currPath",currPath)
+
+        let myClass=astContext.getByPath(currPath)
+        let method=Object.keys(myClass.methods).map((it)=>myClass.methods[it]).find((it)=>it.name==methodName && it.parameters.map((it)=>it.type +" "+it.name).join(",")==originalClass.methods[methodKey].parameters.map((it)=>it.type +" "+it.name).join(","))
+        console.log("method",method,methodKey)
+        if(method==undefined){
+            continue;
+        }
+        
+        if(!this.usages.has(dcKey)){
+            this.usages.set(dcKey,[])
+        }
+        this.usages.get(dcKey)!.push({
+            symbolType:UsageType.MethodDeclared,
+            range:method.position,
+            filePath:methodFile,
+            name:methodName,
+            extractedClassPath:extractedClassPath,
+            variableNames:variableNames,
+            originKey:methodKey
+        })
+
+        for(let paramName of variableNames){
+            let param=method.parameters.find((it)=>it.name==paramName)!
+          let requestParam:ReferenceParams={
+                textDocument: {
+                    uri: "file://" + resolve(context.getProjectPath(),currPath)
+                },
+                position: {
+                    line: param.position.startLine ,
+                    character: param.position.startColumn
+                },
+                context:{
+                    includeDeclaration:false
+                }
+
+    
+            }
+             let nextId=this.nextCounterValue();
+             this.counterDataClumpInfoMap.set(nextId,
+                {variableKey:dcKey,
+                    variableName:paramName,
+                    usageType:UsageType.VariableUsed,
+                    variableNames:[],
+                    originKey:methodKey
+
+                }
+            );
+             let request=this.api?.create_request_message(nextId,Methods.References,requestParam)
+             socket.write(request)
+            
+        }
+        
+        let extending=astContext.getExtendingOrImplementingClassKeys(methodFile)
+        for(let cls of extending){
+            console.log("extending",cls)
+            fileQueue.push(cls)
+        }
+    
+       }while(fileQueue.length>0)
+
+    }
+    sendVariableUsageAndDeclarationRequest(socket:Writable,dcKey:string,fieldFile: string, fieldName: string, context: DataClumpRefactoringContext, pos: Position,variableNames:string[],fieldKey:string,isParameter:boolean) {
         let nextId=0
         let request:string|undefined=""
         if(!isParameter){
@@ -165,30 +183,30 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         
         socket.write(request)
     }
-    sendRequestsForDataClump(socket:Writable,dataClump: DataClumpTypeContext, fileMap: Map<string, string>,context:DataClumpRefactoringContext){
+    sendRequestsForDataClump(socket:Writable,dataClump: DataClumpTypeContext,context:DataClumpRefactoringContext){
             const isFromMethod = dataClump.from_method_name != null;
             const isToMethod = dataClump.to_method_name != null;
             if (isFromMethod) {
                 let startLine=Object.values(dataClump.data_clump_data)[0].position.startLine-1
-                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key!,dataClump.from_file_path, dataClump.from_method_name!!, context, fileMap, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.name),dataClump.from_method_key! )
+                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key!,dataClump.from_file_path, dataClump.from_method_name!!, context, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.name),dataClump.from_method_key! )
             }
             if(isToMethod){
                 let startLine=Object.values(dataClump.data_clump_data)[0].to_variable.position.startLine-1
 
-                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path, dataClump.to_method_name!!, context, fileMap, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name),dataClump.to_method_key!)
+                this.sendMethodUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path, dataClump.to_method_name!!, context, startLine,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name),dataClump.to_method_key!)
             }
             for(let variableKey of Object.keys(dataClump.data_clump_data)){
                 let variable=dataClump.data_clump_data[variableKey]!
                 console.log("AUTO",variable.name,variable.to_variable.name,dataClump.from_file_path,dataClump.to_file_path)
-                this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.from_file_path,variable.name,context,fileMap,variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.name),variable.key,isFromMethod)
-                this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path,variable.to_variable.name,context,fileMap,variable.to_variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name),variable.to_variable.key,isToMethod)
+                this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.from_file_path,variable.name,context,variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.name),variable.key,isFromMethod)
+                this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path,variable.to_variable.name,context,variable.to_variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name),variable.to_variable.key,isToMethod)
             
             }
           
         }
+    private usages=new Map<string, VariableOrMethodUsage[]>();
 
     async handle(context: DataClumpRefactoringContext, params: any): Promise < DataClumpRefactoringContext > {
-                let usages=new Map<string, VariableOrMethodUsage[]>();
                 if(this.api == null){
                 this.api = resolveFromName("LanguageServerAPI") as LanguageServerAPI;
             }
@@ -204,8 +222,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     let combined=Object.assign(info,data,)
                     console.log(JSON.stringify(combined,null,2))
                     this.balance--
-                    if (!usages.has(info.variableKey)) {
-                        usages.set(info.variableKey, [])
+                    if (!this.usages.has(info.variableKey)) {
+                        this.usages.set(info.variableKey, [])
                     }
 
                     for (let result of data.result!) {
@@ -218,27 +236,26 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                             variableNames:info.variableNames,
                             originKey:info.originKey
                         }
-                        usages.get(info.variableKey)!.push(usage)
+                        this.usages.get(info.variableKey)!.push(usage)
 
                     }
                     console.log("balance", this.balance)
                     if (this.balance == 0) {
-                        for(let usg of usages){
+                        for(let usg of  this.usages){
                        
-                            usages.set(usg[0],usages.get(usg[0])!.sort(function(a,b){
+                            this.usages.set(usg[0], this.usages.get(usg[0])!.sort(function(a,b){
                                 console.log("sort",a,b)
                                 return a.symbolType-b.symbolType
                             }));
                         }
-                        handleResolver(context.buildNewContext(new UsageFindingContext(usages)))
+                        handleResolver(context.buildNewContext(new UsageFindingContext( this.usages)))
                     }
                 });
                 console.log("hallo")
-                let fileMap = new Map<string, string>();
                 let detectorContext = context.getByType(DataClumpDetectorContext)!!
                 for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
                     let dc = detectorContext.getDataClumpTypeContext(dataClumpKey)
-                    this.sendRequestsForDataClump(socket.writer,dc, fileMap,context)
+                    this.sendRequestsForDataClump(socket.writer,dc,context)
 
 
                 }
