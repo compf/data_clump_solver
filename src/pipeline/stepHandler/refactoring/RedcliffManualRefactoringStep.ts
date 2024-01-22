@@ -12,12 +12,13 @@ class MyVisitor extends BaseJavaCstVisitorWithDefaults{
 }
 export class RedcliffManualRefactoringStep extends AbstractStepHandler{
     handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+        const usageContextPath=context.getByType<UsageFindingContext>(UsageFindingContext)?.getSerializationPath();
+        const projectPath=context.getProjectPath()
        let args=[
         "demo-cli:runDemoPluginCLI",
         "-Prunner=DemoPluginCLI",
-        "-PusageContextPath=/home/compf/data/uni/master/sem4/data_clump_solver/stuff/usages.json",
-         "-Poutput=/home/compf/data/uni/master/sem4/data_clump_solver/stuff/refac",
-          "-PmyProjectPath=/home/compf/data/uni/master/sem4/data_clump_solver/javaTest/"
+        "-PusageContextPath="+usageContextPath,
+        "-PmyProjectPath="+projectPath,
        ]
         let cp=spawn("gradle",args,{cwd:"REDCLIFF-Java"})
         cp.stdout.on("data",(data)=>{
