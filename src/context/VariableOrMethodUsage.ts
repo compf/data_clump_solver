@@ -8,5 +8,6 @@ export interface VariableOrMethodUsage {
     name:string,
     extractedClassPath?:string,
     variableNames:string[],
-    originKey:string
+    originKey:string,
+    isParameter:boolean,
 }

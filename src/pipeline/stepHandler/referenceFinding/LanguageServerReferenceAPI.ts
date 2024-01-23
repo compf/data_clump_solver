@@ -22,7 +22,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     globalCounter = 3
     balance = 0;
     visitedMethods: Set<string> = new Set();
-    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[],originKey:string }> = new Map();
+    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[],originKey:string,isParameter:boolean }> = new Map();
     constructor(args: LanguageServerReferenceAPIParams) {
         super();
         registerFromName(args.apiName, "LanguageServerAPI", args.apiArgs)
@@ -87,7 +87,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             name:methodName,
             extractedClassPath:extractedClassPath,
             variableNames:variableNames,
-            originKey:methodKey
+            originKey:methodKey,
+            isParameter:false
         })
 
         for(let paramName of variableNames){
@@ -112,7 +113,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     variableName:paramName,
                     usageType:UsageType.VariableUsed,
                     variableNames:[],
-                    originKey:methodKey
+                    originKey:methodKey,isParameter:true
 
                 }
             );
@@ -146,7 +147,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                 variableName:methodName,
                 usageType:UsageType.MethodUsed,
                 variableNames:variableNames,
-                originKey:methodKey
+                originKey:methodKey,isParameter:false
 
             }
         );
@@ -177,7 +178,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     variableName:fieldName
                     ,usageType:UsageType.VariableDeclared,
                     variableNames:variableNames,
-                    originKey:fieldKey
+                    originKey:fieldKey,isParameter:isParameter
                 })
             socket.write(request)
         }
@@ -203,7 +204,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                 variableName:fieldName,
                 usageType:UsageType.VariableUsed,
                 variableNames:[],
-                originKey:fieldKey
+                originKey:fieldKey,isParameter:isParameter
 
             }
                 );
@@ -261,7 +262,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                             name: info.variableName,
                             extractedClassPath:classExtractionContext.getExtractedClassPath(info.variableKey)?.replace(context.getProjectPath(),""),
                             variableNames:info.variableNames,
-                            originKey:info.originKey
+                            originKey:info.originKey,
+                            isParameter:info.isParameter
                         }
                         this.usages.get(info.variableKey)!.push(usage)
 
