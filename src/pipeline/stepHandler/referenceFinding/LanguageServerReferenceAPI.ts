@@ -52,8 +52,9 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     }
 
     sendMethodUsageAndDeclarationRequest(socket:Writable,dcKey:string,methodFile: string, methodName: string, context: DataClumpRefactoringContext,  line: number,variableNames:string[],methodKey:string) {
-
-        this.loadMethodDeclarations(socket,methodFile,methodName,context,dcKey,methodKey,variableNames,context.getByType(ClassExtractionContext)!!.getExtractedClassPath(dcKey)!!)
+        let createdClassPath=context.getByType(ClassExtractionContext)!!.getExtractedClassPath(dcKey).replace(context.getProjectPath(),"")
+        console.log("createdClassPath",createdClassPath,context.getProjectPath(),dcKey)
+        this.loadMethodDeclarations(socket,methodFile,methodName,context,dcKey,methodKey,variableNames,createdClassPath)
       
        
     }
@@ -81,8 +82,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         }
         this.usages.get(dcKey)!.push({
             symbolType:UsageType.MethodDeclared,
-            range:method.position,
-            filePath:methodFile,
+            range:{startLine:method.position.startLine-1,startColumn:method.position.startColumn,endLine:method.position.endLine-1,endColumn:method.position.endColumn},
+            filePath:currPath,
             name:methodName,
             extractedClassPath:extractedClassPath,
             variableNames:variableNames,
@@ -96,7 +97,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     uri: "file://" + resolve(context.getProjectPath(),currPath)
                 },
                 position: {
-                    line: param.position.startLine ,
+                    line: param.position.startLine -1,
                     character: param.position.startColumn
                 },
                 context:{
@@ -125,6 +126,32 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             console.log("extending",cls)
             fileQueue.push(cls)
         }
+        let methodUsedReferenceParams:ReferenceParams={
+            textDocument: {
+                uri: "file://" + resolve(context.getProjectPath(),currPath)
+            },
+            position: {
+                line: method.position.startLine-1,
+                character: method.position.startColumn
+            },
+            context:{
+                includeDeclaration:false
+            }
+
+        }
+        console.log("cuurr",methodName)
+         let nextId=this.nextCounterValue();
+         this.counterDataClumpInfoMap.set(nextId,
+            {variableKey:dcKey,
+                variableName:methodName,
+                usageType:UsageType.MethodUsed,
+                variableNames:variableNames,
+                originKey:methodKey
+
+            }
+        );
+         let request=this.api?.create_request_message(nextId,Methods.References,methodUsedReferenceParams)
+         socket.write(request)
     
        }while(fileQueue.length>0)
 

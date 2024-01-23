@@ -6,14 +6,14 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
          return "private "+ type+" " + fieldName+";\n"
     }
     createGetter(fieldName: string, type: string): string {
-        let capitalized=this.cpaitalize(fieldName)
+        let capitalized=this.capitalize(fieldName)
         return "public "+type +" get"+capitalized+"(){\n"+"return " +fieldName+";\n}\n"; 
     }
     getExtension(): string {
         return "java";
     }
     createSetter(fieldName: string, type: string): string {
-        let capitalized=this.cpaitalize(fieldName)
+        let capitalized=this.capitalize(fieldName)
 
         return "public void" +" set"+capitalized+`(${type} value)`+"{\n" +fieldName+"=value;\n}\n"; 
     }
@@ -23,8 +23,8 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
     createTail(): string {
         return "}"
     }
-    cpaitalize(text:string):string{
-        return capitalize(text)
+    capitalize(text:string):string{
+        return capitalize(text,true)
     }
     createConstructor(className: string, types: string[], fieldNames: string[]): string {
         let text="public "+className+"(";
