@@ -31,8 +31,11 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     override getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ClassExtraction]
     }
+    savedClassPaths:Map<string,string>=new Map()
     getClassLocation(projectPath:string,className:string,dataClumpTypeContext:DataClumpTypeContext,locationProvider:ClassExtractionLocationProvider):string{
+        if(this.savedClassPaths.has(className))return this.savedClassPaths.get(className)!
         let basePath=dirname(join(projectPath,locationProvider.getClassLocation(projectPath,dataClumpTypeContext)))
+        this.savedClassPaths.set(className,join(basePath,className+"."+this.getExtension()))
         return join(basePath,className+"."+this.getExtension())
     }
     override handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
