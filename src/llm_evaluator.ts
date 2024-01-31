@@ -39,7 +39,30 @@ function standardize(dcData: DataClumpsTypeContext) {
     }
     return result
 }
+type BasicEvaluationResult = {
+    sensitivityBest: number,
+    specifityBest: number,
 
+    medianSensitivity: number,
+    meanSensitivity: number,
+
+    medianSpecifity: number,
+    meanSpecifity: number,
+}
+const BasicEvaluationKeys=["sensitivityBest","specifityBest","medianSensitivity","medianSpecifity","meanSensitivity","meanSpecifity"]
+type EvaluationResult = BasicEvaluationResult & {
+   
+    sensitivityBestPath: string,
+    specifityBestPath: string,
+    sensitivies: number[],
+    specifities: number[],
+    whiteSpace: string,
+    SensitivityWorst: number,
+    SpecifityWorst: number,
+    SensitivityWorstPath: string,
+    SpecifityWorstPath: string,
+    whiteSpace2: string,
+}
 function get_output_file_paths(): string[] {
     let result = []
     getRelevantFilesRec("llm_results", result, new FileFilteringContext(["*output.json"], []))
@@ -96,19 +119,10 @@ function median(array: number[]) {
     }
 }
 function mean(array: number[]) {
-    let result = array.reduce((a, b) => a + b, 0) / array.length
-    if (isNaN(result)) {
-        console.log(array)
-        for (let i of array) {
-            console.log(i)
-        }
-        console.log("sum", array.reduce((a, b) => a + b, 0))
-        console.log("length", array.length)
-        //throw ""
-    }
-    return result;
+    return array.reduce((a, b) => a + b, 0) / array.length
+
 }
-function findBestMethod(paths: string[]) {
+function evaluateData(paths: string[]):EvaluationResult {
     let max_d_in_o = 0;
     let max_o_in_d = 0;
     let max_d_in_o_path = ""
@@ -152,6 +166,12 @@ function findBestMethod(paths: string[]) {
         if (original.length > 0) {
             original_in_detected /= original.length
         }
+        if(detected_in_original==0){
+            console.log("Low specifity",p)
+        }
+        if(original_in_detected==0){
+            console.log("Low sensitivity",p)
+        }
         originalInDetected.push(original_in_detected)
         detectedInOriginal.push(detected_in_original)
         if (detected_in_original > max_d_in_o) {
@@ -176,10 +196,10 @@ function findBestMethod(paths: string[]) {
 
     }
     return {
-        SensitivityBest: max_d_in_o * 100,
-        SpecifityBest: max_o_in_d * 100,
-        SensitivityBestPath: max_d_in_o_path,
-        SpecifityBestPath: max_o_in_d_path,
+        sensitivityBest: max_d_in_o * 100,
+        specifityBest: max_o_in_d * 100,
+        sensitivityBestPath: max_d_in_o_path,
+        specifityBestPath: max_o_in_d_path,
         sensitivies: detectedInOriginal.map((it) => 100 * it),
         specifities: originalInDetected.map((it) => it * 100),
         whiteSpace: "##############################################################################",
@@ -193,6 +213,16 @@ function findBestMethod(paths: string[]) {
         meanSensitivity: mean(detectedInOriginal) * 100,
         meanSpecifity: mean(originalInDetected) * 100,
 
+    }
+}
+function makeResultBasic(result:EvaluationResult):BasicEvaluationResult{
+    return {
+        sensitivityBest: Math.floor(result.sensitivityBest),
+        specifityBest: Math.floor(result.specifityBest),
+        medianSensitivity: Math.floor(result.medianSensitivity),
+        medianSpecifity: Math.floor(result.medianSpecifity),
+        meanSensitivity:Math.floor( result.meanSensitivity),
+        meanSpecifity: Math.floor(result.meanSpecifity),
     }
 }
 const dataTypeFilters = {
@@ -217,38 +247,83 @@ const instructionFilters = {
     "exampleBased": (x: string) => x.includes("exampleBased"),
     "noDefinition": (x: string) => x.includes("noDefinition"),
 }
+function getName(filters:any):string{
+    if(filters==dataTypeFilters){
+        return "dataType"
+    }
+    if(filters==dataSizeFilters){
+        return "dataSize"
+    }
+    if(filters==apiFilters){
+        return "api"
+    }
+    if(filters==temperatureFilters){
+        return "temp"
+    }
+    if(filters==instructionFilters){
+        return "instr"
+    }
+    return ""
+
+}
 let filtersPermutations = {
     "api_temp_instr_dataType_data_Size":[apiFilters, temperatureFilters, instructionFilters, dataTypeFilters, dataSizeFilters],
     "dataSize_dataType_instr_temp_api":[apiFilters, temperatureFilters, instructionFilters, dataTypeFilters, dataSizeFilters].reverse(),
 
 }
+let allFilters={
+    "api":apiFilters,
+    "temp":temperatureFilters,
+    "instr":instructionFilters,
+    "dataType":dataTypeFilters,
+    "dataSize":dataSizeFilters,
+
+}
+function create_basic_evaluation(firstFilter:any) {
+    let tempResult={}
+    let allPaths = get_output_file_paths()
+    let basicEvalResult={}
+
+    let evalResult = {all:evaluateData(get_output_file_paths())}
+    for (let key0 of Object.keys(firstFilter)) {
+        evalResult[key0] = { all: evaluateData(allPaths.filter(firstFilter[key0])) }
+        tempResult[key0]=makeResultBasic(evalResult[key0].all)
+        for(let statKey of  BasicEvaluationKeys){
+            if(basicEvalResult[statKey]==undefined){
+                basicEvalResult[statKey]={}
+            }
+            basicEvalResult[statKey][key0]=tempResult[key0][statKey];
+        }
+    }
+    
+
+    
+    fs.writeFileSync("llm_results/basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
+
+}
 function create_evaluation(key:string,permutation: any[]) {
-    let evalResult = {}
+    let evalResult = {all:evaluateData(get_output_file_paths())}
+    let allPaths = get_output_file_paths()
+
     for (let key0 of Object.keys(permutation[0])) {
         
 
-        let allPaths = get_output_file_paths()
-        evalResult[key0] = { all: findBestMethod(allPaths.filter(permutation[0][key0])) }
-
+        evalResult[key0] = { all: evaluateData(allPaths.filter(permutation[0][key0])) }
         for (let key1 of Object.keys(permutation[1])) {
 
-            evalResult[key0][key1] = { all: findBestMethod(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1])) }
-
+            evalResult[key0][key1] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1])) }
             for (let key2 of Object.keys(permutation[2])) {
 
-                evalResult[key0][key1][key2] = { all: findBestMethod(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2])) }
-
+                evalResult[key0][key1][key2] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2])) }
                 for (let key3 of Object.keys(permutation[3])) {
 
 
-                    evalResult[key0][key1][key2][key3] = { all: findBestMethod(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3])) }
-
+                    evalResult[key0][key1][key2][key3] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3])) }
                     for (let key4 of Object.keys(permutation[4])) {
                         let paths = allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]).filter(permutation[4][key4])
-                        let result = findBestMethod(paths)
+                        let result = evaluateData(paths)
                         evalResult[key0][key1][key2][key3][key4] = result;
 
-                        console.log()
                     }
                 }
             }
@@ -256,10 +331,11 @@ function create_evaluation(key:string,permutation: any[]) {
     }
 
     fs.writeFileSync("llm_results/"+key+".json", JSON.stringify(evalResult, null, 2))
+
 }
 function main() {
-    for(let key of Object.keys(filtersPermutations))   {
-        create_evaluation(key,filtersPermutations[key])
+    for(let key of Object.keys(allFilters))   {
+        create_basic_evaluation(allFilters[key])
     }
 
 }
