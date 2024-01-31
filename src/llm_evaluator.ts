@@ -169,11 +169,9 @@ function evaluateData(paths: string[],fullEval:boolean):EvaluationResult {
         }
         if(detected_in_original==0 && fullEval){
             failures[p]=combined
-            console.log("Low specifity",p)
         }
         if(original_in_detected==0){
             failures[p]=combined
-            console.log("Low sensitivity",p)
         }
         originalInDetected.push(original_in_detected)
         detectedInOriginal.push(detected_in_original)
@@ -286,18 +284,30 @@ function create_basic_evaluation(firstFilter:any) {
     let tempResult={}
     let allPaths = get_output_file_paths()
     let basicEvalResult={}
+    let sums={}
+    let totalSum=0;
 
     let evalResult = {all:evaluateData(allPaths,false)}
     for (let key0 of Object.keys(firstFilter)) {
         evalResult[key0] = { all: evaluateData(allPaths.filter(firstFilter[key0]),false) }
         tempResult[key0]=makeResultBasic(evalResult[key0].all)
+        sums[key0]=0;
         for(let statKey of  BasicEvaluationKeys){
             if(basicEvalResult[statKey]==undefined){
                 basicEvalResult[statKey]={}
             }
             basicEvalResult[statKey][key0]=tempResult[key0][statKey];
+            if(statKey!="sensitivityBest" && statKey!="specifityBest"){
+                sums[key0]+=tempResult[key0][statKey]
+                totalSum+=tempResult[key0][statKey]
+            }
+            
         }
     }
+    for(let key0 of Object.keys(firstFilter)){
+        sums[key0]/=totalSum;
+    }
+    basicEvalResult["sums"]=sums;
     
 
     
@@ -335,10 +345,24 @@ function create_evaluation(key:string,permutation: any[]) {
     fs.writeFileSync("llm_results/"+key+".json", JSON.stringify(evalResult, null, 2))
     fs.writeFileSync("llm_results/failures.json", JSON.stringify(failures, null, 2))
 }
+const basic=true;
 function main() {
-    for(let key of Object.keys(filtersPermutations))   {
-        create_evaluation(key,filtersPermutations[key])
+    if(basic){
+        for(let key of Object.keys(allFilters))   {
+           
+            create_basic_evaluation(allFilters[key]);
+                
+           
+        }
     }
+    else{
+        for(let key of Object.keys(filtersPermutations))   {
+           
+            create_evaluation(key,filtersPermutations[key])
+          
+        }
+    }
+   
 
 }
 main();
