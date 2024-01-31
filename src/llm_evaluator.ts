@@ -122,7 +122,8 @@ function mean(array: number[]) {
     return array.reduce((a, b) => a + b, 0) / array.length
 
 }
-function evaluateData(paths: string[]):EvaluationResult {
+let failures={}
+function evaluateData(paths: string[],fullEval:boolean):EvaluationResult {
     let max_d_in_o = 0;
     let max_o_in_d = 0;
     let max_d_in_o_path = ""
@@ -166,10 +167,12 @@ function evaluateData(paths: string[]):EvaluationResult {
         if (original.length > 0) {
             original_in_detected /= original.length
         }
-        if(detected_in_original==0){
+        if(detected_in_original==0 && fullEval){
+            failures[p]=combined
             console.log("Low specifity",p)
         }
         if(original_in_detected==0){
+            failures[p]=combined
             console.log("Low sensitivity",p)
         }
         originalInDetected.push(original_in_detected)
@@ -284,9 +287,9 @@ function create_basic_evaluation(firstFilter:any) {
     let allPaths = get_output_file_paths()
     let basicEvalResult={}
 
-    let evalResult = {all:evaluateData(get_output_file_paths())}
+    let evalResult = {all:evaluateData(allPaths,false)}
     for (let key0 of Object.keys(firstFilter)) {
-        evalResult[key0] = { all: evaluateData(allPaths.filter(firstFilter[key0])) }
+        evalResult[key0] = { all: evaluateData(allPaths.filter(firstFilter[key0]),false) }
         tempResult[key0]=makeResultBasic(evalResult[key0].all)
         for(let statKey of  BasicEvaluationKeys){
             if(basicEvalResult[statKey]==undefined){
@@ -299,29 +302,28 @@ function create_basic_evaluation(firstFilter:any) {
 
     
     fs.writeFileSync("llm_results/basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
-
 }
 function create_evaluation(key:string,permutation: any[]) {
-    let evalResult = {all:evaluateData(get_output_file_paths())}
+    let evalResult = {all:evaluateData(get_output_file_paths(),true)}
     let allPaths = get_output_file_paths()
 
     for (let key0 of Object.keys(permutation[0])) {
         
 
-        evalResult[key0] = { all: evaluateData(allPaths.filter(permutation[0][key0])) }
+        evalResult[key0] = { all: evaluateData(allPaths.filter(permutation[0][key0]),true) }
         for (let key1 of Object.keys(permutation[1])) {
 
-            evalResult[key0][key1] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1])) }
+            evalResult[key0][key1] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]),true) }
             for (let key2 of Object.keys(permutation[2])) {
 
-                evalResult[key0][key1][key2] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2])) }
+                evalResult[key0][key1][key2] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]),true) }
                 for (let key3 of Object.keys(permutation[3])) {
 
 
-                    evalResult[key0][key1][key2][key3] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3])) }
+                    evalResult[key0][key1][key2][key3] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]),true) }
                     for (let key4 of Object.keys(permutation[4])) {
                         let paths = allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]).filter(permutation[4][key4])
-                        let result = evaluateData(paths)
+                        let result = evaluateData(paths,true)
                         evalResult[key0][key1][key2][key3][key4] = result;
 
                     }
@@ -331,11 +333,11 @@ function create_evaluation(key:string,permutation: any[]) {
     }
 
     fs.writeFileSync("llm_results/"+key+".json", JSON.stringify(evalResult, null, 2))
-
+    fs.writeFileSync("llm_results/failures.json", JSON.stringify(failures, null, 2))
 }
 function main() {
-    for(let key of Object.keys(allFilters))   {
-        create_basic_evaluation(allFilters[key])
+    for(let key of Object.keys(filtersPermutations))   {
+        create_evaluation(key,filtersPermutations[key])
     }
 
 }
