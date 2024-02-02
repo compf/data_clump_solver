@@ -176,12 +176,29 @@ function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, gro
         let astClass=astContext.getByPath(key)
         let groundTruthClass=groundTtruthContext.getByPath(key)
         if(groundTruthClass==null){
+            console.log("Could not find equivalent ground truth for "+key)
             continue;
         }
         compareSingleASTOutputWithGroundTruth(astClass,groundTruthClass)
     }
 }
-function compareSingleASTOutputWithGroundTruth(astClass:AST_Class,groundTruthClass:AST_Class){
-    console.log(astClass.file_path)
+function compareSingleASTOutputWithGroundTruth(astClass:AST_Class,groundTruthClass:AST_Class):number{
+    let similiarities={counter:0}
+    increaseCounterIf(similiarities,()=>astClass.name==groundTruthClass.name);
+    switch(astClass.name){
+        case "MathStuff":
+            compareMathStuff(astClass,groundTruthClass,similiarities)
+            break;
+    }
+    
+}
+
+function increaseCounterIf(similiarities: { counter: number; }, predicate: () => boolean) {
+    if(predicate()){
+        similiarities.counter++
+    };
+}
+function compareMathStuff(astClass:AST_Class,groundTruthClass:AST_Class,similiarities: { counter: number; }){
+    let astMethods=astClass.methods
 }
 
