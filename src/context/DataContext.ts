@@ -5,6 +5,7 @@ import { nodeModuleNameResolver } from "typescript";
 import fs from "fs"
 import { resolve } from "path";
 import { AST_Class, AST_Type } from "./AST_Type";
+import { waitSync } from "../util/Utils";
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
@@ -65,9 +66,22 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
 export class ASTBuildingContext extends DataClumpRefactoringContext {
     private ast_type:AST_Type={}
     load(path:string){
-        let content=fs.readFileSync(path,{encoding:"utf-8"})
-        let parsed=JSON.parse(content) as AST_Class
-        this.ast_type[parsed.file_path]=parsed
+        const MAX_ATTEMPTS=3;
+        let attempts=0;
+        while(attempts<MAX_ATTEMPTS){
+            try{
+                let content=fs.readFileSync(path,{encoding:"utf-8"})
+                let parsed=JSON.parse(content) as AST_Class
+                this.ast_type[parsed.file_path]=parsed
+                return;
+            }catch(e){
+                waitSync(100)
+                console.log("failed",path)
+                attempts++;
+            }
+        }
+        throw new Error("Could not load file "+path)
+        
     }
     getKeys():string[]{
         return Object.keys(this.ast_type)

@@ -54,3 +54,7 @@ export async function wait(ms:number){
         setTimeout(resolve,ms)
     })
 }
+export function waitSync(ms:number){
+    let start = Date.now();
+    while (Date.now() < start + ms);
+}

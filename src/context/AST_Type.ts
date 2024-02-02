@@ -20,7 +20,8 @@ export type AST_Class={
     innerDefinedInterfaces :any,
     file_path:string,
 
-    methods : AST_Methods
+    methods : AST_Methods,
+    fields:AST_Field[],
 
    
 }
@@ -37,7 +38,7 @@ export type AST_Method={
   returnTypes:string|null,
   overrideAnnotation:boolean,
   parameters:AST_Parameter[],
-  fields:AST_Field[],
+  
 
    
 }

@@ -17,8 +17,6 @@ function get_output_file_paths(): string[] {
     return result;
 }
 function parse_chat_file(path: string) {
-    console.log(path)
-
 
     let chat = JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }))
 
@@ -26,17 +24,19 @@ function parse_chat_file(path: string) {
 
 
 }
-
+const groundTruthPath="llm_results/ground_truth_refactor"
+let groundTruthPaths:string[]=[]
+getRelevantFilesRec(groundTruthPath,groundTruthPaths,new FileFilteringContext(["*.json"],[]))
+let groundTtruthContext=new ASTBuildingContext()
+console.log(groundTruthPaths.length)
+for(let path of groundTruthPaths){
+    groundTtruthContext.load(path)
+    console.log("loaded",path)
+}
 async function evaluateData(paths:string[],flag:boolean)  {
     const baseFolder="llm_results/evaluatorTest"
     const outPath="llm_results/evalJSON"
-    const groundTruthPath="llm_results/ground_truth_refactor"
-    let groundTruthPaths:string[]=[]
-    getRelevantFilesRec(groundTruthPath,groundTruthPaths,new FileFilteringContext(["*.json"],[]))
-    let groundTtruthContext=new ASTBuildingContext()
-    for(let path of groundTruthPaths){
-        groundTtruthContext.load(path)
-    }
+   
     for(let path of paths){
         let contents=parse_chat_file(path)["messages"][0]
         for(let sourcePath of Object.keys(contents)){
@@ -172,33 +172,71 @@ main();
 
 
 function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, groundTtruthContext:ASTBuildingContext) {
+    let similiarities={counter:0,allCounter:0}
     for(let key of astContext.getKeys()){
         let astClass=astContext.getByPath(key)
         let groundTruthClass=groundTtruthContext.getByPath(key)
         if(groundTruthClass==null){
+            analyzeDataClass(similiarities,astClass);
             console.log("Could not find equivalent ground truth for "+key)
             continue;
         }
-        compareSingleASTOutputWithGroundTruth(astClass,groundTruthClass)
+        compareSingleASTOutputWithGroundTruth(similiarities,astClass,groundTruthClass)
+        
     }
+    console.log("Similiarity",100*similiarities.counter/similiarities.allCounter,"%")
 }
-function compareSingleASTOutputWithGroundTruth(astClass:AST_Class,groundTruthClass:AST_Class):number{
-    let similiarities={counter:0}
-    increaseCounterIf(similiarities,()=>astClass.name==groundTruthClass.name);
-    switch(astClass.name){
-        case "MathStuff":
-            compareMathStuff(astClass,groundTruthClass,similiarities)
-            break;
+const pointTypes=["int","int","int"]
+const pointNames=["x","y","z"]
+const floatingPointTypes=["boolean","double","float"]
+const floatingPointNames=["exponent","mantissa","sign"]
+const pointGetters=["getX","getY","getZ"]
+const pointSetters=["setX","setY","setZ"]
+const floatingPointGetters=["getExponent","getMantissa","getSign"]
+const floatingPointSetters=["setExponent","setMantissa","setSign"]
+
+function analyzeDataClass(similiarities:{counter:number,allCounter:number},astClass:AST_Class){
+let fields=Object.values(astClass.fields)
+let fieldNames=fields.map(it=>it.name).sort();
+let fieldTypes=fields.map(it=>it.type).sort();
+let pointClassExists=false;
+let floaingNumberClassExists=false;
+for(let i=0;i<fieldNames.length;i++){
+     let isPointClass=  fieldNames.length==pointNames.length && fieldNames[i]==pointNames[i] && fieldTypes[i]==pointTypes[i];
+     let isFloatingPointClass=  fieldNames.length==floatingPointNames.length && fieldNames[i]==floatingPointNames[i] && fieldTypes[i]==floatingPointTypes[i];
+    increaseCounterIf("fields different",similiarities,()=>isPointClass || isFloatingPointClass);
+    pointClassExists=pointClassExists || isPointClass;
+    floaingNumberClassExists=floaingNumberClassExists || isFloatingPointClass;
+
+}
+increaseCounterIf("Both classes do not exist",similiarities,()=>pointClassExists && floaingNumberClassExists);
+
+
+
+}
+function compareSingleASTOutputWithGroundTruth(similiarities:{counter:number,allCounter:number},astClass:AST_Class,groundTruthClass:AST_Class):number{
+    increaseCounterIf("Different class names",similiarities,()=>astClass.name==groundTruthClass.name);
+    increaseCounterIf("Different method count",similiarities,()=>astClass.methods.length==groundTruthClass.methods.length);
+    increaseCounterIf("Different field count",similiarities,()=>astClass.fields.length==groundTruthClass.fields.length);
+    console.log(astClass.name)
+    let methodsFromLLM=Object.values(astClass.methods)
+    let methodsFromGroundTruth=Object.values(groundTruthClass.methods)
+    for(let m1 of methodsFromLLM){
+        let m2=methodsFromGroundTruth.find(it=>m1.name==it.name)!
+        increaseCounterIf("Different method parameters",similiarities,()=>m1.parameters.length==m2.parameters.length);
     }
+    return similiarities.counter;
+
     
 }
 
-function increaseCounterIf(similiarities: { counter: number; }, predicate: () => boolean) {
+function increaseCounterIf(description:string,similiarities: { counter: number;allCounter:number }, predicate: () => boolean) {
     if(predicate()){
         similiarities.counter++
-    };
+    }else{
+        console.log("Not similiar:",description)
+    }
+    similiarities.allCounter++;
 }
-function compareMathStuff(astClass:AST_Class,groundTruthClass:AST_Class,similiarities: { counter: number; }){
-    let astMethods=astClass.methods
-}
+
 
