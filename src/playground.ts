@@ -16,8 +16,11 @@ import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
 import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
 import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
 import { GradleBuildValidationStepHandler } from "./pipeline/validation/GradleBuildValidationStepHandler";
+import { GitHubService } from "./util/vcs/GitHubService";
 
 async function main(){
+   let github=new GitHubService();
+   github.forkAndPull("test","https://github.com/2dust/v2rayN")
    /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest"));
    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DetectAndRefactorWithLanguageModelStep());
    PipeLine.Instance.registerHandler([PipeLineStep.Validation],new GradleBuildValidationStepHandler())

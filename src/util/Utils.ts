@@ -49,3 +49,8 @@ function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext
     }
     return isExcluded || !isIncluded
 }
+export async function wait(ms:number){
+    return new Promise((resolve,reject)=>{
+        setTimeout(resolve,ms)
+    })
+}

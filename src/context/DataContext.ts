@@ -65,9 +65,13 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
 export class ASTBuildingContext extends DataClumpRefactoringContext {
     private ast_type:AST_Type={}
     load(path:string){
-        let parsed=JSON.parse(fs.readFileSync(path,{encoding:"utf-8"})) as AST_Class
+        let content=fs.readFileSync(path,{encoding:"utf-8"})
+        let parsed=JSON.parse(content) as AST_Class
         this.ast_type[parsed.file_path]=parsed
     }
+    getKeys():string[]{
+        return Object.keys(this.ast_type)
+    }   
     getByPath(path:string):AST_Class{
         return this.ast_type[path]
     }
