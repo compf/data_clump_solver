@@ -18,7 +18,9 @@ export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
         await ParserHelperJavaSourceCode.parseSourceCodeToAst(resolve(context.getProjectPath()), ast_out_path, ast_generator_path);
         let paths: string[] = []
         waitSync(100)
-
+        while(!fs.existsSync(ast_out_path)){
+            waitSync(100)
+        }
         getRelevantFilesRec(ast_out_path, paths, new FileFilteringContext(["*.json"], []))
 
 

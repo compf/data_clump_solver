@@ -1,34 +1,25 @@
 package org.example;
 
 public class MathUser {
-
-    private MathStuffProperties properties;
+    private Exponential exponential;
 
     public void doLengthCalc(){
         MathStuff stuff=new MathStuff();
-        stuff.printLength(5,6,4);
+        stuff.printLength(new Triplet(5,6,4));
     }
-
     public void doMaxStuff(){
         MathStuff stuff=new MathStuff();
-        int x1=4;
-        int y1=3;
-        int z1=-80;
-        if(properties.isSign()){
-            z1=z1+properties.getExponent();
+        Triplet triplet = new Triplet(4, 3, -80);
+        if(exponential.getSign()){
+            triplet.setZ(triplet.getZ()+exponential.getExponent());
         }
         else{
-            x1=(int)(x1*properties.getMantissa());
+            triplet.setX((int)(triplet.getX()*exponential.getMantissa()));
         }
-        stuff.printMax(x1, y1, z1);
+        stuff.printMax(triplet);
     }
-
     public void executeSumOperation(){
         MathStuff stuff=new MathStuff();
-        stuff.printSum(hashCode(), hashCode(), hashCode());
-    }
-
-    public MathUser(boolean sign, double mantissa, int exponent) {
-        this.properties = new MathStuffProperties(sign, mantissa, exponent);
+        stuff.printSum(new Triplet(hashCode(), hashCode(), hashCode()));
     }
 }

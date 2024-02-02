@@ -1,32 +1,26 @@
 package org.example;
 
 public class MathStuff {
-    private MathStuffProperties properties;
+    private Exponential exponential;
 
-    public void printLength(int x, int y, int z) {
-        System.out.println(Math.sqrt(x * x + y * y + z * z));
+    public void printLength(Triplet triplet) {
+        System.out.println(Math.sqrt(triplet.getX() * triplet.getX() + triplet.getY() * triplet.getY() + triplet.getZ() * triplet.getZ()));
     }
-
-    public MathStuff(boolean sign, double mantissa, int exponent){
-        this.properties = new MathStuffProperties(sign, mantissa, exponent);
+    public MathStuff(Exponential exponential){
+        this.exponential=exponential;
     }
-
     public MathStuff(){
-        this.properties = new MathStuffProperties(true, 0, 1);
+        this.exponential=new Exponential(true,0,1);
     }
 
-    public void printSum(int x, int y, int z) {
-        System.out.println(x + y + z);
+    public void printSum(Triplet triplet) {
+        System.out.println(triplet.getX() + triplet.getY() + triplet.getZ());
     }
 
-    public void printMax(int x, int y, int z) {
-        System.out.println(Math.max(Math.max(x, y), z));
+    public void printMax(Triplet triplet) {
+        System.out.println(Math.max(Math.max(triplet.getX(), triplet.getY()), triplet.getZ()));
     }
-
     public double calcValue(){
-        boolean sign = properties.isSign();
-        double mantissa = properties.getMantissa();
-        int exponent = properties.getExponent();
-        return (sign ? 1 : -1) * mantissa * Math.pow(2, exponent);
+        return (exponential.getSign() ? 1 : -1) * exponential.getMantissa() * Math.pow(2, exponential.getExponent());
     }
 }

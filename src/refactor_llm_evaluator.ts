@@ -2,11 +2,12 @@ import { DataClumpsTypeContext } from "data-clumps-type-context";
 import fs from "fs"
 import { resolve } from "path";
 import { createHash } from 'node:crypto'
-import { getRelevantFilesRec } from "./util/Utils";
-import { ASTBuildingContext, CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext } from "./context/DataContext";
+import { getRelevantFilesRec, waitSync } from "./util/Utils";
+import { ASTBuildingContext, CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, ValidationContext } from "./context/DataContext";
 import { ChatMessage } from "./util/languageModel/LanguageModelInterface";
 import { DataClumpDoctorASTGeneratorStep } from "./pipeline/stepHandler/astGeneration/DataClumpDoctorASTGeratorStep";
 import { AST_Class, AST_Type } from "./context/AST_Type";
+import { GradleBuildValidationStepHandler } from "./pipeline/validation/GradleBuildValidationStepHandler";
 
 
 
@@ -36,19 +37,30 @@ for(let path of groundTruthPaths){
 async function evaluateData(paths:string[],flag:boolean)  {
     const baseFolder="llm_results/evaluatorTest"
     const outPath="llm_results/evalJSON"
-   
+    let evalResult={}
     for(let path of paths){
         let contents=parse_chat_file(path)["messages"][0]
+        for(let sourcePath of Object.keys(contents)){
+            fs.rmSync(resolve(baseFolder,sourcePath))
+          
+        }
         for(let sourcePath of Object.keys(contents)){
             fs.writeFileSync(resolve(baseFolder,sourcePath),contents[sourcePath])
           
         }
+        waitSync(1000)
         let astGenerator=new DataClumpDoctorASTGeneratorStep(outPath);
         let compareContext=await astGenerator.handle(new CodeObtainingContext(baseFolder),null)
-        compareAllASTOutputsWithGroundTruth(compareContext as ASTBuildingContext,groundTtruthContext);
-        return null;
+        let comparisonResult=compareAllASTOutputsWithGroundTruth(compareContext as ASTBuildingContext,groundTtruthContext);
+        evalResult[path]=comparisonResult
+        waitSync(1000)
+        let validator=new GradleBuildValidationStepHandler();
+        let result=await validator.handle(compareContext,null) as ValidationContext
+        console.log(result.validationResult.success)
+        evalResult[path]["validation"]=result.validationResult;
+        
     }
-    return null;
+    return evalResult;
  
     
 }
@@ -123,44 +135,45 @@ let allFilters={
 
 }
 
-function create_evaluation(key:string,permutation: any[]) {
-    let evalResult = {all:evaluateData(get_output_file_paths(),true)}
+async function create_evaluation(key:string,permutation: any[]) {
+    let evalResult = {}
     let allPaths = get_output_file_paths()
 
     for (let key0 of Object.keys(permutation[0])) {
         
 
-        evalResult[key0] = { all: evaluateData(allPaths.filter(permutation[0][key0]),true) }
+        evalResult[key0] = { }
         for (let key1 of Object.keys(permutation[1])) {
 
-            evalResult[key0][key1] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]),true) }
+            evalResult[key0][key1] = {  }
             for (let key2 of Object.keys(permutation[2])) {
 
-                evalResult[key0][key1][key2] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]),true) }
+                evalResult[key0][key1][key2] = {  }
                 for (let key3 of Object.keys(permutation[3])) {
 
 
-                    evalResult[key0][key1][key2][key3] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]),true) }
+                    evalResult[key0][key1][key2][key3] = {  }
                     for (let key4 of Object.keys(permutation[4])) {
                         let paths = allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]).filter(permutation[4][key4])
-                        let result = evaluateData(paths,true)
+                        let result = await evaluateData(paths,true)
                         evalResult[key0][key1][key2][key3][key4] = result;
-
+                        console.log(key0, key1, key2, key3, key4, result)
                     }
                 }
             }
         }
     }
+    fs.writeFileSync("llm_results/refactorResults_"+key+".json", JSON.stringify(evalResult))
 
    
 }
 const basic=true;
-function main() {
+async function main() {
    
     {
         for(let key of Object.keys(filtersPermutations))   {
            
-            create_evaluation(key,filtersPermutations[key])
+           await  create_evaluation(key,filtersPermutations[key])
           
         }
     }
@@ -170,9 +183,13 @@ function main() {
 main();
 
 
-
+type SimiliarityInfo={
+    counter:number,
+    allCounter:number,
+    logs:string[]
+}
 function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, groundTtruthContext:ASTBuildingContext) {
-    let similiarities={counter:0,allCounter:0}
+    let similiarities:SimiliarityInfo={counter:0,allCounter:0,logs:[]}
     for(let key of astContext.getKeys()){
         let astClass=astContext.getByPath(key)
         let groundTruthClass=groundTtruthContext.getByPath(key)
@@ -185,6 +202,7 @@ function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, gro
         
     }
     console.log("Similiarity",100*similiarities.counter/similiarities.allCounter,"%")
+    return similiarities
 }
 const pointTypes=["int","int","int"]
 const pointNames=["x","y","z"]
@@ -195,7 +213,7 @@ const pointSetters=["setX","setY","setZ"]
 const floatingPointGetters=["getExponent","getMantissa","getSign"]
 const floatingPointSetters=["setExponent","setMantissa","setSign"]
 
-function analyzeDataClass(similiarities:{counter:number,allCounter:number},astClass:AST_Class){
+function analyzeDataClass(similiarities:SimiliarityInfo,astClass:AST_Class){
 let fields=Object.values(astClass.fields)
 let fieldNames=fields.map(it=>it.name).sort();
 let fieldTypes=fields.map(it=>it.type).sort();
@@ -214,27 +232,26 @@ increaseCounterIf("Both classes do not exist",similiarities,()=>pointClassExists
 
 
 }
-function compareSingleASTOutputWithGroundTruth(similiarities:{counter:number,allCounter:number},astClass:AST_Class,groundTruthClass:AST_Class):number{
-    increaseCounterIf("Different class names",similiarities,()=>astClass.name==groundTruthClass.name);
-    increaseCounterIf("Different method count",similiarities,()=>astClass.methods.length==groundTruthClass.methods.length);
-    increaseCounterIf("Different field count",similiarities,()=>astClass.fields.length==groundTruthClass.fields.length);
+function compareSingleASTOutputWithGroundTruth(similiarities:SimiliarityInfo,astClass:AST_Class,groundTruthClass:AST_Class){
+    increaseCounterIf("Different class names "+astClass.name+" vs " +groundTruthClass.name,similiarities,()=>astClass.name==groundTruthClass.name);
+    increaseCounterIf("Different method count "+ astClass.methods.length+" vs "+groundTruthClass.methods.length,similiarities,()=>astClass.methods.length==groundTruthClass.methods.length);
+    increaseCounterIf("Different field count "+astClass.fields.length+" vs "+groundTruthClass.fields.length,similiarities,()=>astClass.fields.length==groundTruthClass.fields.length);
     console.log(astClass.name)
     let methodsFromLLM=Object.values(astClass.methods)
     let methodsFromGroundTruth=Object.values(groundTruthClass.methods)
     for(let m1 of methodsFromLLM){
         let m2=methodsFromGroundTruth.find(it=>m1.name==it.name)!
-        increaseCounterIf("Different method parameters",similiarities,()=>m1.parameters.length==m2.parameters.length);
+        increaseCounterIf("Different method parameters "+m1.parameters.length +" vs "+m2.parameters.length,similiarities,()=>m1.parameters.length==m2.parameters.length);
     }
-    return similiarities.counter;
 
     
 }
 
-function increaseCounterIf(description:string,similiarities: { counter: number;allCounter:number }, predicate: () => boolean) {
+function increaseCounterIf(description:string,similiarities: SimiliarityInfo, predicate: () => boolean) {
     if(predicate()){
         similiarities.counter++
     }else{
-        console.log("Not similiar:",description)
+        similiarities.logs.push(description)
     }
     similiarities.allCounter++;
 }
