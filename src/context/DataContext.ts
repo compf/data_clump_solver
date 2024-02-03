@@ -105,7 +105,6 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
 }
 export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     dataClumpDetectionResult: Dictionary<DataClumpTypeContext>
-    dataClumpKeys: Array<string>
     getDataClumpDetectionResult(): Dictionary<DataClumpTypeContext> {
         return this.dataClumpDetectionResult
     }
@@ -113,15 +112,17 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
         return this.dataClumpDetectionResult[key]!
     }
     getDataClumpKeys(): Iterable<string> {
-        return this.dataClumpKeys;
+        return Object.keys(this.dataClumpDetectionResult);
     }
     getPosition(): number {
         return 3;
     }
+    deleteEntry(key: string) {
+        delete this.dataClumpDetectionResult[key]
+    }
     constructor(dataClumpDetectionResult: DataClumpsTypeContext) {
         super();
         this.dataClumpDetectionResult = dataClumpDetectionResult.data_clumps
-        this.dataClumpKeys = Object.keys(dataClumpDetectionResult.data_clumps)
     }
     getDefaultSerializationPath(): string {
         return resolve("data", "dataClumpDetectorContext.json")
