@@ -60,9 +60,7 @@ async function evaluateData(paths:string[])  {
         console.log("created AST")
         let comparisonResult=compareAllASTOutputsWithGroundTruth(compareContext as ASTBuildingContext,groundTtruthContext);
         console.log("compared")
-        evalResult["reachedPoints"]+=comparisonResult.counter
-        evalResult["allPoints"]+=comparisonResult.allCounter
-        evalResult["percentage"]=100*evalResult["reachedPoints"]/evalResult["allPoints"]
+        
         evalResult[path]["source_files"]={}
         for(let sourceCodeFile of Object.keys(contents)){
             evalResult[path]["source_files"][sourceCodeFile]=contents[sourceCodeFile].split("\n")          
@@ -71,6 +69,9 @@ async function evaluateData(paths:string[])  {
         waitSync(1000)
         let validator=new GradleBuildValidationStepHandler();
         let result=await validator.handle(compareContext,null) as ValidationContext
+        evalResult["reachedPoints"]+=result.validationResult.success?comparisonResult.counter:0
+        evalResult["allPoints"]+=comparisonResult.allCounter
+        evalResult["percentage"]=100*evalResult["reachedPoints"]/evalResult["allPoints"]
         console.log(result.validationResult.success)
         evalResult[path]["validation"]=result.validationResult;
         
