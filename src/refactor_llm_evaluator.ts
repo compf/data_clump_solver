@@ -37,22 +37,32 @@ for(let path of groundTruthPaths){
 async function evaluateData(paths:string[],flag:boolean)  {
     const baseFolder="llm_results/evaluatorTest"
     const outPath="llm_results/evalJSON"
-    let evalResult={}
+    const sourceLocation="src/main/java/org/example/"
+    let evalResult={reachedPoints:0,allPoints:0,percentage:0}
     for(let path of paths){
+        evalResult[path]={}
+        console.log(path)
         let contents=parse_chat_file(path)["messages"][0]
-        for(let sourcePath of Object.keys(contents)){
-            fs.rmSync(resolve(baseFolder,sourcePath))
+        for(let fName of fs.readdirSync(resolve(baseFolder,sourceLocation))){
+            fs.rmSync(resolve(baseFolder,sourceLocation,fName))
           
         }
-        for(let sourcePath of Object.keys(contents)){
-            fs.writeFileSync(resolve(baseFolder,sourcePath),contents[sourcePath])
+        for(let sourceCodeFile of Object.keys(contents)){
+            fs.writeFileSync(resolve(baseFolder,sourceCodeFile),contents[sourceCodeFile])
           
         }
         waitSync(1000)
         let astGenerator=new DataClumpDoctorASTGeneratorStep(outPath);
         let compareContext=await astGenerator.handle(new CodeObtainingContext(baseFolder),null)
         let comparisonResult=compareAllASTOutputsWithGroundTruth(compareContext as ASTBuildingContext,groundTtruthContext);
-        evalResult[path]=comparisonResult
+        evalResult["reachedPoints"]+=comparisonResult.counter
+        evalResult["allPoints"]+=comparisonResult.allCounter
+        evalResult["percentage"]=100*evalResult["reachedPoints"]/evalResult["allPoints"]
+        evalResult[path]["source_files"]={}
+        for(let sourceCodeFile of Object.keys(contents)){
+            evalResult[path]["source_files"][sourceCodeFile]=contents[sourceCodeFile].split("\n")          
+        }
+
         waitSync(1000)
         let validator=new GradleBuildValidationStepHandler();
         let result=await validator.handle(compareContext,null) as ValidationContext
@@ -190,46 +200,50 @@ type SimiliarityInfo={
 }
 function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, groundTtruthContext:ASTBuildingContext) {
     let similiarities:SimiliarityInfo={counter:0,allCounter:0,logs:[]}
+    let bothDataClassesExist=true;
+    let oneNewClassFound=false;
     for(let key of astContext.getKeys()){
         let astClass=astContext.getByPath(key)
         let groundTruthClass=groundTtruthContext.getByPath(key)
         if(groundTruthClass==null){
-            analyzeDataClass(similiarities,astClass);
+            oneNewClassFound=true;
+            bothDataClassesExist=bothDataClassesExist && analyzeDataClass(similiarities,astClass);
             console.log("Could not find equivalent ground truth for "+key)
             continue;
         }
         compareSingleASTOutputWithGroundTruth(similiarities,astClass,groundTruthClass)
         
     }
+    increaseCounterIf("Both data classes do not exist",similiarities,()=>bothDataClassesExist && oneNewClassFound);
     console.log("Similiarity",100*similiarities.counter/similiarities.allCounter,"%")
     return similiarities
 }
 const pointTypes=["int","int","int"]
 const pointNames=["x","y","z"]
-const floatingPointTypes=["boolean","double","float"]
+const floatingPointTypes=["boolean","double","int"]
 const floatingPointNames=["exponent","mantissa","sign"]
 const pointGetters=["getX","getY","getZ"]
 const pointSetters=["setX","setY","setZ"]
 const floatingPointGetters=["getExponent","getMantissa","getSign"]
 const floatingPointSetters=["setExponent","setMantissa","setSign"]
 
-function analyzeDataClass(similiarities:SimiliarityInfo,astClass:AST_Class){
+function analyzeDataClass(similiarities:SimiliarityInfo,astClass:AST_Class):boolean{
 let fields=Object.values(astClass.fields)
 let fieldNames=fields.map(it=>it.name).sort();
 let fieldTypes=fields.map(it=>it.type).sort();
+console.log(fieldNames)
 let pointClassExists=false;
-let floaingNumberClassExists=false;
+let floatingNumberClassExists=false;
 for(let i=0;i<fieldNames.length;i++){
      let isPointClass=  fieldNames.length==pointNames.length && fieldNames[i]==pointNames[i] && fieldTypes[i]==pointTypes[i];
      let isFloatingPointClass=  fieldNames.length==floatingPointNames.length && fieldNames[i]==floatingPointNames[i] && fieldTypes[i]==floatingPointTypes[i];
-    increaseCounterIf("fields different",similiarities,()=>isPointClass || isFloatingPointClass);
+    increaseCounterIf("fields different"+" "+fieldTypes[i]+" " + fieldNames[i],similiarities,()=>isPointClass || isFloatingPointClass);
     pointClassExists=pointClassExists || isPointClass;
-    floaingNumberClassExists=floaingNumberClassExists || isFloatingPointClass;
+    floatingNumberClassExists=floatingNumberClassExists || isFloatingPointClass;
 
 }
-increaseCounterIf("Both classes do not exist",similiarities,()=>pointClassExists && floaingNumberClassExists);
 
-
+return pointClassExists || floatingNumberClassExists;
 
 }
 function compareSingleASTOutputWithGroundTruth(similiarities:SimiliarityInfo,astClass:AST_Class,groundTruthClass:AST_Class){
@@ -240,8 +254,13 @@ function compareSingleASTOutputWithGroundTruth(similiarities:SimiliarityInfo,ast
     let methodsFromLLM=Object.values(astClass.methods)
     let methodsFromGroundTruth=Object.values(groundTruthClass.methods)
     for(let m1 of methodsFromLLM){
-        let m2=methodsFromGroundTruth.find(it=>m1.name==it.name)!
-        increaseCounterIf("Different method parameters "+m1.parameters.length +" vs "+m2.parameters.length,similiarities,()=>m1.parameters.length==m2.parameters.length);
+        console.log(m1.name)
+        let m2=methodsFromGroundTruth.find(it=>m1.name==it.name)
+        if(m2==null){
+            console.log("Additional method "+m1.name)
+            continue;
+        }
+        increaseCounterIf("Different method parameters "+m1.parameters.length +" vs "+m2.parameters.length,similiarities,()=>m1.parameters.length==m2!.parameters.length);
     }
 
     

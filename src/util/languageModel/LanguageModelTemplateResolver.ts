@@ -23,7 +23,7 @@ export class LanguageModelTemplateResolver {
         Object.assign(additionalReplacements,this.replaceMap)
         for(let key of Object.keys(additionalReplacements)){
             if(key.startsWith(FILE_REPLACE_START)){
-                let fileContent=fs.readFileSync(key.substring(FILE_REPLACE_START.length,key.length-1), { encoding: "utf-8" })
+                let fileContent=fs.readFileSync(additionalReplacements[key], { encoding: "utf-8" })
                 result=result.replace(key,fileContent);
             }
             else{

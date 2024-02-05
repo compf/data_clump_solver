@@ -12,14 +12,15 @@ import { DetectAndRefactorWithLanguageModelStep, LargeLanguageModelDetectorConte
 import { AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
 import { PhindraInterface } from "./util/languageModel/PhindraInterface";
+import { waitSync } from "./util/Utils";
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
 }
 const apis = ["ChatGPTInterface"/*"PhindraInterface"*/]
-const temperatures = [0.1, 0.9]
-const models = ["gpt-4-1106-preview" /*"gpt-3.5-turbo-1106"*/]
+const temperatures = [0.1,0.5, 0.9]
+const models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
 const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
 const dataFormat = ["fromScratch","givenContext"]
 const dataHandler = ["AllFilesHandler"]
@@ -50,8 +51,10 @@ async function main() {
     registerFromName(LanguageModelTemplateResolver.name, LanguageModelTemplateResolver.name, {
         "${programming_language}": "Java",
         "%{examples}":"chatGPT_templates/DataClumpExamples.java",
-        "%{output_format}":"chatGPT_templates/json_output_format.json"
+        "%{output_format}":"chatGPT_templates/json_output_format.json",
+        "%{refactor_instruction}":"chatGPT_templates/refactor_data_clump_fully.template"
     })
+    console.log("registered")
     for (let apiType of apis) {
         for (let model of models) {
             for (let temperature of temperatures) {
@@ -59,7 +62,7 @@ async function main() {
                     for (let dFormat of dataFormat) {
                         for (let handlerName of dataHandler) {
                             for (let i = 0; i < repetionCount; i++) {
-                                await sleep(1000)
+                                waitSync(1000)
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
                                 const instructionPath=`chatGPT_templates/refactoring/${instrType}/${dFormat}/instruction.template`
                                 if(!fs.existsSync(instructionPath)){
@@ -121,3 +124,5 @@ async function main() {
 }
 
 main()
+
+
