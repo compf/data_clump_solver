@@ -34,7 +34,7 @@ for(let path of groundTruthPaths){
     groundTtruthContext.load(path)
     console.log("loaded",path)
 }
-async function evaluateData(paths:string[],flag:boolean)  {
+async function evaluateData(paths:string[])  {
     const baseFolder="llm_results/evaluatorTest"
     const outPath="llm_results/evalJSON"
     const sourceLocation="src/main/java/org/example/"
@@ -47,14 +47,19 @@ async function evaluateData(paths:string[],flag:boolean)  {
             fs.rmSync(resolve(baseFolder,sourceLocation,fName))
           
         }
+        console.log("deleted")
         for(let sourceCodeFile of Object.keys(contents)){
             fs.writeFileSync(resolve(baseFolder,sourceCodeFile),contents[sourceCodeFile])
           
         }
+     
         waitSync(1000)
+        console.log("written")
         let astGenerator=new DataClumpDoctorASTGeneratorStep(outPath);
         let compareContext=await astGenerator.handle(new CodeObtainingContext(baseFolder),null)
+        console.log("created AST")
         let comparisonResult=compareAllASTOutputsWithGroundTruth(compareContext as ASTBuildingContext,groundTtruthContext);
+        console.log("compared")
         evalResult["reachedPoints"]+=comparisonResult.counter
         evalResult["allPoints"]+=comparisonResult.allCounter
         evalResult["percentage"]=100*evalResult["reachedPoints"]/evalResult["allPoints"]
@@ -105,6 +110,7 @@ const apiFilters = {
 }
 const temperatureFilters = {
     "0.1": (x: string) => x.includes("0.1"),
+    "0.5": (x: string) => x.includes("0.5"),
     "0.9": (x: string) => x.includes("0.9"),
 }
 const instructionFilters = {
@@ -165,7 +171,7 @@ async function create_evaluation(key:string,permutation: any[]) {
                     evalResult[key0][key1][key2][key3] = {  }
                     for (let key4 of Object.keys(permutation[4])) {
                         let paths = allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]).filter(permutation[4][key4])
-                        let result = await evaluateData(paths,true)
+                        let result = await evaluateData(paths)
                         evalResult[key0][key1][key2][key3][key4] = result;
                         console.log(key0, key1, key2, key3, key4, result)
                     }
@@ -174,18 +180,46 @@ async function create_evaluation(key:string,permutation: any[]) {
         }
     }
     fs.writeFileSync("llm_results/refactorResults_"+key+".json", JSON.stringify(evalResult))
-
    
+}
+async function create_basic_evaluation(firstFilter:any) {
+    let tempResult={}
+    let allPaths = get_output_file_paths()
+    let basicEvalResult={}
+    let sums={}
+    let totalSum=0;
+
+    let evalResult = {all:evaluateData(allPaths)}
+
+    for (let key0 of Object.keys(firstFilter)) {
+        let data=await evaluateData(allPaths.filter(firstFilter[key0])) 
+        sums[key0]=data.allPoints
+        totalSum+=data.allPoints;
+       
+    }
+    for(let key0 of Object.keys(sums)){
+        sums[key0]/=totalSum;
+    }
+    basicEvalResult["sums"]=sums;
+    
+
+    
+    fs.writeFileSync("llm_results/refactor_basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
 }
 const basic=true;
 async function main() {
    
-    {
+    if(!basic){
         for(let key of Object.keys(filtersPermutations))   {
            
            await  create_evaluation(key,filtersPermutations[key])
           
         }
+    }
+    else{
+       for(let filter of Object.values(allFilters)){
+           await create_basic_evaluation(filter)
+       }
     }
    
 

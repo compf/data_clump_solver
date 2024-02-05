@@ -1,26 +1,25 @@
 package org.example;
 
 public class MathStuff {
-    private Exponential exponential;
+    private MathStuffParams mathStuffParams;
 
-    public void printLength(Triplet triplet) {
-        System.out.println(Math.sqrt(triplet.getX() * triplet.getX() + triplet.getY() * triplet.getY() + triplet.getZ() * triplet.getZ()));
-    }
-    public MathStuff(Exponential exponential){
-        this.exponential=exponential;
-    }
-    public MathStuff(){
-        this.exponential=new Exponential(true,0,1);
+    public MathStuff(MathStuffParams mathStuffParams) {
+        this.mathStuffParams = mathStuffParams;
     }
 
-    public void printSum(Triplet triplet) {
-        System.out.println(triplet.getX() + triplet.getY() + triplet.getZ());
+    public void printLength(MathStuffParams params) {
+        System.out.println(Math.sqrt(params.getX() * params.getX() + params.getY() * params.getY() + params.getZ() * params.getZ()));
     }
 
-    public void printMax(Triplet triplet) {
-        System.out.println(Math.max(Math.max(triplet.getX(), triplet.getY()), triplet.getZ()));
+    public void printSum(MathStuffParams params) {
+        System.out.println(params.getX() + params.getY() + params.getZ());
     }
-    public double calcValue(){
-        return (exponential.getSign() ? 1 : -1) * exponential.getMantissa() * Math.pow(2, exponential.getExponent());
+
+    public void printMax(MathStuffParams params) {
+        System.out.println(Math.max(Math.max(params.getX(), params.getY()), params.getZ()));
+    }
+
+    public double calcValue() {
+        return (mathStuffParams.isSign() ? 1 : -1) * mathStuffParams.getMantissa() * Math.pow(2, mathStuffParams.getExponent());
     }
 }
