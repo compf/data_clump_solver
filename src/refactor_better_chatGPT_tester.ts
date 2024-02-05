@@ -47,6 +47,11 @@ function createAPI(apiType: string, model: string, temperature: number): Languag
 }
 async function main() {
     let codeObtainingContext=new CodeObtainingContext("javaTest/javaTest");
+    registerFromName(LanguageModelTemplateResolver.name, LanguageModelTemplateResolver.name, {
+        "${programming_language}": "Java",
+        "%{examples}":"chatGPT_templates/DataClumpExamples.java",
+        "%{output_format}":"chatGPT_templates/json_output_format.json"
+    })
     for (let apiType of apis) {
         for (let model of models) {
             for (let temperature of temperatures) {

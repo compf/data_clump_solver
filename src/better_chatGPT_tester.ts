@@ -12,7 +12,6 @@ import { DetectAndRefactorWithLanguageModelStep, LargeLanguageModelDetectorConte
 import { AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
 import { PhindraInterface } from "./util/languageModel/PhindraInterface";
-export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
@@ -46,6 +45,11 @@ function createAPI(apiType: string, model: string, temperature: number): Languag
     return new ChatGPTInterface({ model, temperature })
 }
 async function main() {
+    registerFromName(LanguageModelTemplateResolver.name, LanguageModelTemplateResolver.name, {
+        "${programming_language}": "Java",
+        "%{examples}":"chatGPT_templates/DataClumpExamples.java",
+        "%{output_format}":"chatGPT_templates/json_output_format.json"
+    })
     let codeObtainingContext=new CodeObtainingContext("javaTest/javaTest");
     for (let apiType of apis) {
         for (let model of models) {
@@ -54,7 +58,7 @@ async function main() {
                     for (let dFormat of dataFormat) {
                         for (let handlerName of dataHandler) {
                             for (let i = 0; i < repetionCount; i++) {
-                                await sleep(1000)
+                                 sleepSync(1000)
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
                                 const instructionPath=`chatGPT_templates/${instrType}/${dFormat}/instruction.template`
                                 let path="llm_results/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
@@ -112,3 +116,7 @@ async function main() {
 }
 
 main()
+function sleepSync(arg0: number) {
+    throw new Error("Function not implemented.");
+}
+

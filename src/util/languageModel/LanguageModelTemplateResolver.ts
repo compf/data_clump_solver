@@ -4,22 +4,32 @@ export enum LanguageModelTemplateType {
     FullyRefactor="refactor_data_clump_fully",
     SuggestName="suggest_name",
 }
+export const FILE_REPLACE_START="%{";
+
 export class LanguageModelTemplateResolver {
-    private template: string;
-    private constructor(text:string) {
-        this.template = text;
+    private replaceMap:{[key:string]:string}
+    constructor(replaceMap: {[key:string]:string}) {
+        this.replaceMap = replaceMap;
     }
-    static fromTemplateType(templateType:LanguageModelTemplateType):LanguageModelTemplateResolver{
-       const template = fs.readFileSync(`chatgpt_templates/${templateType}.template`, 'utf-8');
-       return new LanguageModelTemplateResolver(template);
+    resolveFromTemplateType(templateType:LanguageModelTemplateType,additionalReplacements?:{[key:string]:string}|undefined):string{
+        const template = fs.readFileSync(`chatgpt_templates/${templateType}.template`, 'utf-8');
+        return this.resolveTemplate(template,additionalReplacements);
     }
-    static fromPath(path:string):LanguageModelTemplateResolver{
-        return new LanguageModelTemplateResolver(fs.readFileSync(`${path}`, 'utf-8'));
-    }
-    resolveTemplate(replaceMap:{[key:string]:string}):string{
-        let result=this.template;
-        for(let key of Object.keys(replaceMap)){
-            result=result.replace(key,replaceMap[key]);
+    resolveTemplate(text:string,additionalReplacements?:{[key:string]:string}|undefined):string{
+        let result=text
+        if(additionalReplacements==undefined){
+            additionalReplacements={}
+        }
+        Object.assign(additionalReplacements,this.replaceMap)
+        for(let key of Object.keys(additionalReplacements)){
+            if(key.startsWith(FILE_REPLACE_START)){
+                let fileContent=fs.readFileSync(key.substring(FILE_REPLACE_START.length,key.length-1), { encoding: "utf-8" })
+                result=result.replace(key,fileContent);
+            }
+            else{
+                result=result.replace(key,this.replaceMap[key]);
+
+            }
         }
         return result;
       

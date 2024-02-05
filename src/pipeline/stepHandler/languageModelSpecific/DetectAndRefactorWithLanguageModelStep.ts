@@ -33,6 +33,7 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         else{
             api = resolveFromName(LanguageModelInterfaceCategory) as LanguageModelInterface
         }
+        let templateResolver=resolveFromName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
          
         api.clear();
        let replaceMap={
@@ -44,7 +45,7 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         let handlerIndex=0
         for (handlerIndex=0;handlerIndex<this.handlers.length;handlerIndex++) {
             let handler=this.handlers[handlerIndex]
-            let messages=await handler.handle(context, api, replaceMap)
+            let messages=await handler.handle(context, api, templateResolver)
             if( isReExecutePreviousHandlers(handler) && handler.shallReExecute()){
                 handlerIndex=-1;
             }

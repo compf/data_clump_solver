@@ -49,6 +49,7 @@ const nameScriptFileMap={
     SendHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     PairOfFileContentHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     SingleFileHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
+    LanguageModelTemplateResolver:"../util/languageModel/LanguageModelTemplateResolver.js",
     
 }
 const container=new ContainerBuilder();
