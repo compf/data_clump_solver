@@ -1,28 +1,26 @@
 package org.example;
 
 public class MathUser {
-    private MathStuffParams mathStuffParams;
+    private SignMantissaExponent sme;
 
-    public void doLengthCalc() {
-        MathStuff stuff = new MathStuff(mathStuffParams);
-        stuff.printLength(new MathStuffParams(5, 6, 4));
+    public void doLengthCalc(){
+        MathStuff stuff=new MathStuff();
+        stuff.printLength(new TripleIntegers(5, 6, 4));
     }
-
-    public void doMaxStuff() {
-        MathStuff stuff = new MathStuff(mathStuffParams);
-        int x1 = 4;
-        int y1 = 3;
-        int z1 = -80;
-        if (mathStuffParams.isSign()) {
-            z1 = z1 + mathStuffParams.getExponent();
-        } else {
-            x1 = (int) (x1 * mathStuffParams.getMantissa());
+    public void doMaxStuff(){
+        MathStuff stuff=new MathStuff();
+        TripleIntegers tripleIntegers = new TripleIntegers(4, 3, -80);
+        if(sme.isSign()){
+            tripleIntegers.setZ(tripleIntegers.getZ() + sme.getExponent());
         }
-        stuff.printMax(new MathStuffParams(x1, y1, z1));
+        else{
+            tripleIntegers.setX((int)(tripleIntegers.getX() * sme.getMantissa()));
+        }
+        stuff.printMax(tripleIntegers);
     }
-
-    public void executeSumOperation() {
-        MathStuff stuff = new MathStuff(mathStuffParams);
-        stuff.printSum(new MathStuffParams(hashCode(), hashCode(), hashCode()));
+    public void executeSumOperation(){
+        MathStuff stuff=new MathStuff();
+        TripleIntegers tripleIntegers = new TripleIntegers(hashCode(), hashCode(), hashCode());
+        stuff.printSum(tripleIntegers);
     }
 }

@@ -1,25 +1,27 @@
 package org.example;
 
 public class MathStuff {
-    private MathStuffParams mathStuffParams;
+    private SignMantissaExponent sme;
 
-    public MathStuff(MathStuffParams mathStuffParams) {
-        this.mathStuffParams = mathStuffParams;
+    public void printLength(TripleIntegers tripleIntegers) {
+        System.out.println(tripleIntegers.length());
     }
 
-    public void printLength(MathStuffParams params) {
-        System.out.println(Math.sqrt(params.getX() * params.getX() + params.getY() * params.getY() + params.getZ() * params.getZ()));
+    public MathStuff(SignMantissaExponent sme){
+        this.sme = sme;
+    }
+    public MathStuff(){
+        this.sme = new SignMantissaExponent(true,0,1);
     }
 
-    public void printSum(MathStuffParams params) {
-        System.out.println(params.getX() + params.getY() + params.getZ());
+    public void printSum(TripleIntegers tripleIntegers) {
+        System.out.println(tripleIntegers.sum());
     }
 
-    public void printMax(MathStuffParams params) {
-        System.out.println(Math.max(Math.max(params.getX(), params.getY()), params.getZ()));
+    public void printMax(TripleIntegers tripleIntegers) {
+        System.out.println(tripleIntegers.max());
     }
-
-    public double calcValue() {
-        return (mathStuffParams.isSign() ? 1 : -1) * mathStuffParams.getMantissa() * Math.pow(2, mathStuffParams.getExponent());
+    public double calcValue(){
+        return sme.getValue();
     }
 }

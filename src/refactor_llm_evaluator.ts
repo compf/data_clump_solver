@@ -232,13 +232,32 @@ type SimiliarityInfo={
     allCounter:number,
     logs:string[]
 }
+function getGroundTruthClass(key:string,groundTruthContext:ASTBuildingContext):AST_Class|null{
+    const prefix="src/main/java/org/example/"
+    if(key.includes("BetterMathStuff")){
+        return groundTruthContext.getByPath(prefix+"BetterMathStuff.java")
+    }
+    else if(key.includes("MathStuff")){
+        return groundTruthContext.getByPath(prefix+"MathStuff.java")
+    }
+    else if(key.includes("Main")){  
+        return groundTruthContext.getByPath(prefix+"Main.java")
+    }
+    else if(key.includes("MathUser")){
+        return groundTruthContext.getByPath(prefix+"MathUser.java")
+    }
+    else if(key.includes("Library")){
+        return groundTruthContext.getByPath(prefix+"Library.java")
+    }
+    return null;
+}
 function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, groundTtruthContext:ASTBuildingContext) {
     let similiarities:SimiliarityInfo={counter:0,allCounter:0,logs:[]}
     let bothDataClassesExist=true;
     let oneNewClassFound=false;
     for(let key of astContext.getKeys()){
         let astClass=astContext.getByPath(key)
-        let groundTruthClass=groundTtruthContext.getByPath(key)
+        let groundTruthClass=getGroundTruthClass(key,groundTtruthContext)
         if(groundTruthClass==null){
             oneNewClassFound=true;
             bothDataClassesExist=bothDataClassesExist && analyzeDataClass(similiarities,astClass);

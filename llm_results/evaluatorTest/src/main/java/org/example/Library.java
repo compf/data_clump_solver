@@ -1,16 +1,20 @@
 package org.example;
 
 public class Library {
-    private MathStuffParams mathStuffParams;
+    private SignMantissaExponent sme;
 
     public boolean someLibraryMethod() {
-        MathStuff stuff = new MathStuff(mathStuffParams);
-        if (mathStuffParams.isSign()) {
+        MathStuff stuff=new MathStuff(sme);
+        if(sme.isSign()){
             stuff.calcValue();
         }
-        System.out.println(mathStuffParams.isSign());
-        System.out.println(mathStuffParams.getMantissa());
-        System.out.println(mathStuffParams.getExponent());
+       System.out.println(sme.isSign());
+       System.out.println(sme.getMantissa());
+       System.out.println(sme.getExponent());
         return true;
+    }
+
+    public Library(boolean sign, double mantissa, int exponent) {
+        this.sme = new SignMantissaExponent(sign, mantissa, exponent);
     }
 }
