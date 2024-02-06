@@ -5,7 +5,7 @@ import { getRelevantFilesRec } from "./util/Utils";
 import { FileFilteringContext } from "./context/DataContext";
 import { ChatMessage } from "./util/languageModel/LanguageModelInterface";
 
-const ground_truth = JSON.parse(fs.readFileSync("llm_results/dataClumpDetectorContext.json", { encoding: "utf-8" }))
+const ground_truth = JSON.parse(fs.readFileSync("llm_results/detect/dataClumpDetectorContext.json", { encoding: "utf-8" }))
 function standardize(dcData: DataClumpsTypeContext) {
     let result: DataClumpsTypeContext = {} as any
     result.data_clumps = {}
@@ -65,7 +65,7 @@ type EvaluationResult = BasicEvaluationResult & {
 }
 function get_output_file_paths(): string[] {
     let result = []
-    getRelevantFilesRec("llm_results", result, new FileFilteringContext(["*output.json"], []))
+    getRelevantFilesRec("llm_results/detect/", result, new FileFilteringContext(["*output.json"], []))
     return result;
 }
 function parse_chat_file(path: string) {
@@ -311,7 +311,7 @@ function create_basic_evaluation(firstFilter:any) {
     
 
     
-    fs.writeFileSync("llm_results/basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
+    fs.writeFileSync("llm_results/detect/basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
 }
 function create_evaluation(key:string,permutation: any[]) {
     let evalResult = {all:evaluateData(get_output_file_paths(),true)}
@@ -342,8 +342,8 @@ function create_evaluation(key:string,permutation: any[]) {
         }
     }
 
-    fs.writeFileSync("llm_results/"+key+".json", JSON.stringify(evalResult, null, 2))
-    fs.writeFileSync("llm_results/failures.json", JSON.stringify(failures, null, 2))
+    fs.writeFileSync("llm_results/detect/"+key+".json", JSON.stringify(evalResult, null, 2))
+    fs.writeFileSync("llm_results/detect/failures.json", JSON.stringify(failures, null, 2))
 }
 const basic=true;
 function main() {

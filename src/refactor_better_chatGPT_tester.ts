@@ -64,12 +64,12 @@ async function main() {
                             for (let i = 0; i < repetionCount; i++) {
                                 waitSync(1000)
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
-                                const instructionPath=`chatGPT_templates/refactoring/${instrType}/${dFormat}/instruction.template`
+                                const instructionPath=`chatGPT_templates/detectAndRefactor/${instrType}/${dFormat}/instruction.template`
                                 if(!fs.existsSync(instructionPath)){
                                     console.log("Instruction path does not exist",instructionPath)
                                     continue;
                                 }
-                                let path="llm_results/refactor/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
+                                let path="llm_results/detectAndRefactor/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
                                 if( IGNORE_EXISTING && fs.existsSync(path)){
                                     continue;
                                 }
