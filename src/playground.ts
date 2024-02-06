@@ -15,7 +15,6 @@ import { GeorgeFraserRefactoring } from "./util/languageServer/GeorgeFraserLSP_A
 import { EclipseLSP_API } from "./util/languageServer/EclipseLSP_API";
 import { LanguageServerReferenceAPI } from "./pipeline/stepHandler/referenceFinding/LanguageServerReferenceAPI";
 import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
-import { GradleBuildValidationStepHandler } from "./pipeline/validation/GradleBuildValidationStepHandler";
 import { GitHubService } from "./util/vcs/GitHubService";
 
 async function main(){

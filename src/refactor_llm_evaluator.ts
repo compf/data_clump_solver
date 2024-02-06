@@ -7,7 +7,7 @@ import { ASTBuildingContext, CodeObtainingContext, DataClumpRefactoringContext, 
 import { ChatMessage } from "./util/languageModel/LanguageModelInterface";
 import { DataClumpDoctorASTGeneratorStep } from "./pipeline/stepHandler/astGeneration/DataClumpDoctorASTGeratorStep";
 import { AST_Class, AST_Type } from "./context/AST_Type";
-import { GradleBuildValidationStepHandler } from "./pipeline/validation/GradleBuildValidationStepHandler";
+import { GradleBuildValidationStepHandler } from "./pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
 
 
 

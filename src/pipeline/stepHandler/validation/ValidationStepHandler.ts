@@ -1,6 +1,6 @@
-import { CodeObtainingContext, DataClumpRefactoringContext, ValidationContext } from "../../context/DataContext";
-import { PipeLineStep, PipeLineStepType } from "../PipeLineStep";
-import { AbstractStepHandler } from "../stepHandler/AbstractStepHandler";
+import { CodeObtainingContext, DataClumpRefactoringContext, ValidationContext } from "../../../context/DataContext";
+import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
+import { AbstractStepHandler } from "../../stepHandler/AbstractStepHandler";
 
 export abstract class ValidationStepHandler extends AbstractStepHandler{
    async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
