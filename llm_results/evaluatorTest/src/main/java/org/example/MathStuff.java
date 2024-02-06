@@ -1,14 +1,27 @@
+package org.example;
+
 public class MathStuff {
-    
-    public void printLength(MathInfo info) {
-        System.out.println(Math.sqrt(info.getX() * info.getX() + info.getY() * info.getY() + info.getZ() * info.getZ()));
+    private SignMantissaExponent sme;
+
+    public void printLength(TripleIntegers tripleIntegers) {
+        System.out.println(tripleIntegers.length());
     }
 
-    public void printSum(MathInfo info) {
-        System.out.println(info.getX() + info.getY() + info.getZ());
+    public MathStuff(SignMantissaExponent sme){
+        this.sme = sme;
+    }
+    public MathStuff(){
+        this.sme = new SignMantissaExponent(true,0,1);
     }
 
-    public void printMax(MathInfo info) {
-        System.out.println(info.getMaxValue());
+    public void printSum(TripleIntegers tripleIntegers) {
+        System.out.println(tripleIntegers.sum());
+    }
+
+    public void printMax(TripleIntegers tripleIntegers) {
+        System.out.println(tripleIntegers.max());
+    }
+    public double calcValue(){
+        return sme.getValue();
     }
 }

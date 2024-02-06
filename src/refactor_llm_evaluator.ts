@@ -49,7 +49,11 @@ async function evaluateData(paths:string[])  {
         }
         console.log("deleted")
         for(let sourceCodeFile of Object.keys(contents)){
-            fs.writeFileSync(resolve(baseFolder,sourceCodeFile),contents[sourceCodeFile])
+            let pathToSave=sourceCodeFile
+            if(sourceCodeFile.startsWith("org.example.")){
+                pathToSave=sourceCodeFile.replace("org.example.",sourceLocation)
+            }
+            fs.writeFileSync(resolve(baseFolder,pathToSave),contents[sourceCodeFile])
           
         }
      
@@ -69,7 +73,7 @@ async function evaluateData(paths:string[])  {
         waitSync(1000)
         let validator=new GradleBuildValidationStepHandler();
         let result=await validator.handle(compareContext,null) as ValidationContext
-        evalResult["reachedPoints"]+=result.validationResult.success?comparisonResult.counter:0
+        evalResult["reachedPoints"]+=(result.validationResult.success?comparisonResult.counter:0)
         evalResult["allPoints"]+=comparisonResult.allCounter
         evalResult["percentage"]=100*evalResult["reachedPoints"]/evalResult["allPoints"]
         console.log(result.validationResult.success)
@@ -190,12 +194,12 @@ async function create_basic_evaluation(firstFilter:any) {
     let sums={}
     let totalSum=0;
 
-    let evalResult = {all:evaluateData(allPaths)}
+    //let evalResult = {all:evaluateData(allPaths)}
 
     for (let key0 of Object.keys(firstFilter)) {
         let data=await evaluateData(allPaths.filter(firstFilter[key0])) 
-        sums[key0]=data.allPoints
-        totalSum+=data.allPoints;
+        sums[key0]=data.reachedPoints
+        totalSum+=data.reachedPoints;
        
     }
     for(let key0 of Object.keys(sums)){
@@ -252,6 +256,9 @@ function getGroundTruthClass(key:string,groundTruthContext:ASTBuildingContext):A
     }
     return null;
 }
+const PENALTY_BOTH_CLASSES_NOT_EXISTS=20
+const PENALTY_ONE_CLASS_NOT_EXISTS=10;
+const PENALTY_NOT_CORRECTLY_REFACTORD=5;
 function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, groundTtruthContext:ASTBuildingContext) {
     let similiarities:SimiliarityInfo={counter:0,allCounter:0,logs:[]}
     let bothDataClassesExist=true;
@@ -268,7 +275,8 @@ function compareAllASTOutputsWithGroundTruth(astContext: ASTBuildingContext, gro
         compareSingleASTOutputWithGroundTruth(similiarities,astClass,groundTruthClass)
         
     }
-    increaseCounterIf("Both data classes do not exist",similiarities,()=>bothDataClassesExist && oneNewClassFound);
+    increaseCounterIf("Only one class does not exists",similiarities,()=>!bothDataClassesExist && oneNewClassFound,PENALTY_ONE_CLASS_NOT_EXISTS);
+    increaseCounterIf("Both data classes do not exist",similiarities,()=>bothDataClassesExist && oneNewClassFound,PENALTY_BOTH_CLASSES_NOT_EXISTS);
     console.log("Similiarity",100*similiarities.counter/similiarities.allCounter,"%")
     return similiarities
 }
@@ -291,7 +299,7 @@ let floatingNumberClassExists=false;
 for(let i=0;i<fieldNames.length;i++){
      let isPointClass=  fieldNames.length==pointNames.length && fieldNames[i]==pointNames[i] && fieldTypes[i]==pointTypes[i];
      let isFloatingPointClass=  fieldNames.length==floatingPointNames.length && fieldNames[i]==floatingPointNames[i] && fieldTypes[i]==floatingPointTypes[i];
-    increaseCounterIf("fields different"+" "+fieldTypes[i]+" " + fieldNames[i],similiarities,()=>isPointClass || isFloatingPointClass);
+    increaseCounterIf("fields different"+" "+fieldTypes[i]+" " + fieldNames[i],similiarities,()=>isPointClass || isFloatingPointClass,PENALTY_NOT_CORRECTLY_REFACTORD);
     pointClassExists=pointClassExists || isPointClass;
     floatingNumberClassExists=floatingNumberClassExists || isFloatingPointClass;
 
@@ -301,9 +309,9 @@ return pointClassExists || floatingNumberClassExists;
 
 }
 function compareSingleASTOutputWithGroundTruth(similiarities:SimiliarityInfo,astClass:AST_Class,groundTruthClass:AST_Class){
-    increaseCounterIf("Different class names "+astClass.name+" vs " +groundTruthClass.name,similiarities,()=>astClass.name==groundTruthClass.name);
-    increaseCounterIf("Different method count "+ astClass.methods.length+" vs "+groundTruthClass.methods.length,similiarities,()=>astClass.methods.length==groundTruthClass.methods.length);
-    increaseCounterIf("Different field count "+astClass.fields.length+" vs "+groundTruthClass.fields.length,similiarities,()=>astClass.fields.length==groundTruthClass.fields.length);
+    increaseCounterIf("Different class names "+astClass.name+" vs " +groundTruthClass.name,similiarities,()=>astClass.name==groundTruthClass.name,PENALTY_NOT_CORRECTLY_REFACTORD);
+    increaseCounterIf("Different method count "+ astClass.methods.length+" vs "+groundTruthClass.methods.length,similiarities,()=>astClass.methods.length==groundTruthClass.methods.length,PENALTY_NOT_CORRECTLY_REFACTORD);
+    increaseCounterIf("Different field count "+astClass.fields.length+" vs "+groundTruthClass.fields.length,similiarities,()=>astClass.fields.length==groundTruthClass.fields.length,PENALTY_NOT_CORRECTLY_REFACTORD);
     console.log(astClass.name)
     let methodsFromLLM=Object.values(astClass.methods)
     let methodsFromGroundTruth=Object.values(groundTruthClass.methods)
@@ -314,19 +322,19 @@ function compareSingleASTOutputWithGroundTruth(similiarities:SimiliarityInfo,ast
             console.log("Additional method "+m1.name)
             continue;
         }
-        increaseCounterIf("Different method parameters "+m1.parameters.length +" vs "+m2.parameters.length,similiarities,()=>m1.parameters.length==m2!.parameters.length);
+        increaseCounterIf("Different method parameters "+m1.parameters.length +" vs "+m2.parameters.length,similiarities,()=>m1.parameters.length==m2!.parameters.length,PENALTY_NOT_CORRECTLY_REFACTORD);
     }
 
     
 }
 
-function increaseCounterIf(description:string,similiarities: SimiliarityInfo, predicate: () => boolean) {
+function increaseCounterIf(description:string,similiarities: SimiliarityInfo, predicate: () => boolean,penalty:number) {
     if(predicate()){
-        similiarities.counter++
+        similiarities.counter+=penalty
     }else{
         similiarities.logs.push(description)
     }
-    similiarities.allCounter++;
+    similiarities.allCounter+=penalty;
 }
 
 
