@@ -18,8 +18,8 @@ import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/l
 import { GitHubService } from "./util/vcs/GitHubService";
 
 async function main(){
-   let github=new GitHubService();
-   github.forkAndPull("test","https://github.com/2dust/v2rayN")
+   //let github=new GitHubService();
+   //github.forkAndPull("test","https://github.com/2dust/v2rayN")
    /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest"));
    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DetectAndRefactorWithLanguageModelStep());
    PipeLine.Instance.registerHandler([PipeLineStep.Validation],new GradleBuildValidationStepHandler())
@@ -29,6 +29,10 @@ async function main(){
    console.log(JSON.stringify(context))*/
    /*let resolver= StepHandlerResolver.Instance
    resolver.resolveFromName("SimpleCodeObtainingStepHandler",PipeLineStep.CodeObtaining.name,null)*/
+   let api=new ChatGPTInterface(undefined);
+   api.prepareMessage("What is 1+1? Response in JSON");
+   console.log(await api.sendMessages(true))
+
 }
 main();
 

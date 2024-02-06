@@ -22,10 +22,10 @@ const apis = ["ChatGPTInterface"/*"PhindraInterface"*/]
 const temperatures = [0.1,0.5, 0.9]
 const models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
 const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
-const dataFormat = ["fromScratch","givenContext"]
+const dataFormat = ["fromScratch"/*,"givenContext"*/]
 const dataHandler = ["AllFilesHandler"]
 const repetionCount = 3;
-const IGNORE_EXISTING=true;
+const IGNORE_EXISTING=false;
 function createDataHandler(name:string):LargeLanguageModelHandler{
     switch(name){
         case "AllFilesHandler":
