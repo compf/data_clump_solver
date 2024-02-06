@@ -107,7 +107,7 @@ const dataTypeFilters = {
 }
 const dataSizeFilters = {
     "AllFiles": (x: string) => x.includes("AllFiles"),
-    "PairOfFileAndSingle": (x: string) => x.includes("PairOfFileAndSingle")
+    //"PairOfFileAndSingle": (x: string) => x.includes("PairOfFileAndSingle")
 }
 const apiFilters = {
     "gpt-4": (x: string) => x.includes("gpt-4"),
@@ -163,22 +163,22 @@ async function create_evaluation(key:string,permutation: any[]) {
     for (let key0 of Object.keys(permutation[0])) {
         
 
-        evalResult[key0] = { }
+        evalResult[key0] = { all: evaluateData(allPaths.filter(permutation[0][key0])) }
         for (let key1 of Object.keys(permutation[1])) {
 
-            evalResult[key0][key1] = {  }
+            evalResult[key0][key1] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1])) }
             for (let key2 of Object.keys(permutation[2])) {
 
-                evalResult[key0][key1][key2] = {  }
+                evalResult[key0][key1][key2] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2])) }
                 for (let key3 of Object.keys(permutation[3])) {
 
 
-                    evalResult[key0][key1][key2][key3] = {  }
+                    evalResult[key0][key1][key2][key3] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3])) }
                     for (let key4 of Object.keys(permutation[4])) {
                         let paths = allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]).filter(permutation[4][key4])
-                        let result = await evaluateData(paths)
+                        let result = evaluateData(paths)
                         evalResult[key0][key1][key2][key3][key4] = result;
-                        console.log(key0, key1, key2, key3, key4, result)
+
                     }
                 }
             }
@@ -211,7 +211,7 @@ async function create_basic_evaluation(firstFilter:any) {
     
     fs.writeFileSync("llm_results/refactor_basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
 }
-const basic=true;
+const basic=false;
 async function main() {
    
     if(!basic){
