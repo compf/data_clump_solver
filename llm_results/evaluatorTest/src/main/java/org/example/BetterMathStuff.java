@@ -1,12 +1,12 @@
-package org.example;
-
 public class BetterMathStuff extends MathStuff{
 
-    @Override public void printMax(TripleIntegers tripleIntegers) {
-        tripleIntegers.setValues(Math.abs(tripleIntegers.getX()),
-                                Math.abs(tripleIntegers.getY()),
-                                Math.abs(tripleIntegers.getZ()));
-        System.out.println(tripleIntegers.max());
+    @Override public void printMax(int x, int y, int z) {
+        this.printMax(new MathInfo(x, y, z));
     }
-   
+
+    public void printMax(MathInfo info) {
+        info.absValues();
+        System.out.println(info.getMaxValue());
+    }
+
 }
