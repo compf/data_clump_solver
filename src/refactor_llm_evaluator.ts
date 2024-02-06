@@ -38,7 +38,7 @@ async function evaluateData(paths:string[])  {
     const baseFolder="llm_results/evaluatorTest"
     const outPath="llm_results/evalJSON"
     const sourceLocation="src/main/java/org/example/"
-    let evalResult={reachedPoints:0,allPoints:0,percentage:0}
+    let evalResult={reachedPoints:0,allPoints:0,percentage:0,success:true}
     for(let path of paths){
         evalResult[path]={}
         console.log(path)
@@ -78,6 +78,7 @@ async function evaluateData(paths:string[])  {
         evalResult["percentage"]=100*evalResult["reachedPoints"]/evalResult["allPoints"]
         console.log(result.validationResult.success)
         evalResult[path]["validation"]=result.validationResult;
+        evalResult.success=evalResult.success && result.validationResult.success;
         
     }
     return evalResult;
@@ -123,6 +124,13 @@ const instructionFilters = {
     "exampleBased": (x: string) => x.includes("exampleBased"),
     "noDefinition": (x: string) => x.includes("noDefinition"),
 }
+const validationFilters = {
+    "success": (x: string) => x.includes("true"),
+    "failure": (x: string) => x.includes("false"),
+}
+const trueFilter={
+    "true":(x:string)=>true
+}
 function getName(filters:any):string{
     if(filters==dataTypeFilters){
         return "dataType"
@@ -139,13 +147,33 @@ function getName(filters:any):string{
     if(filters==instructionFilters){
         return "instr"
     }
+    if(filters==validationFilters){
+        return "validation"
+    }
+    if(filters==trueFilter){
+        return "true"
+    }
     return ""
 
+}
+const numberFilters=[apiFilters, temperatureFilters, instructionFilters, dataTypeFilters, dataSizeFilters].length;
+function fillUp(array:any[]){
+    while(array.length<numberFilters){
+        array.push(trueFilter)
+    }
+    return array
 }
 let filtersPermutations = {
     "api_temp_instr_dataType_data_Size":[apiFilters, temperatureFilters, instructionFilters, dataTypeFilters, dataSizeFilters],
     "dataSize_dataType_instr_temp_api":[apiFilters, temperatureFilters, instructionFilters, dataTypeFilters, dataSizeFilters].reverse(),
-
+    "validation":fillUp([validationFilters]),
+    "validation_instType":fillUp([validationFilters,instructionFilters]),
+    "instType_validation":fillUp([instructionFilters,validationFilters]),
+    "instType":fillUp([instructionFilters]),
+    "validation_temp":fillUp([validationFilters,temperatureFilters]),
+    "temp_validation":fillUp([temperatureFilters,validationFilters]),
+    "validation_api":fillUp([validationFilters,apiFilters]),
+    "api_validation":fillUp([apiFilters,validationFilters]),
 }
 let allFilters={
     "api":apiFilters,
@@ -156,27 +184,33 @@ let allFilters={
 
 }
 
-async function create_evaluation(key:string,permutation: any[]) {
+async function create_evaluation(allPaths:string[],key:string,permutation: any[],flat_obj:any|undefined) {
     let evalResult = {}
-    let allPaths = get_output_file_paths()
+    let _evaluateData=evaluateData
+    if(flat_obj!=undefined){
+        _evaluateData=async function(paths:string[]){
+            return Promise.resolve( evaluateBasicData(paths,flat_obj))
+        }
+    }
 
     for (let key0 of Object.keys(permutation[0])) {
         
 
-        evalResult[key0] = { all: evaluateData(allPaths.filter(permutation[0][key0])) }
+        evalResult[key0] = { all: await _evaluateData(allPaths.filter(permutation[0][key0])) }
         for (let key1 of Object.keys(permutation[1])) {
 
-            evalResult[key0][key1] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1])) }
+            evalResult[key0][key1] = { all: await _evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1])) }
             for (let key2 of Object.keys(permutation[2])) {
 
-                evalResult[key0][key1][key2] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2])) }
+                evalResult[key0][key1][key2] = { all:await _evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2])) }
                 for (let key3 of Object.keys(permutation[3])) {
 
 
-                    evalResult[key0][key1][key2][key3] = { all: evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3])) }
+                    evalResult[key0][key1][key2][key3] = { all: await _evaluateData(allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3])) }
                     for (let key4 of Object.keys(permutation[4])) {
                         let paths = allPaths.filter(permutation[0][key0]).filter(permutation[1][key1]).filter(permutation[2][key2]).filter(permutation[3][key3]).filter(permutation[4][key4])
-                        let result = evaluateData(paths)
+                      
+                           let  result =await  _evaluateData(paths)
                         evalResult[key0][key1][key2][key3][key4] = result;
 
                     }
@@ -184,47 +218,76 @@ async function create_evaluation(key:string,permutation: any[]) {
             }
         }
     }
-    fs.writeFileSync("llm_results/refactorResults_"+key+".json", JSON.stringify(evalResult))
+    fs.writeFileSync("llm_results/refactorResults_"+key+".json", JSON.stringify(evalResult,null,2))
    
 }
-async function create_basic_evaluation(firstFilter:any) {
-    let tempResult={}
+function evaluateBasicData(paths:string[],flat_obj:any|undefined){
+    let evalResult={reachedPoints:0,allPoints:0,percentage:0,success:true,counter:0}
+    for(let path of paths){
+        console.log(path)
+        
+        evalResult[path]=flat_obj[path]
+        evalResult["reachedPoints"]+=flat_obj[path].reachedPoints
+        evalResult["allPoints"]+=flat_obj[path].allPoints
+        evalResult["percentage"]=100*evalResult["reachedPoints"]/evalResult["allPoints"]
+        evalResult["counter"]++;
+        console.log(evalResult)
+    }
+    return evalResult
+}
+async function create_flat_evaluation() {
+    let result={}
     let allPaths = get_output_file_paths()
     let basicEvalResult={}
     let sums={}
     let totalSum=0;
 
-    //let evalResult = {all:evaluateData(allPaths)}
+    //let evalResult = {all:_evaluateData(allPaths)}
 
-    for (let key0 of Object.keys(firstFilter)) {
-        let data=await evaluateData(allPaths.filter(firstFilter[key0])) 
-        sums[key0]=data.reachedPoints
-        totalSum+=data.reachedPoints;
+    for (let p of allPaths) {
+        let data=await evaluateData([p])
+        let key=data.success+"/"+p
+        result[key]={
+            "reachedPoints":data.reachedPoints,
+            "allPoints":data.allPoints,
+            "percentage":data.percentage,
+            "success":data.success,
+            "originalPath":p
+        }
+      
+        
+       
        
     }
-    for(let key0 of Object.keys(sums)){
-        sums[key0]/=totalSum;
-    }
-    basicEvalResult["sums"]=sums;
+
     
 
     
-    fs.writeFileSync("llm_results/refactor_basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
+    fs.writeFileSync("llm_results/refactor_flat"+".json", JSON.stringify(result, null, 2))
 }
-const basic=false;
+enum Mode{Full,Flat,Basic}
+let mode=Mode.Basic;
 async function main() {
    
-    if(!basic){
+    if(mode==Mode.Full){
         for(let key of Object.keys(filtersPermutations))   {
            
-           await  create_evaluation(key,filtersPermutations[key])
+           await  create_evaluation(get_output_file_paths(),key,filtersPermutations[key],undefined)
           
         }
     }
-    else{
-       for(let filter of Object.values(allFilters)){
-           await create_basic_evaluation(filter)
-       }
+    else if(mode==Mode.Flat){
+      
+           await create_flat_evaluation()
+       
+    }
+    else if(mode==Mode.Basic){
+        let flat_obj=JSON.parse(fs.readFileSync("llm_results/refactor_flat.json",{encoding:"utf-8"}))
+        for(let key of Object.keys(filtersPermutations))   {
+           
+            await  create_evaluation(Object.keys(flat_obj),key,filtersPermutations[key],flat_obj)
+           
+         }
     }
    
 
