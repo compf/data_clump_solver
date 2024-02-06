@@ -7,6 +7,9 @@ export abstract class AbstractStepHandler {
    canDoStep(step: PipeLineStepType): boolean {
       return this.getExecutableSteps().includes(step);
    }
+   protected isCompatibleWithSystem():boolean{
+      return true;
+   }
 
    addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
 

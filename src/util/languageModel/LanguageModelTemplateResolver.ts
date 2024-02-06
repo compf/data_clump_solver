@@ -5,7 +5,8 @@ export enum LanguageModelTemplateType {
     SuggestName="suggest_name",
 }
 export const FILE_REPLACE_START="%{";
-
+export const IS_OPTIONAL_REFERENCE="?}"
+export const TEMPLATE_EXTENSION=".template"
 export class LanguageModelTemplateResolver {
     private replaceMap:{[key:string]:string}
     constructor(replaceMap: {[key:string]:string}) {
@@ -24,6 +25,9 @@ export class LanguageModelTemplateResolver {
         for(let key of Object.keys(additionalReplacements)){
             if(key.startsWith(FILE_REPLACE_START)){
                 let fileContent=fs.readFileSync(additionalReplacements[key], { encoding: "utf-8" })
+                if(additionalReplacements[key].endsWith(TEMPLATE_EXTENSION)){
+                    fileContent=this.resolveTemplate(fileContent,additionalReplacements);
+                }
                 result=result.replace(key,fileContent);
             }
             else{
@@ -31,7 +35,17 @@ export class LanguageModelTemplateResolver {
 
             }
         }
+        result=this.resolveRemainingReferences(result);
         return result;
       
+    }
+    resolveRemainingReferences(text:string):string{
+        if(text.match(/(\$|%){(\w|_)+}/gm)){
+            throw "Not all references are resolved"
+        }
+        while(text.match(/(\$|%){(\w|_)+\?}/gm)){
+            text=text.replace(/(\$|%){(\w|_)+\?}/gm,"");
+        }
+        return text;
     }
 }
