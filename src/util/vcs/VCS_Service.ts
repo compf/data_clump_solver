@@ -1,5 +1,5 @@
 export abstract class VCS_Service{
-    abstract pull(url:string);
+    abstract clone(url:string);
     abstract commit(message:string);
     abstract push();
     abstract fork(url:string,newName:string|undefined,callback:(string)=>void);
@@ -8,7 +8,7 @@ export abstract class VCS_Service{
 
     forkAndPull(newName:string|undefined,url:string){
         this.fork(url,newName,(newUrl)=>{
-            this.pull(newUrl);
+            this.clone(newUrl);
         });
        
     }

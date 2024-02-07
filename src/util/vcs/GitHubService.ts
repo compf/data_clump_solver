@@ -1,18 +1,33 @@
 import { VCS_Service, getRepoDataFromUrl } from "./VCS_Service";
 import {Octokit} from  "octokit"
-import { spawn } from "child_process";
+import { spawnSync } from "child_process";
 import fs from "fs"
 const API_KEY=fs.readFileSync("GITHUB_TOKEN","utf-8");
 export class GitHubService extends VCS_Service{
     
-    pull(url: string) {
+    clone(url: string) {
     
        console.log("pulling")
-       spawn("git",["clone",url])
+       spawnSync("git",["clone",url,"cloned_projects"])
     }
     getWorkingDirectory(): string {
         return ""
     }
+    async getMostRecentPullRequestTime(url:string):Promise<Date>{
+        let data=getRepoDataFromUrl(url);
+        let octokit=this.createOctokitObject();
+       let result=await  octokit.rest.pulls.list({
+            repo: data.repo,
+            owner: data.owner,
+            "state":"closed",
+            sort:"created",
+            direction:"desc"
+           
+    }
+    )
+     
+    return new Date(result.data[0].updated_at);
+}
     commit(message: string) {
         throw new Error("Method not implemented.");
     }
