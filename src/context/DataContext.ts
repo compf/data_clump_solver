@@ -214,10 +214,10 @@ export class RefactoredContext extends DataClumpRefactoringContext {
 export class ValidationContext extends DataClumpRefactoringContext {
     validationResult: {
         success: boolean,
-        message: string | null
+        messages: {stderr:string,stdout:string} | null
     }
  
-    constructor(validationResult: { success: boolean, message: string | null }) {
+    constructor(validationResult: { success: boolean, messages: {stderr:string,stdout:string} | null }) {
 
         super()
         this.validationResult = validationResult;

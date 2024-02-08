@@ -47,7 +47,7 @@ function getBuildSystem(): string {
     return "unknown";
 }
 let obtainingContext = new CodeObtainingContext("cloned_projects")
-async function doesCompile(buildSystem: string): Promise<{ success: boolean; message: string | null; }> {
+async function doesCompile(buildSystem: string): Promise<{ success: boolean; messages: {stdout:string,stderr:string} | null; }> {
     let checker: ValidationStepHandler|null=null;
     if (buildSystem == "maven") {
         checker = new MavenBuildValidationStepHandler();
@@ -56,6 +56,9 @@ async function doesCompile(buildSystem: string): Promise<{ success: boolean; mes
     if (buildSystem == "gradle") {
         checker = new GradleBuildValidationStepHandler();
        
+    }
+    if(checker==null){
+        return {success:false,messages:{stderr:"Unknown build system",stdout:"Unknown build system"}};
     }
     return   checker!.validate(obtainingContext);
 }
