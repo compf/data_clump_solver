@@ -3,6 +3,7 @@ import { AbstractStepHandler } from "../pipeline/stepHandler/AbstractStepHandler
 import fs from "fs"
 import { PipeLineStep } from "../pipeline/PipeLineStep"
 import { PipeLine } from "../pipeline/PipeLine"
+import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext"
 export type PipeLineStepConf={
     handler:string,
     contextSerializationPath?:string,
@@ -68,8 +69,7 @@ const contextSerializationPathMap=new Map<number,string>()
 export function getContextSerializationPath(index:number):string|undefined{
     return contextSerializationPathMap.get(index)
 }
-export function loadConfiguration(path:string){
-    let config=JSON.parse(fs.readFileSync(path).toString()) as Configuration
+export function processConfiguration(config:Configuration){
     // register as objects
     for(let step of Object.keys(PipeLineStep)){
         if(config.PipeLine[step] && config.PipeLine[step].handler){
@@ -93,6 +93,14 @@ export function loadConfiguration(path:string){
             PipeLine.Instance.registerHandler([PipeLineStep[step]],resolveFromName(step) as AbstractStepHandler)
         }
     }
+}
+export function loadConfiguration(path:string):DataClumpRefactoringContext{
+    let config=JSON.parse(fs.readFileSync(path).toString()) as Configuration
+    let initialContext=new DataClumpRefactoringContext()
+    processConfiguration(config)
+    initialContext.setConfig(config)
+    return initialContext
+    
 }
 export const LanguageModelCategory="LanguageModel"
 

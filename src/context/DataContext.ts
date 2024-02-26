@@ -6,12 +6,16 @@ import fs from "fs"
 import { resolve } from "path";
 import { AST_Class, AST_Type } from "./AST_Type";
 import { waitSync } from "../util/Utils";
+import { Configuration } from "../config/Configuration";
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
         context.previousContext = this
         context.sharedData = this.sharedData
         return context
+    }
+    setConfig(config: Configuration) {
+        this.sharedData.set("config",config )
     }
     protected sharedData: Map<string, any> = new Map<string, any>();
     getByType<T>(ctor: new (...a: any) => T): T | null {
@@ -24,6 +28,9 @@ export  class DataClumpRefactoringContext {
 
         }
         return curr as T
+    }
+    getProgrammingLanguage():string{
+        return this.sharedData.get("config").ProgrammingLanguage
     }
     getProjectPath(): string {
         return this.getByType(CodeObtainingContext)!!.getPath()

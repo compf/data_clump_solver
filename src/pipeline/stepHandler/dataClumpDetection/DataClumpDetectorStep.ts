@@ -9,6 +9,7 @@ import AdmZip from "adm-zip";
 import { getContextSerializationPath } from "../../../config/Configuration";
 import { AST } from "minimatch";
 export class DataClumpDetectorStep extends AbstractStepHandler {
+    private detectorArgs:any;
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let project_path = context.getProjectPath();
         const ast_out_path = resolve("./temp")
@@ -22,7 +23,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         console.log(project_path)
         this.applyIncludeExclude(context, ruleset_jar_location);
         let analyser = new Analyzer(project_path, ast_generator_path,
-            output_path, project_path, "java", ast_out_path, null, null, null, 1.0, true, null)
+            output_path, project_path, "java", ast_out_path, null, null, null, 1.0, true, this.detectorArgs)
         await analyser.analyse(null);
 
 
@@ -80,7 +81,8 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
     }
     constructor(args:any){
         super();
-        console.log("initialized with",args)
+        this.detectorArgs=args;
+        console.log("got args",args)
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(DataClumpDetectorContext.name)
