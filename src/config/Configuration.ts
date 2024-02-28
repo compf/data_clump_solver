@@ -92,7 +92,7 @@ export function processConfiguration(config:Configuration){
     // register in the pipeline
     for(let steps of Object.keys(config.PipeLine)){
         let splitted=steps.split(",").map((x)=>x.trim())
-        PipeLine.Instance.registerHandler(splitted.map((x)=>PipeLineStep[x]),resolveFromName(config.PipeLine[steps].handler) as AbstractStepHandler)
+        PipeLine.Instance.registerHandler(splitted.map((x)=>PipeLineStep[x]),resolveFromName(splitted[0]) as AbstractStepHandler)
     }
 }
 export function loadConfiguration(path:string):DataClumpRefactoringContext{

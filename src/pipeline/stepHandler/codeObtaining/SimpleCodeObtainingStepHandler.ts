@@ -1,6 +1,7 @@
 import { CodeObtainingContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
+import { resolve } from "path";
 type SimpleCodeObtainingStepHandlerParams={
     path:string|null|undefined
     useArgPath:boolean
@@ -21,6 +22,7 @@ export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
         else{
             this.path=args.path!!;
         }
+        this.path=resolve(this.path);
         
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
