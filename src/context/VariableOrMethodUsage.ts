@@ -6,8 +6,5 @@ export interface VariableOrMethodUsage {
     range:Position
     filePath: string;
     name:string,
-    extractedClassPath?:string,
-    variableNames:string[],
     originKey:string,
-    isParameter:boolean,
 }

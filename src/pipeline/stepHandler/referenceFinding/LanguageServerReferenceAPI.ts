@@ -85,10 +85,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             range:{startLine:method.position.startLine-1,startColumn:method.position.startColumn,endLine:method.position.endLine-1,endColumn:method.position.endColumn},
             filePath:currPath,
             name:methodName,
-            extractedClassPath:extractedClassPath,
-            variableNames:variableNames,
             originKey:methodKey,
-            isParameter:false
         })
 
         for(let paramName of variableNames){
@@ -255,15 +252,12 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     }
 
                     for (let result of data.result!) {
-                        let usage={
+                        let usage:VariableOrMethodUsage={
                             symbolType: info.usageType,
                             range:{startLine:result.range.start.line,startColumn:result.range.start.character,endLine:result.range.end.line,endColumn:result.range.end.character},
                             filePath: result.uri.substring("file://".length).replace(context.getProjectPath(),""),
                             name: info.variableName,
-                            extractedClassPath:classExtractionContext.getExtractedClassPath(info.variableKey)?.replace(context.getProjectPath(),""),
-                            variableNames:info.variableNames,
                             originKey:info.originKey,
-                            isParameter:info.isParameter
                         }
                         this.usages.get(info.variableKey)!.push(usage)
 

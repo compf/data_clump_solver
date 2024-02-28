@@ -154,7 +154,7 @@ export class NameFindingContext extends DataClumpRefactoringContext {
     override serialize(path?: string): void {
         const usedPath=this.getSerializationPath(path)
         let serialized: Dictionary<string> = {}
-        for (let [key, value] of this.nameDataClumpKey) {
+        for (let [key, value] of this.dataClumpKeyName) {
             serialized[key] = value
         }
         fs.writeFileSync(usedPath, JSON.stringify(serialized))
