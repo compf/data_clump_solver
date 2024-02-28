@@ -14,6 +14,15 @@ export  class DataClumpRefactoringContext {
         context.sharedData = this.sharedData
         return context
     }
+    getContextNames():Set<string>{
+        let result=new Set<string>();
+        let curr: DataClumpRefactoringContext = this;
+        while (curr != null) {
+            result.add(curr.constructor.name)
+            curr = curr.previousContext!
+        }
+        return result;
+    }
     setConfig(config: Configuration) {
         this.sharedData.set("config",config )
     }

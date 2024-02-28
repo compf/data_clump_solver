@@ -83,15 +83,16 @@ export function processConfiguration(config:Configuration){
             registerFromName(config.Objects[object].name,object,config.Objects[object].args)
         }
     }
-    
-    // register in the pipeline
     for(let step of Object.keys(PipeLineStep)){
-        if(PipeLineStep[step].isRequired && !config.PipeLine[step]){
+        if(PipeLineStep[step].isRequired && !Object.keys(config.PipeLine).some((x)=>x.includes(step))){
             throw new Error("Missing configuration for step "+step)
         }
-        else if(config.PipeLine[step] && config.PipeLine[step].handler){
-            PipeLine.Instance.registerHandler([PipeLineStep[step]],resolveFromName(step) as AbstractStepHandler)
-        }
+    }
+    
+    // register in the pipeline
+    for(let steps of Object.keys(config.PipeLine)){
+        let splitted=steps.split(",").map((x)=>x.trim())
+        PipeLine.Instance.registerHandler(splitted.map((x)=>PipeLineStep[x]),resolveFromName(config.PipeLine[steps].handler) as AbstractStepHandler)
     }
 }
 export function loadConfiguration(path:string):DataClumpRefactoringContext{
