@@ -23,6 +23,16 @@ export  class DataClumpRefactoringContext {
         }
         return result;
     }
+    getContextIds():Set<number>{
+        let result=new Set<number>();
+        let curr: DataClumpRefactoringContext = this;
+        while (curr != null) {
+            let pos=Object.values(PipeLineStep).filter((it)=>it.associatedContext==curr.constructor.name)[0].position
+            result.add(pos)
+            curr = curr.previousContext!
+        }
+        return result;
+    }
     setConfig(config: Configuration) {
         this.sharedData.set("config",config )
     }

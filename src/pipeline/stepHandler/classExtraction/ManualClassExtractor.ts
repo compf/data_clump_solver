@@ -60,7 +60,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             classBody+=this.createConstructor(suggestedName,types,fieldNames)
             classBody+=this.createTail();
             let classPath=this.getClassLocation(context.getProjectPath(),suggestedName,detectorContext.getDataClumpTypeContext(dataClumpKey),this.locationProvider)
-            if(!fs.existsSync(resolve(context.getProjectPath(),classPath))){
+            if(!fs.existsSync(classPath)){
                 fs.writeFileSync(classPath,classBody)
 
             }
