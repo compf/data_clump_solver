@@ -12,6 +12,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
     private detectorArgs:any;
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let project_path = context.getProjectPath();
+        console.log("Project path", project_path)
         const ast_out_path = resolve("./temp")
         const ast_generator_path = "src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/"
         const ruleset_jar_location = resolve(ast_generator_path, "pmd-bin-7.0.0-rc3/lib/pmd-java-custom-1.0.0-SNAPSHOT.jar")

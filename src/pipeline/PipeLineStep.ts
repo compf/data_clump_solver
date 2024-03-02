@@ -1,4 +1,4 @@
-import * as context from "../context/DataContext";
+import { ASTBuildingContext, ClassExtractionContext, CodeObtainingContext, DataClumpDetectorContext, FileFilteringContext, NameFindingContext, RefactoredContext, UsageFindingContext, ValidationContext } from "../context/DataContext";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler"
 
 export type PipeLineStepType = {
@@ -14,21 +14,21 @@ export namespace PipeLineStep {
         name: "CodeObtaining",
         isRequired: true,
         defaultHandler: undefined,
-        associatedContext: context.CodeObtainingContext.name
+        associatedContext: "CodeObtainingContext"
     };
     export const FileFiltering: PipeLineStepType = {
         position: 1,
         name: "FileFiltering",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext: context.FileFilteringContext.name
+        associatedContext:"FileFilteringContext"
     };
     export const ASTGeneration: PipeLineStepType = {
         position: 2,
         name: "ASTGeneration",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext: context.ASTBuildingContext.name
+        associatedContext: "ASTBuildingContext"
 
     };
     export const SimilarityDetection: PipeLineStepType = {
@@ -43,7 +43,7 @@ export namespace PipeLineStep {
         name: "DataClumpDetection",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext:context.DataClumpDetectorContext.name
+        associatedContext:"DataClumpDetectorContext"
     };
     export const DataClumpFiltering: PipeLineStepType = {
         position:5,
@@ -57,7 +57,7 @@ export namespace PipeLineStep {
         name: "NameFinding",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext:context.NameFindingContext.name
+        associatedContext:"NameFindingContext"
     
     };
 
@@ -66,7 +66,7 @@ export namespace PipeLineStep {
         name: "ClassExtraction",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext:context.ClassExtractionContext.name
+        associatedContext:"ClassExtractionContext"
     };
 
     export const ReferenceFinding: PipeLineStepType = {
@@ -74,21 +74,21 @@ export namespace PipeLineStep {
         name: "ReferenceFinding",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext:context.UsageFindingContext.name
+        associatedContext:"UsageFindingContext"
     };
     export const Refactoring: PipeLineStepType = {
         position:9,
         name: "Refactoring",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext:context.RefactoredContext.name
+        associatedContext:"RefactoredContext"
     };
     export const Validation: PipeLineStepType = {
         position:10,
         name: "Validation",
         isRequired: false,
         defaultHandler: undefined,
-        associatedContext:context.ValidationContext.name
+        associatedContext:"ValidationContext"
     };
 
 

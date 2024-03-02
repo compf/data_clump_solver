@@ -131,6 +131,7 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
 }
 export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     dataClumpDetectionResult: Dictionary<DataClumpTypeContext>
+    allDataClumpDetectionResult: DataClumpsTypeContext
     getDataClumpDetectionResult(): Dictionary<DataClumpTypeContext> {
         return this.dataClumpDetectionResult
     }
@@ -148,6 +149,7 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     }
     constructor(dataClumpDetectionResult: DataClumpsTypeContext) {
         super();
+        this.allDataClumpDetectionResult = dataClumpDetectionResult
         this.dataClumpDetectionResult = dataClumpDetectionResult.data_clumps
     }
     getDefaultSerializationPath(): string {
