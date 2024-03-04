@@ -3,10 +3,12 @@ import { PipeLineStep, PipeLineStepType } from "../pipeline/PipeLineStep";
 import { VariableOrMethodUsage } from "./VariableOrMethodUsage";
 import { nodeModuleNameResolver } from "typescript";
 import fs from "fs"
+import path from "path"
 import { resolve } from "path";
 import { AST_Class, AST_Type } from "./AST_Type";
-import { waitSync } from "../util/Utils";
+import { getRelevantFilesRec, waitSync } from "../util/Utils";
 import { Configuration } from "../config/Configuration";
+import simpleGit from "simple-git";
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
@@ -77,6 +79,28 @@ export class CodeObtainingContext extends DataClumpRefactoringContext {
         this.path = path
     }
 }
+export class GitRepositoryContext extends DataClumpRefactoringContext {
+    async getLastCommittedDate(path:string):Promise<Date>{
+        return new Promise<Date>(async (resolve,reject)=>{
+            let gitHelper=simpleGit(this.getProjectPath())
+            let result=await gitHelper.log({file:path,format:"%ad"},(err,log)=>{
+                resolve(new Date(Date.parse(log["latest"]!["date"])))
+            })
+        })
+       
+    }
+    async getAllCommittedDates(path:string):Promise<Date[]>{
+        return new Promise<Date[]>(async (resolve,reject)=>{
+            let gitHelper=simpleGit(this.getProjectPath())
+            let result=await gitHelper.log({file:path,format:"%ad"},(err,log)=>{
+                resolve(log.all.map((it)=>new Date(Date.parse(it["date"]))))
+            })
+        })
+       
+    }
+    
+
+}
 export class FileFilteringContext extends DataClumpRefactoringContext {
     includeGlobs: string[];
     excludeGlobs: string[];
@@ -89,6 +113,7 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
         return 1;
     }
 }
+
 export class ASTBuildingContext extends DataClumpRefactoringContext {
     private ast_type:AST_Type={}
     load(path:string){

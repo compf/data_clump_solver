@@ -12,18 +12,21 @@ import { DetectAndRefactorWithLanguageModelStep, LargeLanguageModelDetectorConte
 import { AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
 import { PhindraInterface } from "./util/languageModel/PhindraInterface";
+import { waitSync } from "./util/Utils";
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
 }
 const apis = ["ChatGPTInterface"/*"PhindraInterface"*/]
-const temperatures = [0.1, 0.9]
-const models = ["gpt-4-1106-preview" /*"gpt-3.5-turbo-1106"*/]
+const temperatures = [0.1,0.5, 0.9]
+const models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
 const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
 const dataFormat = ["source", "ast"]
-const dataHandler = [/*"AllFilesHandler",*/ "PairOfFileAndSingleHandler"]
+const dataHandler = ["AllFilesHandler", "PairOfFileAndSingleHandler"]
 const repetionCount = 3;
 const IGNORE_EXISTING=true;
+let failedAttemptsCounter = 0;
+const maxFailedAttempts = 5;
 function createDataHandler(name:string):LargeLanguageModelHandler{
     switch(name){
         case "AllFilesHandler":
@@ -50,6 +53,7 @@ async function main() {
         "%{examples}":"chatGPT_templates/DataClumpExamples.java",
         "%{output_format}":"chatGPT_templates/json_output_format.json"
     })
+    console.log("hello world")
     let codeObtainingContext=new CodeObtainingContext("javaTest/javaTest");
     for (let apiType of apis) {
         for (let model of models) {
@@ -58,10 +62,9 @@ async function main() {
                     for (let dFormat of dataFormat) {
                         for (let handlerName of dataHandler) {
                             for (let i = 0; i < repetionCount; i++) {
-                                 sleepSync(1000)
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
-                                const instructionPath=`chatGPT_templates/${instrType}/${dFormat}/instruction.template`
-                                let path="llm_results/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
+                                const instructionPath=`chatGPT_templates/detect/${instrType}/${dFormat}/instruction.template`
+                                let path="llm_results/detect/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
                                 if( IGNORE_EXISTING && fs.existsSync(path)){
                                     continue;
                                 }
@@ -70,6 +73,7 @@ async function main() {
                                     createDataHandler(handlerName),
                                     new SendAndClearHandler()
                                 ]}
+                                waitSync(1000)
 
 
                                 const api=createAPI(apiType,model,temperature)
@@ -83,6 +87,14 @@ async function main() {
                                 console.log("FINISHED")
                                 let inputOnly = newContext.chat.filter((x) => x.messageType == "input")
                                 let outputOnly = newContext.chat.filter((x) => x.messageType == "output")
+                                if(isInvalid(outputOnly)){
+                                    failedAttemptsCounter++;
+                                    if(failedAttemptsCounter>=maxFailedAttempts){
+                                        throw ("Too many failed attempts")
+                                    }
+                                    i--;
+                                    continue;
+                                }
                                 console.log("INPUT")
                                 console.log(inputOnly)
                                 console.log("OUTPUT")
@@ -116,7 +128,19 @@ async function main() {
 }
 
 main()
-function sleepSync(arg0: number) {
-    throw new Error("Function not implemented.");
-}
 
+
+export function isInvalid(outputOnly:any) {
+    for(let c of outputOnly){
+        for(let m of c.messages){
+            try{
+             JSON.parse(m);
+             
+ 
+            }catch(e){
+             return true;
+            }
+        }
+    }
+    return false;
+ }

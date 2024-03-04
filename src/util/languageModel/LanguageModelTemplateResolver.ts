@@ -26,7 +26,12 @@ export class LanguageModelTemplateResolver {
             if(key.startsWith(FILE_REPLACE_START)){
                 let fileContent=fs.readFileSync(additionalReplacements[key], { encoding: "utf-8" })
                 if(additionalReplacements[key].endsWith(TEMPLATE_EXTENSION)){
-                    fileContent=this.resolveTemplate(fileContent,additionalReplacements);
+                    let otherReplacements=Object.assign({},additionalReplacements)
+                    console.log(otherReplacements)
+                    delete otherReplacements[key]
+                    let otherResolver=new LanguageModelTemplateResolver(otherReplacements)
+
+                    fileContent=otherResolver.resolveTemplate(fileContent,otherReplacements);
                 }
                 result=result.replace(key,fileContent);
             }
@@ -40,8 +45,11 @@ export class LanguageModelTemplateResolver {
       
     }
     resolveRemainingReferences(text:string):string{
-        if(text.match(/(\$|%){(\w|_)+}/gm)){
-            throw "Not all references are resolved"
+        let matches=text.match(/(\$|%){(\w|_)+}/gm)
+        if(matches){
+           console.log(text) 
+            console.log(matches)
+            throw "Not all references are resolved "
         }
         while(text.match(/(\$|%){(\w|_)+\?}/gm)){
             text=text.replace(/(\$|%){(\w|_)+\?}/gm,"");

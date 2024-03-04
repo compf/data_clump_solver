@@ -1,7 +1,7 @@
 import { Detector } from "./data-clumps-doctor/analyse/src"
 import { Analyzer } from "./data-clumps-doctor/analyse/src/ignoreCoverage/Analyzer"
 import { PipeLine } from "./pipeline/PipeLine"
-import { DataClumpRefactoringContext } from "./context/DataContext";
+import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, GitRepositoryContext } from "./context/DataContext";
 import { PipeLineStep,PipeLineStepType } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
 import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
@@ -18,17 +18,12 @@ import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/l
 import { GitHubService } from "./util/vcs/GitHubService";
 
 async function main(){
-   //let github=new GitHubService();
-   //await github.getMostRecentPullRequestTime();
-   /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest"));
-   PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DetectAndRefactorWithLanguageModelStep());
-   PipeLine.Instance.registerHandler([PipeLineStep.Validation],new GradleBuildValidationStepHandler())
-   let context=new DataClumpRefactoringContext()
-   
-   context=await PipeLine.Instance.executeAllSteps(context)
-   console.log(JSON.stringify(context))*/
-   /*let resolver= StepHandlerResolver.Instance
-   resolver.resolveFromName("SimpleCodeObtainingStepHandler",PipeLineStep.CodeObtaining.name,null)*/
+  let codeObtainingContext=new CodeObtainingContext("javaTest/javaTest");
+   let fileFilteringContext=new FileFilteringContext(["*.java"],[]);
+   let context=codeObtainingContext.buildNewContext(fileFilteringContext);
+   context=context.buildNewContext(new GitRepositoryContext());
+   let result=await (context as GitRepositoryContext).getAllCommittedDates("build.gradle.kts")
+   console.log(result)
 
 
 }

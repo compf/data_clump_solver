@@ -21,10 +21,12 @@ function createInstructionHandler(instructionPath: string) {
 const apis = ["ChatGPTInterface"/*"PhindraInterface"*/]
 const temperatures = [0.1,0.5, 0.9]
 const models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
-const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"];
-const dataFormat = ["fromScratch"/*,"givenContext"*/]
+const instructionType = [/*"definitionBased",*/ "exampleBased"/*, "noDefinitionBased"*/];
+const dataFormat = ["fromScratch"/*"givenContext"*/]
 const dataHandler = ["AllFilesHandler"]
 const repetionCount = 3;
+let failedAttemptsCounter = 0;
+const maxFailedAttempts = 5;
 const IGNORE_EXISTING=false;
 function createDataHandler(name:string):LargeLanguageModelHandler{
     switch(name){
@@ -52,7 +54,8 @@ async function main() {
         "${programming_language}": "Java",
         "%{examples}":"chatGPT_templates/DataClumpExamples.java",
         "%{output_format}":"chatGPT_templates/json_output_format.json",
-        "%{refactor_instruction}":"chatGPT_templates/refactor_data_clump_fully.template"
+        "%{refactor_instruction}":"chatGPT_templates/refactor_data_clump_fully.template",
+        "%{detected_data_clumps}":"chatGPT_templates/refactor/detected_data_clumps_minified.json",
     })
     console.log("registered")
     for (let apiType of apis) {
@@ -91,6 +94,17 @@ async function main() {
                                 console.log("FINISHED")
                                 let inputOnly = newContext.chat.filter((x) => x.messageType == "input")
                                 let outputOnly = newContext.chat.filter((x) => x.messageType == "output")
+                                if(isInvalid(outputOnly)){
+                                    failedAttemptsCounter++;
+                                    if(failedAttemptsCounter>=maxFailedAttempts){
+                                        throw ("Too many failed attempts")
+                                    }
+                                    i--;
+                                    continue;
+                                }
+                                else{
+                                    failedAttemptsCounter=0;
+                                }
                                 console.log("INPUT")
                                 console.log(inputOnly)
                                 console.log("OUTPUT")
@@ -122,7 +136,24 @@ async function main() {
     }
    
 }
+if(require.main==module){
+    main()
 
-main()
+}
 
+
+export function isInvalid(outputOnly:any) {
+   for(let c of outputOnly){
+       for(let m of c.messages){
+           try{
+            JSON.parse(m);
+            
+
+           }catch(e){
+            return true;
+           }
+       }
+   }
+   return false;
+}
 

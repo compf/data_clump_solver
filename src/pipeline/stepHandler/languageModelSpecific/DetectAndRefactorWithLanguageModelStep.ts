@@ -38,8 +38,8 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         api.clear();
        let replaceMap={
             "${programming_language}": "Java",
-            "${examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" }),
-            "${output_format}":fs.readFileSync("chatGPT_templates/json_output_format.json", { encoding: "utf-8" }),
+            "%{examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" }),
+            "%{output_format}":fs.readFileSync("chatGPT_templates/json_output_format.json", { encoding: "utf-8" }),
         };
         let chat:ChatMessage[]=[]
         let handlerIndex=0
