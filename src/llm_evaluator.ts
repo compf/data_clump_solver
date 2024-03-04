@@ -48,8 +48,11 @@ type BasicEvaluationResult = {
 
     medianSpecifity: number,
     meanSpecifity: number,
+    stdSensitivity: number,
+    stdSpecifity: number,
+
 }
-const BasicEvaluationKeys=["sensitivityBest","specifityBest","medianSensitivity","medianSpecifity","meanSensitivity","meanSpecifity"]
+const BasicEvaluationKeys=["sensitivityBest","specifityBest","medianSensitivity","medianSpecifity","meanSensitivity","meanSpecifity","stdSensitivity","stdSpecifity"]
 type EvaluationResult = BasicEvaluationResult & {
    
     sensitivityBestPath: string,
@@ -62,6 +65,7 @@ type EvaluationResult = BasicEvaluationResult & {
     SensitivityWorstPath: string,
     SpecifityWorstPath: string,
     whiteSpace2: string,
+   
 }
 function get_output_file_paths(): string[] {
     let result = []
@@ -121,6 +125,11 @@ function median(array: number[]) {
 function mean(array: number[]) {
     return array.reduce((a, b) => a + b, 0) / array.length
 
+}
+function std(array: number[]) {
+    let mean = array.reduce((a, b) => a + b, 0) / array.length
+    let variance = array.map((x) => (x - mean) ** 2).reduce((a, b) => a + b, 0) / array.length
+    return Math.sqrt(variance)
 }
 let failures={}
 function evaluateData(paths: string[],fullEval:boolean):EvaluationResult {
@@ -213,6 +222,8 @@ function evaluateData(paths: string[],fullEval:boolean):EvaluationResult {
         medianSpecifity: median(originalInDetected) * 100,
         meanSensitivity: mean(detectedInOriginal) * 100,
         meanSpecifity: mean(originalInDetected) * 100,
+        stdSensitivity: std(detectedInOriginal) * 100,
+        stdSpecifity: std(originalInDetected) * 100,
 
     }
 }
@@ -224,6 +235,8 @@ function makeResultBasic(result:EvaluationResult):BasicEvaluationResult{
         medianSpecifity: Math.floor(result.medianSpecifity),
         meanSensitivity:Math.floor( result.meanSensitivity),
         meanSpecifity: Math.floor(result.meanSpecifity),
+        stdSensitivity: Math.floor(result.stdSensitivity),
+        stdSpecifity: Math.floor(result.stdSpecifity),
     }
 }
 const dataTypeFilters = {
@@ -241,6 +254,7 @@ const apiFilters = {
 }
 const temperatureFilters = {
     "0.1": (x: string) => x.includes("0.1"),
+    "0.5": (x: string) => x.includes("0.5"),
     "0.9": (x: string) => x.includes("0.9"),
 }
 const instructionFilters = {
