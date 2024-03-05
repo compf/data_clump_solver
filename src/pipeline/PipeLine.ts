@@ -39,7 +39,6 @@ export class PipeLine {
                 }
                 this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i], createdContextNames)
             }
-            console.log(this.stepHandlerList[i])
 
         }
         return MandatoryContextNames.every((name) => createdContextNames.has(name));

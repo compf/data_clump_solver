@@ -3,7 +3,7 @@ import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
 import { resolve } from "path";
-import { spawn } from "child_process"
+import { spawnSync } from "child_process"
 
 import {parse,BaseJavaCstVisitorWithDefaults, MethodHeaderCtx} from "java-parser"
 class MyVisitor extends BaseJavaCstVisitorWithDefaults{
@@ -36,10 +36,9 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
             "-PavailableContexts="+availableContext,
             
            ];
-        let cp=spawn("gradle",args,{cwd:"REDCLIFF-Java"})
-        cp.stdout.on("data",(data)=>{
-            console.log(data.toString())
-        })
+        console.log("spawn")
+        let cp=spawnSync("gradle",args,{cwd:"REDCLIFF-Java"})
+        console.log("finished")
         return Promise.resolve(context);
     }
     getExecutableSteps(): PipeLineStepType[] {

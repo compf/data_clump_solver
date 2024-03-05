@@ -3,7 +3,7 @@ import { ResponseMessage } from "./TypeDefinitions";
 import { Readable, Writable } from "stream";
 import {resolve} from "path"
 import { MyCapabilities } from "./capabilities";
-
+import { spawn ,ChildProcess} from "child_process"
 export enum Methods {
     Initialize = "initialize",
     Initialized = "initialized",
@@ -13,6 +13,7 @@ export enum Methods {
     Implementation="textDocument/implementation"
 }
 export abstract class LanguageServerAPI {
+    protected childProcess: ChildProcess|null=null;
     abstract init(path:string,callback:{(data:ResponseMessage):void}): Promise<{ reader: Readable; writer: Writable; }>
     callInitialized(socket: Writable) {
         let msg = this.create_request_message(2, Methods.Initialized, {})
@@ -23,6 +24,13 @@ export abstract class LanguageServerAPI {
         let header = "Content-Length: " + content.length + "\r\n\r\n";
         console.log("sending",  content)
         return header + content;
+    }
+    close(){
+        console.log("closing")
+        if(this.childProcess!=null){
+            this.childProcess.kill()
+            console.log("killed")
+        }
     }
     callInitialize(socket: Writable, path:string) {
         const initParam: InitializeParams = {

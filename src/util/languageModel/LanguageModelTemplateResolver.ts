@@ -27,7 +27,6 @@ export class LanguageModelTemplateResolver {
                 let fileContent=fs.readFileSync(additionalReplacements[key], { encoding: "utf-8" })
                 if(additionalReplacements[key].endsWith(TEMPLATE_EXTENSION)){
                     let otherReplacements=Object.assign({},additionalReplacements)
-                    console.log(otherReplacements)
                     delete otherReplacements[key]
                     let otherResolver=new LanguageModelTemplateResolver(otherReplacements)
 

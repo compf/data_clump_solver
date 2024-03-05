@@ -300,6 +300,7 @@ function create_basic_evaluation(firstFilter:any) {
     let basicEvalResult={}
     let sums={}
     let totalSum=0;
+   
 
     let evalResult = {all:evaluateData(allPaths,false)}
     for (let key0 of Object.keys(firstFilter)) {
@@ -324,7 +325,13 @@ function create_basic_evaluation(firstFilter:any) {
     basicEvalResult["sums"]=sums;
     
 
-    
+    let latex="\\begin{table}\n\\begin{tabular}{c|c|c|c|c|c}\n";
+    latex+="Median Sensitivity & Median Specifity & Mean Sensitivity & Mean Specifity & Std Sensitivity & Std Specifity \\\\ \n"
+    for(let key0 of Object.keys(firstFilter)){
+        latex+=tempResult[key0].medianSensitivity+" & "+tempResult[key0].medianSpecifity+" & "+tempResult[key0].meanSensitivity+" & "+tempResult[key0].meanSpecifity+" & "+tempResult[key0].stdSensitivity+" & "+tempResult[key0].stdSpecifity+" \\\\ \n"
+    }
+    latex+="\\end{tabular}\n\\end{table}"
+    fs.writeFileSync("llm_results/detect/basic_"+getName(firstFilter)+".latex", latex)
     fs.writeFileSync("llm_results/detect/basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
 }
 function create_evaluation(key:string,permutation: any[]) {

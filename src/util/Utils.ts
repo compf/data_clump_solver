@@ -24,7 +24,6 @@ export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileF
 }
 function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext|null): boolean {
     if ( fileFilteringContext==null && !filePath.endsWith(".java")) {
-        console.log("ignore",filePath)
         return true;
     }
     if (fileFilteringContext == null) {

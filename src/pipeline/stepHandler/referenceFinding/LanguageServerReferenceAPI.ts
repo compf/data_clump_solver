@@ -44,35 +44,29 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             fileMap.set(filePath, readFileSync(filePath).toString())
         }
         let wholeFile = fileMap.get(filePath)!!.split("\n");
-        console.log(wholeFile)
-        console.log(startLine)
+
         let line = wholeFile[startLine]
         let character = line.indexOf(identifier);
         return { startLine: startLine, startColumn: character, endLine: startLine, endColumn: character + identifier.length };
     }
 
     sendMethodUsageAndDeclarationRequest(socket:Writable,dcKey:string,methodFile: string, methodName: string, context: DataClumpRefactoringContext,  line: number,variableNames:string[],methodKey:string) {
-        let createdClassPath=context.getByType(ClassExtractionContext)!!.getExtractedClassPath(dcKey).replace(context.getProjectPath(),"")
-        console.log("createdClassPath",createdClassPath,context.getProjectPath(),dcKey)
-        this.loadMethodDeclarations(socket,methodFile,methodName,context,dcKey,methodKey,variableNames,createdClassPath)
+        this.loadMethodDeclarations(socket,methodFile,methodName,context,dcKey,methodKey,variableNames)
       
        
     }
-    loadMethodDeclarations(socket:Writable ,methodFile: string, methodName: string, context: DataClumpRefactoringContext, dcKey: string, methodKey: string, variableNames: string[],extractedClassPath:string) {
+    loadMethodDeclarations(socket:Writable ,methodFile: string, methodName: string, context: DataClumpRefactoringContext, dcKey: string, methodKey: string, variableNames: string[]) {
        let astContext=context.getByType(ASTBuildingContext)!;
        let originalClass=astContext.getByPath(methodFile)
        let fileQueue=[methodFile]
        let visited=new Set<string>()
        do{
-        console.log(astContext)
         let currPath=fileQueue.pop()!!
         if(visited.has(currPath))continue;
         visited.add(currPath)
-        console.log("currPath",currPath)
 
         let myClass=astContext.getByPath(currPath)
         let method=Object.keys(myClass.methods).map((it)=>myClass.methods[it]).find((it)=>it.name==methodName && it.parameters.map((it)=>it.type +" "+it.name).join(",")==originalClass.methods[methodKey].parameters.map((it)=>it.type +" "+it.name).join(","))
-        console.log("method",method,methodKey)
         if(method==undefined){
             continue;
         }
@@ -121,7 +115,6 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         
         let extending=astContext.getExtendingOrImplementingClassKeys(methodFile)
         for(let cls of extending){
-            console.log("extending",cls)
             fileQueue.push(cls)
         }
         let methodUsedReferenceParams:ReferenceParams={
@@ -137,7 +130,6 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             }
 
         }
-        console.log("cuurr",methodName)
          let nextId=this.nextCounterValue();
          this.counterDataClumpInfoMap.set(nextId,
             {variableKey:dcKey,
@@ -222,7 +214,6 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             }
             for(let variableKey of Object.keys(dataClump.data_clump_data)){
                 let variable=dataClump.data_clump_data[variableKey]!
-                console.log("AUTO",variable.name,variable.to_variable.name,dataClump.from_file_path,dataClump.to_file_path)
                 this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.from_file_path,variable.name,context,variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.name),variable.key,isFromMethod)
                 this.sendVariableUsageAndDeclarationRequest(socket,dataClump.key,dataClump.to_file_path,variable.to_variable.name,context,variable.to_variable.position,Object.values(dataClump.data_clump_data).map((it)=>it.to_variable.name),variable.to_variable.key,isToMethod)
             
@@ -239,13 +230,10 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             let classExtractionContext=context.getByType(ClassExtractionContext)!!
             return await new Promise<DataClumpRefactoringContext>(async handleResolver => {
                 const socket = await this.api!!.init(context.getProjectPath(), (data) => {
-                    console.log("begin")
-                    console.log(JSON.stringify(data))
                     let info = this.counterDataClumpInfoMap.get(data.id)!
                    
                     if (info == undefined) return;
                     let combined=Object.assign(info,data,)
-                    console.log(JSON.stringify(combined,null,2))
                     this.balance--
                     if (!this.usages.has(info.variableKey)) {
                         this.usages.set(info.variableKey, [])
@@ -267,14 +255,13 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                         for(let usg of  this.usages){
                        
                             this.usages.set(usg[0], this.usages.get(usg[0])!.sort(function(a,b){
-                                console.log("sort",a,b)
                                 return a.symbolType-b.symbolType
                             }));
                         }
+                        this.api?.close()
                         handleResolver(context.buildNewContext(new UsageFindingContext( this.usages)))
                     }
                 });
-                console.log("hallo")
                 let detectorContext = context.getByType(DataClumpDetectorContext)!!
                 for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
                     let dc = detectorContext.getDataClumpTypeContext(dataClumpKey)

@@ -1,27 +1,29 @@
 package org.example;
 
 public class MathStuff {
-    private SignMantissaExponent sme;
+    private NumberTriplet triplet;
 
-    public void printLength(TripleIntegers tripleIntegers) {
-        System.out.println(tripleIntegers.length());
+    public void printLength(NumberTriplet triplet) {
+        System.out.println(Math.sqrt(triplet.getX() * triplet.getX() + triplet.getY() * triplet.getY() + triplet.getZ() * triplet.getZ()));
     }
 
-    public MathStuff(SignMantissaExponent sme){
-        this.sme = sme;
+    public MathStuff(NumberTriplet triplet){
+        this.triplet = triplet;
     }
+
     public MathStuff(){
-        this.sme = new SignMantissaExponent(true,0,1);
+        this.triplet = new NumberTriplet(true, 0.0, 1);
     }
 
-    public void printSum(TripleIntegers tripleIntegers) {
-        System.out.println(tripleIntegers.sum());
+    public void printSum(NumberTriplet triplet) {
+        System.out.println(triplet.getX() + triplet.getY() + triplet.getZ());
     }
 
-    public void printMax(TripleIntegers tripleIntegers) {
-        System.out.println(tripleIntegers.max());
+    public void printMax(NumberTriplet triplet) {
+        System.out.println(Math.max(Math.max(triplet.getX(), triplet.getY()), triplet.getZ()));
     }
+
     public double calcValue(){
-        return sme.getValue();
+        return (triplet.getSign() ? 1 : -1) * triplet.getMantissa() * Math.pow(2, triplet.getExponent());
     }
 }

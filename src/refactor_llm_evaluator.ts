@@ -15,7 +15,7 @@ import { GradleBuildValidationStepHandler } from "./pipeline/stepHandler/validat
 
 function get_output_file_paths(): string[] {
     let result = []
-    getRelevantFilesRec("llm_results/detectAndRefactor", result, new FileFilteringContext(["*output.json"], []))
+    getRelevantFilesRec("llm_results/refactor", result, new FileFilteringContext(["*output.json"], []))
     return result;
 }
 function parse_chat_file(path: string) {
@@ -107,6 +107,11 @@ function median(array: number[]) {
     else {
         return array[Math.floor(array.length / 2)]
     }
+}
+function std(array: number[]) {
+    let mean = array.reduce((a, b) => a + b, 0) / array.length
+    let variance = array.map((x) => (x - mean) ** 2).reduce((a, b) => a + b, 0) / array.length
+    return Math.sqrt(variance)
 }
 function mean(array: number[]) {
     return array.reduce((a, b) => a + b, 0) / array.length
@@ -280,7 +285,7 @@ async function create_flat_evaluation() {
     fs.writeFileSync("llm_results/detectAndRefactor/refactor_flat" + ".json", JSON.stringify(result, null, 2))
 }
 enum Mode { Full, Flat, Basic }
-let mode = Mode.Flat;
+let mode = Mode.Basic;
 async function main() {
 
     if (mode == Mode.Full) {
@@ -296,10 +301,23 @@ async function main() {
 
     }
     else if (mode == Mode.Basic) {
-        let flat_obj = JSON.parse(fs.readFileSync("llm_results/detectAndRefactor/refactor_flat.json", { encoding: "utf-8" }))
-        for (let key of Object.keys(filtersPermutations)) {
 
-            await create_evaluation(Object.keys(flat_obj), key, filtersPermutations[key], flat_obj)
+        let flat_obj = JSON.parse(fs.readFileSync("llm_results/detectAndRefactor/refactor_flat.json", { encoding: "utf-8" }))
+        for (let filterType of Object.keys(allFilters)) {
+            let result = {}
+            for (let filterKey of Object.keys(allFilters[filterType])) {
+                result[filterKey] = { mean: 0, median: 0, std: 0, values: [] }
+                for (let jsonKey of Object.keys(flat_obj)) {
+                    if (flat_obj[jsonKey].originalPath.includes(filterKey)) {
+                        result[filterKey].values.push(flat_obj[jsonKey].percentage)
+                    }
+                }
+                result[filterKey].median = median(result[filterKey].values)
+                result[filterKey].mean = mean(result[filterKey].values)
+                result[filterKey].std = std(result[filterKey].values)
+            }
+            fs.writeFileSync("llm_results/detectAndRefactor/refactor_" + filterType + ".json", JSON.stringify(result, null, 2))
+           
 
         }
     }

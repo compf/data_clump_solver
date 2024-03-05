@@ -10,7 +10,7 @@ export class EclipseLSP_API extends LanguageServerAPI {
 
     async init(path:string,callback:{(data:ResponseMessage):void}): Promise<{ reader: Readable; writer: Writable; }> {
         let cp = spawn("/bin/bash", ["dist/eclipse.jdt.ls/run.sh"], { stdio: "pipe" });
-        
+        this.childProcess=cp;
         cp.stderr.on("data",(d)=>{
             console.log ("ERROR",d.toString())
         })
@@ -18,7 +18,6 @@ export class EclipseLSP_API extends LanguageServerAPI {
         super.callInitialize(cp.stdin, path)
         let data = cp.stdout.on("data", (data: Buffer) => {
             let s = data.toString("utf-8")
-            console.log("received", "\"" + s + "\"");
             s = s.replace(/\}C/g, "\}\r\n\r\nC")
 
             //console.log(s)
@@ -39,7 +38,6 @@ export class EclipseLSP_API extends LanguageServerAPI {
 
                     }
                     else{
-                    console.log("super")
 
                         callback(content as ResponseMessage)
                     }
@@ -50,7 +48,6 @@ export class EclipseLSP_API extends LanguageServerAPI {
 
         return new Promise(resolve => {
             data.on("initialized", () => {
-                console.log("windows")
                 resolve({ reader: cp.stdout, writer: cp.stdin })
             })
 

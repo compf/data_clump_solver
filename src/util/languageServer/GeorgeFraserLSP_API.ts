@@ -18,13 +18,11 @@ export class GeorgeFraserRefactoring extends LanguageServerAPI {
         super.callInitialize(cp.stdin, path)
         let data = cp.stdout.on("data", (data: Buffer) => {
             let s = data.toString("utf-8")
-            console.log("received", "\"" + s + "\"");
             s = s.replace(/\}C/g, "\}\r\n\r\nC")
 
             //console.log(s)
 
             let splitted = s.split("\r\n");
-            //console.log(splitted);
             for (let line of splitted) {
                 if (line.startsWith("Content-Length: ")) {
                 }
@@ -39,7 +37,6 @@ export class GeorgeFraserRefactoring extends LanguageServerAPI {
 
                     }
                     else{
-                    console.log("super")
 
                         callback(content as ResponseMessage)
                     }
@@ -50,7 +47,6 @@ export class GeorgeFraserRefactoring extends LanguageServerAPI {
 
         return new Promise(resolve => {
             data.on("initialized", () => {
-                console.log("windows")
                 resolve({ reader: cp.stdout, writer: cp.stdin })
             })
 

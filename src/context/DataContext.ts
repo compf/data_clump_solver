@@ -28,7 +28,7 @@ export  class DataClumpRefactoringContext {
     getContextIds():Set<number>{
         let result=new Set<number>();
         let curr: DataClumpRefactoringContext = this;
-        while (curr != null) {
+        while (curr != null && curr.constructor.name!=DataClumpRefactoringContext.name) {
             let pos=Object.values(PipeLineStep).filter((it)=>it.associatedContext==curr.constructor.name)[0].position
             result.add(pos)
             curr = curr.previousContext!
@@ -144,8 +144,7 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
         let astKey=this.getByPath(filePath).key;
         let result:string[]=[]
         for(let key of Object.keys(this.ast_type)){
-            console.log("extending?",this.ast_type[key].extends_,astKey)
-            console.log("extending?",this.ast_type[key].implements_,astKey)
+          
             if(this.ast_type[key].extends_.some((it)=>it.endsWith(astKey))||this.ast_type[key].implements_.some((it)=>it.endsWith(astKey))){
                 result.push(this.ast_type[key].file_path)
             }

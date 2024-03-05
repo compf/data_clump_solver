@@ -29,6 +29,8 @@ async function main(){
     let detector=resolveFromName(PipeLineStep.DataClumpDetection.name)
     console.log((detector))
     await PipeLine.Instance.executeAllSteps( context)
+    console.log("program finished")
+    process.exit(0)
     //console.log(DataContext.NameFinding.names)
 }
 main();

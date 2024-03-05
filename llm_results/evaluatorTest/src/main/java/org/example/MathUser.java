@@ -1,26 +1,27 @@
 package org.example;
 
 public class MathUser {
-    private SignMantissaExponent sme;
+    private NumberTriplet triplet;
 
     public void doLengthCalc(){
         MathStuff stuff=new MathStuff();
-        stuff.printLength(new TripleIntegers(5, 6, 4));
+        stuff.printLength(new NumberTriplet(5,6,4));
     }
+
     public void doMaxStuff(){
         MathStuff stuff=new MathStuff();
-        TripleIntegers tripleIntegers = new TripleIntegers(4, 3, -80);
-        if(sme.isSign()){
-            tripleIntegers.setZ(tripleIntegers.getZ() + sme.getExponent());
+        NumberTriplet triplet = new NumberTriplet(4,3,-80);
+        if(triplet.getSign()){
+            triplet.setZ(triplet.getZ() + triplet.getExponent());
         }
         else{
-            tripleIntegers.setX((int)(tripleIntegers.getX() * sme.getMantissa()));
+            triplet.setX((int)(triplet.getX()*triplet.getMantissa()));
         }
-        stuff.printMax(tripleIntegers);
+        stuff.printMax(triplet);
     }
+
     public void executeSumOperation(){
         MathStuff stuff=new MathStuff();
-        TripleIntegers tripleIntegers = new TripleIntegers(hashCode(), hashCode(), hashCode());
-        stuff.printSum(tripleIntegers);
+        stuff.printSum(new NumberTriplet(hashCode(), hashCode(), hashCode()));
     }
 }
