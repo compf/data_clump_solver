@@ -1,23 +1,34 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpsTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpsTypeContext";
-import { OccurenceThresholdBasedFilterHandler } from "../src/pipeline/stepHandler/dataClumpFiltering/OccurenceThresholdBasedFilterHandler";
 import { DataClumpDetectorContext } from "../src/context/DataContext";
+import { DATA_CLUMP_DATA } from "./TestData";
+import { DataClumpOccurenceFilter } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceFilter";
 
 test("hello",()=>{
     expect(5).toBe(5);
 })
 
-test("Test occurence of data clumps",()=>{
-    let test1=createDataClumpTestData(1,[{name:"a",type:"int"},{name:"b",type:"int"},{name:"c",type:"int"}]);
-    let test2=createDataClumpTestData(2,[{name:"a",type:"int"},{name:"b",type:"int"},{name:"c",type:"int"}]);
-    let test3=createDataClumpTestData(3,[{name:"a",type:"int"},{name:"b",type:"int"},{name:"c",type:"int"}]);
+test("Test occurence of data clumps",async() =>{
+    let xyzDataClump=getDataClumpByVariableNames(["x","y","z"]);
+    
 
-    let occurenceThresholdBasedFilterHandler=new OccurenceThresholdBasedFilterHandler(2,">");
-    expect(occurenceThresholdBasedFilterHandler.shallRemain(Object.values(test1.data_clumps)[0],new DataClumpDetectorContext(test1))).toBeFalsy();
-    expect(occurenceThresholdBasedFilterHandler.shallRemain(Object.values(test2.data_clumps)[0],new DataClumpDetectorContext(test2))).toBeFalsy();
-    expect(occurenceThresholdBasedFilterHandler.shallRemain(Object.values(test3.data_clumps)[0],new DataClumpDetectorContext(test3))).toBeTruthy();
+    let occurenceThresholdBasedFilterHandler=new DataClumpOccurenceFilter({ filterThreshold:5,comparisonSign:">"});
+    expect( await occurenceThresholdBasedFilterHandler.shallRemain(xyzDataClump,new DataClumpDetectorContext(DATA_CLUMP_DATA))).toBeFalsy();
+    occurenceThresholdBasedFilterHandler=new DataClumpOccurenceFilter({ filterThreshold:4,comparisonSign:">"});
+    expect(await occurenceThresholdBasedFilterHandler.shallRemain(xyzDataClump,new DataClumpDetectorContext(DATA_CLUMP_DATA))).toBeFalsy();
+    occurenceThresholdBasedFilterHandler=new DataClumpOccurenceFilter({ filterThreshold:3,comparisonSign:">"});
+    expect(await occurenceThresholdBasedFilterHandler.shallRemain(xyzDataClump,new DataClumpDetectorContext(DATA_CLUMP_DATA))).toBeTruthy();
     
 });
+function getDataClumpByVariableNames(names:string[]){
+    let values= Object.values(DATA_CLUMP_DATA.data_clumps)
+    for(let dc of values){
+        let otherNames=Object.values(dc.data_clump_data).map((it)=>it.name).sort();
+        if(otherNames.join(",")==names.sort().join(",")){
+            return dc;
+        }
+    }
+    throw new Error("Data clump not found")}
 
 function createDataClumpTestData(count:number,nameTypes:{name:string,type:string}[]):DataClumpsTypeContext{
    let dataClumpsTypeContext:DataClumpsTypeContext={

@@ -15,9 +15,9 @@ export class FileUpdateByTimeUnitRanker extends FileUpdateRanker {
         return counter/numberTimeUnits
     }
     private timeUnit:TimeUnit
-    constructor( timeUnit:TimeUnit) {
+    constructor(args:{ timeUnit:TimeUnit}) {
         super()
-        this.timeUnit=timeUnit
+        this.timeUnit=args.timeUnit;
     }
     getTimeUnitFromMS(ms:number):number{
         ms=Math.abs(ms)

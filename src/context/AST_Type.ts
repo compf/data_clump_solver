@@ -21,7 +21,7 @@ export type AST_Class={
     file_path:string,
 
     methods : AST_Methods,
-    fields:AST_Field[],
+    fields:{[fieldKey:string]:AST_Field},
 
    
 }
@@ -35,9 +35,10 @@ export type AST_Method={
     hasTypeVariable:boolean,
     position:Position,
     modifiers:string[],
-  returnTypes:string|null,
+  returnType:string|null,
   overrideAnnotation:boolean,
   parameters:AST_Parameter[],
+  classOrInterfaceKey:string,
   
 
    
@@ -50,6 +51,7 @@ export type AST_Variable={
     position:Position,
     modifiers:string[],
     ignore:boolean,
+   
 }
 export type AST_Parameter=AST_Variable & {methodKey:string}
-export type AST_Field=AST_Variable & {classOrInterfaceKey:string}
+export type AST_Field=AST_Variable & {classOrInterfaceKey:string ,  memberFieldKey:string|null}

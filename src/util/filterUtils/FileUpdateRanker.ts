@@ -1,11 +1,11 @@
 import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpTypeContext";
-import { DataClumpDetectorContext, GitRepositoryContext } from "../../context/DataContext";
-import { AbstractRanker } from "./AbstractRanker";
-import { AbstractSingleItemFilter } from "./AbstractSingleItemFilter";
+import { DataClumpDetectorContext, DataClumpRefactoringContext, GitRepositoryContext } from "../../context/DataContext";
+import { SingleItemFilter } from "./SingleItemFilter";
 import { GitHubService } from "../vcs/GitHubService";
+import { Ranker } from "./Ranker";
 
-export abstract class FileUpdateRanker implements AbstractRanker {
-    async evaluate(data: string|DataClumpTypeContext,context:DataClumpDetectorContext): Promise<number> {
+export abstract class FileUpdateRanker implements Ranker {
+    async evaluate(data: string|DataClumpTypeContext,context:DataClumpRefactoringContext): Promise<number> {
         let relevantPaths: string[] = []
         if (typeof data === "string") {
             relevantPaths.push(data)
@@ -29,4 +29,11 @@ export abstract class FileUpdateRanker implements AbstractRanker {
     }
 
     abstract evaluateTimestamps(timestamps: Date[]): number
+
+    isCompatibleWithDataClump(): boolean {
+        return true
+    }
+    isCompatibleWithString(): boolean {
+        return true
+    }
 }

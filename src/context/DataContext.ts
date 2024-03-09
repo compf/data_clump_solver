@@ -115,7 +115,7 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
 }
 
 export class ASTBuildingContext extends DataClumpRefactoringContext {
-    private ast_type:AST_Type={}
+    private ast_type:any={}
     load(path:string){
         const MAX_ATTEMPTS=3;
         let attempts=0;
