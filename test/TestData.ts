@@ -629,7 +629,7 @@ export const AST_DATA:{[path:string]:AST_Class}={
         "innerDefinedClasses" : { },
         "innerDefinedInterfaces" : { }
       },
-      "src/main/java/org/example/PLayer.java": {
+      "src/main/java/org/example/Player.java": {
         "name" : "Player",
         "key" : "org.example.Player",
         "type" : "class",

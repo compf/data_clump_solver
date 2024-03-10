@@ -115,7 +115,7 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
 }
 
 export class ASTBuildingContext extends DataClumpRefactoringContext {
-    private ast_type:any={}
+    private ast_type:{[key:string]:AST_Class}={}
     load(path:string){
         const MAX_ATTEMPTS=3;
         let attempts=0;
@@ -134,11 +134,25 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
         throw new Error("Could not load file "+path)
         
     }
+    static fromAstType(ast_type:AST_Type):ASTBuildingContext{
+        let result=new ASTBuildingContext()
+        result.ast_type=ast_type
+        return result;
+    }
     getKeys():string[]{
         return Object.keys(this.ast_type)
     }   
     getByPath(path:string):AST_Class{
         return this.ast_type[path]
+    }
+    getCorrectPath(id:string):string{
+        for(let key of Object.keys(this.ast_type)){
+            if(id.endsWith(this.ast_type[key].key)){
+                return this.ast_type[key].file_path
+
+            }
+        }
+        throw new Error("Could not find path for "+id)
     }
     getExtendingOrImplementingClassKeys(filePath:string):string[]{
         let astKey=this.getByPath(filePath).key;

@@ -7,7 +7,7 @@ import { resolveFromName } from "../../../config/Configuration";
 import { RankSampler, Ranker } from "../../../util/filterUtils/Ranker";
 import { compareTo } from "../../../util/Utils";
 
-export abstract class DataClumpFilterStepHandler extends AbstractStepHandler {
+export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
 
     }
@@ -16,9 +16,9 @@ export abstract class DataClumpFilterStepHandler extends AbstractStepHandler {
     }
     async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         
-        let detectionContext = context.getByType(DataClumpDetectorContext)!
-        let values = Object.values(detectionContext.dataClumpDetectionResult);
-        let newContext = new DataClumpDetectorContext(JSON.parse(JSON.stringify(detectionContext.dataClumpDetectionResult)))
+        let detectionContext = context.getByType(DataClumpDetectorContext)
+        let values = Object.values(detectionContext!.dataClumpDetectionResult);
+        let newContext = context.buildNewContext( new DataClumpDetectorContext(JSON.parse(JSON.stringify(detectionContext!.allDataClumpDetectionResult)))) as DataClumpDetectorContext
         if(this.filter){
             if(!this.filter.isCompatibleWithDataClump()){
                 throw new Error("filter is not compatible with data clump")
@@ -38,11 +38,7 @@ export abstract class DataClumpFilterStepHandler extends AbstractStepHandler {
             values = await this.rankSampler.rank(this.ranker!, values, newContext) as DataClumpTypeContext[]
         }
 
-        newContext.dataClumpDetectionResult = {}
-
-        for (let i = 0; i < values.length; i++) {
-            newContext.dataClumpDetectionResult[values[i].key] = values[i]
-        }
+        
         return context.buildNewContext(newContext)
     }
     private filter: SingleItemFilter | null = null
