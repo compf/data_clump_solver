@@ -109,13 +109,10 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         step.providedApi = api
         return step
     }
-    constructor(args: { handlers: { name: string, args: any }[] }) {
+    constructor(args: { handlers: string[] }) {
         super();
-        let i = 0
         for (let handler of args.handlers) {
-            registerFromName(handler.name, LargeLanguageModelHandler.name + i, handler.args)
-            this.handlers.push(resolveFromName(LargeLanguageModelHandler.name + i) as LargeLanguageModelHandler)
-            i++;
+            this.handlers.push(resolveFromName(handler) as LargeLanguageModelHandler)
         }
 
     }

@@ -1,53 +1,49 @@
 {
     "ProgrammingLanguageIdentifier": "Java",
-    "Objects":{
-        "LanguageModelInterface":{
-            "name":"ChatGPTInterface",
-            "args":{
-                "model":"gpt-4-1106-preview",
-                "temperature":0.5
+    "Objects": {
+        "LanguageModelInterface": {
+            "type": "ChatGPTInterface",
+            "args": {
+                "model": "gpt-4-1106-preview",
+                "temperature": 0.5
             }
         },
-        "LanguageModelTemplateResolver":{
-            "name":"LanguageModelTemplateResolver",
-            "args":{
-                "${programming_language}": "Java",
-                "%{examples}":"chatGPT_templates/DataClumpExamples.java",
-                "%{output_format}":"chatGPT_templates/json_output_format.json",
-                "%{refactor_instruction}":"chatGPT_templates/refactor_data_clump_fully.template",
-                "%{detected_data_clumps}":"chatGPT_templates/refactor/detected_data_clumps_minified.json"
+        "SimpleInstructionHandler": {
+            "args": {
+                "instructionPath": "chatGPT_templates/detectAndRefactor/noDefinitionBased/fromScratch/instruction.template"
             }
+        },
+        "AllFilesHandler": {},
+        "SendAndClearHandler": {}
+    ,
+    "LanguageModelTemplateResolver": {
+        "args": {
+            "${programming_language}": "Java",
+            "%{examples}": "chatGPT_templates/DataClumpExamples.java",
+            "%{output_format}": "chatGPT_templates/json_output_format.json",
+            "%{refactor_instruction}": "chatGPT_templates/refactor_data_clump_fully.template",
+            "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json"
+        }
+    }
+},
+
+"PipeLine": {
+    "CodeObtaining": {
+        "handler": "SimpleCodeObtainingStepHandler",
+        "args": {
+            "path": null,
+            "useArgPath": true
         }
     },
-    "PipeLine": {
-        "CodeObtaining": {
-            "handler": "SimpleCodeObtainingStepHandler",
-            "args": {
-                "path":null,
-                "useArgPath":true
-            }
-        },
-        
-       
-        "Refactoring": {
-            "handler": "DetectAndRefactorWithLanguageModelStep",
-            "args": {
-                "handlers":[
-                    {
-                        "name":"SimpleInstructionHandler",
-                        "args":{
-                            "instructionPath":"chatGPT_templates/detectAndRefactor/noDefinitionBased/fromScratch/instruction.template"
-                        }
-                    },
-                    {
-                        "name":"AllFilesHandler"
-                    },
-                    {
-                        "name":"SendAndClearHandler"
-                    }
-                ]
-            }
+    "Refactoring": {
+        "handler": "DetectAndRefactorWithLanguageModelStep",
+        "args": {
+            "handlers": [
+                "SimpleInstructionHandler",
+                "AllFilesHandler",
+                "SendAndClearHandler"
+            ]
         }
-       
     }
+}
 }

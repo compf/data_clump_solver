@@ -24,7 +24,7 @@ export type Configuration={
          Refactoring:PipeLineStepConf,
          Validation:PipeLineStepConf,
     },
-    Objects:{[key:string]:{name:string,args:any}}
+    Objects:{[key:string]:{type?:string,args?:any}}
     
 }
 const pathPrefix="../pipeline/stepHandler/"
@@ -52,13 +52,13 @@ const nameScriptFileMap={
     
 }
 const container=new ContainerBuilder();
-export function registerFromName(name:string,dependencyCategory:string,args:any){
-    let requirePath=name
-    if(Object.keys(nameScriptFileMap).includes(name)){
-        requirePath=nameScriptFileMap[name]
+export function registerFromName(typeName:string,refName:string,args:any){
+    let requirePath=typeName
+    if(Object.keys(nameScriptFileMap).includes(typeName)){
+        requirePath=nameScriptFileMap[typeName]
     }
     const loadedScript=require(requirePath);
-    container.register(dependencyCategory,loadedScript[name]).addArgument(args);
+    container.register(refName,loadedScript[typeName]).addArgument(args);
 }
 export function resolveFromName(dependencyCategory:string):any{
     return container.get(dependencyCategory) 
@@ -77,8 +77,13 @@ export function processConfiguration(config:Configuration){
         }
     }
     if("Objects" in config){
-        for(let object of Object.keys(config.Objects)){
-            registerFromName(config.Objects[object].name,object,config.Objects[object].args)
+        for(let key of Object.keys(config.Objects)){
+            let args=config.Objects[key].args
+            let type=config.Objects[key].type
+            if(type==undefined || type==null){
+                type=key
+            }
+            registerFromName(type,key,args)
         }
     }
     for(let step of Object.keys(PipeLineStep)){
