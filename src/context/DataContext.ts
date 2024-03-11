@@ -296,6 +296,18 @@ export class ValidationContext extends DataClumpRefactoringContext {
         this.validationResult = validationResult;
     }
 }
+export class EvaluationContext extends DataClumpRefactoringContext {
+    runningTimes:{[stepName:string]:number}={}
+    constructor(runningTimes:{[stepName:string]:number}) {
+        super()
+        this.runningTimes=runningTimes
+    }
+    serialize(path?: string | undefined): void {
+        const usedPath=this.getSerializationPath(path)
+        fs.writeFileSync(usedPath, JSON.stringify(this.runningTimes))
+    
+    }
+}
 export const MandatoryContextNames=[CodeObtainingContext.name,RefactoredContext.name]
 
 

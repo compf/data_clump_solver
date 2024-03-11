@@ -1,5 +1,5 @@
 import { getContextSerializationPath } from "../config/Configuration";
-import { DataClumpRefactoringContext, MandatoryContextNames } from "../context/DataContext";
+import { DataClumpRefactoringContext, EvaluationContext, MandatoryContextNames } from "../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "./PipeLineStep";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler";
 function difference<T>(set1: Set<T>, set2: Set<T>): Set<T> {
@@ -16,7 +16,7 @@ const NumberPipeLineSteps = Object.keys(PipeLineStep).length
 export class PipeLine {
     public static readonly Instance = new PipeLine()
     private stepHandlerList: AbstractStepHandler[] = Array(NumberPipeLineSteps).fill(null);
-    private stepRunningTimes: number[] = Array(NumberPipeLineSteps).fill(0);
+    private stepRunningTimes:{ [stepName:string]:number}={}
     registerHandler(steps: PipeLineStepType[], handler: AbstractStepHandler) {
         for (let step of steps) {
             if (handler.canDoStep(step) && this.stepHandlerList[step.position] == null) {
@@ -60,12 +60,14 @@ export class PipeLine {
                 }
                 let startTime = Date.now();
                 context = await this.stepHandlerList[i].handle(pipeLineSteps[i],context, null);
-                this.stepRunningTimes[i] = Date.now() - startTime;
+                this.stepRunningTimes[pipeLineSteps[i].name] = Date.now() - startTime;
                 context.serialize(getContextSerializationPath(i))
             }
         }
-
-        return context
+        let finalContext= context.buildNewContext(new EvaluationContext(this.stepRunningTimes))
+        finalContext.serialize();
+        return finalContext
+        
     }
 
 }

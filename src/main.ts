@@ -27,7 +27,7 @@ async function main(){
         console.log("finnish")
     })*/
 
-    await PipeLine.Instance.executeAllSteps( context)
+    let finalContext=await PipeLine.Instance.executeAllSteps( context)
     console.log("program finished")
     process.exit(0)
     //console.log(DataContext.NameFinding.names)
