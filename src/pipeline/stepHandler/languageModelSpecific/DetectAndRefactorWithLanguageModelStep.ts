@@ -1,5 +1,5 @@
 import { DataClumpsTypeContext } from "data-clumps-type-context";
-import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext } from "../../../context/DataContext";
+import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext, createDataClumpsTypeContext } from "../../../context/DataContext";
 import { ChatGPTInterface } from "../../../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
@@ -7,88 +7,132 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
 import { files } from "node-dir"
 import path from "path";
+import { resolve } from "path"
 import { registerFromName, resolveFromName } from "../../../config/Configuration";
-import { DataIterator, InstructionIterator, LargeLanguageModelHandler,ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
+import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } from "../../../util/languageModel/LanguageModelInterface";
-export class LargeLanguageModelDetectorContext extends DataClumpDetectorContext{
-    public chat: ChatMessage[]
-    constructor(typeContext:DataClumpsTypeContext,chat:ChatMessage[]){
-        super(typeContext)
-        this.chat=chat
-    }
-   
-}
+import { PipeLine } from "../../PipeLine";
+import { tryParseJSON } from "../../../util/Utils";
+import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
+
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
     return 'shallReExecute' in object;
 }
 export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
-    private providedApi:LanguageModelInterface|null=null
-    async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let api:LanguageModelInterface;
-        if(this.providedApi!=null){
-            api=this.providedApi
+    private providedApi: LanguageModelInterface | null = null
+
+    async handle(step:PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+        let api: LanguageModelInterface;
+        if (this.providedApi != null) {
+            api = this.providedApi
         }
-        else{
+        else {
             api = resolveFromName(LanguageModelInterfaceCategory) as LanguageModelInterface
         }
-        let templateResolver=resolveFromName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
-         
+        let templateResolver = resolveFromName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
+
         api.clear();
-       let replaceMap={
-            "${programming_language}": "Java",
-            "%{examples}":fs.readFileSync("chatGPT_templates/DataClumpExamples.java", { encoding: "utf-8" }),
-            "%{output_format}":fs.readFileSync("chatGPT_templates/json_output_format.json", { encoding: "utf-8" }),
-        };
-        let chat:ChatMessage[]=[]
-        let handlerIndex=0
-        for (handlerIndex=0;handlerIndex<this.handlers.length;handlerIndex++) {
-            let handler=this.handlers[handlerIndex]
-            let messages=await handler.handle(context, api, templateResolver)
-            if( isReExecutePreviousHandlers(handler) && handler.shallReExecute()){
-                handlerIndex=-1;
+        let chat: ChatMessage[] = []
+        let handlerIndex = 0
+        for (handlerIndex = 0; handlerIndex < this.handlers.length; handlerIndex++) {
+            let handler = this.handlers[handlerIndex]
+            let messages = await handler.handle(context, api, templateResolver)
+            if (isReExecutePreviousHandlers(handler) && handler.shallReExecute()) {
+                handlerIndex = -1;
             }
-            else if(isReExecutePreviousHandlers(handler) && !handler.shallReExecute()){
+            else if (isReExecutePreviousHandlers(handler) && !handler.shallReExecute()) {
                 api.clear();
             }
             chat.push(...messages)
         }
-        
-        
-       
-        let newContext=context.buildNewContext(new LargeLanguageModelDetectorContext(this.buildTypeContext(chat),chat))
-        return  newContext;
+
+
+
+        return  this.createFittingContext(chat, step, context) as any;
     }
-   static createFromCreatedHandlers(handlers:LargeLanguageModelHandler[],api:LanguageModelInterface):DetectAndRefactorWithLanguageModelStep{
-       let step=new DetectAndRefactorWithLanguageModelStep({handlers:[]})
-       step.handlers=handlers
-       step.providedApi=api
-       return step
-   }
-    constructor(args:{handlers:{name:string,args:any}[]}){
+    createFittingContext(chat: ChatMessage[], step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext {
+
+        let resultContext =step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext()
+        for (let c of chat) {
+            if (c.messageType == "output") {
+                for (let m of c.messages) {
+                    let json = tryParseJSON(m)
+                    if (json == null) {
+                        continue
+                    }
+                    if (step == PipeLineStep.Refactoring) {
+                        for (let key in json) {
+                            let path = this.parse_key(key, context)
+                            let content = this.parse_content(json[key], context)
+                            if (content) {
+                                (resultContext as RefactoredContext).setReturnedCode(path, content)
+                                fs.writeFileSync(resolve(context.getProjectPath(), path), content)
+                            }
+                        }
+                    }
+                    else if (step == PipeLineStep.DataClumpDetection) {
+                        let data_clumps_type_context = (resultContext as DataClumpDetectorContext).dataClumpDetectionResult
+                        for (let key in json.data_clumps) {
+                            let newKey = key
+                            if (key in data_clumps_type_context.data_clumps) {
+                                newKey = newKey + Math.random()
+                            }
+                            data_clumps_type_context.data_clumps[newKey] = json.data_clumps[newKey]
+                        }
+
+                    }
+
+
+
+
+
+                }
+            }
+        }
+        return resultContext
+    }
+
+    parse_key(key: string, context: DataClumpRefactoringContext): string {
+        return key
+    }
+    parse_content(content: string, context: DataClumpRefactoringContext): string | null {
+        if (!content.includes("{")) {
+            return null
+        }
+        return content
+    }
+    static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: LanguageModelInterface): DetectAndRefactorWithLanguageModelStep {
+        let step = new DetectAndRefactorWithLanguageModelStep({ handlers: [] })
+        step.handlers = handlers
+        step.providedApi = api
+        return step
+    }
+    constructor(args: { handlers: { name: string, args: any }[] }) {
         super();
-        let i=0
-        for(let handler of args.handlers){
-            registerFromName(handler.name,LargeLanguageModelHandler.name+i,handler.args)
-            this.handlers.push(resolveFromName(LargeLanguageModelHandler.name+i) as LargeLanguageModelHandler)
+        let i = 0
+        for (let handler of args.handlers) {
+            registerFromName(handler.name, LargeLanguageModelHandler.name + i, handler.args)
+            this.handlers.push(resolveFromName(LargeLanguageModelHandler.name + i) as LargeLanguageModelHandler)
             i++;
         }
 
     }
-    buildTypeContext(chat:ChatMessage[]):DataClumpsTypeContext{
-        return  {data_clumps:{}} as any;
-    }
+ 
 
-   
+
     getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.NameFinding, PipeLineStep.ClassExtraction, PipeLineStep.ReferenceFinding, PipeLineStep.Refactoring]
+        return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.Refactoring]
     }
-  addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
-    
-    createdContexts.add(DataClumpDetectorContext.name) 
-    createdContexts.add(NameFindingContext.name);   
-    createdContexts.add(RefactoredContext.name)
-  }
+    addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
+        if (pipeLineStep == PipeLineStep.DataClumpDetection) {
+            createdContexts.add(DataClumpDetectorContext.name)
+        }
+        else if (pipeLineStep == PipeLineStep.Refactoring) {
+            createdContexts.add(RefactoredContext.name)
+        }
+
+    }
 
 }

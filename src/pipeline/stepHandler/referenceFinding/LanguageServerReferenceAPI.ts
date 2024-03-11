@@ -222,7 +222,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         }
     private usages=new Map<string, VariableOrMethodUsage[]>();
 
-    async handle(context: DataClumpRefactoringContext, params: any): Promise < DataClumpRefactoringContext > {
+    async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise < DataClumpRefactoringContext > {
                 if(this.api == null){
                 this.api = resolveFromName("LanguageServerAPI") as LanguageServerAPI;
             }

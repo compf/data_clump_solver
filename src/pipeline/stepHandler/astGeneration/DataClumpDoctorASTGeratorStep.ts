@@ -12,7 +12,7 @@ export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
         this.outPath = outPath
     }
     outPath: string
-    async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+    async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const ast_generator_path = "src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/"
         const ast_out_path = resolve(this.outPath)
         await ParserHelperJavaSourceCode.parseSourceCodeToAst(resolve(context.getProjectPath()), ast_out_path, ast_generator_path);

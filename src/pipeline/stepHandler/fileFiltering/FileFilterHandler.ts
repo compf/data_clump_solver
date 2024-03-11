@@ -10,7 +10,7 @@ export class FileFilterHandler extends AbstractStepHandler {
     private filter?: SingleItemFilter = undefined
     private ranker?: Ranker = undefined
     private rankSampler: RankSampler;
-    async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+    async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         if (!this.ranker?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
         }

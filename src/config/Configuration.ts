@@ -44,12 +44,10 @@ const nameScriptFileMap={
     DetectAndRefactorWithLanguageModelStep:pathPrefix+"languageModelSpecific/DetectAndRefactorWithLanguageModelStep.js",
     SimpleInstructionHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     AllFilesHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    PairsOfFilesHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     SendAndClearHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     RepeatInstructionRandomlyHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     SendHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     PairOfFileContentHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    SingleFileHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     LanguageModelTemplateResolver:"../util/languageModel/LanguageModelTemplateResolver.js",
     
 }

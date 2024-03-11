@@ -5,7 +5,7 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler {
 
-   async  handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
+   async  handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
        
 
             let cache=new Map<string,string>();

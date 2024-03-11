@@ -14,7 +14,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
         requirements.add(DataClumpDetectorContext.name)
     }
-    async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+    async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         
         let detectionContext = context.getByType(DataClumpDetectorContext)
         let values = Object.values(detectionContext!.dataClumpDetectionResult);

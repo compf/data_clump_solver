@@ -8,36 +8,14 @@ import { LanguageModelTemplateResolver } from "../../../util/languageModel/Langu
 export type DependentOnAnotherIteratorReturnType = { messages: string[]; clear: boolean; shallSend: boolean }
 export type InstructionReturnType = DependentOnAnotherIteratorReturnType & { doWrite: boolean }
 export type StateInformationType = { hasOtherFinished: boolean, context: DataClumpRefactoringContext }
-export abstract class DependentOnAnotherIterator<T> implements Iterator<T, any, {
-    hasOtherFinished: boolean,
-    context: DataClumpRefactoringContext
-
-}>{
-    abstract next(info: StateInformationType): IteratorResult<T, any>;
-    return(value?: any): IteratorResult<T, any> {
-        return { done: true, value: { messages: [], clear: false, doWrite: false } }
-
-    }
-    throw?(e?: any): IteratorResult<T, any> {
-        return { done: true, value: { messages: [], clear: false, doWrite: false } }
-    }
-
-
-}
-export abstract class InstructionIterator extends DependentOnAnotherIterator<InstructionReturnType>{
-
-}
-export abstract class DataIterator extends DependentOnAnotherIterator<DependentOnAnotherIteratorReturnType>{
-
-}
 
 export abstract class LargeLanguageModelHandler {
-    
-    abstract handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]>;
+
+    abstract handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]>;
 }
 export class SimpleInstructionHandler extends LargeLanguageModelHandler {
     private instructionPath: string
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let template = fs.readFileSync(this.instructionPath, { encoding: "utf-8" })
         let content = templateResolver.resolveTemplate(template)
         let messages = [api.prepareMessage(content)]
@@ -49,6 +27,10 @@ export class SimpleInstructionHandler extends LargeLanguageModelHandler {
     }
 
 }
+
+
+
+
 
 export class AllFilesHandler extends LargeLanguageModelHandler {
     protected allFiles: string[] = []
@@ -76,10 +58,11 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
 
 
 }
-export class PairsOfFilesHandler extends LargeLanguageModelHandler {
-    private firstPhase = true;
-    private index1: number = 0;
-    private index2: number = 1;
+
+export interface ReExecutePreviousHandlers {
+    shallReExecute(): boolean
+}
+export class PairOfFileContentHandler  implements ReExecutePreviousHandlers {
     getFileTuples(context): { name1: string, name2: string }[] {
         let result: { name1: string, name2: string }[] = []
         let allFiles: string[] = []
@@ -94,36 +77,17 @@ export class PairsOfFilesHandler extends LargeLanguageModelHandler {
         }
         return result
     }
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
-        let chatMessages: ChatMessage[] = []
-        let files = this.getFileTuples(context)
-        for (let f of files) {
-            let combined = f.name1 + " & " + f.name2
-            chatMessages.push(api.prepareMessage(combined))
-        }
-
-        return Promise.resolve(chatMessages)
-
-    }
-
-
-
-}
-export interface ReExecutePreviousHandlers {
-    shallReExecute(): boolean
-}
-export class PairOfFileContentHandler extends PairsOfFilesHandler implements ReExecutePreviousHandlers {
     private fileTuples: { name1: string, name2: string }[] | null = null
     private index = 0;
-    private singleFileHandler:SingleFileHandler|null=null;
-    private singleFileMode=false;
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    private singleFileHandler: SingleFileHandler | null = null;
+    private singleFileMode = false;
+    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         if (this.fileTuples == null) {
             this.fileTuples = this.getFileTuples(context);
-           this.singleFileHandler=new SingleFileHandler();
+            this.singleFileHandler = new SingleFileHandler();
         }
-        if(this.singleFileMode){
-            return this.singleFileHandler!.handle(context,api,templateResolver);
+        if (this.singleFileMode) {
+            return this.singleFileHandler!.handle(context, api, templateResolver);
         }
         let f = this.fileTuples[this.index]
         let content1 = fs.readFileSync(path.resolve(context.getProjectPath(), f.name1), { encoding: "utf-8" })
@@ -133,14 +97,14 @@ export class PairOfFileContentHandler extends PairsOfFilesHandler implements ReE
         let messages: ChatMessage[] = [api.prepareMessage(message)]
         let reply = await api.sendMessages(true)
         messages.push(reply)
-        if(this.index>=this.fileTuples.length){
-            this.singleFileMode=true;
+        if (this.index >= this.fileTuples.length) {
+            this.singleFileMode = true;
         }
         return messages
 
     }
     shallReExecute(): boolean {
-        if(this.singleFileMode){
+        if (this.singleFileMode) {
             return this.singleFileHandler!.shallReExecute();
         }
         return this.index < this.fileTuples!.length;
@@ -150,39 +114,74 @@ export class PairOfFileContentHandler extends PairsOfFilesHandler implements ReE
 export class SingleFileHandler extends LargeLanguageModelHandler implements ReExecutePreviousHandlers {
     private files: string[] | null = null
     private index = 0
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         if (this.files == null) {
             this.files = []
             getRelevantFilesRec(context.getProjectPath(), this.files, context.getByType(FileFilteringContext))
         }
         let f = this.files[this.index]
-        f=path.relative(context.getProjectPath(),f)
+        f = path.relative(context.getProjectPath(), f)
         let content1 = fs.readFileSync(path.resolve(context.getProjectPath(), f), { encoding: "utf-8" })
         let message = f + "\n" + content1;
         this.index++;
         let messages: ChatMessage[] = [api.prepareMessage(message)]
-        let reply = await api.sendMessages(true)
-        messages.push(reply)
+
         return messages
 
 
 
     }
     shallReExecute(): boolean {
-        if(this.files==null)return true;
+        if (this.files == null) return true;
         return this.index < this.files!.length;
-    
+
+    }
+}
+
+export class DirectoryBasedFilesHandler extends LargeLanguageModelHandler implements ReExecutePreviousHandlers{
+    private allFiles: string[] | null = null
+    private baseDirFileMap: { [key: string]: string[] } = {}
+    private baseDirs: string[] = []
+    private index = 0
+    shallReExecute(): boolean {
+        return this.index < this.baseDirs.length;
+    }
+    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+        if (this.allFiles == null) {
+            this.allFiles = []
+            getRelevantFilesRec(context.getProjectPath(), this.allFiles, context.getByType(FileFilteringContext))
+            for (let file of this.allFiles) {
+                let dir = path.dirname(file)
+                if (this.baseDirFileMap[dir] == null) {
+                    this.baseDirFileMap[dir] = []
+
+                }
+                this.baseDirFileMap[dir].push(file)
+
+            }
+            this.baseDirs = Object.keys(this.baseDirFileMap)
+        }
+        let currBaseDir = this.baseDirs[this.index]
+        let paths = this.baseDirFileMap[currBaseDir]
+        let message = ""
+        for (let p of paths) {
+            let name = path.relative(context.getProjectPath(), p)
+            let content = fs.readFileSync(p, { encoding: "utf-8" })
+            message += "//" + name + "\n" + content + "\n"
+        }
+        this.index++;
+        return Promise.resolve([api.prepareMessage(message)])
     }
 }
 export class SendAndClearHandler extends LargeLanguageModelHandler {
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         return api.sendMessages(true).then((x) => {
             return [x]
         })
     }
 }
 export class SendHandler extends LargeLanguageModelHandler {
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         return api.sendMessages(false).then((x) => {
             return [x]
         })
@@ -203,7 +202,7 @@ export class RandomIterationsDecider implements RandomDecider {
 }
 export class RepeatInstructionRandomlyHandler extends SimpleInstructionHandler {
     private decider: RandomDecider = new RandomIterationsDecider({ minIterations: 1, maxIterations: 5 })
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let results: ChatMessage[] = []
         while (this.decider.decide(context)) {
             let res = await super.handle(context, api, templateResolver)

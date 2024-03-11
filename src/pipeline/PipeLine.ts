@@ -31,13 +31,14 @@ export class PipeLine {
         let requiredContextNames = new Set<string>();
 
         let createdContextNames = new Set<string>();
+        let pipeLineSteps=Object.values(PipeLineStep)
         for (let i = 0; i < NumberPipeLineSteps; i++) {
             if (this.stepHandlerList[i] != null) {
-                this.stepHandlerList[i].addAditionalContextRequirementNames(PipeLineStep[i], requiredContextNames)
+                this.stepHandlerList[i].addAditionalContextRequirementNames(pipeLineSteps[i], requiredContextNames)
                 if (difference(requiredContextNames, createdContextNames).size > 0) {
                     return false;
                 }
-                this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i], createdContextNames)
+                this.stepHandlerList[i].addCreatedContextNames(pipeLineSteps[i], createdContextNames)
             }
 
         }
@@ -47,17 +48,18 @@ export class PipeLine {
         if (!this.checkPipeLine()) {
             throw new Error("Pipeline is not correct")
         }
+        let pipeLineSteps=Object.values(PipeLineStep)
         for (let i = 0; i < NumberPipeLineSteps; i++) {
             if (this.stepHandlerList[i] != null) {
                 let createdContextNames = context.getContextNames();
                 let addedContextNames = new Set<string>()
                 this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i], addedContextNames)
-                if (difference(addedContextNames, createdContextNames).size == 0) {
+                if (difference(createdContextNames,addedContextNames).size == 0) {
                     //No new context data is added so we can skip    
                     continue;
                 }
                 let startTime = Date.now();
-                context = await this.stepHandlerList[i].handle(context, null);
+                context = await this.stepHandlerList[i].handle(pipeLineSteps[i],context, null);
                 this.stepRunningTimes[i] = Date.now() - startTime;
                 context.serialize(getContextSerializationPath(i))
             }

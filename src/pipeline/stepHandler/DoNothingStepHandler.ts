@@ -3,7 +3,7 @@ import { PipeLineStep,PipeLineStepType } from "../PipeLineStep";
 import { AbstractStepHandler } from "./AbstractStepHandler";
 
 export class DoNothingStepHandler extends AbstractStepHandler {
-    handle(context: DataClumpRefactoringContext, params:any) {
+    handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params:any) {
         return Promise.resolve(context);
     }
     getExecutableSteps(): PipeLineStepType[] {

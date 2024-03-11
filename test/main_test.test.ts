@@ -6,6 +6,7 @@ import { DataClumpOccurenceFilter } from "../src/pipeline/stepHandler/dataClumpF
 import { getRelevantFilesRec } from "../src/util/Utils";
 import { NoAbstractClassOrInterfaceFilter } from "../src/util/filterUtils/NoAbstractClassOrInterfaceFilter";
 import { DataClumpFilterStepHandler } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
+import { PipeLineStep } from "../src/pipeline/PipeLineStep";
 
 test("hello",()=>{
     expect(5).toBe(5);
@@ -32,7 +33,7 @@ test("Test interfaces excluding",async() =>{
     (handler as any).filter=filter;
     let astContext=ASTBuildingContext.fromAstType(AST_DATA);
     let context=astContext.buildNewContext(new DataClumpDetectorContext(DATA_CLUMP_DATA))
-    let result=await handler.handle(context,undefined) as DataClumpDetectorContext
+    let result=await handler.handle(PipeLineStep.DataClumpDetection,context,undefined) as DataClumpDetectorContext
     let dc=Object.values(result.dataClumpDetectionResult)
    let anyInterface= dc.some((it)=>it.from_class_or_interface_name=="DaysCalculator" || it.to_class_or_interface_name=="DaysCalculator" 
    || it.from_class_or_interface_name=="AgeChecker" || it.to_class_or_interface_name=="AgeChecker" )

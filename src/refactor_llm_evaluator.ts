@@ -9,6 +9,7 @@ import { ChatMessage } from "./util/languageModel/LanguageModelInterface";
 import { DataClumpDoctorASTGeneratorStep } from "./pipeline/stepHandler/astGeneration/DataClumpDoctorASTGeratorStep";
 import { AST_Class, AST_Type } from "./context/AST_Type";
 import { GradleBuildValidationStepHandler } from "./pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
+import { PipeLineStep } from "./pipeline/PipeLineStep";
 
 
 
@@ -72,7 +73,7 @@ async function evaluateData(paths: string[]) {
         if (!breakingErrorDetected) {
             console.log("written")
             let astGenerator = new DataClumpDoctorASTGeneratorStep(outPath);
-            let compareContext = await astGenerator.handle(new CodeObtainingContext(baseFolder), null)
+            let compareContext = await astGenerator.handle(PipeLineStep.ASTGeneration,new CodeObtainingContext(baseFolder), null)
             console.log("created AST")
             let comparisonResult = compareAllASTOutputsWithGroundTruth(compareContext as ASTBuildingContext, groundTtruthContext);
             console.log("compared")
@@ -84,7 +85,7 @@ async function evaluateData(paths: string[]) {
 
             waitSync(1000)
             let validator = new GradleBuildValidationStepHandler();
-            let result = await validator.handle(compareContext, null) as ValidationContext
+            let result = await validator.handle(PipeLineStep.Validation,compareContext, null) as ValidationContext
             evalResult["reachedPoints"] += (result.validationResult.success ? comparisonResult.counter : 0)
             evalResult["allPoints"] += comparisonResult.allCounter
             evalResult["percentage"] = 100 * evalResult["reachedPoints"] / evalResult["allPoints"]

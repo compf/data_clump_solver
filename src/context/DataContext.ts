@@ -271,8 +271,15 @@ export class UsageFindingContext extends DataClumpRefactoringContext {
  
 }
 export class RefactoredContext extends DataClumpRefactoringContext {
-    constructor(refactoredCode: string) {
+    private returnedCode:{[key:string]:string}={}
+    constructor() {
         super();
+    }
+    public setReturnedCode(key: string, code: string) {
+        this.returnedCode[key] = code
+    }
+    public getReturnedCode(key: string): string {
+        return this.returnedCode[key]
     }
   
 
@@ -292,4 +299,55 @@ export class ValidationContext extends DataClumpRefactoringContext {
 export const MandatoryContextNames=[CodeObtainingContext.name,RefactoredContext.name]
 
 
-
+export function createDataClumpsTypeContext(data_clumps: Dictionary<DataClumpTypeContext>,context?:DataClumpRefactoringContext): DataClumpsTypeContext {
+    return {
+        
+            "report_version": "unknown",
+            "report_timestamp": new Date().toISOString(),
+            "target_language": "java",
+            "report_summary": {
+              "additional": null,
+              "amount_classes_or_interfaces_with_data_clumps": 6,
+              "amount_files_with_data_clumps":0,
+              "amount_methods_with_data_clumps": 0,
+              "fields_to_fields_data_clump": 0,
+              "parameters_to_fields_data_clump": 0,
+              "parameters_to_parameters_data_clump": 6,
+              "amount_data_clumps": 0
+            },
+            "project_info": {
+              "project_url": "git@github.com:compf/javaTest",
+              "project_name": "unknown_project_name",
+              "project_version": "1",
+              "project_commit_hash": "unknown",
+              "project_tag": null,
+              "project_commit_date": null,
+              "additional": {},
+              "number_of_files": 11,
+              "number_of_classes_or_interfaces": 13,
+              "number_of_methods": 48,
+              "number_of_data_fields": 32,
+              "number_of_method_parameters": 47
+            },
+            "detector": {
+              "name": "data-clumps-doctor",
+              "url": "https://github.com/NilsBaumgartner1994/data-clumps-doctor",
+              "version": "unknown",
+              "options": {
+                "typeVariablesConsidered": false,
+                "similarityModifierOfVariablesWithUnknownType": 0,
+                "fieldsOfClassesWithUnknownHierarchyProbabilityModifier": 0,
+                "sharedFieldsToFieldsAmountMinimum": 3,
+                "analyseFieldsInClassesOrInterfacesInheritedFromSuperClassesOrInterfaces": false,
+                "sharedParametersToParametersAmountMinimum": 3,
+                "sharedParametersToFieldsAmountMinimum": 3,
+                "methodsOfClassesOrInterfacesWithUnknownHierarchyProbabilityModifier": 0
+              }
+            },
+            "data_clumps": data_clumps
+           
+            
+          
+        
+    }
+}

@@ -26,8 +26,7 @@ async function main(){
     /*let result=analyser.analyse(null).then((x)=>{
         console.log("finnish")
     })*/
-    let detector=resolveFromName(PipeLineStep.DataClumpDetection.name)
-    console.log((detector))
+
     await PipeLine.Instance.executeAllSteps( context)
     console.log("program finished")
     process.exit(0)

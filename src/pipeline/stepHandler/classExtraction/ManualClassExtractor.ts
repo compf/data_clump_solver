@@ -38,7 +38,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
         this.savedClassPaths.set(className,join(basePath,className+"."+this.getExtension()))
         return join(basePath,className+"."+this.getExtension())
     }
-    override handle(context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
+    override handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
         let detectorContext=context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext;
         let nameFindingContext=context.getByType(NameFindingContext) as NameFindingContext;
         let newContext=new ClassExtractionContext();

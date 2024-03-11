@@ -9,6 +9,7 @@ import { GradleBuildValidationStepHandler } from './pipeline/stepHandler/validat
 import { CodeObtainingContext, DataClumpDetectorContext } from './context/DataContext';
 import { DataClumpsTypeContext } from 'data-clumps-type-context/ignoreCoverage/DataClumpsTypeContext';
 import { DataClumpDetectorStep } from './pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep';
+import { PipeLineStep } from './pipeline/PipeLineStep';
 let projects = JSON.parse(fs.readFileSync("github_projects_structured.json", "utf-8"));
 type DataClumpReportStats = {
     amount_data_clumps: number | null;
@@ -58,7 +59,7 @@ async function main() {
             let buildSystem = getBuildSystem();
             let compileResult = await doesCompile(buildSystem);
             let detector = new DataClumpDetectorStep({});
-            let dataClumps = await detector.handle(obtainingContext, null) as DataClumpDetectorContext
+            let dataClumps = await detector.handle(PipeLineStep.Validation, obtainingContext, null) as DataClumpDetectorContext
             dataClumps.allDataClumpDetectionResult.report_summary
             result[project] = {
                 "pullRequestUpdateTime": pullRequestUpdateTime.toISOString(), "lines": lines, "buildSystem": buildSystem,

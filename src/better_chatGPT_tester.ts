@@ -7,12 +7,14 @@ import { ChatGPTInterface } from "./util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "./util/languageModel/LanguageModelTemplateResolver";
 import { loadConfiguration, registerFromName, resolveFromName } from "./config/Configuration";
 import { PipeLine } from "./pipeline/PipeLine";
-import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext } from "./context/DataContext";
-import { DetectAndRefactorWithLanguageModelStep, LargeLanguageModelDetectorContext } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
-import { AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
-import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
+import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "./context/DataContext";
+import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
+import {  AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { ChatMessage, LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
 import { PhindraInterface } from "./util/languageModel/PhindraInterface";
 import { waitSync } from "./util/Utils";
+import { PipeLineStep } from "./pipeline/PipeLineStep";
+import { Chat } from "openai/resources/index.mjs";
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
@@ -82,7 +84,7 @@ async function main() {
                                 let context=codeObtainingContext.buildNewContext(new FileFilteringContext([dFormat=="source"?"*.java":"*.json"],[]))
                                 let startTimestamp = Date.now()
                                 console.log("STARTING")
-                                let newContext=await( langRefactorer.handle(context,null)) as LargeLanguageModelDetectorContext
+                                let newContext=await( langRefactorer.handle(PipeLineStep.DataClumpDetection, context,null)) as (DataClumpDetectorContext & {chat:ChatMessage[]})
                                 let elapsed = Date.now() - startTimestamp
                                 console.log("FINISHED")
                                 let inputOnly = newContext.chat.filter((x) => x.messageType == "input")

@@ -8,7 +8,7 @@ type SimpleCodeObtainingStepHandlerParams={
 }
 export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
     private path: string;
-    handle(context: DataClumpRefactoringContext, params:any): Promise<DataClumpRefactoringContext> {
+    handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params:any): Promise<DataClumpRefactoringContext> {
         return Promise.resolve(context.buildNewContext(new CodeObtainingContext(this.path)))
     }
     getExecutableSteps(): PipeLineStepType[] {

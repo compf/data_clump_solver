@@ -5,14 +5,9 @@ import fs from "fs"
 import { resolve } from "path";
 import { spawnSync } from "child_process"
 
-import {parse,BaseJavaCstVisitorWithDefaults, MethodHeaderCtx} from "java-parser"
-class MyVisitor extends BaseJavaCstVisitorWithDefaults{
- methodHeader(ctx: MethodHeaderCtx, param?: any) {
-     console.log(ctx.methodDeclarator)
- }
-}
+
 export class RedcliffManualRefactoringStep extends AbstractStepHandler{
-    handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+    handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const usageContextPath=context.getByType<UsageFindingContext>(UsageFindingContext)?.getSerializationPath();
         const projectPath=context.getProjectPath()
         /*

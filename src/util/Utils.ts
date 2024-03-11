@@ -66,3 +66,10 @@ export function compareTo(a:number,b:number){
     }
     return -1
 }
+export function tryParseJSON(jsonString:string){
+    try{
+        return JSON.parse(jsonString)
+    }catch(e){
+        return null
+    }
+}

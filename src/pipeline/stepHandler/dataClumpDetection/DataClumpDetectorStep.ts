@@ -10,7 +10,7 @@ import { getContextSerializationPath } from "../../../config/Configuration";
 import { AST } from "minimatch";
 export class DataClumpDetectorStep extends AbstractStepHandler {
     private detectorArgs:any;
-    async handle(context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+    async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let project_path = context.getProjectPath();
         console.log("Project path", project_path)
         const ast_out_path = resolve("./temp")
