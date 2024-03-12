@@ -16,17 +16,20 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     }
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         
-        let detectionContext = context.getByType(DataClumpDetectorContext)
-        let values = Object.values(detectionContext!.dataClumpDetectionResult);
-        let newContext = context.buildNewContext( new DataClumpDetectorContext(JSON.parse(JSON.stringify(detectionContext!.allDataClumpDetectionResult)))) as DataClumpDetectorContext
+        let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
+        if(detectionContext.isFiltered() && this.doNothingIfFiltered){
+            return context
+        }
+        let values = Object.values(detectionContext!.getDataClumpDetectionResult().data_clumps);
+        detectionContext.cloneLastItem()
         if(this.filter){
             if(!this.filter.isCompatibleWithDataClump()){
                 throw new Error("filter is not compatible with data clump")
             }
             for (let dc of values) {
-                let shallRemain = await this.filter!.shallRemain(dc, newContext)
+                let shallRemain = await this.filter!.shallRemain(dc, detectionContext)
                 if (!shallRemain) {
-                    newContext.deleteEntry(dc.key)
+                    detectionContext.deleteEntry(dc.key)
                 }
             }
         }
@@ -35,20 +38,21 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
             if(!this.ranker.isCompatibleWithDataClump()){
                 throw new Error("ranker is not compatible with data clump")
             }
-            values = await this.rankSampler.rank(this.ranker!, values, newContext) as DataClumpTypeContext[]
+            values = await this.rankSampler.rank(this.ranker!, values, detectionContext) as DataClumpTypeContext[]
+            detectionContext.setDataClumpDetectionResult(values)
         }
 
         
-        return context.buildNewContext(newContext)
+        return detectionContext
     }
     private filter: SingleItemFilter | null = null
     private ranker: Ranker | null = null
-
+    private doNothingIfFiltered:boolean=true;
     private rankSampler: RankSampler;
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.DataClumpFiltering]
     }
-    constructor(args: { filterName?: string, rankerName?: string, rankThreshold?: number, sign?: number }) {
+    constructor(args: { filterName?: string, rankerName?: string, rankThreshold?: number, sign?: number,doNothingIfFiltered?:boolean }) {
         super()
         this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign })
         if (args.rankerName) {
@@ -57,6 +61,9 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
 
         if (args.filterName) {
             this.filter = resolveFromName(args.filterName)
+        }
+        if(args.doNothingIfFiltered!=undefined){
+            this.doNothingIfFiltered=args.doNothingIfFiltered
         }
     }
 

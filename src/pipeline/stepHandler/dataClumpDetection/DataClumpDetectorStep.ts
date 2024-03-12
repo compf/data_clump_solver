@@ -34,9 +34,17 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
             (newContext as ASTBuildingContext).load(resolve(ast_out_path,p))
         }
         newContext=newContext.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
-        fs.copyFileSync(output_path, newContext.getSerializationPath(getContextSerializationPath(Object.keys(PipeLineStep).indexOf(PipeLineStep.DataClumpDetection.name))))
+        fs.copyFileSync(output_path, getContextSerializationPath(PipeLineStep.DataClumpDetection.name,context)!)
         return newContext
 
+    }
+    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
+        let path=getContextSerializationPath(PipeLineStep.DataClumpDetection.name,context)
+        if(fs.existsSync(path)){
+            let data=JSON.parse(fs.readFileSync (path,{encoding:"utf-8"}))
+            return context.buildNewContext( DataClumpDetectorContext.fromArray(data as DataClumpsTypeContext[]))
+        }
+        return null
     }
     applyIncludeExclude(context: DataClumpRefactoringContext, jarPath: string) {
         let filtering_context = context.getByType(FileFilteringContext)

@@ -60,11 +60,11 @@ async function main() {
             let compileResult = await doesCompile(buildSystem);
             let detector = new DataClumpDetectorStep({});
             let dataClumps = await detector.handle(PipeLineStep.Validation, obtainingContext, null) as DataClumpDetectorContext
-            dataClumps.allDataClumpDetectionResult.report_summary
+            dataClumps.getDataClumpDetectionResult().report_summary
             result[project] = {
                 "pullRequestUpdateTime": pullRequestUpdateTime.toISOString(), "lines": lines, "buildSystem": buildSystem,
                 "compilingResult": compileResult.success,
-                "dataClumps": dataClumps.allDataClumpDetectionResult.report_summary
+                "dataClumps": dataClumps.getDataClumpDetectionResult().report_summary
             };
             console.log(result[project]);
             fs.rmSync("cloned_projects", { recursive: true });

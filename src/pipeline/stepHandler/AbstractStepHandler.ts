@@ -15,5 +15,7 @@ export abstract class AbstractStepHandler {
 
    }
    abstract addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void
-
+   deserializeExistingContext(context: DataClumpRefactoringContext,step:PipeLineStepType): DataClumpRefactoringContext|null {
+      return null
+   }
 }

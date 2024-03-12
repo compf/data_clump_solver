@@ -1,6 +1,7 @@
 import { ContainerBuilder } from "node-dependency-injection"
 import { AbstractStepHandler } from "../pipeline/stepHandler/AbstractStepHandler"
 import fs from "fs"
+import { resolve } from "path"
 import { PipeLineStep } from "../pipeline/PipeLineStep"
 import { PipeLine } from "../pipeline/PipeLine"
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext"
@@ -49,6 +50,8 @@ const nameScriptFileMap={
     SendHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     PairOfFileContentHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     LanguageModelTemplateResolver:"../util/languageModel/LanguageModelTemplateResolver.js",
+    RandomRanker:"../util/filterUtils/RandomRanker.js",
+    DataClumpFilterStepHandler:pathPrefix+"dataClumpFiltering/DataClumpFilterStepHandler.js",
     
 }
 const container=new ContainerBuilder();
@@ -63,15 +66,32 @@ export function registerFromName(typeName:string,refName:string,args:any){
 export function resolveFromName(dependencyCategory:string):any{
     return container.get(dependencyCategory) 
 }
-const contextSerializationPathMap=new Map<number,string>()
-export function getContextSerializationPath(index:number):string|undefined{
-    return contextSerializationPathMap.get(index)
+export function getContextSerializationPath(name:string,context:DataClumpRefactoringContext):string{
+    let result="other.json"
+    switch(name){
+        case PipeLineStep.DataClumpDetection.name:
+        case PipeLineStep.DataClumpFiltering.name:
+            result= "dataClumpDetectorContext.json";break;
+        case PipeLineStep.NameFinding.name:
+            result= "nameFindingContext.json";break;
+
+        case PipeLineStep.ClassExtraction.name:
+            result= "classExtractionContext.json";break;
+        case PipeLineStep.ReferenceFinding.name:
+            result= "usageFindinContextContext.json";break;
+    
+    }
+    if(fs.existsSync(resolve(context.getProjectPath(),".data_clump_solver_data/"))){
+        return resolve(context.getProjectPath(),".data_clump_solver_data/",result)
+    }
+    else{
+        return "data/"+result
+    }
 }
 export function processConfiguration(config:Configuration){
     // register as objects
     for(let step of Object.keys(PipeLineStep)){
         if(config.PipeLine[step] && config.PipeLine[step].handler){
-            contextSerializationPathMap.set( Object.keys(PipeLineStep).indexOf(step),config.PipeLine[step].contextSerializationPath)
             registerFromName(config.PipeLine[step].handler,step,config.PipeLine[step].args)
            
         }

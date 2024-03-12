@@ -58,10 +58,18 @@ export class PipeLine {
                     //No new context data is added so we can skip    
                     continue;
                 }
-                let startTime = Date.now();
-                context = await this.stepHandlerList[i].handle(pipeLineSteps[i],context, null);
-                this.stepRunningTimes[pipeLineSteps[i].name] = Date.now() - startTime;
-                context.serialize(getContextSerializationPath(i))
+                let deserializedContext=this.stepHandlerList[i].deserializeExistingContext(context,pipeLineSteps[i])
+                if(deserializedContext==null){
+                    let startTime = Date.now();
+                    context = await this.stepHandlerList[i].handle(pipeLineSteps[i],context, null);
+                    this.stepRunningTimes[pipeLineSteps[i].name] = Date.now() - startTime;
+                    context.serialize(getContextSerializationPath(pipeLineSteps[i].name,context))
+                }
+                else{
+                    context=context.buildNewContext(deserializedContext);
+                
+                }
+                
             }
         }
         let finalContext= context.buildNewContext(new EvaluationContext(this.stepRunningTimes))

@@ -10,7 +10,7 @@
         },
         "SimpleInstructionHandler": {
             "args": {
-                "instructionPath": "chatGPT_templates/detectAndRefactor/noDefinitionBased/fromScratch/instruction.template"
+                "instructionPath": "chatGPT_templates/detect/noDefinitionBased/source/instruction.template"
             }
         },
         "AllFilesHandler": {},
@@ -24,6 +24,9 @@
             "%{refactor_instruction}": "chatGPT_templates/refactor_data_clump_fully.template",
             "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json"
         }
+    },
+    "RandomRanker":{
+        "type":"RandomRanker"
     }
 },
 
@@ -35,7 +38,7 @@
             "useArgPath": true
         }
     },
-    "Refactoring": {
+    "DataClumpDetection": {
         "handler": "LanguageModelDetectOrRefactorHandler",
         "args": {
             "handlers": [
@@ -44,6 +47,23 @@
                 "SendAndClearHandler"
             ]
         }
-    }
+    },
+    "DataClumpFiltering":{
+        "handler":"DataClumpFilterStepHandler",
+        "args":{
+           "rankerName":"RandomRanker",
+           "rankThreshold":1
+        }
+    },
+    "Refactoring": {
+        "handler": "DoNothingStepHandler",
+        "args": {
+            "handlers": [
+                "SimpleInstructionHandler",
+                "AllFilesHandler",
+                "SendAndClearHandler"
+            ]
+        }
+}
 }
 }

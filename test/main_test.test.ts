@@ -34,7 +34,7 @@ test("Test interfaces excluding",async() =>{
     let astContext=ASTBuildingContext.fromAstType(AST_DATA);
     let context=astContext.buildNewContext(new DataClumpDetectorContext(DATA_CLUMP_DATA))
     let result=await handler.handle(PipeLineStep.DataClumpDetection,context,undefined) as DataClumpDetectorContext
-    let dc=Object.values(result.dataClumpDetectionResult)
+    let dc=Object.values(result.getDataClumpDetectionResult().data_clumps)
    let anyInterface= dc.some((it)=>it.from_class_or_interface_name=="DaysCalculator" || it.to_class_or_interface_name=="DaysCalculator" 
    || it.from_class_or_interface_name=="AgeChecker" || it.to_class_or_interface_name=="AgeChecker" )
    expect(anyInterface).toBeFalsy();

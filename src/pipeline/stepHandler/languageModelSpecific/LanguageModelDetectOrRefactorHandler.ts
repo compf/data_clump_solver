@@ -8,7 +8,7 @@ import fs from "fs"
 import { files } from "node-dir"
 import path from "path";
 import { resolve } from "path"
-import { registerFromName, resolveFromName } from "../../../config/Configuration";
+import { getContextSerializationPath, registerFromName, resolveFromName } from "../../../config/Configuration";
 import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } from "../../../util/languageModel/LanguageModelInterface";
 import { PipeLine } from "../../PipeLine";
@@ -22,7 +22,14 @@ function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHa
 export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: LanguageModelInterface | null = null
-
+    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
+        let path=getContextSerializationPath(PipeLineStep.DataClumpDetection.name,context)
+        if( step== PipeLineStep.DataClumpDetection && fs.existsSync(path)){
+            let data=JSON.parse(fs.readFileSync (path,{encoding:"utf-8"}))
+            return context.buildNewContext( DataClumpDetectorContext.fromArray(data as DataClumpsTypeContext[]))
+        }
+        return null
+    }
     async handle(step:PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let api: LanguageModelInterface;
         if (this.providedApi != null) {
@@ -54,7 +61,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     }
     createFittingContext(chat: ChatMessage[], step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext {
 
-        let resultContext =step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext();
+        let resultContext:DataClumpRefactoringContext = step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext();
+        resultContext=context.buildNewContext(resultContext);
         (resultContext as any).chat = chat
         for (let c of chat) {
             if (c.messageType == "output") {
@@ -74,7 +82,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                         }
                     }
                     else if (step == PipeLineStep.DataClumpDetection) {
-                        let data_clumps_type_context = (resultContext as DataClumpDetectorContext).dataClumpDetectionResult
+                        let data_clumps_type_context = (resultContext as DataClumpDetectorContext).getDataClumpDetectionResult()
                         for (let key in json.data_clumps) {
                             let newKey = key
                             if (key in data_clumps_type_context.data_clumps) {

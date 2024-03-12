@@ -168,27 +168,51 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
     }
 }
 export class DataClumpDetectorContext extends DataClumpRefactoringContext {
-    dataClumpDetectionResult: Dictionary<DataClumpTypeContext>
-    allDataClumpDetectionResult: DataClumpsTypeContext
-    getDataClumpDetectionResult(): Dictionary<DataClumpTypeContext> {
-        return this.dataClumpDetectionResult
+    setDataClumpDetectionResult(values: DataClumpTypeContext[]) {
+       this.currDataClumpDetectionResult.data_clumps={}
+        for (let value of values) {
+            this.currDataClumpDetectionResult.data_clumps[value.key] = value
+        }
+        
+    }
+    isFiltered() {
+        return this.allDataClumpDetectionResult.length > 1
+    }
+    static fromArray(data: DataClumpsTypeContext[]): DataClumpDetectorContext {
+        let result= new DataClumpDetectorContext({} as any);
+        result.allDataClumpDetectionResult = data
+        result.currDataClumpDetectionResult = data[data.length - 1]
+        return result
+    }
+    private currDataClumpDetectionResult:  DataClumpsTypeContext
+    private allDataClumpDetectionResult: DataClumpsTypeContext[]
+    getDataClumpDetectionResult(): DataClumpsTypeContext {
+        return this.currDataClumpDetectionResult
     }
     getDataClumpTypeContext(key: string): DataClumpTypeContext {
-        return this.dataClumpDetectionResult[key]!
+        return this.currDataClumpDetectionResult.data_clumps[key]!
     }
     getDataClumpKeys(): Iterable<string> {
-        return Object.keys(this.dataClumpDetectionResult);
+        return Object.keys(this.currDataClumpDetectionResult.data_clumps);
     }
-    getPosition(): number {
-        return 3;
-    }
+
     deleteEntry(key: string) {
-        delete this.dataClumpDetectionResult[key]
+        delete this.currDataClumpDetectionResult[key]
+    }
+    serialize(path?: string | undefined): void {
+        const usedPath=this.getSerializationPath(path)
+        fs.writeFileSync(usedPath, JSON.stringify(this.allDataClumpDetectionResult))
     }
     constructor(dataClumpDetectionResult: DataClumpsTypeContext) {
         super();
-        this.allDataClumpDetectionResult = dataClumpDetectionResult
-        this.dataClumpDetectionResult = dataClumpDetectionResult.data_clumps
+        this.allDataClumpDetectionResult = [dataClumpDetectionResult]
+        this.currDataClumpDetectionResult = dataClumpDetectionResult
+    }
+    cloneLastItem(){
+        let cloned=JSON.parse(JSON.stringify(this.currDataClumpDetectionResult))
+        this.allDataClumpDetectionResult.push(cloned)
+        this.currDataClumpDetectionResult=cloned
+        return cloned;
     }
     getDefaultSerializationPath(): string {
         return resolve("data", "dataClumpDetectorContext.json")
