@@ -8,7 +8,7 @@ import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "./util
 import { loadConfiguration, registerFromName, resolveFromName } from "./config/Configuration";
 import { PipeLine } from "./pipeline/PipeLine";
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "./context/DataContext";
-import { DetectAndRefactorWithLanguageModelStep } from "./pipeline/stepHandler/languageModelSpecific/DetectAndRefactorWithLanguageModelStep";
+import { LanguageModelDetectOrRefactorHandler } from "./pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
 import {  AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { ChatMessage, LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
 import { PhindraInterface } from "./util/languageModel/PhindraInterface";
@@ -80,7 +80,7 @@ async function main() {
 
                                 const api=createAPI(apiType,model,temperature)
                                 
-                                let langRefactorer=DetectAndRefactorWithLanguageModelStep.createFromCreatedHandlers(handlers.handlers,api)
+                                let langRefactorer=LanguageModelDetectOrRefactorHandler.createFromCreatedHandlers(handlers.handlers,api)
                                 let context=codeObtainingContext.buildNewContext(new FileFilteringContext([dFormat=="source"?"*.java":"*.json"],[]))
                                 let startTimestamp = Date.now()
                                 console.log("STARTING")

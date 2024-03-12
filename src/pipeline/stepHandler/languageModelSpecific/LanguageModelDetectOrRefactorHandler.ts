@@ -19,7 +19,7 @@ function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHa
     // replace 'property' with a unique property of ReExecutePreviousHandlers
     return 'shallReExecute' in object;
 }
-export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler {
+export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: LanguageModelInterface | null = null
 
@@ -54,7 +54,8 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
     }
     createFittingContext(chat: ChatMessage[], step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext {
 
-        let resultContext =step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext()
+        let resultContext =step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext();
+        (resultContext as any).chat = chat
         for (let c of chat) {
             if (c.messageType == "output") {
                 for (let m of c.messages) {
@@ -103,8 +104,8 @@ export class DetectAndRefactorWithLanguageModelStep extends AbstractStepHandler 
         }
         return content
     }
-    static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: LanguageModelInterface): DetectAndRefactorWithLanguageModelStep {
-        let step = new DetectAndRefactorWithLanguageModelStep({ handlers: [] })
+    static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: LanguageModelInterface): LanguageModelDetectOrRefactorHandler {
+        let step = new LanguageModelDetectOrRefactorHandler({ handlers: [] })
         step.handlers = handlers
         step.providedApi = api
         return step

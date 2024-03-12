@@ -41,7 +41,7 @@ const nameScriptFileMap={
     GeorgeFraserRefactoring:"../util/languageServer/GeorgeFraserLSP_API.js",
     EclipseLSP_API:"../util/languageServer/EclipseLSP_API.js",
     RedcliffManualRefactoringStep:pathPrefix+"refactoring/RedcliffManualRefactoringStep.js",
-    DetectAndRefactorWithLanguageModelStep:pathPrefix+"languageModelSpecific/DetectAndRefactorWithLanguageModelStep.js",
+    LanguageModelDetectOrRefactorHandler:pathPrefix+"languageModelSpecific/LanguageModelDetectOrRefactorHandler.js",
     SimpleInstructionHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     AllFilesHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
     SendAndClearHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
