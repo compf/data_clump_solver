@@ -2,9 +2,23 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
 import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
-
+import { getContextSerializationPath } from "../../../config/Configuration";
+import fs from "fs"
 export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler {
-
+    useExistingNames: boolean=true;
+    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
+        if(step==PipeLineStep.ReferenceFinding && this.useExistingNames){
+            if(fs.existsSync(getContextSerializationPath(step.name,context))){
+                let data=JSON.parse(fs.readFileSync(getContextSerializationPath(step.name,context)).toString())
+                let newContext= context.buildNewContext(new NameFindingContext()) as NameFindingContext
+                for(let key of Object.keys(data)){
+                    newContext.setNameKeyPair(data[key],key)
+                    
+                }
+            }
+        }
+        return null;
+    }
    async  handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
        
 
@@ -44,6 +58,12 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
 
         
 
+    }
+    constructor(args:any){
+        super();
+        if(args.useExistingNames!=undefined){
+            this.useExistingNames=args.useExistingNames
+        }
     }
     getQueryKey(identifiers: string[]):string {
         return identifiers.join(", ");

@@ -7,9 +7,10 @@ import { DefinitionParams, InitializeParams, ReferenceParams } from "ts-lsp-clie
 import { resolve,relative } from "path"
 import { MyCapabilities } from "../../../util/languageServer/capabilities";
 import { readFileSync } from "fs"
+import fs from "fs"
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
 import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
-import { registerFromName, resolveFromName } from "../../../config/Configuration";
+import { getContextSerializationPath, registerFromName, resolveFromName } from "../../../config/Configuration";
 import { DataClumpTypeContext, Position } from "data-clumps-type-context";
 
 type LanguageServerReferenceAPIParams = {
@@ -21,16 +22,27 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     apiArgs: LanguageServerReferenceAPIParams
     globalCounter = 3
     balance = 0;
+    private useExistingReferences: boolean;
     visitedMethods: Set<string> = new Set();
     counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[],originKey:string,isParameter:boolean }> = new Map();
-    constructor(args: LanguageServerReferenceAPIParams) {
+    constructor(args: LanguageServerReferenceAPIParams & {useExistingReferences:boolean}) {
         super();
         registerFromName(args.apiName, "LanguageServerAPI", args.apiArgs)
         this.apiArgs = args;
+        this.useExistingReferences=args.useExistingReferences
     }
     nextCounterValue(): number {
         this.balance++;
         return this.globalCounter++;
+    }
+    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
+        if(step==PipeLineStep.ReferenceFinding && this.useExistingReferences){
+            if(fs.existsSync(getContextSerializationPath(step.name,context))){
+                let data=JSON.parse(fs.readFileSync(getContextSerializationPath(step.name,context)).toString())
+                return context.buildNewContext(new UsageFindingContext(data))
+            }
+        }
+        return null;
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(UsageFindingContext.name)

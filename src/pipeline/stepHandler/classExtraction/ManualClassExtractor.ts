@@ -28,6 +28,14 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     abstract createConstructor(className:string,types:string[],fieldNames:string[]):string;
     abstract createTail():string;
     abstract getExtension():string;
+    getWhitespaces(count:number):string{
+        const fourWhiteSpace="    "
+        let result=""
+        for(let i=0;i<count;i++){
+            result+=fourWhiteSpace
+        }
+        return result;
+    }
     override getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ClassExtraction]
     }
@@ -59,6 +67,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             }
             classBody+=this.createConstructor(suggestedName,types,fieldNames)
             classBody+=this.createTail();
+            classBody=classBody.replace("\t",this.getWhitespaces(1))
             let classPath=this.getClassLocation(context.getProjectPath(),suggestedName,detectorContext.getDataClumpTypeContext(dataClumpKey),this.locationProvider)
             if(!fs.existsSync(classPath)){
                 fs.writeFileSync(classPath,classBody)
