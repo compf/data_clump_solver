@@ -44,7 +44,7 @@ function loadAllClasses(){
             continue;
         }
         let relativized=relative(__dirname,path)
-        let content=require(relative(__dirname,path))
+        let content=require(relativized)
         for(let cls of Object.keys(content)){
             nameScriptFileMap[cls]=relativized
         }
