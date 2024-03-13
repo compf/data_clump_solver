@@ -128,8 +128,10 @@ async function main() {
     }
    
 }
+if( require.main === module){
+    main()
 
-main()
+}
 
 
 export function isInvalid(outputOnly:any) {

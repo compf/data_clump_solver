@@ -124,4 +124,6 @@ function countLines() {
     let results = JSON.parse(fs.readFileSync("cloc_results.json", "utf-8"));
     return { "java": results["Java"], "sum": results["SUM"], "percentage": 100 * results["Java"]["code"] / results["SUM"]["code"] };
 }
-main();
+if (require.main == module) {
+    main();
+}

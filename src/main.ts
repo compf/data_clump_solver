@@ -48,5 +48,8 @@ function handleArguments(args:string[]){
        return  loadConfiguration("./config.json")
     }
 }
-main();
+if(require.main === module){
+    main();
+
+}
 

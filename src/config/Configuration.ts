@@ -1,10 +1,11 @@
 import { ContainerBuilder } from "node-dependency-injection"
 import { AbstractStepHandler } from "../pipeline/stepHandler/AbstractStepHandler"
 import fs from "fs"
-import { resolve } from "path"
+import { resolve,relative } from "path"
 import { PipeLineStep } from "../pipeline/PipeLineStep"
 import { PipeLine } from "../pipeline/PipeLine"
-import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext"
+import { DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../context/DataContext"
+import { getRelevantFilesRec } from "../util/Utils"
 export type PipeLineStepConf={
     handler:string,
     contextSerializationPath?:string,
@@ -31,28 +32,25 @@ export type Configuration={
 const pathPrefix="../pipeline/stepHandler/"
 
 const nameScriptFileMap={
-    DoNothingStepHandler:pathPrefix+"DoNothingStepHandler.js",
-    SimpleCodeObtainingStepHandler:pathPrefix+"codeObtaining/SimpleCodeObtainingStepHandler.js",
-    DataClumpDetectorStep:pathPrefix+"dataClumpDetection/DataClumpDetectorStep.js",
-    TrivialNameFindingStep:pathPrefix+"nameFinding/TrivialNameFindingStep.js",
-    LanguageModelNameFindingsStep:pathPrefix+"nameFinding/LanguageModelNameFindingStep.js",
-    JavaManualClassExtractor:pathPrefix+"classExtraction/JavaManualClassExtractor.js",
-    LanguageServerReferenceAPI:pathPrefix+"referenceFinding/LanguageServerReferenceAPI.js",
-    ChatGPTInterface:"../util/languageModel/ChatGPTInterface.js",
-    GeorgeFraserRefactoring:"../util/languageServer/GeorgeFraserLSP_API.js",
-    EclipseLSP_API:"../util/languageServer/EclipseLSP_API.js",
-    RedcliffManualRefactoringStep:pathPrefix+"refactoring/RedcliffManualRefactoringStep.js",
-    LanguageModelDetectOrRefactorHandler:pathPrefix+"languageModelSpecific/LanguageModelDetectOrRefactorHandler.js",
-    SimpleInstructionHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    AllFilesHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    SendAndClearHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    RepeatInstructionRandomlyHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    SendHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    PairOfFileContentHandler:pathPrefix+"languageModelSpecific/LargeLanguageModelHandlers.js",
-    LanguageModelTemplateResolver:"../util/languageModel/LanguageModelTemplateResolver.js",
-    RandomRanker:"../util/filterUtils/RandomRanker.js",
-    DataClumpFilterStepHandler:pathPrefix+"dataClumpFiltering/DataClumpFilterStepHandler.js",
+  
     
+}
+function loadAllClasses(){
+    let paths:string[]=[]
+    let startTime=Date.now()
+    getRelevantFilesRec("dist/src",paths,new FileFilteringContext(["*.js"],["dist/src/data-clumps-doctor/**"]))
+    for(let path of paths){
+        if (path.endsWith("Configuration.js")){
+            continue;
+        }
+        let relativized=relative(__dirname,path)
+        let content=require(relative(__dirname,path))
+        for(let cls of Object.keys(content)){
+            nameScriptFileMap[cls]=relativized
+        }
+    }
+    console.log("Loaded all classes in "+(Date.now()-startTime)+"ms")
+
 }
 const container=new ContainerBuilder();
 export function registerFromName(typeName:string,refName:string,args:any){
@@ -126,5 +124,6 @@ export function loadConfiguration(path:string):DataClumpRefactoringContext{
     return initialContext
     
 }
+loadAllClasses()
 export const LanguageModelCategory="LanguageModel"
 
