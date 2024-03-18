@@ -26,7 +26,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
             let detectorContext=context.getByType(DataClumpDetectorContext)!!
             for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
 
-                let dataClump = detectorContext.getDataClumpDetectionResult()[dataClumpKey]!;
+                let dataClump = detectorContext.getDataClumpDetectionResult().data_clumps[dataClumpKey]!;
                 let names: string[] = []
                 console.log(dataClumpKey,"helloQ",dataClump)
                 for (let k of Object.keys(dataClump.data_clump_data)) {
@@ -61,7 +61,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
     }
     constructor(args:any){
         super();
-        if(args.useExistingNames!=undefined){
+        if( args!=undefined && args.useExistingNames!=undefined){
             this.useExistingNames=args.useExistingNames
         }
     }

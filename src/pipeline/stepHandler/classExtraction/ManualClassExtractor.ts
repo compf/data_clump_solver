@@ -53,7 +53,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
         for(let dataClumpKey of detectorContext.getDataClumpKeys()){
             let suggestedName=nameFindingContext.getNameByDataClumpKey(dataClumpKey);
             if(suggestedName==undefined)continue;
-            let dataClump=detectorContext.getDataClumpDetectionResult()[dataClumpKey]! as DataClumpTypeContext;
+            let dataClump=detectorContext.getDataClumpDetectionResult().data_clumps[dataClumpKey]! as DataClumpTypeContext;
             let classBody=this.createHead(suggestedName,dataClump,context.getProjectPath());
             let fieldNames:string[]=[]
             let types:string[]=[]

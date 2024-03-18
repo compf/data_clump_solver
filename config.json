@@ -14,56 +14,52 @@
             }
         },
         "AllFilesHandler": {},
-        "SendAndClearHandler": {}
-    ,
-    "LanguageModelTemplateResolver": {
-        "args": {
-            "${programming_language}": "Java",
-            "%{examples}": "chatGPT_templates/DataClumpExamples.java",
-            "%{output_format}": "chatGPT_templates/json_output_format.json",
-            "%{refactor_instruction}": "chatGPT_templates/refactor_data_clump_fully.template",
-            "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json"
+        "SendAndClearHandler": {},
+        "LanguageModelTemplateResolver": {
+            "args": {
+                "${programming_language}": "Java",
+                "%{examples}": "chatGPT_templates/DataClumpExamples.java",
+                "%{output_format}": "chatGPT_templates/json_output_format.json",
+                "%{refactor_instruction}": "chatGPT_templates/refactor_data_clump_fully.template",
+                "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json"
+            }
+        },
+        "RandomRanker": {
+            "type": "RandomRanker"
         }
     },
-    "RandomRanker":{
-        "type":"RandomRanker"
+    "PipeLine": {
+        "CodeObtaining": {
+            "handler": "SimpleCodeObtainingStepHandler",
+            "args": {
+                "path": null,
+                "useArgPath": true
+            }
+        },
+        "DataClumpDetection": {
+            "handler": "DataClumpDetectorStep",
+            "args": {
+                "handlers": [
+                    "SimpleInstructionHandler",
+                    "AllFilesHandler",
+                    "SendAndClearHandler"
+                ]
+            }
+        },
+        "ClassExtraction":{
+            "handler":"JavaManualClassExtractor"
+        },
+        "ReferenceFinding": {
+            "handler": "LanguageServerReferenceAPI",
+            "args": {
+                "apiName": "EclipseLSP_API"
+            }
+        },
+        "NameFinding": {
+            "handler": "TrivialNameFindingStep"
+        },
+        "Refactoring": {
+            "handler": "RedcliffManualRefactoringStep"
+        }
     }
-},
-
-"PipeLine": {
-    "CodeObtaining": {
-        "handler": "SimpleCodeObtainingStepHandler",
-        "args": {
-            "path": null,
-            "useArgPath": true
-        }
-    },
-    "DataClumpDetection": {
-        "handler": "LanguageModelDetectOrRefactorHandler",
-        "args": {
-            "handlers": [
-                "SimpleInstructionHandler",
-                "AllFilesHandler",
-                "SendAndClearHandler"
-            ]
-        }
-    },
-    "DataClumpFiltering":{
-        "handler":"DataClumpFilterStepHandler",
-        "args":{
-           "rankerName":"RandomRanker",
-           "rankThreshold":1
-        }
-    },
-    "Refactoring": {
-        "handler": "DoNothingStepHandler",
-        "args": {
-            "handlers": [
-                "SimpleInstructionHandler",
-                "AllFilesHandler",
-                "SendAndClearHandler"
-            ]
-        }
-}
-}
 }

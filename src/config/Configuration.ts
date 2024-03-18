@@ -76,7 +76,7 @@ export function getContextSerializationPath(name:string,context:DataClumpRefacto
         case PipeLineStep.ClassExtraction.name:
             result= "classExtractionContext.json";break;
         case PipeLineStep.ReferenceFinding.name:
-            result= "usageFindinContextContext.json";break;
+            result= "usageFindingContext.json";break;
     
     }
     if(fs.existsSync(resolve(context.getProjectPath(),".data_clump_solver_data/"))){

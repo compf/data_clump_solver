@@ -26,7 +26,7 @@ export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandle
 
 
     constructor(args: LanguageModelArgs) {
-        super()
+        super(args)
         this.args = args;
         registerFromName(args.languageModelName, LanguageModelCategory, args.languageModelArgs)
 
