@@ -16,6 +16,10 @@ export  class DataClumpRefactoringContext {
         context.sharedData = this.sharedData
         return context
     }
+    fail(message: string) {
+        throw new Error(message)
+
+    }
     getContextNames():Set<string>{
         let result=new Set<string>();
         let curr: DataClumpRefactoringContext = this;
@@ -36,9 +40,9 @@ export  class DataClumpRefactoringContext {
         return result;
     }
     setConfig(config: Configuration) {
-        this.sharedData.set("config",config )
+        this.sharedData["config"]=config 
     }
-    protected sharedData: Map<string, any> = new Map<string, any>();
+    public sharedData: { [key: string]: any } = {}
     getByType<T>(ctor: new (...a: any) => T): T | null {
         let curr: DataClumpRefactoringContext = this;
         while (!(curr instanceof ctor)) {
@@ -51,7 +55,7 @@ export  class DataClumpRefactoringContext {
         return curr as T
     }
     getProgrammingLanguage():string{
-        return this.sharedData.get("config").ProgrammingLanguage
+        return this.sharedData["config"].ProgrammingLanguage
     }
     getProjectPath(): string {
         return this.getByType(CodeObtainingContext)!!.getPath()
@@ -61,6 +65,7 @@ export  class DataClumpRefactoringContext {
          return path?path:this.getDefaultSerializationPath()
      }
      getDefaultSerializationPath():string{
+        console.log("default serialization path")
          return resolve("data",this.constructor.name+".json")
      }
 }
@@ -75,7 +80,7 @@ export class CodeObtainingContext extends DataClumpRefactoringContext {
     }
     constructor(path: string) {
         super()
-        this.sharedData.set("path", path)
+        this.sharedData["path"]= path
         this.path = path
     }
 }

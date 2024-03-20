@@ -49,16 +49,22 @@ function loadAllClasses(){
             nameScriptFileMap[cls]=relativized
         }
     }
+    console.log(nameScriptFileMap)
     console.log("Loaded all classes in "+(Date.now()-startTime)+"ms")
 
 }
 const container=new ContainerBuilder();
-export function registerFromName(typeName:string,refName:string,args:any){
+export   function registerFromName(typeName:string,refName:string,args:any){
     let requirePath=typeName
+    console.log("Registering "+requirePath)
     if(Object.keys(nameScriptFileMap).includes(typeName)){
         requirePath=nameScriptFileMap[typeName]
     }
-    const loadedScript=require(requirePath);
+    console.log("Registering "+typeName+" from "+requirePath)
+    console.log("hello")
+    const loadedScript= require(requirePath);
+    console.log("hello2")
+    console.log(loadedScript[typeName])
     container.register(refName,loadedScript[typeName]).addArgument(args);
 }
 export function resolveFromName(dependencyCategory:string):any{

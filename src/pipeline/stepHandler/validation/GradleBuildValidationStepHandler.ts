@@ -7,7 +7,10 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
        let runResult= spawnSync("gradle",["build"],{cwd:context.getProjectPath()})
        runResult.error
        const status=runResult.status
-       console.log("Status code",status)
+       if(status==null){
+              return {success:false,messages:{stderr:"Gradle not found",stdout:"Gradle not found"}}
+         }
+       console.log("Status code",status,status==null)
        if(status===0){
            return {success:true,messages:null}
        }

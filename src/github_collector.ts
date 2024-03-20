@@ -106,13 +106,14 @@ let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"))
 async function doesCompile(buildSystem: string): Promise<{ success: boolean; messages: { stdout: string, stderr: string } | null; }> {
     let checker: ValidationStepHandler | null = null;
     if (buildSystem == "maven") {
-        checker = new MavenBuildValidationStepHandler();
+        checker = new MavenBuildValidationStepHandler({});
 
     }
     else {
-        checker = new GradleBuildValidationStepHandler();
+        checker = new GradleBuildValidationStepHandler({});
 
     }
+    checker.throwIfInvalid = false;
     return checker!.validate(obtainingContext);
 }
 function countLines() {

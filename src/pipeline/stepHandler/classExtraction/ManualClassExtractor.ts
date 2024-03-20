@@ -1,5 +1,5 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
-import { ClassExtractionContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
+import { ASTBuildingContext, ClassExtractionContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
 import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import {join,resolve,dirname} from "path"
@@ -24,7 +24,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     abstract createField(fieldName:string, type:string):string;
     abstract createGetter(fieldName:string, type:string):string;
     abstract createSetter(fieldName:string, type:string):string;
-    abstract createHead(className:string,context:DataClumpTypeContext,projectPath:string);
+    abstract createHead(className:string,context:DataClumpTypeContext,projectPath:string,refactoringContext:DataClumpRefactoringContext);
     abstract createConstructor(className:string,types:string[],fieldNames:string[]):string;
     abstract createTail():string;
     abstract getExtension():string;
@@ -54,7 +54,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             let suggestedName=nameFindingContext.getNameByDataClumpKey(dataClumpKey);
             if(suggestedName==undefined)continue;
             let dataClump=detectorContext.getDataClumpDetectionResult().data_clumps[dataClumpKey]! as DataClumpTypeContext;
-            let classBody=this.createHead(suggestedName,dataClump,context.getProjectPath());
+            let classBody=this.createHead(suggestedName,dataClump,context.getProjectPath(),context);
             let fieldNames:string[]=[]
             let types:string[]=[]
             for(let param of Object.values(dataClump?.data_clump_data!)){
@@ -86,6 +86,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     }
     addAditionalContextRequirementNames(pipeLineStep: PipeLineStepType, requirements: Set<string>): void {
         requirements.add(DataClumpDetectorContext.name)
+        requirements.add(ASTBuildingContext.name)
         requirements.add(NameFindingContext.name)
     }
 

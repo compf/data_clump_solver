@@ -45,10 +45,12 @@ export class PipeLine {
         return MandatoryContextNames.every((name) => createdContextNames.has(name));
     }
     async executeAllSteps(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
+       return await this.executeSteps(Object.values(PipeLineStep),context)
+    }
+    async executeSteps(pipeLineSteps:PipeLineStepType[],context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         if (!this.checkPipeLine()) {
             throw new Error("Pipeline is not correct")
         }
-        let pipeLineSteps=Object.values(PipeLineStep)
         for (let i = 0; i < NumberPipeLineSteps; i++) {
             if (this.stepHandlerList[i] != null) {
                 let createdContextNames = context.getContextNames();

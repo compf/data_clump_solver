@@ -14,6 +14,7 @@ export type AST_Class={
     anonymous : false,
     auxclass : false,
     implements_ :string[],
+    imports?:string[],
     extends_ : string[],
     definedInClassOrInterfaceTypeKey : string|null,
     innerDefinedClasses : any,
@@ -32,6 +33,7 @@ export type AST_Method={
     name:string,
     key:string,
     type:string,
+    displayedType?:string,
     hasTypeVariable:boolean,
     position:Position,
     modifiers:string[],
@@ -46,6 +48,7 @@ export type AST_Method={
 export type AST_Variable={
     key:string,
     type:string,
+    displayedType?:string,
     name:string,
     hasTypeVariable:boolean,
     position:Position,

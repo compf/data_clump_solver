@@ -1,66 +1,66 @@
 import { VCS_Service, getRepoDataFromUrl } from "./VCS_Service";
-import {Octokit} from  "octokit"
+import { Octokit } from "octokit"
 import { spawnSync } from "child_process";
 import fs from "fs"
-const API_KEY=fs.readFileSync("GITHUB_TOKEN","utf-8");
-export class GitHubService extends VCS_Service{
-    
+
+const API_KEY = fs.readFileSync("GITHUB_TOKEN", "utf-8");
+export class GitHubService extends VCS_Service {
+
     clone(url: string) {
-    
-       console.log("pulling")
-       spawnSync("git",["clone",url,"cloned_projects"])
+
+        console.log("pulling")
+        spawnSync("git", ["clone", url, "cloned_projects/" + getRepoDataFromUrl(url).repo])
     }
     getWorkingDirectory(): string {
         return ""
     }
-    async getMostRecentPullRequestTime(url:string):Promise<Date>{
-        let data=getRepoDataFromUrl(url);
-        let octokit=this.createOctokitObject();
-       let result=await  octokit.rest.pulls.list({
+    async getMostRecentPullRequestTime(url: string): Promise<Date> {
+        let data = getRepoDataFromUrl(url);
+        let octokit = this.createOctokitObject();
+        let result = await octokit.rest.pulls.list({
             repo: data.repo,
             owner: data.owner,
-            "state":"closed",
-            sort:"created",
-            direction:"desc"
-           
+            "state": "closed",
+            sort: "created",
+            direction: "desc"
+
+        }
+        )
+
+        return new Date(result.data[0].updated_at);
     }
-    )
-     
-    return new Date(result.data[0].updated_at);
-}
     commit(message: string) {
         throw new Error("Method not implemented.");
     }
     push() {
         throw new Error("Method not implemented.");
     }
-    createOctokitObject():Octokit{
+    createOctokitObject(): Octokit {
         return new Octokit({
             auth: API_KEY,
-          
+
         });
     }
-    fork(url: string,newName:string|undefined,callback:(string)=>void) {
-        let octokit=this.createOctokitObject();
-        let repoData=getRepoDataFromUrl(url);
-        console.log("Forking Repo: ",repoData.owner,repoData.repo);
-        octokit.rest.repos.createFork({
+    async fork(url: string, newName: string | undefined): Promise<string> {
+        let octokit = this.createOctokitObject();
+        let repoData = getRepoDataFromUrl(url);
+
+
+        let result = await  octokit.request(`POST /repos/${repoData.owner}/${repoData.repo}/forks`, {
             owner: repoData.owner,
             repo: repoData.repo,
-            name:newName
+            default_branch_only: true,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        })
 
-          })
-          .then(({ data }) => {
-            console.log("Forked Repo: ", data.ssh_url);
-            callback(data.ssh_url);
-          })
-          .catch(error => {
-            // Handle any error
-            console.error("Error forking the repo: ", error);
-          });
+
+        console.log(result.data.ssh_url)
+        return result.data.ssh_url.replace(".git","")
     }
     pullRequest() {
-        
+
     }
 
 }

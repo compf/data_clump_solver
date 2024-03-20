@@ -1,9 +1,9 @@
 import { ASTBuildingContext, ClassExtractionContext, CodeObtainingContext, DataClumpDetectorContext, FileFilteringContext, NameFindingContext, RefactoredContext, UsageFindingContext, ValidationContext } from "../context/DataContext";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler"
-
+export type PipeLineStepName = "CodeObtaining" | "FileFiltering" | "ASTGeneration" | "SimilarityDetection" | "DataClumpDetection" | "DataClumpFiltering" | "NameFinding" | "ClassExtraction" | "ReferenceFinding" | "Refactoring" | "Validation"
 export type PipeLineStepType = {
     position: number,
-    name: string,
+    name: PipeLineStepName,
     isRequired: boolean,
     defaultHandler: AbstractStepHandler | undefined,
     associatedContext: string|null

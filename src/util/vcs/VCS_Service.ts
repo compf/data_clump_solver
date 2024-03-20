@@ -2,14 +2,14 @@ export abstract class VCS_Service{
     abstract clone(url:string);
     abstract commit(message:string);
     abstract push();
-    abstract fork(url:string,newName:string|undefined,callback:(string)=>void);
+    abstract fork(url:string,newName:string|undefined);
     abstract pullRequest();
     abstract getWorkingDirectory():string;
 
-    forkAndPull(newName:string|undefined,url:string){
-        this.fork(url,newName,(newUrl)=>{
-            this.clone(newUrl);
-        });
+    async forkAndClone(newName:string|undefined,url:string):Promise<string>{
+         url=await this.fork(url,newName);
+         this.clone(url);
+         return url
        
     }
 }
