@@ -1,4 +1,5 @@
 import { LanguageModelCategory, registerFromName, resolveFromName } from "../../../config/Configuration";
+import { DataClumpRefactoringContext } from "../../../context/DataContext";
 import { LanguageModelInterface } from "../../../util/languageModel/LanguageModelInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
@@ -6,19 +7,22 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 import { AbstractNameFindingStepHandler } from "./AbstractNameFindingStep";
 type LanguageModelArgs = {
     languageModelName: string,
-    languageModelArgs: any
 }
-const FILE_NAMES_SEPARATED="${field_names_comma_separated}"
+const FIELD_NAMES="${field_names}"
 export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandler {
-    async getSuggestedName(names: string[]): Promise<string | null> {
+    async getSuggestedName(variableInfos: {name:string,type:string}[],context:DataClumpRefactoringContext,counter:number): Promise<string | null> {
         if (!this.languageModel) {
             this.languageModel = resolveFromName(this.args.languageModelName) as LanguageModelInterface;
-
         }
         let resolver=resolveFromName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
-        let query = resolver.resolveFromTemplateType(LanguageModelTemplateType.SuggestName,{ FILE_NAMES_SEPARATED: this.getQueryKey(names) });
+        let additionalReplacements={
+            "${field_names}": this.getQueryKey(variableInfos),
+            "${quantifier}":counter>0?"another":"a",
+            "${programming_language}":context.getProgrammingLanguage()
+        }
+        let query = resolver.resolveFromTemplateType(LanguageModelTemplateType.SuggestName,additionalReplacements);
         this.languageModel.prepareMessage(query)
-        let suggestedName=await this.languageModel.sendMessages(true);
+        let suggestedName=await this.languageModel.sendMessages(false);
         return suggestedName.messages[0]
     }
     languageModel: LanguageModelInterface | null = null;
@@ -28,8 +32,11 @@ export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandle
     constructor(args: LanguageModelArgs) {
         super(args)
         this.args = args;
-        registerFromName(args.languageModelName, LanguageModelCategory, args.languageModelArgs)
 
     }
+    nameFound(): void {
+        this.languageModel?.clear()
+    }
+    
 
 }

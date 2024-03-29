@@ -1,4 +1,4 @@
-import { ASTBuildingContext, ClassExtractionContext, DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
+import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Readable, Writable } from "stream"
@@ -239,7 +239,6 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                 this.api = resolveFromName("LanguageServerAPI") as LanguageServerAPI;
             }
             let dcContext=context.getByType(DataClumpDetectorContext)!!
-            let classExtractionContext=context.getByType(ClassExtractionContext)!!
             return await new Promise<DataClumpRefactoringContext>(async handleResolver => {
                 const socket = await this.api!!.init(context.getProjectPath(), (data) => {
                     let info = this.counterDataClumpInfoMap.get(data.id)!

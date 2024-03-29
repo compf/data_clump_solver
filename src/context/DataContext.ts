@@ -55,6 +55,7 @@ export  class DataClumpRefactoringContext {
         return curr as T
     }
     getProgrammingLanguage():string{
+        console.log(this.sharedData)
         return this.sharedData["config"].ProgrammingLanguage
     }
     getProjectPath(): string {
@@ -253,7 +254,7 @@ export class NameFindingContext extends DataClumpRefactoringContext {
     }
 
 }
-export class ClassExtractionContext extends DataClumpRefactoringContext {
+export class ClassPathContext extends DataClumpRefactoringContext {
     getExtractedClassPath(variableKey: string):string {
        return this.dataClumpKeyClassPath.get(variableKey)!
     }

@@ -1,6 +1,8 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
-import { JavaAlwaysFromLocationProvider, ManualClassExtractor } from "./ManualClassExtractor";
+import {  ManualClassExtractor } from "./ManualClassExtractor";
 import capitalize from "capitalize";
+import path from "path";
+import fs from "fs";
 import { ASTBuildingContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 export class JavaManualClassExtractor extends ManualClassExtractor{
     createField(fieldName: string, type: string): string {
@@ -33,7 +35,16 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
         }
 
         
-       return "package "+this.locationProvider.getPackageName(projectPath,context)+";\n"+imports+"\npublic class "+ className+"{\n";
+       return "package "+this.getPackageName(projectPath,context)+";\n"+imports+"\npublic class "+ className+"{\n";
+    }
+    getPackageName(projectPath: string, context: DataClumpTypeContext): string {
+        let fileContent=fs.readFileSync(path.resolve(projectPath,context.from_file_path)).toString().split("\n")
+        for(let line of fileContent){
+            if(line.trim().startsWith("package")){
+                return line.trim().split(" ")[1].replace(";","")
+            }
+        }
+        throw "No package name found"
     }
     createTail(): string {
         return "}"

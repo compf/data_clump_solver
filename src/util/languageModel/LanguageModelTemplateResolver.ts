@@ -13,7 +13,7 @@ export class LanguageModelTemplateResolver {
         this.replaceMap = replaceMap;
     }
     resolveFromTemplateType(templateType:LanguageModelTemplateType,additionalReplacements?:{[key:string]:string}|undefined):string{
-        const template = fs.readFileSync(`chatgpt_templates/${templateType}.template`, 'utf-8');
+        const template = fs.readFileSync(`chatGPT_templates/${templateType}.template`, 'utf-8');
         return this.resolveTemplate(template,additionalReplacements);
     }
     resolveTemplate(text:string,additionalReplacements?:{[key:string]:string}|undefined):string{
@@ -32,10 +32,11 @@ export class LanguageModelTemplateResolver {
 
                     fileContent=otherResolver.resolveTemplate(fileContent,otherReplacements);
                 }
-                result=result.replace(key,fileContent);
+                result=result.replaceAll(key,fileContent);
             }
             else{
-                result=result.replace(key,this.replaceMap[key]);
+                console.log("KEY",key,result)
+                result=result.replaceAll(key,additionalReplacements[key]);
 
             }
         }
@@ -46,7 +47,7 @@ export class LanguageModelTemplateResolver {
     resolveRemainingReferences(text:string):string{
         let matches=text.match(/(\$|%){(\w|_)+}/gm)
         if(matches){
-           console.log(text) 
+           console.log("TEX",text) 
             console.log(matches)
             throw "Not all references are resolved "
         }

@@ -48,13 +48,16 @@ async function main(args: string[]) {
         fs.copyFileSync("data/"+path,repoState.outPath+"/"+path)
     }
 }
-(async ()=>{
-   await  main(process.argv.slice(2));
-   while(true){
-    console.log("running")
-    waitSync(1000)
+if(require.main === module){
+    (async ()=>{
+        await  main(process.argv.slice(2));
+        while(true){
+         console.log("running")
+         waitSync(1000)
+     }
+     
+     })();
 }
 
-})();
 
 console.log("finish")
