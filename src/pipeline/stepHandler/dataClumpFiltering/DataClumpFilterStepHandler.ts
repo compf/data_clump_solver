@@ -4,8 +4,9 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 import { resolveFromName } from "../../../config/Configuration";
-import { RankSampler, Ranker } from "../../../util/filterUtils/Ranker";
+import {  Metric } from "../../../util/filterUtils/Metric";
 import { compareTo } from "../../../util/Utils";
+import { RankSampler } from "../../../util/filterUtils/Ranker";
 
 export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
@@ -42,11 +43,11 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
             detectionContext.setDataClumpDetectionResult(values)
         }
 
-        
+        detectionContext.updateStats();
         return detectionContext
     }
     private filter: SingleItemFilter | null = null
-    private ranker: Ranker | null = null
+    private ranker: Metric | null = null
     private doNothingIfFiltered:boolean=true;
     private rankSampler: RankSampler;
     getExecutableSteps(): PipeLineStepType[] {

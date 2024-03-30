@@ -38,7 +38,7 @@ const nameScriptFileMap={
 function loadAllClasses(){
     let paths:string[]=[]
     let startTime=Date.now()
-    getRelevantFilesRec("dist/src",paths,new FileFilteringContext(["*.js"],["dist/src/data-clumps-doctor/**"]))
+    getRelevantFilesRec("./dist/src",paths,new FileFilteringContext(["*.js"],["dist/src/data-clumps-doctor/**"]))
     for(let path of paths){
         if (path.endsWith("Configuration.js")){
             continue;

@@ -1,6 +1,6 @@
-import { FileUpdateRanker } from "./FileUpdateRanker";
+import { FileUpdateMetric } from "./FileUpdateMetric";
 
-export class FilerUpdateAverageRanker extends FileUpdateRanker {
+export class FilerUpdateAverageMetric extends FileUpdateMetric {
     evaluateTimestamps(timestamps: Date[]): number {
         let sum = 0;
         for (let i = 1; i < timestamps.length; i++) {

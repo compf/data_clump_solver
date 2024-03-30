@@ -2,11 +2,14 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpsTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpsTypeContext";
 import { ASTBuildingContext, DataClumpDetectorContext } from "../src/context/DataContext";
 import { AST_DATA, DATA_CLUMP_DATA } from "./TestData";
-import { DataClumpOccurenceFilter } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceFilter";
 import { getRelevantFilesRec } from "../src/util/Utils";
 import { NoAbstractClassOrInterfaceFilter } from "../src/util/filterUtils/NoAbstractClassOrInterfaceFilter";
 import { DataClumpFilterStepHandler } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { PipeLineStep } from "../src/pipeline/PipeLineStep";
+import { DataClumpOccurenceMetric } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
+import { RankSampler } from "../src/util/filterUtils/Ranker";
+import { NumericalThresholdBasedFilter } from "../src/util/filterUtils/NumericalThresholdBasedFilter";
+import { registerFromName } from "../src/config/Configuration";
 
 test("hello",()=>{
     expect(5).toBe(5);
@@ -14,13 +17,14 @@ test("hello",()=>{
 
 test("Test occurence of data clumps",async() =>{
     let xyzDataClump=getDataClumpByVariableNames(["x","y","z"]);
-    
-
-    let occurenceThresholdBasedFilterHandler=new DataClumpOccurenceFilter({ filterThreshold:5,comparisonSign:">"});
+    let occurenceThresholdBasedFilterHandler=new NumericalThresholdBasedFilter({ filterThreshold:5,comparisonSign:">"});
+    (occurenceThresholdBasedFilterHandler as any).metric=new DataClumpOccurenceMetric();
     expect( await occurenceThresholdBasedFilterHandler.shallRemain(xyzDataClump,new DataClumpDetectorContext(DATA_CLUMP_DATA))).toBeFalsy();
-    occurenceThresholdBasedFilterHandler=new DataClumpOccurenceFilter({ filterThreshold:4,comparisonSign:">"});
+    occurenceThresholdBasedFilterHandler=new NumericalThresholdBasedFilter({ filterThreshold:4,comparisonSign:">"});
+    (occurenceThresholdBasedFilterHandler as any).metric=new DataClumpOccurenceMetric();
     expect(await occurenceThresholdBasedFilterHandler.shallRemain(xyzDataClump,new DataClumpDetectorContext(DATA_CLUMP_DATA))).toBeFalsy();
-    occurenceThresholdBasedFilterHandler=new DataClumpOccurenceFilter({ filterThreshold:3,comparisonSign:">"});
+    occurenceThresholdBasedFilterHandler=new NumericalThresholdBasedFilter({ filterThreshold:3,comparisonSign:">"});
+    (occurenceThresholdBasedFilterHandler as any).metric=new DataClumpOccurenceMetric();
     expect(await occurenceThresholdBasedFilterHandler.shallRemain(xyzDataClump,new DataClumpDetectorContext(DATA_CLUMP_DATA))).toBeTruthy();
     
 });

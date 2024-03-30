@@ -1,11 +1,9 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
-import { ComparisionSign, NumericalThresholdBasedFilter } from "../../../util/filterUtils/NumericalThresholdBasedFilter";
-export class DataClumpOccurenceFilter extends NumericalThresholdBasedFilter {
+import { Metric } from "../../../util/filterUtils/Metric";
+export class DataClumpOccurenceMetric implements Metric {
   
-    constructor(args:{filterThreshold: number, comparisonSign: ComparisionSign}) {
-        super(args);
-    }
+
    
     createDataClumpKey(dataClump: DataClumpTypeContext):string {
         return Object.values(dataClump.data_clump_data).sort((a,b)=>a.name.localeCompare(b.name)).map((it)=>it.type +" " +it.name   ).join(",");

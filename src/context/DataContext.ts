@@ -55,7 +55,6 @@ export  class DataClumpRefactoringContext {
         return curr as T
     }
     getProgrammingLanguage():string{
-        console.log(this.sharedData)
         return this.sharedData["config"].ProgrammingLanguage
     }
     getProjectPath(): string {
@@ -151,6 +150,26 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
     getByPath(path:string):AST_Class{
         return this.ast_type[path]
     }
+    findInPath(path:string, className:string):AST_Class{
+        let ast=this.getByPath(path)
+        if(ast.name==className){
+            return ast;
+        }
+        else{
+            for(let cls of Object.values(ast.innerDefinedClasses)){
+                if((cls as any).name==className){
+                    return cls as any;
+                }
+            }
+            for(let cls of Object.values(ast.innerDefinedInterfaces)){
+                if((cls as any).name==className){
+                    return cls as any;
+                }
+            }
+
+        }
+        throw new Error("Could not find class "+className+" in "+path)
+    }
     getCorrectPath(id:string):string{
         for(let key of Object.keys(this.ast_type)){
             if(id.endsWith(this.ast_type[key].key)){
@@ -203,7 +222,7 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     }
 
     deleteEntry(key: string) {
-        delete this.currDataClumpDetectionResult[key]
+        delete this.currDataClumpDetectionResult.data_clumps[key]
     }
     serialize(path?: string | undefined): void {
         const usedPath=this.getSerializationPath(path)
@@ -220,6 +239,50 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
         this.currDataClumpDetectionResult=cloned
         return cloned;
     }
+    updateStats(){
+        let result=this.currDataClumpDetectionResult
+        let amountDataClumps=0;
+        let classes=new Set<string>()
+        let files=new Set<string>()
+        let methods=new Set<string>()
+        let fieldsToFields=0
+        let parametersToFields=0
+        let parametersToParameters=0
+        for(let key of Object.keys(result.data_clumps)){
+            let dataClump=result.data_clumps[key]
+            classes.add(dataClump.from_class_or_interface_key)
+            classes.add(dataClump.to_class_or_interface_key)
+            files.add(dataClump.from_file_path)
+            files.add(dataClump.to_file_path)
+            amountDataClumps++;
+            if(dataClump.from_method_key!=null&&dataClump.to_method_key!=null){
+                methods.add(dataClump.from_method_key)
+                methods.add(dataClump.to_method_key)
+                parametersToParameters++;
+            }
+            else if(dataClump.from_method_key!=null){
+                methods.add(dataClump.from_method_key)
+                parametersToFields++;
+            }
+            else if(dataClump.to_method_key!=null){
+                methods.add(dataClump.to_method_key)
+                parametersToFields++;
+            }
+            else{
+                fieldsToFields++;
+            }
+
+            
+        }
+        result.report_summary.amount_classes_or_interfaces_with_data_clumps=classes.size
+        result.report_summary.amount_files_with_data_clumps=files.size
+        result.report_summary.amount_methods_with_data_clumps=methods.size
+        result.report_summary.fields_to_fields_data_clump=fieldsToFields
+        result.report_summary.parameters_to_fields_data_clump=parametersToFields
+        result.report_summary.parameters_to_parameters_data_clump=parametersToParameters
+
+    }
+
     getDefaultSerializationPath(): string {
         return resolve("data", "dataClumpDetectorContext.json")
     }

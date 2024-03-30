@@ -2,9 +2,9 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpDetectorContext, DataClumpRefactoringContext, GitRepositoryContext } from "../../context/DataContext";
 import { SingleItemFilter } from "./SingleItemFilter";
 import { GitHubService } from "../vcs/GitHubService";
-import { Ranker } from "./Ranker";
+import { Metric } from "./Metric";
 
-export abstract class FileUpdateRanker implements Ranker {
+export abstract class FileUpdateMetric implements Metric {
     async evaluate(data: string|DataClumpTypeContext,context:DataClumpRefactoringContext): Promise<number> {
         let relevantPaths: string[] = []
         if (typeof data === "string") {

@@ -1,17 +1,18 @@
 import { resolveFromName } from "../../../config/Configuration";
 import { DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
 import { getRelevantFilesRec } from "../../../util/Utils";
-import { RankSampler, Ranker } from "../../../util/filterUtils/Ranker";
+import { Metric } from "../../../util/filterUtils/Metric";
+import { RankSampler } from "../../../util/filterUtils/Ranker";
 import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
 export class FileFilterHandler extends AbstractStepHandler {
     private filter?: SingleItemFilter = undefined
-    private ranker?: Ranker = undefined
+    private metric?: Metric = undefined
     private rankSampler: RankSampler;
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        if (!this.ranker?.isCompatibleWithString()) {
+        if (!this.metric?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
         }
         let originalPaths: string[] = []
@@ -28,11 +29,9 @@ export class FileFilterHandler extends AbstractStepHandler {
         else {
             filteredPaths = originalPaths
         }
-        if (this.ranker) {
-            if(!this.ranker.isCompatibleWithString()){
-                throw new Error("ranker is not compatible with string")
-            }
-            filteredPaths = await this.rankSampler.rank(this.ranker, filteredPaths, context) as string[]
+        if (this.metric) {
+           
+            filteredPaths = await this.rankSampler.rank(this.metric, filteredPaths, context) as string[]
         }
         let newContext = this.buildFilterContextFromPaths(filteredPaths, context)
         return context.buildNewContext(newContext)
@@ -57,11 +56,11 @@ export class FileFilterHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.FileFiltering]
     }
-    constructor(args: { filterName?: string, rankerName?: string, rankThreshold?: number, sign?: number }) {
+    constructor(args: { filterName?: string, metricName?: string, rankThreshold?: number, sign?: number }) {
         super()
         this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign })
-        if (args.rankerName) {
-            this.ranker = resolveFromName(args.rankerName)
+        if (args.metricName) {
+            this.metric = resolveFromName(args.metricName)
         }
 
         if (args.filterName) {

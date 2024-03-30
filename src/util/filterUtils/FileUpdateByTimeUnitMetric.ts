@@ -1,6 +1,7 @@
-import { FileUpdateRanker } from "./FileUpdateRanker";
+import { FileUpdateMetric } from "./FileUpdateMetric"
+
 export type TimeUnit = "day"|"week"|"month"| "year"
-export class FileUpdateByTimeUnitRanker extends FileUpdateRanker {
+export class FileUpdateByTimeUnitMetric extends FileUpdateMetric {
     evaluateTimestamps(timestamps: Date[]): number {
       let lastTimeUnit=this.getTimeUnitFromDate(timestamps[0])
       let counter=0

@@ -1,10 +1,8 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
-import { FilterOrRanker } from "./SingleItemFilter";
-export interface Ranker extends FilterOrRanker{
-    evaluate(data: string|DataClumpTypeContext,context:DataClumpRefactoringContext): Promise<number>;
-   
-}
+import { FilterOrMetric } from "./SingleItemFilter";
+import { Metric } from "./Metric";
+
 export  class   RankSampler{
       private rankThreshold:number|null=null
       private rankSign:number|null=null;
@@ -24,7 +22,7 @@ export  class   RankSampler{
               return data.key
           }
       }
-      async rank(ranker:Ranker,input:(string|DataClumpTypeContext)[],context:DataClumpRefactoringContext):Promise<(string|DataClumpTypeContext)[]>{
+      async rank(metric:Metric,input:(string|DataClumpTypeContext)[],context:DataClumpRefactoringContext):Promise<(string|DataClumpTypeContext)[]>{
             if(this.rankThreshold==null){
                   this.rankThreshold=1
             }
@@ -37,7 +35,7 @@ export  class   RankSampler{
             let evaluateMap:{[key:string]:number}={}
             for(let item of input){
                   let key=this.getKey(item)
-                  let value=await ranker.evaluate(item,context)
+                  let value=await metric.evaluate(item,context)
                   evaluateMap[key]=value
 
             }
