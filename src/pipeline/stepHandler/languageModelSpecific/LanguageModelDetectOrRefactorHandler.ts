@@ -8,7 +8,7 @@ import fs from "fs"
 import { files } from "node-dir"
 import path from "path";
 import { resolve } from "path"
-import { getContextSerializationPath, registerFromName, resolveFromName } from "../../../config/Configuration";
+import { getContextSerializationPath, registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } from "../../../util/languageModel/LanguageModelInterface";
 import { PipeLine } from "../../PipeLine";
@@ -36,9 +36,9 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             api = this.providedApi
         }
         else {
-            api = resolveFromName(LanguageModelInterfaceCategory) as LanguageModelInterface
+            api = resolveFromInterfaceName(LanguageModelInterface.name) as LanguageModelInterface
         }
-        let templateResolver = resolveFromName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
+        let templateResolver = resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
 
         api.clear();
         let chat: ChatMessage[] = []
@@ -121,7 +121,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     constructor(args: { handlers: string[] }) {
         super();
         for (let handler of args.handlers) {
-            this.handlers.push(resolveFromName(handler) as LargeLanguageModelHandler)
+            this.handlers.push(resolveFromConcreteName(handler) as LargeLanguageModelHandler)
         }
 
     }

@@ -5,7 +5,7 @@ import path from "path";
 import { createHash } from 'node:crypto'
 import { ChatGPTInterface } from "./util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "./util/languageModel/LanguageModelTemplateResolver";
-import { loadConfiguration, registerFromName, resolveFromName } from "./config/Configuration";
+import { loadConfiguration, registerFromName} from "./config/Configuration";
 import { PipeLine } from "./pipeline/PipeLine";
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "./context/DataContext";
 import { LanguageModelDetectOrRefactorHandler } from "./pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";

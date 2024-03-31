@@ -4,7 +4,7 @@ import { compareTo } from "../Utils";
 import { SingleItemFilter } from "./SingleItemFilter";
 import { filter } from "minimatch";
 import { Metric } from "./Metric";
-import { resolveFromName } from "../../config/Configuration";
+import { resolveFromConcreteName } from "../../config/Configuration";
 
 export type ComparisionSign=">"|"<"|"<="|">="|"="
 export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
@@ -34,7 +34,7 @@ export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
             throw new Error("invalid sign "+sign)
         }
         if(args.metricName){
-            this.metric=resolveFromName(args.metricName)
+            this.metric=resolveFromConcreteName(args.metricName)
 
         }
         this.rankThreshold = args.rankThreshold;

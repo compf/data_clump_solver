@@ -1,4 +1,4 @@
-import { LanguageModelCategory, registerFromName, resolveFromName } from "../../../config/Configuration";
+import { resolveFromConcreteName } from "../../../config/Configuration";
 import { DataClumpRefactoringContext } from "../../../context/DataContext";
 import { LanguageModelInterface } from "../../../util/languageModel/LanguageModelInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
@@ -12,9 +12,9 @@ const FIELD_NAMES="${field_names}"
 export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandler {
     async getSuggestedName(variableInfos: {name:string,type:string}[],context:DataClumpRefactoringContext,counter:number): Promise<string | null> {
         if (!this.languageModel) {
-            this.languageModel = resolveFromName(this.args.languageModelName) as LanguageModelInterface;
+            this.languageModel = resolveFromConcreteName(this.args.languageModelName) as LanguageModelInterface;
         }
-        let resolver=resolveFromName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
+        let resolver=resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
         let additionalReplacements={
             "${field_names}": this.getQueryKey(variableInfos),
             "${quantifier}":counter>0?"another":"a",

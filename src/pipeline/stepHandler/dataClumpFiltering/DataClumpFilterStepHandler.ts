@@ -3,7 +3,7 @@ import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
-import { resolveFromName } from "../../../config/Configuration";
+import { resolveFromConcreteName } from "../../../config/Configuration";
 import {  Metric } from "../../../util/filterUtils/Metric";
 import { compareTo } from "../../../util/Utils";
 import { RankSampler } from "../../../util/filterUtils/Ranker";
@@ -57,11 +57,11 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
         super()
         this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign })
         if (args.rankerName) {
-            this.ranker = resolveFromName(args.rankerName)
+            this.ranker = resolveFromConcreteName(args.rankerName)
         }
 
         if (args.filterName) {
-            this.filter = resolveFromName(args.filterName)
+            this.filter = resolveFromConcreteName(args.filterName)
         }
         if(args.doNothingIfFiltered!=undefined){
             this.doNothingIfFiltered=args.doNothingIfFiltered

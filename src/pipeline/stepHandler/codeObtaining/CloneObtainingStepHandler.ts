@@ -1,4 +1,3 @@
-import { resolveFromName } from "../../../config/Configuration";
 import { CodeObtainingContext, DataClumpRefactoringContext, ValidationContext } from "../../../context/DataContext";
 import { GitHubService } from "../../../util/vcs/GitHubService";
 import { getRepoDataFromUrl } from "../../../util/vcs/VCS_Service";
@@ -8,6 +7,7 @@ import { ValidationStepHandler } from "../validation/ValidationStepHandler";
 import shlex from "shlex";
 import { resolve } from "path";
 import {spawnSync} from "child_process"
+import { resolveFromConcreteName } from "../../../config/Configuration";
 export class CloneObtainingStepHandler extends AbstractStepHandler {
     constructor(args:any) {
         super();
@@ -53,7 +53,7 @@ export class CloneObtainingStepHandler extends AbstractStepHandler {
         createdContexts.add(CodeObtainingContext.name)
     }
     async validate(context:DataClumpRefactoringContext): Promise<ValidationContext> {
-        let validator=resolveFromName(PipeLineStep.Validation.name) as ValidationStepHandler;
+        let validator=resolveFromConcreteName(PipeLineStep.Validation.name) as ValidationStepHandler;
         return await  validator.handle(PipeLineStep.Validation,context,null) as ValidationContext;
     }
 }

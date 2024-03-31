@@ -10,7 +10,7 @@ import { readFileSync } from "fs"
 import fs from "fs"
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
 import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
-import { getContextSerializationPath, registerFromName, resolveFromName } from "../../../config/Configuration";
+import { getContextSerializationPath, registerFromName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { DataClumpTypeContext, Position } from "data-clumps-type-context";
 
 type LanguageServerReferenceAPIParams = {
@@ -236,7 +236,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
 
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise < DataClumpRefactoringContext > {
                 if(this.api == null){
-                this.api = resolveFromName("LanguageServerAPI") as LanguageServerAPI;
+                this.api = resolveFromInterfaceName("LanguageServerAPI") as LanguageServerAPI;
             }
             let dcContext=context.getByType(DataClumpDetectorContext)!!
             return await new Promise<DataClumpRefactoringContext>(async handleResolver => {

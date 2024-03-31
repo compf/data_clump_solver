@@ -54,21 +54,20 @@ function loadAllClasses(){
 
 }
 const container=new ContainerBuilder();
-export   function registerFromName(typeName:string,refName:string,args:any){
+   export function registerFromName(typeName:string,categoryName:string,args:any){
     let requirePath=typeName
-    console.log("Registering "+requirePath)
     if(Object.keys(nameScriptFileMap).includes(typeName)){
         requirePath=nameScriptFileMap[typeName]
     }
-    console.log("Registering "+typeName+" from "+requirePath)
-    console.log("hello")
     const loadedScript= require(requirePath);
-    console.log("hello2")
-    console.log(loadedScript[typeName])
-    container.register(refName,loadedScript[typeName]).addArgument(args);
+    container.register(categoryName,loadedScript[typeName]).addArgument(args);
 }
-export function resolveFromName(dependencyCategory:string):any{
-    return container.get(dependencyCategory) 
+
+export function resolveFromInterfaceName(interfaceName:string): any {
+   return container.get(interfaceName)
+}
+export function resolveFromConcreteName(concreteName:string):any{
+    return container.get(concreteName) 
 }
 export function getContextSerializationPath(name:string,context:DataClumpRefactoringContext):string{
     let result="other.json"
@@ -119,7 +118,7 @@ export function processConfiguration(config:Configuration){
     // register in the pipeline
     for(let steps of Object.keys(config.PipeLine)){
         let splitted=steps.split(",").map((x)=>x.trim())
-        PipeLine.Instance.registerHandler(splitted.map((x)=>PipeLineStep[x]),resolveFromName(splitted[0]) as AbstractStepHandler)
+        PipeLine.Instance.registerHandler(splitted.map((x)=>PipeLineStep[x]),resolveFromConcreteName(splitted[0]) as AbstractStepHandler)
     }
 }
 export function loadConfiguration(path:string):DataClumpRefactoringContext{
@@ -131,5 +130,4 @@ export function loadConfiguration(path:string):DataClumpRefactoringContext{
     
 }
 loadAllClasses()
-export const LanguageModelCategory="LanguageModel"
 

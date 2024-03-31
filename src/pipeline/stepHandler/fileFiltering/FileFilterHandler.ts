@@ -1,4 +1,4 @@
-import { resolveFromName } from "../../../config/Configuration";
+import { resolveFromConcreteName } from "../../../config/Configuration";
 import { DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
 import { getRelevantFilesRec } from "../../../util/Utils";
 import { Metric } from "../../../util/filterUtils/Metric";
@@ -60,11 +60,11 @@ export class FileFilterHandler extends AbstractStepHandler {
         super()
         this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign })
         if (args.metricName) {
-            this.metric = resolveFromName(args.metricName)
+            this.metric = resolveFromConcreteName(args.metricName)
         }
 
         if (args.filterName) {
-            this.filter = resolveFromName(args.filterName)
+            this.filter = resolveFromConcreteName(args.filterName)
         }
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {

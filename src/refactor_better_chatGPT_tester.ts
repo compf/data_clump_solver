@@ -5,7 +5,7 @@ import path from "path";
 import { createHash } from 'node:crypto'
 import { ChatGPTInterface } from "./util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "./util/languageModel/LanguageModelTemplateResolver";
-import { loadConfiguration, registerFromName, resolveFromName } from "./config/Configuration";
+import { loadConfiguration, registerFromName } from "./config/Configuration";
 import { PipeLine } from "./pipeline/PipeLine";
 import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, RefactoredContext } from "./context/DataContext";
 import { LanguageModelDetectOrRefactorHandler } from "./pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
@@ -14,7 +14,6 @@ import { ChatMessage, LanguageModelInterface } from "./util/languageModel/Langua
 import { PhindraInterface } from "./util/languageModel/PhindraInterface";
 import { waitSync } from "./util/Utils";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
-export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
