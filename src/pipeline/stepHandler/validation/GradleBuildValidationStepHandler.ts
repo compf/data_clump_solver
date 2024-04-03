@@ -24,6 +24,20 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
             }
        }
     }
+     getPathsOfFilesWithErrors(errors:string[]):string[]{
+        let result:string[]=[]
+        for(let error of errors){
+          let splitted=error.split(/:\d+:/);
+          if(splitted.length>1){
+            console.log("line",error)
+            result.push(splitted[0])
+          }
+         
+        }
+        return result
+      
+      
+      }
     protected isCompatibleWithSystem(): boolean {
        let runResult= spawnSync("gradle",["--version"])
        if(runResult.error){

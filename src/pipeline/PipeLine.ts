@@ -63,8 +63,10 @@ export class PipeLine {
                 let deserializedContext=this.stepHandlerList[i].deserializeExistingContext(context,pipeLineSteps[i])
                 if(deserializedContext==null){
                     let startTime = Date.now();
+                    console.log("Executing step " + pipeLineSteps[i].name)
                     context = await this.stepHandlerList[i].handle(pipeLineSteps[i],context, null);
                     this.stepRunningTimes[pipeLineSteps[i].name] = Date.now() - startTime;
+                    console.log("Step " + pipeLineSteps[i].name + " executed in " + this.stepRunningTimes[pipeLineSteps[i].name] + " ms")
                     context.serialize(getContextSerializationPath(pipeLineSteps[i].name,context))
                 }
                 else{

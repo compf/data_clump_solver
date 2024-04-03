@@ -4,6 +4,8 @@ import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import {join,resolve,dirname} from "path"
 import fs from "fs"
+import { resolveFromInterfaceName } from "../../../config/Configuration";
+import { ValidationStepHandler } from "../validation/ValidationStepHandler";
 
 export abstract class ManualClassExtractor extends AbstractStepHandler{
     abstract createField(fieldName:string, type:string):string;
@@ -26,12 +28,14 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
     }
     savedClassPaths:Map<string,string>=new Map()
 
-    override handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
+    override async  handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
         let detectorContext=context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext;
         let nameFindingContext=context.getByType(NameFindingContext) as NameFindingContext;
         for(let dataClumpKey of detectorContext.getDataClumpKeys()){
             let suggestedName=nameFindingContext.getNameByDataClumpKey(dataClumpKey);
-            if(suggestedName==undefined)continue;
+            if(suggestedName==undefined){
+                throw "No suggested name found  for data clump key "+dataClumpKey+" in name finding context"
+            }
             let dataClump=detectorContext.getDataClumpDetectionResult().data_clumps[dataClumpKey]! as DataClumpTypeContext;
             let classBody=this.createHead(suggestedName,dataClump,context.getProjectPath(),context);
             let fieldNames:string[]=[]
@@ -50,9 +54,34 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             let classPath=context.getByType(ClassPathContext)!.getExtractedClassPath(dataClumpKey)
             if(!fs.existsSync(classPath)){
                 fs.writeFileSync(classPath,classBody)
-
+                console.log("writing",classPath)
             }
             
+
+        }
+        if(this.args.checkValid){
+            let validator=resolveFromInterfaceName(PipeLineStep.Validation.name) as ValidationStepHandler
+            let result=await validator.validate(context)
+            if(!result.success){
+                let filteredContext=context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
+                let classExtractionContext=context.getByType(ClassPathContext) as ClassPathContext
+                let classPaths=classExtractionContext.getAllExtractedClassPaths()
+                filteredContext.cloneLastItem()
+                let paths=validator.getPathsOfFilesWithErrors(result.messages!.stderr.split("\n"))
+                for(let p of paths){
+                    if( classPaths.has(p) &&  fs.existsSync(p))
+                    {
+                        fs.unlinkSync(p)
+                        console.log("deleting",p)
+                    }
+                    
+                    let keys=classExtractionContext.getDataClumpKeysByPath(p)
+                    for(let key of keys){
+                        filteredContext.deleteEntry(key)
+                    }
+                    
+                }
+            }
 
         }
         return Promise.resolve(context)
@@ -66,6 +95,14 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
         requirements.add(ASTBuildingContext.name)
         requirements.add(NameFindingContext.name)
     }
+    private args:ManualClassExtractorArgs;
+    constructor(args:ManualClassExtractorArgs){
+        super();
+        this.args=args;
+    }
 
 
+}
+type ManualClassExtractorArgs={
+   checkValid:boolean
 }

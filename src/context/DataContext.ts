@@ -295,7 +295,7 @@ export class NameFindingContext extends DataClumpRefactoringContext {
         return this.dataClumpKeyName.get(name)
     }
     getDataClumpKeyByName(name: string): string {
-        return this.dataClumpKeyName.get(name)!
+        return this.nameDataClumpKey.get(name)!
     }
     getPosition(): number {
         return 4;
@@ -319,22 +319,34 @@ export class NameFindingContext extends DataClumpRefactoringContext {
 }
 export class ClassPathContext extends DataClumpRefactoringContext {
     getExtractedClassPath(variableKey: string):string {
-       return this.dataClumpKeyClassPath.get(variableKey)!
+       return this.dataClumpKeyClassPath[variableKey]
     }
     setExtractedClassPath(variableKey: string, classPath: string) {
-        this.dataClumpKeyClassPath.set(variableKey, classPath)
+        this.dataClumpKeyClassPath[variableKey] = classPath
     }
-    private dataClumpKeyClassPath: Map<string, string> = new Map<string, string>()
+    deleteExtractedClassPath(variableKey: string) {
+        delete this.dataClumpKeyClassPath[variableKey]
+    }
+    getAllExtractedClassPaths():Set<string>{
+        return new Set( Object.values(this.dataClumpKeyClassPath))
+    }
+    getDataClumpKeysByPath(path:string):string[]{
+        let result:string[]=[]
+        for(let key in this.dataClumpKeyClassPath){
+            if(this.dataClumpKeyClassPath[key]==path){
+                result.push(key)
+            }
+        }
+        return result;
+    }
+    private dataClumpKeyClassPath: { [key: string]: string } = {}
     getDefaultSerializationPath(): string {
         return resolve( "data", "classExtractionContext.json")
     }
     serialize(path?: string | undefined): void {
         const usedPath=this.getSerializationPath(path)
-        let serialized: Dictionary<string> = {}
-        for (let [key, value] of this.dataClumpKeyClassPath) {
-            serialized[key] = value
-        }
-        fs.writeFileSync(usedPath, JSON.stringify(serialized))
+
+        fs.writeFileSync(usedPath, JSON.stringify(this.dataClumpKeyClassPath))
     }
     getPosition(): number {
         return 5;

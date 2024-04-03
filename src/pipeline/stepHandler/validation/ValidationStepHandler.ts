@@ -26,4 +26,5 @@ export abstract class ValidationStepHandler extends AbstractStepHandler {
         super();
         this.args = args;
     }
+    getPathsOfFilesWithErrors(errors: string[]): string[] {return []}
 }

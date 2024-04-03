@@ -31,7 +31,7 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
         }
         let imports=""
         for(let imp of importSet){
-            imports+=imp;
+            imports+=imp+"\n";
         }
 
         
@@ -68,8 +68,6 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
         text+="\t}\n";
         return text;
     }
-    constructor(){
-        super();
-    }
+   
 
 }

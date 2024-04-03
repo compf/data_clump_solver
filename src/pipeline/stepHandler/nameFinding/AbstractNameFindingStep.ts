@@ -33,6 +33,8 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
 
             let keyNameMap=new Map<string,string>();
             let keyPathMap=new Map<string,string>();
+            let dcPathMap=new Map<string,string>();
+            let dcKeyNameMap=new Map<string,string>();
             let nameCache=new Set<string>();
             let detectorContext=context.getByType(DataClumpDetectorContext)!!
             for (let dataClumpKey of detectorContext.getDataClumpKeys()) {
@@ -49,6 +51,8 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
                 let reply=""
                 if (keyNameMap.has(key)) {
                     reply=keyNameMap.get(key)!!
+                    dcPathMap.set(dataClumpKey,keyPathMap.get(key)!)
+                    dcKeyNameMap.set(dataClumpKey,reply)
                    
                 }
                 else{
@@ -62,6 +66,8 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
                     nameCache.add(reply) 
                     keyNameMap.set(key,reply)
                     keyPathMap.set(key,outPath!)
+                    dcPathMap.set(dataClumpKey,outPath!)
+                    dcKeyNameMap.set(dataClumpKey,reply)
                     this.nameFound()
                 }
 
@@ -71,12 +77,12 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
 
             }
             let nameContext=context.buildNewContext(new NameFindingContext()) as NameFindingContext
-            for(let key of keyNameMap.keys()){
-                nameContext.setNameKeyPair(keyNameMap.get(key)!!,key)
+            for(let key of dcKeyNameMap.keys()){
+                nameContext.setNameKeyPair(dcKeyNameMap.get(key)!,key)
             }
             let classPathContext=nameContext.buildNewContext(new ClassPathContext()) as ClassPathContext
-            for(let key of keyPathMap.keys()){
-                classPathContext.setExtractedClassPath(key,keyPathMap.get(key)!!)
+            for(let key of dcPathMap.keys()){
+                classPathContext.setExtractedClassPath(key,dcPathMap.get(key)!!)
             }
             
             return classPathContext;
