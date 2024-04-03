@@ -18,7 +18,7 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
     createSetter(fieldName: string, type: string): string {
         let capitalized=this.capitalize(fieldName)
 
-        return "\tpublic void" +" set"+capitalized+`(${type} value)`+"{\n\t\t\t" +fieldName+"=value;\n\t}\n"; 
+        return "\tpublic void" +" set"+capitalized+`(${type} value)`+"{\n\t\t" +fieldName+"=value;\n\t}\n"; 
     }
     createHead(className: string,context:DataClumpTypeContext,projectPath:string,refactoring:DataClumpRefactoringContext) {
         let astContext=refactoring.getByType(ASTBuildingContext)
@@ -31,6 +31,13 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
         }
         let imports=""
         for(let imp of importSet){
+            if(!imp.endsWith(".*")){
+                let lastPart=imp.split(".").pop()?.replace(";","")!
+                let isUsed=Object.values(context.data_clump_data).some((param)=>param.type.includes(lastPart));
+                if(!isUsed){
+                    continue;
+                }
+            }   
             imports+=imp+"\n";
         }
 

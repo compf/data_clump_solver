@@ -41,16 +41,16 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             let fieldNames:string[]=[]
             let types:string[]=[]
             for(let param of Object.values(dataClump?.data_clump_data!)){
-                classBody+=this.createField(param.name,param.type)
-                classBody+=this.createGetter(param.name,param.type)
-                classBody+=this.createSetter(param.name,param.type)
+                classBody+=this.createField(param.name,param.type)+"\n"
+                classBody+=this.createGetter(param.name,param.type)+"\n"
+                classBody+=this.createSetter(param.name,param.type)+"\n"
                 fieldNames.push(param.name)
                 types.push(param.type);
 
             }
-            classBody+=this.createConstructor(suggestedName,types,fieldNames)
-            classBody+=this.createTail();
-            classBody=classBody.replace("\t",this.getWhitespaces(1))
+            classBody+=this.createConstructor(suggestedName,types,fieldNames)+"\n"
+            classBody+=this.createTail()+"\n";
+            classBody=classBody.replaceAll("\t",this.getWhitespaces(1))
             let classPath=context.getByType(ClassPathContext)!.getExtractedClassPath(dataClumpKey)
             if(!fs.existsSync(classPath)){
                 fs.writeFileSync(classPath,classBody)
