@@ -33,7 +33,15 @@ export class JavaManualClassExtractor extends ManualClassExtractor{
         for(let imp of importSet){
             if(!imp.endsWith(".*")){
                 let lastPart=imp.split(".").pop()?.replace(";","")!
-                let isUsed=Object.values(context.data_clump_data).some((param)=>param.type.includes(lastPart));
+                let isUsed=Object.values(context.data_clump_data).some((param)=>{
+                    // generic type, endswith does not work
+                    if(param.type.includes("<")){
+                        return param.type.includes(lastPart)
+                    }
+                    else{
+                        return param.type.endsWith(lastPart)
+                    }
+                });
                 if(!isUsed){
                     continue;
                 }
