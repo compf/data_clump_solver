@@ -3,7 +3,7 @@ export abstract class VCS_Service{
     abstract commit(message:string);
     abstract push();
     abstract fork(url:string,newName:string|undefined);
-    abstract pullRequest();
+    abstract pullRequest(repo:string,head:string,owner:string,base:string,title:string,body:string): Promise<number>
     abstract getWorkingDirectory():string;
 
     async forkAndClone(newName:string|undefined,url:string):Promise<string>{

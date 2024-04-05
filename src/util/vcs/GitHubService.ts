@@ -59,8 +59,32 @@ export class GitHubService extends VCS_Service {
         console.log(result.data.ssh_url)
         return result.data.ssh_url.replace(".git","")
     }
-    pullRequest() {
+   async pullRequest(repo:string,head:string,owner:string,base:string,title:string,body:string): Promise<number> {
+        let octokit=this.createOctokitObject();
+        let response=await octokit.rest.pulls.create({
+            owner,
+            repo,
+            head,
+            base,
+            title,
+            body,
+        
+          });
+          console.log(response)
+          return response.data.number
+         
 
+    }
+    async comment(message:string,repo:string,owner:string,issue_number:number){
+        let octokit=this.createOctokitObject();
+      let response=await  octokit.rest.issues.createComment({
+        body: message,
+        issue_number,
+        owner,
+        repo
+
+       })
+       console.log(response)
     }
 
 }
