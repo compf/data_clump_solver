@@ -15,6 +15,8 @@ import { PhindraInterface } from "./util/languageModel/PhindraInterface";
 import { waitSync } from "./util/Utils";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
 import { Chat } from "openai/resources/index.mjs";
+import { FileFilterHandler } from "./pipeline/stepHandler/fileFiltering/FileFilterHandler";
+import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpTypeContext";
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
@@ -26,6 +28,7 @@ const instructionType = ["definitionBased", "exampleBased", "noDefinitionBased"]
 const dataFormat = ["source", "ast"]
 const dataHandler = ["AllFilesHandler", "PairOfFileAndSingleHandler"]
 const repetionCount = 3;
+const projectName="argoUml"
 const IGNORE_EXISTING=true;
 let failedAttemptsCounter = 0;
 const maxFailedAttempts = 5;
@@ -49,6 +52,26 @@ function createAPI(apiType: string, model: string, temperature: number): Languag
     }
     return new ChatGPTInterface({ model, temperature })
 }
+function createLargeDataClumpsFilterContext(dataFormat:string){
+    let dcContext=JSON.parse(fs.readFileSync("data/dataClumpDetectorContext.json","utf-8" ))[0];
+    let usages=JSON.parse(fs.readFileSync("data/usageFindingContext.json","utf-8" ));
+    let sorted=Object.values(dcContext.data_clumps).sort((b:any,a:any)=>Object.keys(a.data_clump_data).length-Object.keys(b.data_clump_data).length).slice(undefined,5) as DataClumpTypeContext[]
+    let paths={}
+    let class_ids={}
+    for(let s of sorted){
+        paths[+s.from_file_path]=true;
+        paths[+s.to_file_path]=true;
+        class_ids["temp/"+s.from_class_or_interface_key+".json"]=true;
+        class_ids["temp/"+s.to_class_or_interface_key+".json"]=true;
+        let usg=usages[s.key]
+        for(let u of usg){
+            paths[u.filePath]=true;
+        }
+    }
+    let include=dataFormat=="source"?Object.keys(paths):Object.keys(class_ids)
+   return new FileFilteringContext(include,[])
+}
+
 async function main() {
     registerFromName(LanguageModelTemplateResolver.name, LanguageModelTemplateResolver.name, {
         "${programming_language}": "Java",
@@ -56,7 +79,7 @@ async function main() {
         "%{output_format}":"chatGPT_templates/json_output_format.json"
     })
     console.log("hello world")
-    let codeObtainingContext=new CodeObtainingContext("javaTest/javaTest");
+    let codeObtainingContext=new CodeObtainingContext("/home/compf/data/uni/master/sem4/argouml");
     for (let apiType of apis) {
         for (let model of models) {
             for (let temperature of temperatures) {
@@ -66,7 +89,7 @@ async function main() {
                             for (let i = 0; i < repetionCount; i++) {
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
                                 const instructionPath=`chatGPT_templates/detect/${instrType}/${dFormat}/instruction.template`
-                                let path="llm_results/detect/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
+                                let path="llm_results/"+projectName+"/detect/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
                                 if( IGNORE_EXISTING && fs.existsSync(path)){
                                     continue;
                                 }
@@ -81,7 +104,7 @@ async function main() {
                                 const api=createAPI(apiType,model,temperature)
                                 
                                 let langRefactorer=LanguageModelDetectOrRefactorHandler.createFromCreatedHandlers(handlers.handlers,api)
-                                let context=codeObtainingContext.buildNewContext(new FileFilteringContext([dFormat=="source"?"*.java":"*.json"],[]))
+                                let context=codeObtainingContext.buildNewContext(createLargeDataClumpsFilterContext(dFormat))
                                 let startTimestamp = Date.now()
                                 console.log("STARTING")
                                 let newContext=await( langRefactorer.handle(PipeLineStep.DataClumpDetection, context,null)) as (DataClumpDetectorContext & {chat:ChatMessage[]})

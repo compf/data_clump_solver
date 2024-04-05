@@ -2,7 +2,7 @@ import { Minimatch } from "minimatch";
 import { FileFilteringContext } from "../context/DataContext";
 import fs from "fs"
 import path from "path";
-export const MiniMatchConf = { dot: true, matchBase: true };
+export const MiniMatchConf = { dot: true, matchBase: true,debug:false };
   /** 
 * Recursively traverse through the directory and find all relavant files
 * @param baseDir the current directory to enumerate the files there
@@ -35,7 +35,10 @@ function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext
     let isIncluded = includeGlobs.length == 0
     let isExcluded = false
     for (let includeGlob of includeGlobs) {
-        if (new Minimatch(includeGlob,MiniMatchConf).match(filePath,true)) {
+        
+       
+
+        if (filePath.endsWith(includeGlob)|| new Minimatch(includeGlob,MiniMatchConf).match(filePath,true)) {
             isIncluded = true
             break
         }
