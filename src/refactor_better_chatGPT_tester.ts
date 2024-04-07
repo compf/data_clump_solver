@@ -14,20 +14,24 @@ import { ChatMessage, LanguageModelInterface } from "./util/languageModel/Langua
 import { PhindraInterface } from "./util/languageModel/PhindraInterface";
 import { waitSync } from "./util/Utils";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
+import { createLargeDataClumpsFilterContext } from "./better_chatGPT_tester";
 
 function createInstructionHandler(instructionPath: string) {
     return new SimpleInstructionHandler({ instructionPath })
 }
 const apis = ["ChatGPTInterface"/*"PhindraInterface"*/]
 const temperatures = [0.1,0.5, 0.9]
-const models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
-const instructionType = [/*"definitionBased",*/ "exampleBased"/*, "noDefinitionBased"*/];
+const models = ["gpt-4-1106-preview"/*, "gpt-3.5-turbo-1106"*/]
+const instructionType = ["definitionBased","exampleBased", "noDefinitionBased"];
 const dataFormat = ["fromScratch"/*"givenContext"*/]
 const dataHandler = ["AllFilesHandler"]
 const repetionCount = 3;
 let failedAttemptsCounter = 0;
 const maxFailedAttempts = 5;
-const IGNORE_EXISTING=false;
+const projectName="argoUml"
+
+const IGNORE_EXISTING=true;
+const modes=["refactor","detectAndRefactor"]
 function createDataHandler(name:string):LargeLanguageModelHandler{
     switch(name){
         case "AllFilesHandler":
@@ -49,30 +53,33 @@ function createAPI(apiType: string, model: string, temperature: number): Languag
     return new ChatGPTInterface({ model, temperature })
 }
 async function main() {
-    let codeObtainingContext=new CodeObtainingContext("javaTest/javaTest");
+    let codeObtainingContext=new CodeObtainingContext("/root/argouml");
     registerFromName(LanguageModelTemplateResolver.name, LanguageModelTemplateResolver.name, {
         "${programming_language}": "Java",
         "%{examples}":"chatGPT_templates/DataClumpExamples.java",
         "%{output_format}":"chatGPT_templates/json_output_format.json",
         "%{refactor_instruction}":"chatGPT_templates/refactor_data_clump_fully.template",
         "%{detected_data_clumps}":"chatGPT_templates/refactor/detected_data_clumps_minified.json",
+        "%{output_format_refactor}":"chatGPT_templates/json_format_refactor_output.json"
     })
     console.log("registered")
+    for(let mode of modes){
     for (let apiType of apis) {
         for (let model of models) {
             for (let temperature of temperatures) {
                 for (let instrType of instructionType) {
-                    for (let dFormat of dataFormat) {
+                    for (let _ of [0]) {
+                        let dFormat=mode=="detectAndRefactor"?"fromScratch":"givenContext"
                         for (let handlerName of dataHandler) {
                             for (let i = 0; i < repetionCount; i++) {
                                 waitSync(1000)
                                 console.log(apiType, model, temperature, instrType, dFormat, handlerName, i)
-                                const instructionPath=`chatGPT_templates/detectAndRefactor/${instrType}/${dFormat}/instruction.template`
+                                const instructionPath=`chatGPT_templates/${mode}/${instrType}/${dFormat}/instruction.template`
                                 if(!fs.existsSync(instructionPath)){
                                     console.log("Instruction path does not exist",instructionPath)
                                     continue;
                                 }
-                                let path="llm_results/detectAndRefactor/"+[apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
+                                let path="llm_results/"+[projectName,mode,apiType,model,temperature,instrType,dFormat,handlerName,i].join("/")
                                 if( IGNORE_EXISTING && fs.existsSync(path)){
                                     continue;
                                 }
@@ -86,18 +93,20 @@ async function main() {
                                 const api=createAPI(apiType,model,temperature)
                                 
                                 let langRefactorer=LanguageModelDetectOrRefactorHandler.createFromCreatedHandlers(handlers.handlers,api)
-                                let context=codeObtainingContext.buildNewContext(new FileFilteringContext(["*.java"],[]))
+                                let context=codeObtainingContext.buildNewContext(createLargeDataClumpsFilterContext("source",codeObtainingContext))
                                 let startTimestamp = Date.now()
                                 console.log("STARTING")
-                                let newContext=await( langRefactorer.handle(PipeLineStep.Refactoring,context,null)) as (RefactoredContext & {chat:ChatMessage[]})
+                                let newContext=await( langRefactorer.handle(PipeLineStep.Refactoring,context,"a")) as (RefactoredContext & {chat:ChatMessage[]})
                                 let elapsed = Date.now() - startTimestamp
                                 console.log("FINISHED")
                                 let inputOnly = newContext.chat.filter((x) => x.messageType == "input")
                                 let outputOnly = newContext.chat.filter((x) => x.messageType == "output")
                                 if(isInvalid(outputOnly)){
+
+                                    throw ("Too many failed attempts")
                                     failedAttemptsCounter++;
                                     if(failedAttemptsCounter>=maxFailedAttempts){
-                                        throw ("Too many failed attempts")
+                                        
                                     }
                                     i--;
                                     continue;
@@ -134,6 +143,7 @@ async function main() {
             }
         }
     }
+}
    
 }
 if(require.main==module){
@@ -150,6 +160,11 @@ export function isInvalid(outputOnly:any) {
             
 
            }catch(e){
+            console.log(e);
+            fs.writeFileSync("stuff/error",JSON.stringify(outputOnly))
+
+            fs.writeFileSync("stuff/error_text",JSON.stringify(e))
+
             return true;
            }
        }

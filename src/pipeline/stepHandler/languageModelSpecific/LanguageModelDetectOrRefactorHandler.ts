@@ -57,9 +57,9 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
 
 
-        return  this.createFittingContext(chat, step, context) as any;
+        return  this.createFittingContext(chat, params!=null?null:step, context) as any;
     }
-    createFittingContext(chat: ChatMessage[], step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext {
+    createFittingContext(chat: ChatMessage[], step: PipeLineStepType|null, context: DataClumpRefactoringContext): DataClumpRefactoringContext {
 
         let resultContext:DataClumpRefactoringContext = step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext();
         resultContext=context.buildNewContext(resultContext);
@@ -71,7 +71,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     if (json == null) {
                         continue
                     }
-                    if (step == PipeLineStep.Refactoring) {
+                    if(step==null){}
+                    else if (step == PipeLineStep.Refactoring) {
                         for (let key in json) {
                             let path = this.parse_key(key, context)
                             let content = this.parse_content(json[key], context)
