@@ -19,6 +19,7 @@ import { registerFromName } from "./config/Configuration";
 import { DoNothingStepHandler } from "./pipeline/stepHandler/DoNothingStepHandler";
 import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpTypeContext";
 
+import fs from "fs"
 class DebugNameFindingStep extends LanguageModelNameFindingsStep{
   async getSuggestedName(variableInfos: { name: string; type: string; }[], context: DataClumpRefactoringContext, counter: number): Promise<string | null> {
       if(counter<2){
@@ -32,24 +33,8 @@ class DebugNameFindingStep extends LanguageModelNameFindingsStep{
   }
 }
 async function main(){
-  registerFromName("ChatGPTInterface","ChatGPTInterface",{
-    "model":"gpt-4-1106-preview",
-    "temperature":0.5
-  });
-  registerFromName("LanguageModelTemplateResolver","LanguageModelTemplateResolver",{})
-  let codeObtainingContext=new CodeObtainingContext("/home/compf/data/uni/master/sem4/data_clump_solver/javaTest/javaTest");
-  codeObtainingContext.sharedData["config"]={}
-  codeObtainingContext.sharedData["config"]["ProgrammingLanguage"]="Java"
-  PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler({path:"javaTest/javaTest",useArgPath:false}))
-  PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DataClumpDetectorStep({}))
-  PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new DebugNameFindingStep(({
-    languageModelName:"ChatGPTInterface",
-    
-  })));
-  PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],new DoNothingStepHandler());
-  let context=await PipeLine.Instance.executeAllSteps(codeObtainingContext);
- let nameContext= context.getByType(NameFindingContext)!! as NameFindingContext
-  console.log(nameContext)
+let githubService=new GitHubService();
+await githubService.comment(fs.readFileSync("chatGPT_templates/feedback_from.template","utf-8"),"gitignore","Pader1305",1)
 
 }
 if(require.main === module){

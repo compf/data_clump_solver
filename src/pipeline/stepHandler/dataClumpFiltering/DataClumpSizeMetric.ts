@@ -5,9 +5,12 @@ import { Metric } from "../../../util/filterUtils/Metric"
 
 export class DataClumpSizeMetric implements Metric{
     constructor(args:{normalize:boolean}){
-        this.normalize=args.normalize
+        if(args){
+            this.normalize=args.normalize
+
+        }
     }
-    private normalize:boolean
+    private normalize:boolean=false
     evaluate(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
     
         let dc=data as DataClumpTypeContext

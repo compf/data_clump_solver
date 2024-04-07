@@ -58,7 +58,7 @@ export class PipeLine {
                 this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i], addedContextNames)
                 if (difference(createdContextNames,addedContextNames).size == 0) {
                     //No new context data is added so we can skip    
-                    continue;
+                    //continue;
                 }
                 let deserializedContext=this.stepHandlerList[i].deserializeExistingContext(context,pipeLineSteps[i])
                 if(deserializedContext==null){

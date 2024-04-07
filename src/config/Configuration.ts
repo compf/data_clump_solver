@@ -20,6 +20,7 @@ export type Configuration={
          SimilarityDetection:PipeLineStepConf,
          DataClumpDetection:PipeLineStepConf,
          DataClumpFiltering:PipeLineStepConf,
+         SecondFileFiltering:PipeLineStepConf,
          NameFinding:PipeLineStepConf,
          ClassExtraction:PipeLineStepConf
          UsageFinding:PipeLineStepConf,

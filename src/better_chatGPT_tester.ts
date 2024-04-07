@@ -52,7 +52,7 @@ function createAPI(apiType: string, model: string, temperature: number): Languag
     }
     return new ChatGPTInterface({ model, temperature })
 }
-export function createLargeDataClumpsFilterContext(dataFormat:string,context:DataClumpRefactoringContext){
+function createLargeDataClumpsFilterContext(dataFormat:string,context:DataClumpRefactoringContext){
     let dcContext=JSON.parse(fs.readFileSync("data/dataClumpDetectorContext.json","utf-8" ))[0];
     let usages=JSON.parse(fs.readFileSync("data/usageFindingContext.json","utf-8" ));
     let sorted=Object.values(dcContext.data_clumps).sort((b:any,a:any)=>Object.keys(a.data_clump_data).length-Object.keys(b.data_clump_data).length).slice(undefined,5) as DataClumpTypeContext[]
@@ -60,31 +60,25 @@ export function createLargeDataClumpsFilterContext(dataFormat:string,context:Dat
     let allJsonPaths=fs.readdirSync(path.resolve( context.getProjectPath(),"temp"))
     if(dataFormat=="source"){
         for(let s of sorted){
-            paths[s.from_file_path]=true;
-            paths[s.to_file_path]=true;
+            paths[+s.from_file_path]=true;
+            paths[+s.to_file_path]=true;
            
-            console.log(s.key)
+            
             let usg=usages[s.key]
             for(let u of usg){
-                if(u.filePath.startsWith("/")){
-                    u.filePath=u.filePath.replace("/","")
-                }
                 paths[u.filePath]=true;
             }
         }
     }
     else{
         for(let s of sorted){
-          // console.log(s.from_class_or_interface_key)
-           //console.log(allJsonPaths.some((x)=>s.from_class_or_interface_key.includes(x.replace(".json",""))))
+           
             for(let p of allJsonPaths){
-                //paths[s.from_file_path]=true;
-               // paths[s.to_file_path]=true;
-                if(s.from_class_or_interface_key.includes(p.replace(".json",""))){
+                if(p.startsWith(s.from_class_or_interface_key)){
                     paths["temp/"+p]=true;
                 
                 }
-                if(s.to_class_or_interface_key.includes(p.replace(".json",""))){
+                if(p.startsWith(s.to_class_or_interface_key)){
                     paths["temp/"+p]=true;
                 }
             }
