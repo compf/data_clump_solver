@@ -5,6 +5,7 @@ import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
+const Levenshtein=require("levenshtein")
 import { files } from "node-dir"
 import path from "path";
 import { resolve } from "path"
@@ -12,7 +13,7 @@ import { getContextSerializationPath, registerFromName, resolveFromConcreteName,
 import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } from "../../../util/languageModel/LanguageModelInterface";
 import { PipeLine } from "../../PipeLine";
-import { tryParseJSON } from "../../../util/Utils";
+import { indexOfSubArray, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
@@ -71,16 +72,22 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     if (json == null) {
                         continue
                     }
-                    if(step==null){}
+                    
                     else if (step == PipeLineStep.Refactoring) {
-                        for (let key in json) {
-                            let path = this.parse_key(key, context)
-                            let content = this.parse_content(json[key], context)
-                            if (content) {
-                                (resultContext as RefactoredContext).setReturnedCode(path, content)
-                                fs.writeFileSync(resolve(context.getProjectPath(), path), content)
+                        if(("refactorings" in json)){
+                            this.parse_content(json, context)
+                        }
+                        else{
+                            for (let key in json) {
+                                let path = this.parse_key(key, context)
+                                let content = this.parse_content(json[key], context)
+                                if (content) {
+                                    (resultContext as RefactoredContext).setReturnedCode(path, content)
+                                    fs.writeFileSync(resolve(context.getProjectPath(), path), content)
+                                }
                             }
                         }
+                       
                     }
                     else if (step == PipeLineStep.DataClumpDetection) {
                         let data_clumps_type_context = (resultContext as DataClumpDetectorContext).getDataClumpDetectionResult()
@@ -107,10 +114,74 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     parse_key(key: string, context: DataClumpRefactoringContext): string {
         return key
     }
-    parse_content(content: string, context: DataClumpRefactoringContext): string | null {
-        if (!content.includes("{")) {
-            return null
+    parse_content(content: any, context: DataClumpRefactoringContext): string | null {
+        if(typeof content=="string"){
+            if (!content.includes("{")) {
+                return null
+            }
         }
+        else if(typeof content=="object"){
+            fs.writeFileSync("stuff/test.json",JSON.stringify(content))
+            for(let refactoredPath of Object.keys(content.refactorings)){
+                console.log(refactoredPath)
+                let path = resolve(context.getProjectPath(), refactoredPath)
+                let fileContent=fs.readFileSync(path,{encoding:"utf-8"})
+                let minLevenshtein=1000000
+                let minOffset=100000
+                let sign=1
+               /* for(let change of content.refactorings[refactoredPath]){
+                    let lines=change.lineRange.split("-").map((x)=>parseInt(x))
+                    let start=lines[0]
+                    for(let target=0;target<fileContent.length;target++){
+                        let offset=0
+                        let value=new Levenshtein(fileContent[target],change.oldContent).distance
+                        
+                        
+                        if(value<minLevenshtein){
+                            minLevenshtein=value
+                            minOffset=Math.min(Math.abs(target-start),minOffset)
+                            sign=Math.sign(target-start)
+                            console.log(change.oldContent)
+                            console.log(fileContent[target])
+                            console.log(start,target)
+                            console.log()
+                        }
+                    }
+                }*/
+
+                //throw minLevenshtein+" "+minOffset +" "+sign
+
+                for(let change of content.refactorings[refactoredPath]){
+                    let lines=change.lineRange.split("-").map((x)=>parseInt(x))
+                    let start=lines[0]
+                    let end=lines[1]
+                    
+                    let newContent=change.newContent
+                    let oldContent=change.oldContent
+               
+                    fileContent=fileContent.replaceAll(oldContent,newContent)
+                    console.log()
+                    console.log(oldContent)
+                    console.log(newContent)
+                    let startIndex=start
+                    const offset=-4
+                    startIndex-=offset
+                    if(startIndex<0){
+                        throw new Error("Invalid line range")
+                    }
+                    
+                    
+                   
+                }
+                console.log(path)
+                fs.writeFileSync(path,fileContent)
+            }
+            for(let extractedClassPath of Object.keys(content.extractedClasses)){
+                let path = resolve(context.getProjectPath(), extractedClassPath)
+                fs.writeFileSync(path,content.extractedClasses[extractedClassPath])
+            }
+        }
+        console.log("return")
         return content
     }
     static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: LanguageModelInterface): LanguageModelDetectOrRefactorHandler {

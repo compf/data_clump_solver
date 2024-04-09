@@ -52,7 +52,7 @@ function createAPI(apiType: string, model: string, temperature: number): Languag
     }
     return new ChatGPTInterface({ model, temperature })
 }
-function createLargeDataClumpsFilterContext(dataFormat:string,context:DataClumpRefactoringContext){
+export function createLargeDataClumpsFilterContext(dataFormat:string,context:DataClumpRefactoringContext){
     let dcContext=JSON.parse(fs.readFileSync("data/dataClumpDetectorContext.json","utf-8" ))[0];
     let usages=JSON.parse(fs.readFileSync("data/usageFindingContext.json","utf-8" ));
     let sorted=Object.values(dcContext.data_clumps).sort((b:any,a:any)=>Object.keys(a.data_clump_data).length-Object.keys(b.data_clump_data).length).slice(undefined,5) as DataClumpTypeContext[]

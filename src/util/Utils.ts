@@ -76,3 +76,19 @@ export function tryParseJSON(jsonString:string){
         return null
     }
 }
+export function indexOfSubArray(array:any[],subArray:any[]){
+    for(let i=0;i<array.length-subArray.length;i++){
+        let found=true;
+        for(let j=0;j<subArray.length;j++){
+            if(array[i+j]!=subArray[j]){
+                console.log(array[i+j],subArray[j])
+                found=false;
+                break;
+            }
+        }
+        if(found){
+            return i;
+        }
+    }
+    return -1;
+}

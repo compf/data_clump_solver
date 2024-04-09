@@ -5,7 +5,8 @@ import { getRelevantFilesRec } from "./util/Utils";
 import { FileFilteringContext } from "./context/DataContext";
 import { ChatMessage } from "./util/languageModel/LanguageModelInterface";
 
-const ground_truth = JSON.parse(fs.readFileSync("llm_results/detect/dataClumpDetectorContext.json", { encoding: "utf-8" }))
+const ground_truth_filtered = JSON.parse(fs.readFileSync("llm_results/argoUml/detect/ground_truth_filtered.json", { encoding: "utf-8" }))
+const ground_truth_full = JSON.parse(fs.readFileSync("llm_results/argoUml/detect/ground_truth_full.json", { encoding: "utf-8" }))
 function standardize(dcData: DataClumpsTypeContext) {
     let result: DataClumpsTypeContext = {} as any
     result.data_clumps = {}
@@ -69,7 +70,7 @@ type EvaluationResult = BasicEvaluationResult & {
 }
 function get_output_file_paths(): string[] {
     let result = []
-    getRelevantFilesRec("llm_results/detect/", result, new FileFilteringContext(["*output.json"], []))
+    getRelevantFilesRec("llm_results/argoUml/detect/", result, new FileFilteringContext(["*output.json"], []))
     return result;
 }
 function parse_chat_file(path: string) {
@@ -111,8 +112,10 @@ function get_class_method_tuples(dcContext: DataClumpsTypeContext): string[] {
     }
     return detectedClassMethodPairs;
 }
-let ground_truth_standardized = standardize(ground_truth)
-let original = get_class_method_tuples(ground_truth_standardized)
+let ground_truth_standardized_filtered = standardize(ground_truth_filtered)
+let original_filtered = get_class_method_tuples(ground_truth_standardized_filtered)
+let ground_truth_standardized_full = standardize(ground_truth_full)
+let original_full = get_class_method_tuples(ground_truth_standardized_full)
 function median(array: number[]) {
     array.sort((a, b) => a - b)
     if (array.length % 2 == 0) {
@@ -150,22 +153,28 @@ function evaluateData(paths: string[],fullEval:boolean):EvaluationResult {
         let detected = get_class_method_tuples(combined)
         let original_in_detected = 0;
         let detected_in_original = 0;
-        for (let o of original) {
+        if(detected.length==0){
+            console.log("empty",p)
+            //throw ""
+            continue;
+        }
+        for (let o of original_filtered) {
             if (detected.includes(o)) {
 
                 original_in_detected++;
             }
             else {
-                //console.log(p, "Unknown in detected", o)
+                console.log(p, "Unknown in detected", o)
 
             }
         }
+        
         for (let d of detected) {
-            if (original.includes(d)) {
+            if (original_full.includes(d)) {
                 detected_in_original++;
             }
             else {
-                //console.log(p, "Unknown in original", d)
+                console.log(p, "Unknown in original", d)
 
             }
         }
@@ -173,8 +182,8 @@ function evaluateData(paths: string[],fullEval:boolean):EvaluationResult {
             detected_in_original /= detected.length
 
         }
-        if (original.length > 0) {
-            original_in_detected /= original.length
+        if (original_filtered.length > 0) {
+            original_in_detected /= original_filtered.length
         }
         if(detected_in_original==0 && fullEval){
             failures[p]=combined
@@ -205,6 +214,7 @@ function evaluateData(paths: string[],fullEval:boolean):EvaluationResult {
 
 
     }
+    
     return {
         sensitivityBest: max_d_in_o * 100,
         specifityBest: max_o_in_d * 100,
@@ -304,6 +314,7 @@ function create_basic_evaluation(firstFilter:any) {
 
     let evalResult = {all:evaluateData(allPaths,false)}
     for (let key0 of Object.keys(firstFilter)) {
+        console.log(key0)
         evalResult[key0] = { all: evaluateData(allPaths.filter(firstFilter[key0]),false) }
         tempResult[key0]=makeResultBasic(evalResult[key0].all)
         sums[key0]=0;
@@ -323,7 +334,7 @@ function create_basic_evaluation(firstFilter:any) {
         sums[key0]/=totalSum;
     }
     basicEvalResult["sums"]=sums;
-    
+    console.log(basicEvalResult)
 
     let latex="\\begin{table}\n\\begin{tabular}{c|c|c|c|c|c}\n";
     latex+="Median Sensitivity & Median Specifity & Mean Sensitivity & Mean Specifity & Std Sensitivity & Std Specifity \\\\ \n"
@@ -331,8 +342,9 @@ function create_basic_evaluation(firstFilter:any) {
         latex+=tempResult[key0].medianSensitivity+" & "+tempResult[key0].medianSpecifity+" & "+tempResult[key0].meanSensitivity+" & "+tempResult[key0].meanSpecifity+" & "+tempResult[key0].stdSensitivity+" & "+tempResult[key0].stdSpecifity+" \\\\ \n"
     }
     latex+="\\end{tabular}\n\\end{table}"
-    fs.writeFileSync("llm_results/detect/basic_"+getName(firstFilter)+".latex", latex)
-    fs.writeFileSync("llm_results/detect/basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
+    console.log(tempResult)
+    fs.writeFileSync("llm_results/argoUml/detect/basic_"+getName(firstFilter)+".latex", latex)
+    fs.writeFileSync("llm_results/argoUml/detect/basic_"+getName(firstFilter)+".json", JSON.stringify(basicEvalResult, null, 2))
 }
 function create_evaluation(key:string,permutation: any[]) {
     let evalResult = {all:evaluateData(get_output_file_paths(),true)}
@@ -362,15 +374,15 @@ function create_evaluation(key:string,permutation: any[]) {
             }
         }
     }
-
-    fs.writeFileSync("llm_results/detect/"+key+".json", JSON.stringify(evalResult, null, 2))
-    fs.writeFileSync("llm_results/detect/failures.json", JSON.stringify(failures, null, 2))
+    console.log(evalResult)
+    fs.writeFileSync("llm_results/argoUml/detect/"+key+".json", JSON.stringify(evalResult, null, 2))
+    fs.writeFileSync("llm_results/argoUml/detect/failures.json", JSON.stringify(failures, null, 2))
 }
 const basic=true;
 function main() {
     if(basic){
         for(let key of Object.keys(allFilters))   {
-           
+            console.log(key)
             create_basic_evaluation(allFilters[key]);
                 
            

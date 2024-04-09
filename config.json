@@ -5,12 +5,20 @@
             "type": "ChatGPTInterface",
             "args": {
                 "model": "gpt-4-1106-preview",
-                "temperature": 0.5
+                "temperature": 0.1
             }
         },
+        "FileFiltering":{
+            "handler":"FileFilterHandler",
+            "args":{"include":["*ExecutionResults.java"]}
+        },
+        "DataClumpSizeMetric":{
+            "type":"DataClumpSizeMetric"
+        },
+        
         "SimpleInstructionHandler": {
             "args": {
-                "instructionPath": "chatGPT_templates/detect/noDefinitionBased/source/instruction.template"
+                "instructionPath": "chatGPT_templates/detectAndRefactor/definitionBased/fromScratch/instruction.template"
             }
         },
         "AllFilesHandler": {},
@@ -20,8 +28,9 @@
                 "${programming_language}": "Java",
                 "%{examples}": "chatGPT_templates/DataClumpExamples.java",
                 "%{output_format}": "chatGPT_templates/json_output_format.json",
-                "%{refactor_instruction}": "chatGPT_templates/refactor_data_clump_fully.template",
-                "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json"
+                "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
+                "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
+                "%{output_format_refactor}":"chatGPT_templates/json_format_refactor_piecewise.json"
             }
         },
         "RandomRanker": {
@@ -37,29 +46,41 @@
             }
         },
         "DataClumpDetection": {
-            "handler": "DataClumpDetectorStep",
+            "handler": "DataClumpDetectorStep"
+            
+        },
+        "ReferenceFinding": {
+            "handler": "LanguageServerReferenceAPI",
             "args": {
-                "handlers": [
+               "apiName":"EclipseLSP_API"
+            }
+        },
+        "DataClumpFiltering":{
+            "handler": "DataClumpFilterStepHandler",
+            "args": {
+                "rankerName":"DataClumpSizeMetric",
+                "rankThreshold":1
+            }
+        },
+        "SecondFileFiltering":{
+           "handler": "OnlyDataClumpRelevantFilesStepHandler"
+        },
+        
+        
+     
+    
+     
+       
+        "Refactoring": {
+            "handler": "LanguageModelDetectOrRefactorHandler",
+            "args":{
+                "handlers":[
                     "SimpleInstructionHandler",
                     "AllFilesHandler",
                     "SendAndClearHandler"
                 ]
             }
-        },
-        "ClassExtraction":{
-            "handler":"JavaManualClassExtractor"
-        },
-        "ReferenceFinding": {
-            "handler": "LanguageServerReferenceAPI",
-            "args": {
-                "apiName": "EclipseLSP_API"
-            }
-        },
-        "NameFinding": {
-            "handler": "TrivialNameFindingStep"
-        },
-        "Refactoring": {
-            "handler": "RedcliffManualRefactoringStep"
         }
+       
     }
 }

@@ -596,354 +596,6 @@
   {
     "messages": [
       [
-        "//src/argouml-core-diagrams-activity2/src/org/argouml/activity2/diagram/FigCompartment.java",
-        "/* $Id$",
-        " *****************************************************************************",
-        " * Copyright (c) 2011 Contributors - see below",
-        " * All rights reserved. This program and the accompanying materials",
-        " * are made available under the terms of the Eclipse Public License v1.0",
-        " * which accompanies this distribution, and is available at",
-        " * http://www.eclipse.org/legal/epl-v10.html",
-        " *",
-        " * Contributors:",
-        " *    Bob Tarling",
-        " *****************************************************************************",
-        " */",
-        "",
-        "package org.argouml.activity2.diagram;",
-        "",
-        "import java.awt.Dimension;",
-        "import java.awt.Rectangle;",
-        "import java.util.Arrays;",
-        "import java.util.List;",
-        "",
-        "import org.argouml.model.AddAssociationEvent;",
-        "import org.argouml.model.AssociationChangeListener;",
-        "import org.argouml.model.InvalidElementException;",
-        "import org.argouml.model.Model;",
-        "import org.argouml.model.RemoveAssociationEvent;",
-        "import org.argouml.notation2.NotationType;",
-        "import org.argouml.uml.diagram.DiagramSettings;",
-        "import org.tigris.gef.presentation.Fig;",
-        "",
-        "/**",
-        " * The UML defines a Name Compartment, and a List Compartment. ",
-        " * This class implements the latter.<p>",
-        " * ",
-        " * A List Compartment is a boxed compartment,",
-        " * containing vertically stacked figs,",
-        " * which is common to e.g. a stereotypes compartment, operations",
-        " * compartment and an attributes compartment.<p>",
-        " * ",
-        " * @author Bob Tarling",
-        " */",
-        "class FigCompartment extends FigComposite implements AssociationChangeListener {",
-        "",
-        "    public FigCompartment(",
-        "            final Object owner,",
-        "            final Rectangle bounds,",
-        "            final DiagramSettings settings,",
-        "            final Object metaType,",
-        "            final String propertyName) {",
-        "        this(owner, bounds, settings,",
-        "                Arrays.asList(new Object[] {metaType}),",
-        "                propertyName);",
-        "    }",
-        "    ",
-        "    /**",
-        "     * @param owner the model element that owns the compartment",
-        "     * @param bounds the initial bounds of the compartment",
-        "     * @param settings the diagram settings",
-        "     * @param metaType the different metatype that can be displayed in the compartment",
-        "     */",
-        "    public FigCompartment(",
-        "            final Object owner,",
-        "            final Rectangle bounds,",
-        "            final DiagramSettings settings,",
-        "            final List<Object> metaTypes,",
-        "            final String propertyName) {",
-        "        ",
-        "        super(owner, settings);",
-        "        ",
-        "        Model.getFacade().getModelElementContents(owner);",
-        "        for (Object element",
-        "                : Model.getFacade().getModelElementContents(owner)) {",
-        "            if (metaTypes.contains(element.getClass())) {",
-        "                try {",
-        "                    int y = bounds.y + getTopMargin();",
-        "                    int x = bounds.x + getLeftMargin();",
-        "                    Rectangle childBounds = new Rectangle(x, y, 0, 0);",
-        "                    FigNotation fn = new FigNotation(",
-        "                            element, childBounds, settings, NotationType.NAME);",
-        "                    addFig(fn);",
-        "                    y += fn.getHeight();",
-        "                } catch (InvalidElementException e) {",
-        "                }",
-        "            }",
-        "        }",
-        "        ",
-        "        Model.getPump().addModelEventListener(",
-        "                (AssociationChangeListener) this, owner, propertyName);",
-        "        // TODO: Remove listeners for add/remove events",
-        "    }",
-        "    ",
-        "    public FigCompartment(",
-        "            final Object owner,",
-        "            final DiagramSettings settings) {",
-        "        super(owner, settings);",
-        "    }",
-        "    ",
-        "    ",
-        "    @Override",
-        "    public Dimension getMinimumSize() {",
-        "        int minWidth = 0;",
-        "        int minHeight = 0;",
-        "        for (Object f : getFigs()) {",
-        "            Fig fig = (Fig) f;",
-        "            minWidth = Math.max(fig.getMinimumSize().width, minWidth);",
-        "            minHeight += fig.getMinimumSize().height;",
-        "        }",
-        "",
-        "        minHeight += getTopMargin() + getBottomMargin();",
-        "        minWidth += getLeftMargin() + getRightMargin();",
-        "        ",
-        "        return new Dimension(minWidth, minHeight);",
-        "    }",
-        "",
-        "    @Override",
-        "    protected void positionChildren() {",
-        "",
-        "        int w = _w - (getLeftMargin() + getRightMargin());",
-        "        int x = _x + getLeftMargin();",
-        "        int y = _y + getTopMargin();",
-        "        ",
-        "        for (Object f : getFigs()) {",
-        "            Fig fig = (Fig) f;",
-        "            fig.setBounds(x, y, w, fig.getMinimumSize().height);",
-        "            y += fig.getHeight();",
-        "        }",
-        "    }",
-        "",
-        "    public void elementAdded(AddAssociationEvent evt) {",
-        "        Object element = evt.getNewValue();",
-        "        Rectangle childBounds = new Rectangle(getX() + getHeight(), getY(), 0, 0);",
-        "        FigNotation fn = new FigNotation(",
-        "                element, childBounds, getDiagramSettings(), NotationType.NAME);",
-        "        addFig(fn);",
-        "        calcBounds();",
-        "    }",
-        "",
-        "    public void elementRemoved(RemoveAssociationEvent evt) {",
-        "        Object element = evt.getOldValue();",
-        "        for (Object f : getFigs()) {",
-        "            Fig fig = (Fig) f;",
-        "            if (fig.getOwner() == element) {",
-        "                removeFig(fig);",
-        "                calcBounds();",
-        "                return;",
-        "            }",
-        "        }",
-        "    }",
-        "}",
-        ""
-      ]
-    ],
-    "messageType": "input"
-  },
-  {
-    "messages": [
-      [
-        "//src/argouml-core-model/src/org/argouml/model/AbstractModelEventPump.java",
-        "/* $Id$",
-        " *******************************************************************************",
-        " * Copyright (c) 2009 Contributors - see below",
-        " * All rights reserved. This program and the accompanying materials",
-        " * are made available under the terms of the Eclipse Public License v1.0",
-        " * which accompanies this distribution, and is available at",
-        " * http://www.eclipse.org/legal/epl-v10.html",
-        " *",
-        " * Contributors:",
-        " *    linus",
-        " *******************************************************************************",
-        " *",
-        " * Some portions of this file was previously release using the BSD License:",
-        " */",
-        "",
-        "// Copyright (c) 2004-2007 The Regents of the University of California. All",
-        "// Rights Reserved. Permission to use, copy, modify, and distribute this",
-        "// software and its documentation without fee, and without a written",
-        "// agreement is hereby granted, provided that the above copyright notice",
-        "// and this paragraph appear in all copies.  This software program and",
-        "// documentation are copyrighted by The Regents of the University of",
-        "// California. The software program and documentation are supplied \"AS",
-        "// IS\", without any accompanying services from The Regents. The Regents",
-        "// does not warrant that the operation of the program will be",
-        "// uninterrupted or error-free. The end-user understands that the program",
-        "// was developed for research purposes and is advised not to rely",
-        "// exclusively on the program for any reason.  IN NO EVENT SHALL THE",
-        "// UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,",
-        "// SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS,",
-        "// ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF",
-        "// THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF",
-        "// SUCH DAMAGE. THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY",
-        "// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF",
-        "// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE",
-        "// PROVIDED HEREUNDER IS ON AN \"AS IS\" BASIS, AND THE UNIVERSITY OF",
-        "// CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,",
-        "// UPDATES, ENHANCEMENTS, OR MODIFICATIONS.",
-        "",
-        "package org.argouml.model;",
-        "",
-        "import java.beans.PropertyChangeListener;",
-        "",
-        "",
-        "/**",
-        " * Abstract class that implements the convenience methods of the",
-        " * {@link ModelEventPump} interface.",
-        " *",
-        " * @author Linus Tolke",
-        " */",
-        "public abstract class AbstractModelEventPump implements ModelEventPump {",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#addModelEventListener(",
-        "     *          java.beans.PropertyChangeListener, java.lang.Object,",
-        "     *          java.lang.String[])",
-        "     */",
-        "    public abstract void addModelEventListener(PropertyChangeListener listener,",
-        "            \t\t\t\t       Object modelelement,",
-        "            \t\t\t\t       String[] eventNames);",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#addModelEventListener(",
-        "     *          java.beans.PropertyChangeListener, java.lang.Object,",
-        "     *          java.lang.String)",
-        "     */",
-        "    public void addModelEventListener(PropertyChangeListener listener,",
-        "            Object modelelement, String eventName) {",
-        "        addModelEventListener(listener,",
-        "                \t      modelelement,",
-        "                \t      new String[] {eventName });",
-        "    }",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#addModelEventListener(",
-        "     *          java.beans.PropertyChangeListener, java.lang.Object,",
-        "     *          java.lang.String)",
-        "     */",
-        "    public void addModelEventListener(UmlChangeListener listener,",
-        "            Object modelelement, String eventName) {",
-        "        addModelEventListener(listener,",
-        "                              modelelement,",
-        "                              new String[] {eventName });",
-        "    }",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#addModelEventListener(",
-        "     *          java.beans.PropertyChangeListener, java.lang.Object)",
-        "     */",
-        "    public abstract void addModelEventListener(PropertyChangeListener listener,",
-        "            \t\t\t\t       Object modelelement);",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#removeModelEventListener(",
-        "     *          java.beans.PropertyChangeListener, java.lang.Object,",
-        "     *          java.lang.String[])",
-        "     */",
-        "    public abstract void removeModelEventListener(",
-        "            PropertyChangeListener listener,",
-        "            Object modelelement, String[] eventNames);",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#removeModelEventListener(",
-        "     *          java.beans.PropertyChangeListener, java.lang.Object,",
-        "     *          java.lang.String)",
-        "     */",
-        "    public void removeModelEventListener(PropertyChangeListener listener,",
-        "            \t\t\t\t Object modelelement,",
-        "            \t\t\t\t String eventName) {",
-        "        removeModelEventListener(listener,",
-        "                \t\t modelelement,",
-        "                \t\t new String[] {eventName, });",
-        "    }",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#removeModelEventListener(",
-        "     *          java.beans.PropertyChangeListener, java.lang.Object,",
-        "     *          java.lang.String)",
-        "     */",
-        "    public void removeModelEventListener(UmlChangeListener listener,",
-        "                                         Object modelelement,",
-        "                                         String eventName) {",
-        "        removeModelEventListener(listener,",
-        "                                 modelelement,",
-        "                                 new String[] {eventName, });",
-        "    }",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#removeModelEventListener(",
-        "     * \t\tjava.beans.PropertyChangeListener, java.lang.Object)",
-        "     */",
-        "    public abstract void removeModelEventListener(",
-        "            PropertyChangeListener listener,",
-        "            Object modelelement);",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#addClassModelEventListener(",
-        "     * \t\tjava.beans.PropertyChangeListener, java.lang.Object,",
-        "     * \t\tjava.lang.String[])",
-        "     */",
-        "    public abstract void addClassModelEventListener(",
-        "            PropertyChangeListener listener,",
-        "            Object modelClass,",
-        "            String[] eventNames);",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#addClassModelEventListener(",
-        "     * \t\tjava.beans.PropertyChangeListener, java.lang.Object,",
-        "     * \t\tjava.lang.String)",
-        "     */",
-        "    public void addClassModelEventListener(PropertyChangeListener listener,",
-        "            \t\t\t\t   Object modelClass,",
-        "            \t\t\t\t   String eventName) {",
-        "        addClassModelEventListener(listener,",
-        "                \t\t   modelClass,",
-        "                \t\t   new String[] {eventName, });",
-        "    }",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#removeClassModelEventListener(",
-        "     * \t\tjava.beans.PropertyChangeListener, java.lang.Object,",
-        "     * \t\tjava.lang.String[])",
-        "     */",
-        "    public abstract void removeClassModelEventListener(",
-        "            PropertyChangeListener listener,",
-        "            Object modelClass,",
-        "            String[] eventNames);",
-        "",
-        "    /*",
-        "     * @see org.argouml.model.ModelEventPump#removeClassModelEventListener(",
-        "     * \t\tjava.beans.PropertyChangeListener, java.lang.Object,",
-        "     * \t\tjava.lang.String)",
-        "     */",
-        "    public void removeClassModelEventListener(PropertyChangeListener listener,",
-        "            \t\t\t\t      Object modelClass,",
-        "            \t\t\t\t      String eventName) {",
-        "        removeClassModelEventListener(listener,",
-        "                \t\t      modelClass,",
-        "                \t\t      new String[] {eventName, });",
-        "",
-        "    }",
-        "",
-        "}",
-        ""
-      ]
-    ],
-    "messageType": "input"
-  },
-  {
-    "messages": [
-      [
         "//src/argouml-core-model/src/org/argouml/model/ModelEventPump.java",
         "/* $Id$",
         " *******************************************************************************",
@@ -1272,61 +924,8 @@
     "messages": [
       {
         "data_clumps": {
-          "dc1": {
-            "key": "dc1",
-            "from_file_path": "src/argouml-app/tests/org/argouml/profile/internal/ocl/TestDefaultOclEvaluator.java",
-            "from_class_or_interface_key": "org.argouml.profile.internal.ocl.TestDefaultOclEvaluator",
-            "from_class_or_interface_name": "TestDefaultOclEvaluator",
-            "from_method_key": "org.argouml.profile.internal.ocl.TestDefaultOclEvaluator.setUp",
-            "from_method_name": "setUp",
-            "to_file_path": "src/argouml-app/tests/org/argouml/profile/internal/ocl/TestOclInterpreter.java",
-            "to_class_or_interface_key": "org.argouml.profile.internal.ocl.TestOclInterpreter",
-            "to_class_or_interface_name": "TestOclInterpreter",
-            "to_method_key": "org.argouml.profile.internal.ocl.TestOclInterpreter.setUp",
-            "to_method_name": "setUp",
-            "data_clump_data": {
-              "dc1_var1": {
-                "key": "dc1_var1",
-                "name": "super",
-                "type": "void",
-                "displayedType": "void",
-                "position": {
-                  "startLine": "28",
-                  "startColumn": "9"
-                },
-                "to_variable": {
-                  "key": "dc1_var1_to",
-                  "name": "super",
-                  "type": "void",
-                  "position": {
-                    "startLine": "27",
-                    "startColumn": "9"
-                  }
-                }
-              },
-              "dc1_var2": {
-                "key": "dc1_var2",
-                "name": "InitializeModel.initializeDefault",
-                "type": "void",
-                "displayedType": "void",
-                "position": {
-                  "startLine": "29",
-                  "startColumn": "9"
-                },
-                "to_variable": {
-                  "key": "dc1_var2_to",
-                  "name": "InitializeModel.initializeDefault",
-                  "type": "void",
-                  "position": {
-                    "startLine": "28",
-                    "startColumn": "9"
-                  }
-                }
-              }
-            }
-          },
-          "dc2": {
-            "key": "dc2",
+          "data_clump_1": {
+            "key": "data_clump_1",
             "from_file_path": "src/argouml-app/tests/org/argouml/profile/internal/ocl/TestDefaultOclEvaluator.java",
             "from_class_or_interface_key": "org.argouml.profile.internal.ocl.TestDefaultOclEvaluator.DummyModelInterpreter",
             "from_class_or_interface_name": "DummyModelInterpreter",
@@ -1338,314 +937,98 @@
             "to_method_key": "org.argouml.profile.internal.ocl.TestOclInterpreter.DefaultModelInterpreter.invokeFeature",
             "to_method_name": "invokeFeature",
             "data_clump_data": {
-              "dc2_var1": {
-                "key": "dc2_var1",
+              "data_clump_variable_1": {
+                "key": "data_clump_variable_1",
                 "name": "vt",
                 "type": "Map<String, Object>",
                 "displayedType": "HashMap<String, Object>",
                 "position": {
-                  "startLine": "37",
-                  "startColumn": "39"
+                  "startLine": "30",
+                  "startColumn": "47"
                 },
                 "to_variable": {
-                  "key": "dc2_var1_to",
+                  "key": "data_clump_variable_1_to",
                   "name": "vt",
                   "type": "Map<String, Object>",
                   "position": {
                     "startLine": "26",
-                    "startColumn": "39"
+                    "startColumn": "47"
                   }
                 }
               },
-              "dc2_var2": {
-                "key": "dc2_var2",
+              "data_clump_variable_2": {
+                "key": "data_clump_variable_2",
                 "name": "subject",
                 "type": "Object",
                 "displayedType": "Object",
                 "position": {
-                  "startLine": "37",
-                  "startColumn": "62"
+                  "startLine": "30",
+                  "startColumn": "69"
                 },
                 "to_variable": {
-                  "key": "dc2_var2_to",
+                  "key": "data_clump_variable_2_to",
                   "name": "subject",
                   "type": "Object",
                   "position": {
                     "startLine": "26",
-                    "startColumn": "62"
+                    "startColumn": "69"
                   }
                 }
               },
-              "dc2_var3": {
-                "key": "dc2_var3",
+              "data_clump_variable_3": {
+                "key": "data_clump_variable_3",
                 "name": "feature",
                 "type": "String",
                 "displayedType": "String",
                 "position": {
-                  "startLine": "37",
-                  "startColumn": "71"
+                  "startLine": "30",
+                  "startColumn": "78"
                 },
                 "to_variable": {
-                  "key": "dc2_var3_to",
+                  "key": "data_clump_variable_3_to",
                   "name": "feature",
                   "type": "String",
                   "position": {
                     "startLine": "26",
-                    "startColumn": "71"
+                    "startColumn": "78"
                   }
                 }
               },
-              "dc2_var4": {
-                "key": "dc2_var4",
+              "data_clump_variable_4": {
+                "key": "data_clump_variable_4",
                 "name": "type",
                 "type": "String",
                 "displayedType": "String",
                 "position": {
-                  "startLine": "37",
-                  "startColumn": "80"
+                  "startLine": "30",
+                  "startColumn": "87"
                 },
                 "to_variable": {
-                  "key": "dc2_var4_to",
+                  "key": "data_clump_variable_4_to",
                   "name": "type",
                   "type": "String",
                   "position": {
                     "startLine": "26",
-                    "startColumn": "80"
+                    "startColumn": "87"
                   }
                 }
               },
-              "dc2_var5": {
-                "key": "dc2_var5",
+              "data_clump_variable_5": {
+                "key": "data_clump_variable_5",
                 "name": "parameters",
                 "type": "Object[]",
                 "displayedType": "Object[]",
                 "position": {
-                  "startLine": "37",
-                  "startColumn": "86"
+                  "startLine": "30",
+                  "startColumn": "93"
                 },
                 "to_variable": {
-                  "key": "dc2_var5_to",
+                  "key": "data_clump_variable_5_to",
                   "name": "parameters",
                   "type": "Object[]",
                   "position": {
                     "startLine": "26",
-                    "startColumn": "86"
-                  }
-                }
-              }
-            }
-          },
-          "dc3": {
-            "key": "dc3",
-            "from_file_path": "src/argouml-core-diagrams-activity2/src/org/argouml/activity2/diagram/FigCompartment.java",
-            "from_class_or_interface_key": "org.argouml.activity2.diagram.FigCompartment",
-            "from_class_or_interface_name": "FigCompartment",
-            "from_method_key": "org.argouml.activity2.diagram.FigCompartment.elementAdded",
-            "from_method_name": "elementAdded",
-            "to_file_path": "src/argouml-core-diagrams-activity2/src/org/argouml/activity2/diagram/FigCompartment.java",
-            "to_class_or_interface_key": "org.argouml.activity2.diagram.FigCompartment",
-            "to_class_or_interface_name": "FigCompartment",
-            "to_method_key": "org.argouml.activity2.diagram.FigCompartment.elementRemoved",
-            "to_method_name": "elementRemoved",
-            "data_clump_data": {
-              "dc3_var1": {
-                "key": "dc3_var1",
-                "name": "element",
-                "type": "Object",
-                "displayedType": "Object",
-                "position": {
-                  "startLine": "96",
-                  "startColumn": "23"
-                },
-                "to_variable": {
-                  "key": "dc3_var1_to",
-                  "name": "element",
-                  "type": "Object",
-                  "position": {
-                    "startLine": "106",
-                    "startColumn": "23"
-                  }
-                }
-              },
-              "dc3_var2": {
-                "key": "dc3_var2",
-                "name": "getX",
-                "type": "int",
-                "displayedType": "int",
-                "position": {
-                  "startLine": "97",
-                  "startColumn": "40"
-                },
-                "to_variable": {
-                  "key": "dc3_var2_to",
-                  "name": "getX",
-                  "type": "int",
-                  "position": {
-                    "startLine": "107",
-                    "startColumn": "40"
-                  }
-                }
-              },
-              "dc3_var3": {
-                "key": "dc3_var3",
-                "name": "getY",
-                "type": "int",
-                "displayedType": "int",
-                "position": {
-                  "startLine": "97",
-                  "startColumn": "48"
-                },
-                "to_variable": {
-                  "key": "dc3_var3_to",
-                  "name": "getY",
-                  "type": "int",
-                  "position": {
-                    "startLine": "107",
-                    "startColumn": "48"
-                  }
-                }
-              }
-            }
-          },
-          "dc4": {
-            "key": "dc4",
-            "from_file_path": "src/argouml-core-model/src/org/argouml/model/AbstractModelEventPump.java",
-            "from_class_or_interface_key": "org.argouml.model.AbstractModelEventPump",
-            "from_class_or_interface_name": "AbstractModelEventPump",
-            "from_method_key": "org.argouml.model.AbstractModelEventPump.addModelEventListener",
-            "from_method_name": "addModelEventListener",
-            "to_file_path": "src/argouml-core-model/src/org/argouml/model/ModelEventPump.java",
-            "to_class_or_interface_key": "org.argouml.model.ModelEventPump",
-            "to_class_or_interface_name": "ModelEventPump",
-            "to_method_key": "org.argouml.model.ModelEventPump.addModelEventListener",
-            "to_method_name": "addModelEventListener",
-            "data_clump_data": {
-              "dc4_var1": {
-                "key": "dc4_var1",
-                "name": "listener",
-                "type": "PropertyChangeListener",
-                "displayedType": "PropertyChangeListener",
-                "position": {
-                  "startLine": "35",
-                  "startColumn": "41"
-                },
-                "to_variable": {
-                  "key": "dc4_var1_to",
-                  "name": "listener",
-                  "type": "PropertyChangeListener",
-                  "position": {
-                    "startLine": "85",
-                    "startColumn": "41"
-                  }
-                }
-              },
-              "dc4_var2": {
-                "key": "dc4_var2",
-                "name": "modelelement",
-                "type": "Object",
-                "displayedType": "Object",
-                "position": {
-                  "startLine": "35",
-                  "startColumn": "72"
-                },
-                "to_variable": {
-                  "key": "dc4_var2_to",
-                  "name": "modelelement",
-                  "type": "Object",
-                  "position": {
-                    "startLine": "85",
-                    "startColumn": "72"
-                  }
-                }
-              },
-              "dc4_var3": {
-                "key": "dc4_var3",
-                "name": "eventName",
-                "type": "String",
-                "displayedType": "String",
-                "position": {
-                  "startLine": "35",
-                  "startColumn": "85"
-                },
-                "to_variable": {
-                  "key": "dc4_var3_to",
-                  "name": "propertyName",
-                  "type": "String",
-                  "position": {
-                    "startLine": "85",
-                    "startColumn": "85"
-                  }
-                }
-              }
-            }
-          },
-          "dc5": {
-            "key": "dc5",
-            "from_file_path": "src/argouml-core-model/src/org/argouml/model/AbstractModelEventPump.java",
-            "from_class_or_interface_key": "org.argouml.model.AbstractModelEventPump",
-            "from_class_or_interface_name": "AbstractModelEventPump",
-            "from_method_key": "org.argouml.model.AbstractModelEventPump.removeModelEventListener",
-            "from_method_name": "removeModelEventListener",
-            "to_file_path": "src/argouml-core-model/src/org/argouml/model/ModelEventPump.java",
-            "to_class_or_interface_key": "org.argouml.model.ModelEventPump",
-            "to_class_or_interface_name": "ModelEventPump",
-            "to_method_key": "org.argouml.model.ModelEventPump.removeModelEventListener",
-            "to_method_name": "removeModelEventListener",
-            "data_clump_data": {
-              "dc5_var1": {
-                "key": "dc5_var1",
-                "name": "listener",
-                "type": "PropertyChangeListener",
-                "displayedType": "PropertyChangeListener",
-                "position": {
-                  "startLine": "71",
-                  "startColumn": "41"
-                },
-                "to_variable": {
-                  "key": "dc5_var1_to",
-                  "name": "listener",
-                  "type": "PropertyChangeListener",
-                  "position": {
-                    "startLine": "121",
-                    "startColumn": "41"
-                  }
-                }
-              },
-              "dc5_var2": {
-                "key": "dc5_var2",
-                "name": "modelelement",
-                "type": "Object",
-                "displayedType": "Object",
-                "position": {
-                  "startLine": "71",
-                  "startColumn": "72"
-                },
-                "to_variable": {
-                  "key": "dc5_var2_to",
-                  "name": "modelelement",
-                  "type": "Object",
-                  "position": {
-                    "startLine": "121",
-                    "startColumn": "72"
-                  }
-                }
-              },
-              "dc5_var3": {
-                "key": "dc5_var3",
-                "name": "eventName",
-                "type": "String",
-                "displayedType": "String",
-                "position": {
-                  "startLine": "71",
-                  "startColumn": "85"
-                },
-                "to_variable": {
-                  "key": "dc5_var3_to",
-                  "name": "propertyName",
-                  "type": "String",
-                  "position": {
-                    "startLine": "121",
-                    "startColumn": "85"
+                    "startColumn": "93"
                   }
                 }
               }
