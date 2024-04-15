@@ -16,7 +16,7 @@ export class AlwaysFromLocationProvider implements ClassExtractionLocationProvid
 export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler {
     useExistingNames: boolean=true;
     deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
-        if(step==PipeLineStep.ReferenceFinding && this.useExistingNames){
+        if(step==PipeLineStep.NameFinding && this.useExistingNames){
             if(fs.existsSync(getContextSerializationPath(step.name,context))){
                 let data=JSON.parse(fs.readFileSync(getContextSerializationPath(step.name,context)).toString())
                 let newContext= context.buildNewContext(new NameFindingContext()) as NameFindingContext
@@ -24,6 +24,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
                     newContext.setNameKeyPair(data[key],key)
                     
                 }
+                return newContext
             }
         }
         return null;
@@ -80,6 +81,7 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
             for(let key of dcKeyNameMap.keys()){
                 nameContext.setNameKeyPair(dcKeyNameMap.get(key)!,key)
             }
+            nameContext.serialize()
             let classPathContext=nameContext.buildNewContext(new ClassPathContext()) as ClassPathContext
             for(let key of dcPathMap.keys()){
                 classPathContext.setExtractedClassPath(key,dcPathMap.get(key)!!)

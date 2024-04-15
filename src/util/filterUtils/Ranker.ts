@@ -40,6 +40,7 @@ export  class   RankSampler{
 
             }
           let result=input.sort(  (a,b) =>this.rankSign!* (evaluateMap[this.getKey(a)]-evaluateMap[this.getKey(b)]))
+        
           return result.slice(0,this.rankThreshold!)
       }
       

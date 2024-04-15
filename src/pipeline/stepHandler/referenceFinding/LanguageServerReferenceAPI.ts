@@ -22,21 +22,26 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     apiArgs: LanguageServerReferenceAPIParams
     globalCounter = 3
     balance = 0;
-    private useExistingReferences: boolean;
+    private useExistingReferences: boolean=true;
     visitedMethods: Set<string> = new Set();
     counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[],originKey:string,isParameter:boolean }> = new Map();
     constructor(args: LanguageServerReferenceAPIParams & {useExistingReferences:boolean}) {
         super();
         registerFromName(args.apiName, "LanguageServerAPI", args.apiArgs)
         this.apiArgs = args;
-        this.useExistingReferences=args.useExistingReferences
+        if(args.useExistingReferences!=undefined){
+            this.useExistingReferences=args.useExistingReferences
+        
+        }
     }
     nextCounterValue(): number {
         this.balance++;
         return this.globalCounter++;
     }
     deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
+       
         if(step==PipeLineStep.ReferenceFinding && this.useExistingReferences){
+            let path=getContextSerializationPath(step.name,context)
             if(fs.existsSync(getContextSerializationPath(step.name,context))){
                 let data=JSON.parse(fs.readFileSync(getContextSerializationPath(step.name,context)).toString())
                 return context.buildNewContext(new UsageFindingContext(data))
@@ -70,13 +75,16 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     loadMethodDeclarations(socket:Writable ,methodFile: string, methodName: string, context: DataClumpRefactoringContext, dcKey: string, methodKey: string, variableNames: string[]) {
        let astContext=context.getByType(ASTBuildingContext)!;
        let originalClass=astContext.getByPath(methodFile)
+       if(originalClass.methods[methodKey]==undefined){
+        return
+       }
        let fileQueue=[methodFile]
        let visited=new Set<string>()
        do{
         let currPath=fileQueue.pop()!!
         if(visited.has(currPath))continue;
         visited.add(currPath)
-
+      
         let myClass=astContext.getByPath(currPath)
         let method=Object.keys(myClass.methods).map((it)=>myClass.methods[it]).find((it)=>it.name==methodName && it.parameters.map((it)=>it.type +" "+it.name).join(",")==originalClass.methods[methodKey].parameters.map((it)=>it.type +" "+it.name).join(","))
         if(method==undefined){
@@ -241,15 +249,18 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             let dcContext=context.getByType(DataClumpDetectorContext)!!
             return await new Promise<DataClumpRefactoringContext>(async handleResolver => {
                 const socket = await this.api!!.init(context.getProjectPath(), (data) => {
+                    console.log(JSON.stringify(data, null, 2))
                     let info = this.counterDataClumpInfoMap.get(data.id)!
-                   
                     if (info == undefined) return;
                     let combined=Object.assign(info,data,)
                     this.balance--
                     if (!this.usages.has(info.variableKey)) {
                         this.usages.set(info.variableKey, [])
                     }
-
+                    if(data.error){
+                        console.log("ERROR ON REC",data.error)
+                        return
+                    }
                     for (let result of data.result!) {
                         let usage:VariableOrMethodUsage={
                             symbolType: info.usageType,

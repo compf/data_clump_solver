@@ -20,10 +20,45 @@ covered_files=set()
 covered_ids=set()
 data_clumps=[dc_data["data_clumps"][k] for k in dc_data["data_clumps"]]
 MIN_DATA_CLUMP=3
-by_path={}
-by_affected_file_count={}
-by_affected_files={}
+
+by_name_type_key={}
+by_name_type_key_affected_files={}
 data_clumps_sorted=sorted(data_clumps,key=lambda x: len(x["data_clump_data"]),reverse=True)
+for x in data_clumps_sorted:
+
+    name_type_key=",".join(sorted([(x["data_clump_data"][k]["type"] + " "+x["data_clump_data"][k]["name"]) for  k  in x["data_clump_data"]]))
+    if name_type_key not in by_name_type_key:
+        by_name_type_key[name_type_key]=0
+    by_name_type_key[name_type_key]+=1
+    if name_type_key not in by_name_type_key_affected_files:
+        by_name_type_key_affected_files[name_type_key]=set()
+    by_name_type_key_affected_files[name_type_key].add(x["from_file_path"])
+    by_name_type_key_affected_files[name_type_key].add(x["to_file_path"])
+
+    #print()
+
+LENGTH_FACTOR=100
+OCCURENCE_FACTOR=1
+AFFECTED_FILES_FACTOR=1
+by_name_type_key_importance={x:by_name_type_key[x]*OCCURENCE_FACTOR+len(x.split(","))*LENGTH_FACTOR+len(by_name_type_key_affected_files[x])*AFFECTED_FILES_FACTOR for x in by_name_type_key}
+by_name_key_details={x:{"length":len(x.split(",")),"occurence":by_name_type_key[x],"affected_files":len(by_name_type_key_affected_files[x])} for x in by_name_type_key}
+for x in sorted(by_name_type_key_importance,key=lambda x: by_name_type_key_importance[x],reverse=False):
+    print()
+    print(x)
+    print(by_name_type_key_importance[x])
+    print(by_name_key_details[x])
+    print()
+exit(0)
+
+
+by_name_type_key=sorted([(by_name_type_key[x],x) for x in by_name_type_key],reverse=True)
+for x in by_name_type_key[:5]:
+    print(x)
+    for affected in by_name_type_key_affected_files[x[1]]:
+        print(affected)
+    print()
+print("#########Second part#########")
+exit(0)
 for x in data_clumps:
     from_path=x["from_file_path"]
     to_path=x["to_file_path"]

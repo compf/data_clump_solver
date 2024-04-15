@@ -1,12 +1,12 @@
 
 
-Title: Refactored data clumps with the help of LLMs
+Title:  Refactored data clumps with the help of LLMs (research project)
 
 
 Hello maintainers,
 
 I am conducting a master thesis project focused on enhancing code quality through automated refactoring of data clumps, assisted by Large Language Models (LLMs).
-Each proposed change in this pull request has been reviewed and tested by me to ensure compliance with your standards and contribution guidelines.
+
 
 <details>
   <summary>Data clump definition</summary>
@@ -26,7 +26,7 @@ I believe these refactoring can contribute to the project by reducing complexity
 Pursuant to the EU AI Act, I fully disclose the use of LLMs in generating these refactorings, emphasizing that all changes have undergone human review for quality assurance. 
 
 
-Even if you decide not to integrate my changes to your codebase (which is perfectly fine), I ask you to fill out the feedback form below, which will be scientifically evaluated to determine the acceptance of AI-supported refactorings. 
+Even if you decide not to integrate my changes to your codebase (which is perfectly fine), I ask you to fill out a feedback survey, which will be scientifically evaluated to determine the acceptance of AI-supported refactorings. You can find the feedback survey under https://campus.lamapoll.de/Data-clump-refactoring/en
 
 
 Thank you for considering my contribution. I look forward to your feedback. If you have any other questions or comments, feel free to write a comment, or email me under tschoemaker@uni-osnabrueck.de .

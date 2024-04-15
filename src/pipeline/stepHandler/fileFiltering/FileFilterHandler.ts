@@ -11,16 +11,25 @@ export class FileFilterHandler extends AbstractStepHandler {
     private filter?: SingleItemFilter = undefined
     private metric?: Metric = undefined
     private rankSampler: RankSampler;
+    private include?: string[] = undefined
+    private exclude?: string[] = undefined
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        if (!this.metric?.isCompatibleWithString()) {
+        if ( this.metric!=undefined && !this.metric?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
+        }
+        if(this.include || this.exclude){
+            let paths=[]
+            getRelevantFilesRec(context.getProjectPath(), paths, new FileFilteringContext(this.include??[],this.exclude??[]))
+            //throw "hallo "+paths.length
+            return context.buildNewContext(new FileFilteringContext(this.include??[],this.exclude??[]))
         }
         let originalPaths: string[] = []
         let filteredPaths: string[] = []
-        getRelevantFilesRec(context.getProjectPath(), originalPaths, null)
+        let filterContext=new FileFilteringContext(this.include??[],this.exclude??[])
+        getRelevantFilesRec(context.getProjectPath(), originalPaths, filterContext)
         if (this.filter) {
             for (let p of originalPaths) {
-                if (await this.filter.shallRemain(p, context)) {
+                if (await this.filter!!.shallRemain(p, context)) {
                     filteredPaths.push(p)
                 }
 
@@ -31,7 +40,7 @@ export class FileFilterHandler extends AbstractStepHandler {
         }
         if (this.metric) {
            
-            filteredPaths = await this.rankSampler.rank(this.metric, filteredPaths, context) as string[]
+            filteredPaths = await this.rankSampler.rank(this.metric!!, filteredPaths, context) as string[]
         }
         let newContext = this.buildFilterContextFromPaths(filteredPaths, context)
         return context.buildNewContext(newContext)
@@ -56,7 +65,7 @@ export class FileFilterHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.FileFiltering]
     }
-    constructor(args: { filterName?: string, metricName?: string, rankThreshold?: number, sign?: number }) {
+    constructor(args: { filterName?: string, metricName?: string, rankThreshold?: number, sign?: number,include?:string[],exclude?:string[] }) {
         super()
         this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign })
         if (args.metricName) {
@@ -65,6 +74,12 @@ export class FileFilterHandler extends AbstractStepHandler {
 
         if (args.filterName) {
             this.filter = resolveFromConcreteName(args.filterName)
+        }
+        if(args.include){
+            this.include=args.include
+        }
+        if(args.exclude){
+            this.exclude=args.exclude
         }
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {

@@ -33,8 +33,10 @@ export  class DataClumpRefactoringContext {
         let result=new Set<number>();
         let curr: DataClumpRefactoringContext = this;
         while (curr != null && curr.constructor.name!=DataClumpRefactoringContext.name) {
-            let pos=Object.values(PipeLineStep).filter((it)=>it.associatedContext==curr.constructor.name)[0].position
-            result.add(pos)
+            let obj=Object.values(PipeLineStep).filter((it)=>it.associatedContext==curr.constructor.name)[0]
+            if(obj){
+                result.add(obj.position)
+            }
             curr = curr.previousContext!
         }
         return result;

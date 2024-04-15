@@ -38,7 +38,17 @@ export abstract class LanguageServerAPI {
             //workspaceFolders: [{ name: "Pokemon_Sirius", uri: "PokemonSirius" }],
             "rootUri": "file://"+resolve(path)+"/",
             capabilities: MyCapabilities,
-            trace: "verbose"
+            trace: "verbose",
+            initializationOptions:{
+                settings: {
+                    java:{
+                        references:{
+                            includeAccessors:false
+                        }
+                    }
+                }
+            }
+            
         }
         let msg = this.create_request_message(1, Methods.Initialize, initParam)
         //console.log(msg)

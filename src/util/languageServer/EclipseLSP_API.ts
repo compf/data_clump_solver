@@ -23,7 +23,6 @@ export class EclipseLSP_API extends LanguageServerAPI {
             //console.log(s)
 
             let splitted = s.split("\r\n");
-            //console.log(splitted);
             for (let line of splitted) {
                 if (line.startsWith("Content-Length: ")) {
                 }
@@ -38,7 +37,6 @@ export class EclipseLSP_API extends LanguageServerAPI {
 
                     }
                     else{
-
                         callback(content as ResponseMessage)
                     }
                    

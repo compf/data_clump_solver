@@ -23,7 +23,7 @@ export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandle
         let query = resolver.resolveFromTemplateType(LanguageModelTemplateType.SuggestName,additionalReplacements);
         this.languageModel.prepareMessage(query)
         let suggestedName=await this.languageModel.sendMessages(false);
-        return suggestedName.messages[0]
+        return JSON.parse(suggestedName.messages[0]).suggested_name
     }
     languageModel: LanguageModelInterface | null = null;
     args: any
