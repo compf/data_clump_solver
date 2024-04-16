@@ -40,8 +40,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             api = resolveFromInterfaceName(LanguageModelInterface.name) as LanguageModelInterface
         }
         let templateResolver = resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
-
-        api.clear();
+        this.providedApi = api
         let chat: ChatMessage[] = []
         let handlerIndex = 0
         for (handlerIndex = 0; handlerIndex < this.handlers.length; handlerIndex++) {
@@ -58,9 +57,10 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
 
 
-        return  this.createFittingContext(chat, params!=null?null:step, context) as any;
+        return  await this.createFittingContext(chat, params!=null?null:step, context) as any;
     }
-    createFittingContext(chat: ChatMessage[], step: PipeLineStepType|null, context: DataClumpRefactoringContext): DataClumpRefactoringContext {
+
+   async createFittingContext(chat: ChatMessage[], step: PipeLineStepType|null, context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
 
         let resultContext:DataClumpRefactoringContext = step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext();
         resultContext=context.buildNewContext(resultContext);
@@ -75,12 +75,33 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     
                     else if (step == PipeLineStep.Refactoring) {
                         if(("refactorings" in json)){
-                            this.parse_content(json, context)
+                            this.parse_piecewise_output(json, context)
                         }
                         else{
                             for (let key in json) {
                                 let path = this.parse_key(key, context)
-                                let content = this.parse_content(json[key], context)
+                                let content = json[key]
+                                let shallContinue=false
+                                do{
+                                    break;
+                                    console.log("###############################")
+                                    console.log(content)
+                                    shallContinue=false
+                                    content =json[key];
+                                    if(typeof content=="string"){
+                                        if (!content.includes("{")) {
+                                           shallContinue=true
+                                        }
+                                        let contentStr=content  as string
+                                        if(contentStr.split("\n").some((x)=>x.trim().startsWith("//") || x.trim().endsWith("..."))){
+                                        const warningMessage="The code you returned contains comments that ends with '...'. This means that you have not returned the whole source code. Please return the full source code including all unchanged parts and do not omit anything for brevity"    
+                                        this.providedApi?.prepareMessage(warningMessage)
+                                            json=JSON.parse((await this.providedApi!.sendMessages(false)).messages.join("\n"))!
+                                        }
+                                    }
+                                }while(shallContinue)
+                                 
+                               
                                 if (content) {
                                     (resultContext as RefactoredContext).setReturnedCode(path, content)
                                     fs.writeFileSync(resolve(context.getProjectPath(), path), content)
@@ -114,13 +135,12 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     parse_key(key: string, context: DataClumpRefactoringContext): string {
         return key
     }
-    parse_content(content: any, context: DataClumpRefactoringContext): string | null {
-        if(typeof content=="string"){
-            if (!content.includes("{")) {
-                return null
-            }
-        }
-        else if(typeof content=="object"){
+    async parse_full_content(content: any, context: DataClumpRefactoringContext): Promise<string | null>{
+       return Promise.resolve(null)
+    }
+    parse_piecewise_output(content: any, context: DataClumpRefactoringContext): string | null {
+        
+         if(typeof content=="object"){
             fs.writeFileSync("stuff/test.json",JSON.stringify(content))
             for(let refactoredPath of Object.keys(content.refactorings)){
                 console.log(refactoredPath)
@@ -158,11 +178,38 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     
                     let newContent=change.newContent
                     let oldContent=change.oldContent
-               
+                    let index=fileContent.indexOf(oldContent)
+                    const MAX_OFFSET=100
+                    if(index==-1){
+                        let splitted=fileContent.split("\n")
+                        for(let i=Math.max(0,start-MAX_OFFSET);i<Math.min(end+MAX_OFFSET,splitted.length);i++){
+                            let s=splitted[i]
+                            if(s!="" && oldContent.trim().startsWith(s.trim())){
+                                let newContentSplitted=newContent.split("\n")
+                                let oldContentSplitted=oldContent.split("\n")
+                                for(let j=0;j<newContentSplitted.length;j++){
+                                    s=splitted[i+j]
+                                    console.log("REPLACE",s,"by",newContentSplitted[j])
+                                    if(j<oldContentSplitted.length){
+                                        splitted[i+j]= newContentSplitted[j]
+                                    }
+                                    else{
+                                        splitted.splice(i+j,0,newContentSplitted[j])
+                                    }
+
+                                    
+                                }
+                                break;
+                            }
+                        }
+                        fileContent=splitted.join("\n")
+                       
+                        
+                    }
                     fileContent=fileContent.replaceAll(oldContent,newContent)
                     console.log()
-                    console.log(oldContent)
-                    console.log(newContent)
+                   // console.log(oldContent)
+                    //console.log(newContent)
                     let startIndex=start
                     const offset=-4
                     startIndex-=offset

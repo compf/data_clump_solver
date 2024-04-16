@@ -1,6 +1,6 @@
 import fs from "fs"
 import OpenAI from 'openai';
-import { ChatMessage, LanguageModelInterface } from "./LanguageModelInterface";
+import { ChatMessage, LanguageModelInterface, MessageType } from "./LanguageModelInterface";
 export class ChatGPTInterface extends LanguageModelInterface{
     private api:OpenAI;
 
@@ -65,10 +65,17 @@ export class ChatGPTInterface extends LanguageModelInterface{
         return this.lastUsage
     
     }
-     prepareMessage(message:string):ChatMessage{
+     prepareMessage(message:string,messageType?:MessageType):ChatMessage{
+        let role="user"
+        if(messageType=="system"){
+            role="system"
+        }
+        if(messageType=="output"){
+            role="assistant"
+        }
         this.completions.messages.push(
             {content:message,
-                role:"user",
+                role:role as any,
                
             
             })

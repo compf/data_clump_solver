@@ -2,7 +2,7 @@ import { DataClumpRefactoringContext, FileFilteringContext } from "../../../cont
 import fs from "fs"
 import { Minimatch } from "minimatch";
 import path from "path";
-import { ChatMessage, LanguageModelInterface } from "../../../util/languageModel/LanguageModelInterface";
+import { ChatMessage, LanguageModelInterface, MessageType } from "../../../util/languageModel/LanguageModelInterface";
 import { getRelevantFilesRec } from "../../../util/Utils";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
 export type DependentOnAnotherIteratorReturnType = { messages: string[]; clear: boolean; shallSend: boolean }
@@ -18,14 +18,22 @@ export class SimpleInstructionHandler extends LargeLanguageModelHandler {
     async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let template = fs.readFileSync(this.instructionPath, { encoding: "utf-8" })
         let content = templateResolver.resolveTemplate(template)
-        let messages = [api.prepareMessage(content)]
+        let messages = [api.prepareMessage(content,this.getMessageType())]
         return messages
     }
     constructor(args: { instructionPath: string }) {
         super()
         this.instructionPath = args.instructionPath
     }
+    getMessageType():MessageType{
+        return "input"
+    }
 
+}
+export class SystemInstructionHandler extends SimpleInstructionHandler {
+    getMessageType():MessageType{
+        return "system"
+    }
 }
 
 
