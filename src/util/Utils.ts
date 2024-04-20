@@ -73,9 +73,40 @@ export function tryParseJSON(jsonString:string){
     try{
         return JSON.parse(jsonString)
     }catch(e){
+        console.log("JSON Error",e)
         return null
     }
 }
+export function parseJSONDetailed(json:string):{jsonResult:any,errorMessage?:string} {
+    try {
+        let result= JSON.parse(json);
+        return {jsonResult:result,errorMessage:undefined}
+    } catch (e:any) {
+         let errorMessage=""
+        if (e instanceof SyntaxError) {
+            const match = /position (\d+)/.exec(e.message);
+           
+            if (match) {
+                const ContextSize=40
+                const position = parseInt(match[1], 10);
+                errorMessage='Invalid JSON at position:'+ position+'\nError near: ' + json.slice(Math.max(0, position - ContextSize), position) + ContextSize+"\n"+json.charAt(position)
+
+            } else {
+                errorMessage=e.message;
+            }
+            console.error(errorMessage)
+            return {jsonResult:null,errorMessage}
+        } else {
+            errorMessage=e.message;
+        }
+        console.error(errorMessage)
+        return {jsonResult:null,errorMessage}
+        
+    }
+}
+
+
+
 export function indexOfSubArray(array:any[],subArray:any[]){
     for(let i=0;i<array.length-subArray.length;i++){
         let found=true;

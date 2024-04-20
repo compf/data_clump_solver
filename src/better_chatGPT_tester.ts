@@ -11,7 +11,7 @@ import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringCon
 import { LanguageModelDetectOrRefactorHandler } from "./pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
 import {  AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { ChatMessage, LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
-import { PhindraInterface } from "./util/languageModel/PhindraInterface";
+import { OllamaInterface } from "./util/languageModel/OllamaInterface";
 import { waitSync } from "./util/Utils";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
 import { Chat } from "openai/resources/index.mjs";
@@ -44,10 +44,10 @@ function createDataHandler(name:string):LargeLanguageModelHandler{
             throw new Error("Unknown data handler")
     }
 }
-let phindra:PhindraInterface|null=null;
+let phindra:OllamaInterface|null=null;
 function createAPI(apiType: string, model: string, temperature: number): LanguageModelInterface {
     if(apiType=="PhindraInterface"){
-        if(phindra==null)phindra=new PhindraInterface({model,temperature});
+        if(phindra==null)phindra=new OllamaInterface({model,temperature,outputCheckers:[]});
         return phindra;
     }
     return new ChatGPTInterface({ model, temperature })

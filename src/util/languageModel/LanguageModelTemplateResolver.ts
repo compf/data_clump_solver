@@ -35,7 +35,6 @@ export class LanguageModelTemplateResolver {
                 result=result.replaceAll(key,fileContent);
             }
             else{
-                console.log("KEY",key,result)
                 result=result.replaceAll(key,additionalReplacements[key]);
 
             }
