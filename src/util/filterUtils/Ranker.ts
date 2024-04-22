@@ -27,7 +27,7 @@ export  class   RankSampler{
                   this.rankThreshold=1
             }
             if(this.rankSign==null){
-                  this.rankSign=1
+                  this.rankSign=-1
             }
             if(this.rankThreshold!<1){
                   this.rankThreshold=input.length*this.rankThreshold!

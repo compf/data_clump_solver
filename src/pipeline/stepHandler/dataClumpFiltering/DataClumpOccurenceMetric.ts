@@ -5,10 +5,8 @@ export class DataClumpOccurenceMetric implements Metric {
   
 
    
-    createDataClumpKey(dataClump: DataClumpTypeContext):string {
-        return Object.values(dataClump.data_clump_data).sort((a,b)=>a.name.localeCompare(b.name)).map((it)=>it.type +" " +it.name   ).join(",");
-        
-    }
+    
+    
     isCompatibleWithDataClump(): boolean {
         return true;
     }
@@ -20,16 +18,11 @@ export class DataClumpOccurenceMetric implements Metric {
             throw "Cannot compare string"
         }
         else  {
-            let key=this.createDataClumpKey(data as DataClumpTypeContext)
             let occurences=0;
             let dectectorContext=context.getByType(DataClumpDetectorContext)!
-            for(let k of dectectorContext.getDataClumpKeys() ){
-                let dc=dectectorContext.getDataClumpTypeContext(k);
-                if(this.createDataClumpKey(dc)==key){
-                    occurences++;
-                }
-            }
-            return Promise.resolve(occurences);
+            let related= dectectorContext.getRelatedDataClumpKeys(data as DataClumpTypeContext)
+            return Promise.resolve(related.length);
+           
         }
        
        

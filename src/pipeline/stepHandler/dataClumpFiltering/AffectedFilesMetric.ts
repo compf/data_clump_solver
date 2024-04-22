@@ -5,10 +5,7 @@ export class AffectedFilesMetric implements Metric {
   
 
    
-    createDataClumpKey(dataClump: DataClumpTypeContext):string {
-        return Object.values(dataClump.data_clump_data).sort((a,b)=>a.name.localeCompare(b.name)).map((it)=>it.type +" " +it.name   ).join(",");
-        
-    }
+    
     isCompatibleWithDataClump(): boolean {
         return true;
     }
@@ -20,16 +17,17 @@ export class AffectedFilesMetric implements Metric {
             throw "Cannot compare string"
         }
         else  {
-            let key=this.createDataClumpKey(data as DataClumpTypeContext)
+
             let occurences=0;
+            let paths=new Set<string>();
             let dectectorContext=context.getByType(DataClumpDetectorContext)!
-            for(let k of dectectorContext.getDataClumpKeys() ){
-                let dc=dectectorContext.getDataClumpTypeContext(k);
-                if(this.createDataClumpKey(dc)==key){
-                    occurences++;
-                }
+            let related= dectectorContext.getRelatedDataClumpKeys(data as DataClumpTypeContext)
+            for(let dc of related){
+                paths.add(dc.from_file_path);
+                paths.add(dc.to_file_path);
             }
-            return Promise.resolve(occurences);
+            
+            return Promise.resolve(paths.size);
         }
        
        

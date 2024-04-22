@@ -199,6 +199,11 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
        this.currDataClumpDetectionResult.data_clumps={}
         for (let value of values) {
             this.currDataClumpDetectionResult.data_clumps[value.key] = value
+            let nameTypeKey=this.createDataTypeNameClumpKey(value)
+            if(!(nameTypeKey in this.byNameTypeKeys)){
+                this.byNameTypeKeys[nameTypeKey]=[]
+            }
+            this.byNameTypeKeys[nameTypeKey].push(value)
         }
         
     }
@@ -208,13 +213,18 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     static fromArray(data: DataClumpsTypeContext[]): DataClumpDetectorContext {
         let result= new DataClumpDetectorContext({} as any);
         result.allDataClumpDetectionResult = data
-        result.currDataClumpDetectionResult = data[data.length - 1]
+        result.setDataClumpDetectionResult(Object.values(data[data.length - 1].data_clumps))
         return result
     }
-    private currDataClumpDetectionResult:  DataClumpsTypeContext
+    private currDataClumpDetectionResult:  DataClumpsTypeContext=createDataClumpsTypeContext({})
     private allDataClumpDetectionResult: DataClumpsTypeContext[]
+    private byNameTypeKeys:{[key:string]:DataClumpTypeContext[]}={}
     getDataClumpDetectionResult(): DataClumpsTypeContext {
         return this.currDataClumpDetectionResult
+    }
+    getRelatedDataClumpKeys(dc:DataClumpTypeContext):DataClumpTypeContext[]{
+        let key=this.createDataTypeNameClumpKey(dc)
+        return this.byNameTypeKeys[key];
     }
     getDataClumpTypeContext(key: string): DataClumpTypeContext {
         return this.currDataClumpDetectionResult.data_clumps[key]!
@@ -225,6 +235,10 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
 
     deleteEntry(key: string) {
         delete this.currDataClumpDetectionResult.data_clumps[key]
+    }
+    createDataTypeNameClumpKey(dataClump: DataClumpTypeContext):string {
+        return Object.values(dataClump.data_clump_data).sort((a,b)=>a.name.localeCompare(b.name)).map((it)=>it.type +" " +it.name   ).join(";");
+        
     }
     serialize(path?: string | undefined): void {
         const usedPath=this.getSerializationPath(path)
