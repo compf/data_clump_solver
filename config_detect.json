@@ -8,18 +8,36 @@
                 "temperature": 0.9
             }
         },
-        
-        "DataClumpSizeMetric":{
-            "type":"DataClumpSizeMetric"
+        "MetricCombiner": {
+            "type": "MetricCombiner",
+            "args": {
+                "metrics": [
+                    "DataClumpSizeMetric",
+                    "DataClumpOccurenceMetric"
+                ]
+            }
         },
-        
-        "SimpleInstructionHandler": {
+
+        "DataClumpSizeMetric": {
+            "type": "DataClumpSizeMetric"
+        },
+        "DataClumpOccurenceMetric": {
+            "type": "DataClumpOccurenceMetric"
+        },
+        "refactorInstructionHandler": {
+            "type": "SimpleInstructionHandler",
             "args": {
                 "instructionPath": "chatGPT_templates/detectAndRefactor/definitionBased/fromScratch/instruction.template"
             }
         },
+        "introductionHandler":{
+            "type":"SystemInstructionHandler",
+            "args": {
+                "instructionPath": "chatGPT_templates/refactor_introduction.template"
+            }
+        },
         "AllFilesHandler": {},
-        "SendAndClearHandler": {},
+        "SendHandler": {},
         "LanguageModelTemplateResolver": {
             "args": {
                 "${programming_language}": "Java",
@@ -27,7 +45,7 @@
                 "%{output_format}": "chatGPT_templates/json_output_format.json",
                 "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
                 "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
-                "%{output_format_refactor}":"chatGPT_templates/json_format_refactor_piecewise.json"
+                "%{output_format_refactor}": "chatGPT_templates/json_format_refactor_piecewise.json"
             }
         },
         "RandomRanker": {
@@ -42,14 +60,7 @@
                 "useArgPath": true
             }
         },
-        "FileFiltering":{
-            "handler":"FileFilterHandler",
-            "args":{
-                "include":["src/main/java/stirling/software/SPDF/controller/api/misc/StampController.java"]
-               
-            }
-        },
-        "DataClumpDetection": {
+      "DataClumpDetection": {
             "handler": "DataClumpDetectorStep",
             "args": {
                 "metricCombiner": "MetricCombiner",
@@ -57,22 +68,21 @@
                 "ranker": "RandomRanker"
             }
         },
-        "ReferenceFinding": {
-            "handler": "LanguageServerReferenceAPI",
-            "args": {
-                "apiName": "EclipseLSP_API"
-            }
-        },
+       
+ 
+       
+        
+        
         "Refactoring": {
-            "handler": "LanguageModelDetectOrRefactorHandler",
-            "args":{
-                "handlers":[
-                    "SimpleInstructionHandler",
+            "handler": "DoNothingStepHandler",
+            "args": {
+                "handlers": [
+                    "introductionHandler",
+                    "refactorInstructionHandler",
                     "AllFilesHandler",
-                    "SendAndClearHandler"
+                    "SendHandler"
                 ]
             }
         }
-       
     }
 }

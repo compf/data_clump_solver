@@ -90,11 +90,11 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         if(method==undefined){
             continue;
         }
-        
-        if(!this.usages.has(dcKey)){
-            this.usages.set(dcKey,[])
+        if (!(dcKey in this.usages)){
+            this.usages[dcKey] = []
         }
-        this.usages.get(dcKey)!.push({
+       
+        this.usages[dcKey]!.push({
             symbolType:UsageType.MethodDeclared,
             range:{startLine:method.position.startLine-1,startColumn:method.position.startColumn,endLine:method.position.endLine-1,endColumn:method.position.endColumn},
             filePath:currPath,
@@ -240,7 +240,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
             }
           
         }
-    private usages=new Map<string, VariableOrMethodUsage[]>();
+    private usages:{ [key: string]: VariableOrMethodUsage[] }={}
 
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise < DataClumpRefactoringContext > {
                 if(this.api == null){
@@ -254,8 +254,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     if (info == undefined) return;
                     let combined=Object.assign(info,data,)
                     this.balance--
-                    if (!this.usages.has(info.variableKey)) {
-                        this.usages.set(info.variableKey, [])
+                    if (!(info.variableKey in this.usages)){
+                        this.usages[info.variableKey]= []
                     }
                     if(data.error){
                         console.log("ERROR ON REC",data.error)
@@ -269,16 +269,16 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                             name: info.variableName,
                             originKey:info.originKey,
                         }
-                        this.usages.get(info.variableKey)!.push(usage)
+                        this.usages[(info.variableKey)]!.push(usage)
 
                     }
                     console.log("balance", this.balance)
                     if (this.balance == 0) {
-                        for(let usg of  this.usages){
+                        for(let usg of  Object.entries(this.usages)){
                        
-                            this.usages.set(usg[0], this.usages.get(usg[0])!.sort(function(a,b){
+                            this.usages[usg[0]]= this.usages[usg[0]]!.sort(function(a,b){
                                 return a.symbolType-b.symbolType
-                            }));
+                            });
                         }
                         this.api?.close()
                         handleResolver(context.buildNewContext(new UsageFindingContext( this.usages)))

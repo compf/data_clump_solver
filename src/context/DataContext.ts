@@ -356,8 +356,8 @@ export class ClassPathContext extends DataClumpRefactoringContext {
 
 }
 export class UsageFindingContext extends DataClumpRefactoringContext {
-    usages: Map<string, VariableOrMethodUsage[]>;
-    constructor(usages: Map<string, VariableOrMethodUsage[]>) {
+    usages: { [key: string]: VariableOrMethodUsage[] } = {};
+    constructor(usages: { [key: string]: VariableOrMethodUsage[] }) {
         super();
         this.usages = usages;
     }
@@ -367,12 +367,12 @@ export class UsageFindingContext extends DataClumpRefactoringContext {
     serialize(path?: string | undefined): void {
         const usedPath=this.getSerializationPath(path)
         let serialized: Dictionary<VariableOrMethodUsage[]> = {}
-        for (let [key, value] of this.usages) {
+        for (let [key, value] of Object.entries(this.usages)) {
             serialized[key] = value
         }
         fs.writeFileSync(usedPath, JSON.stringify(serialized))
     }
-    getUsages(): Map<string, VariableOrMethodUsage[]> {
+    getUsages(): { [key: string]: VariableOrMethodUsage[] } {
         return this.usages
     }
  

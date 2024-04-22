@@ -10,7 +10,7 @@ export class OnlyDataClumpRelevantFilesStepHandler extends AbstractStepHandler {
         for (let dc of Object.values(detectionContext.getDataClumpDetectionResult().data_clumps)) {
             relevantFiles.add(dc.from_file_path)
             relevantFiles.add(dc.to_file_path)
-            for(let usage of usageFindingContext.getUsages().get(dc.key)!){
+            for(let usage of usageFindingContext.getUsages()[(dc.key)]!){
                 relevantFiles.add(usage.filePath)
             }
         }
@@ -25,6 +25,6 @@ export class OnlyDataClumpRelevantFilesStepHandler extends AbstractStepHandler {
         requirements.add(UsageFindingContext.name)
     }
     getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.SecondFileFiltering]
+        return null as any
     }
 }

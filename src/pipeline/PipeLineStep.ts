@@ -1,6 +1,6 @@
 import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, FileFilteringContext, NameFindingContext, RefactoredContext, UsageFindingContext, ValidationContext } from "../context/DataContext";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler"
-export type PipeLineStepName = "CodeObtaining" | "FileFiltering"|"SecondFileFiltering" | "ASTGeneration" | "SimilarityDetection" | "DataClumpDetection" | "DataClumpFiltering" | "NameFinding" | "ClassExtraction" | "ReferenceFinding" | "Refactoring" | "Validation"
+export type PipeLineStepName = "CodeObtaining" | "FileFiltering" | "ASTGeneration" | "SimilarityDetection" | "DataClumpDetection" | "DataClumpFiltering" | "NameFinding" | "ClassExtraction" | "ReferenceFinding" | "Refactoring" | "Validation"
 export type PipeLineStepType = {
     position: number,
     name: PipeLineStepName,
@@ -59,15 +59,9 @@ export namespace PipeLineStep {
         defaultHandler: undefined,
         associatedContext:"UsageFindingContext"
     };
-    export const SecondFileFiltering: PipeLineStepType = {
-        position:7,
-        name: "SecondFileFiltering",
-        isRequired: false,
-        defaultHandler: undefined,
-        associatedContext:"FileFilteringContext"
-    }
+    
     export const NameFinding: PipeLineStepType = {
-        position:8,
+        position:7,
         name: "NameFinding",
         isRequired: false,
         defaultHandler: undefined,
@@ -76,7 +70,7 @@ export namespace PipeLineStep {
     };
 
     export const ClassExtraction: PipeLineStepType = {
-        position:9,
+        position:8,
         name: "ClassExtraction",
         isRequired: false,
         defaultHandler: undefined,
@@ -85,14 +79,14 @@ export namespace PipeLineStep {
 
     
     export const Refactoring: PipeLineStepType = {
-        position:10,
+        position:9,
         name: "Refactoring",
         isRequired: false,
         defaultHandler: undefined,
         associatedContext:"RefactoredContext"
     };
     export const Validation: PipeLineStepType = {
-        position:11,
+        position:10,
         name: "Validation",
         isRequired: false,
         defaultHandler: undefined,

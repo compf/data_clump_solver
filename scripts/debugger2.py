@@ -11,8 +11,12 @@ class MinFileSizeEvaluator:
         return lengthSum
 with open("../data/dataClumpDetectorContext.json") as f:
     dc_data = json.load(f)[0]
-with open("../data/usageFindingContext.json") as f:
-    usage_data = json.load(f)
+usage_data={}
+try:
+    with open("../data/usageFindingContext.json") as f:
+        usage_data = json.load(f)
+except:
+    pass
 covered_files=set()
 
 
@@ -26,7 +30,7 @@ by_name_type_key_affected_files={}
 data_clumps_sorted=sorted(data_clumps,key=lambda x: len(x["data_clump_data"]),reverse=True)
 for x in data_clumps_sorted:
 
-    name_type_key=",".join(sorted([(x["data_clump_data"][k]["type"] + " "+x["data_clump_data"][k]["name"]) for  k  in x["data_clump_data"]]))
+    name_type_key=";".join(sorted([(x["data_clump_data"][k]["type"] + " "+x["data_clump_data"][k]["name"]) for  k  in x["data_clump_data"]]))
     if name_type_key not in by_name_type_key:
         by_name_type_key[name_type_key]=0
     by_name_type_key[name_type_key]+=1
@@ -37,11 +41,11 @@ for x in data_clumps_sorted:
 
     #print()
 
-LENGTH_FACTOR=100
-OCCURENCE_FACTOR=1
-AFFECTED_FILES_FACTOR=1
+LENGTH_FACTOR=1
+OCCURENCE_FACTOR=100
+AFFECTED_FILES_FACTOR=-100
 by_name_type_key_importance={x:by_name_type_key[x]*OCCURENCE_FACTOR+len(x.split(","))*LENGTH_FACTOR+len(by_name_type_key_affected_files[x])*AFFECTED_FILES_FACTOR for x in by_name_type_key}
-by_name_key_details={x:{"length":len(x.split(",")),"occurence":by_name_type_key[x],"affected_files":len(by_name_type_key_affected_files[x])} for x in by_name_type_key}
+by_name_key_details={x:{"length":len(x.split(";")),"occurence":by_name_type_key[x],"affected_files_count":len(by_name_type_key_affected_files[x]),"affected_files":by_name_type_key_affected_files[x]} for x in by_name_type_key}
 for x in sorted(by_name_type_key_importance,key=lambda x: by_name_type_key_importance[x],reverse=False):
     print()
     print(x)

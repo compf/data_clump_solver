@@ -1,5 +1,5 @@
 import { DataClumpsTypeContext } from "data-clumps-type-context";
-import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext, createDataClumpsTypeContext } from "../../../context/DataContext";
+import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext, NameFindingContext, RefactoredContext, UsageFindingContext, createDataClumpsTypeContext } from "../../../context/DataContext";
 import { ChatGPTInterface } from "../../../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
@@ -31,6 +31,24 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         }
         return null
     }
+    async createDataClumpLocationAndUsageFilterContext(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
+        let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
+        let usageFindingContext=context.getByType(UsageFindingContext) as UsageFindingContext
+        
+        let relevantFiles = new Set<string>()
+        for (let dc of Object.values(detectionContext.getDataClumpDetectionResult().data_clumps)) {
+            relevantFiles.add(dc.from_file_path)
+            relevantFiles.add(dc.to_file_path)
+            if(usageFindingContext!=null){
+                for(let usage of usageFindingContext.getUsages()[dc.key]!){
+                    relevantFiles.add(usage.filePath)
+                }
+            }
+            
+        }
+        let includes: string[] =Array.from(relevantFiles)
+        return Promise.resolve( context.buildNewContext(new FileFilteringContext(includes, [])))
+    }
     async handle(step:PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let api: LanguageModelInterface;
         if (this.providedApi != null) {
@@ -43,6 +61,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         this.providedApi = api
         let chat: ChatMessage[] = []
         let handlerIndex = 0
+        context=await this.createDataClumpLocationAndUsageFilterContext(context)
         for (handlerIndex = 0; handlerIndex < this.handlers.length; handlerIndex++) {
             let handler = this.handlers[handlerIndex]
             let messages = await handler.handle(context, api, templateResolver)

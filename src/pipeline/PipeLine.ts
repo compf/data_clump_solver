@@ -75,6 +75,10 @@ export class PipeLine {
                 }
                 
             }
+            else{
+                console.log("No handler for step "+pipeLineSteps[i].name +" "+i)
+            
+            }
         }
         let finalContext= context.buildNewContext(new EvaluationContext(this.stepRunningTimes))
         finalContext.serialize();
