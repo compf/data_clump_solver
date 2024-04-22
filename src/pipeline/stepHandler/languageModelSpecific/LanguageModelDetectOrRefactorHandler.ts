@@ -69,12 +69,46 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             if (c.messageType == "output") {
                 for (let m of c.messages) {
                     let json = tryParseJSON(m)
-                    if (json == null) {
-                        continue
-                    }
                     
-                    else if (step == PipeLineStep.Refactoring) {
-                        if(("refactorings" in json)){
+                    
+                     if (step == PipeLineStep.Refactoring) {
+                        if(json==null){
+                            let splitted=m.split("\n");
+                            let path=""
+                            let markdown=false
+                            let content=""
+                            for(let line of splitted){
+                                console.log("line",line)
+
+                                if(line.startsWith("*** ")){
+                                    line=line.substring("*** ".length).trim();
+                                    path=line;
+                                    console.log(path)
+                                    
+                                }
+                                else if(line.startsWith("Java```")){
+                                    markdown=true
+                                }
+                                else if(markdown && line.startsWith("``")){
+                                    markdown=false;
+                                    console.log("CONTENT",content);
+                                    if(path.startsWith("/")){
+                                        path=path.substring(1)
+                                    }
+                                    path=resolve(context.getProjectPath(),path)
+                                    console.log(path)
+                                    fs.writeFileSync(path,content);
+                                    content=""
+
+
+                                }
+                                else if(markdown){
+                                    content+=line+"\n";
+                                }
+                               
+                            }
+                        }
+                       else if(( "refactorings" in json)){
                             this.parse_piecewise_output(json, context)
                         }
                         else{

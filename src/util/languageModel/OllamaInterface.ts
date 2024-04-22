@@ -75,7 +75,6 @@ private model="phind-codellama"
             /*format:"json"*/stream:false
           })
           console.log(response)
-          response.message.content=this.extractJSON(response.message.content)
           this.messages.push({content:response.message.content,role:"assistant"})
           fs.writeFileSync("stuff/phindra_output.txt",response.message.content)
          let correctionMessages:string[]=[]
@@ -84,6 +83,7 @@ private model="phind-codellama"
             if(!v){
                 correctionMessages.push(checker.getErrorMessage())
             }
+            v=true;
             valid=valid && v;
             if(!valid){
                 this.messages.push({

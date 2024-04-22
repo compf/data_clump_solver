@@ -20,21 +20,18 @@ import { DoNothingStepHandler } from "./pipeline/stepHandler/DoNothingStepHandle
 import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpTypeContext";
 
 import fs from "fs"
-class DebugNameFindingStep extends LanguageModelNameFindingsStep{
-  async getSuggestedName(variableInfos: { name: string; type: string; }[], context: DataClumpRefactoringContext, counter: number): Promise<string | null> {
-      if(counter<2){
-        await super.getSuggestedName(variableInfos,context,counter)
-        return Promise.resolve(null);
-      }
-      else{
-        return super.getSuggestedName(variableInfos,context,counter)
-         
-      }
-  }
-}
+import { OllamaInterface } from "./util/languageModel/OllamaInterface";
+
 async function main(){
-let githubService=new GitHubService();
-await githubService.comment(fs.readFileSync("chatGPT_templates/feedback_from.template","utf-8"),"gitignore","Pader1305",1)
+let phindra=new OllamaInterface({
+  model:"codellama",
+  temperature:0.9,outputCheckers:[]
+});
+console.log("start");
+(phindra as any).messages=["What is 1+1?"]
+phindra.sendMessages(false)
+
+
 
 }
 if(require.main === module){
