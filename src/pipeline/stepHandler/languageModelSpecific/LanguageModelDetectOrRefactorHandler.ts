@@ -34,13 +34,16 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     async createDataClumpLocationAndUsageFilterContext(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
         let usageFindingContext=context.getByType(UsageFindingContext) as UsageFindingContext
-        
+        if(detectionContext==null){
+            return context
+        }
         let relevantFiles = new Set<string>()
         for (let dc of Object.values(detectionContext.getDataClumpDetectionResult().data_clumps)) {
             relevantFiles.add(dc.from_file_path)
             relevantFiles.add(dc.to_file_path)
-            if(usageFindingContext!=null){
+            if(usageFindingContext!=null && dc.key in usageFindingContext.getUsages()){
                 for(let usage of usageFindingContext.getUsages()[dc.key]!){
+                    throw  usage.filePath
                     relevantFiles.add(usage.filePath)
                 }
             }

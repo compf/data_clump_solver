@@ -1,7 +1,7 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { resolveFromConcreteName } from "../../config/Configuration";
 import { Metric } from "./Metric";
-import { DataClumpRefactoringContext } from "../../context/DataContext";
+import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 export type MetricWeight = { name: string, weight: number, metric?: Metric }
 export class MetricCombiner {
     private metrics: MetricWeight[] = [];
@@ -16,11 +16,14 @@ export class MetricCombiner {
     }
     async evaluate(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
         let result = 0;
+        (data as any).metrics={}
         for (let metric of this.metrics) {
             let r = await metric.metric!.evaluate(data, context);
-            result += r * metric.weight
+            result += r * metric.weight;
+            (data as any).metrics[metric.name]=r
         }
-        console.log("final result", result)
+        (data as any).metrics["combined"]=result;
+        (data as any).metrics["nameType"]=context.getByType(DataClumpDetectorContext)!.createDataTypeNameClumpKey(data as DataClumpTypeContext)
         return result;
     }
     isCompatibleWithDataClump(): boolean {
