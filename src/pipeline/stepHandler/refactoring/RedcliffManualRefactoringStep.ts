@@ -1,4 +1,4 @@
-import { DataClumpRefactoringContext, NameFindingContext, RefactoredContext, UsageFindingContext } from "../../../context/DataContext";
+import { DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext, UsageFindingContext } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
@@ -15,10 +15,30 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
          -PdataPath='/home/compf/data/uni/master/sem4/data_clump_solver/data' --stacktrace
         */
         const dataPath=resolve("./data")
+        /*
+        (   val dataClumpContextPath:String?,
+            val referenceFindingContextePath:String?,
+            val classNamesContextPath:String?,
+            val extractedClassContextsPath:String?,
+            val refactorMode:String?) {
 
-      
-        let availableContextsIds=context.getContextIds()
-        let availableContext=0;
+        */
+        let contextData={
+            refactorMode:"Manual"
+        }
+        let currContext:DataClumpRefactoringContext|null=context.getByType(DataClumpDetectorContext)
+        if(currContext!=null){
+            contextData["dataClumpContextPath"]=currContext.getDefaultSerializationPath()
+        }
+        currContext=context.getByType(NameFindingContext)
+        if(currContext!=null){
+            contextData["classNamesContextPath"]=currContext.getDefaultSerializationPath()
+        }
+        currContext=context.getByType(UsageFindingContext)
+        if(currContext!=null){
+            contextData["referenceFindingContextePath"]=currContext.getDefaultSerializationPath()
+        }
+        fs.writeFileSync(dataPath+"/contextPaths.json",JSON.stringify(contextData))
         
         let args=[
             "demo-cli:runDemoPluginCLI",

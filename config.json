@@ -10,7 +10,13 @@
         },
         
         "DataClumpSizeMetric":{
-            "type":"DataClumpSizeMetric"
+           
+        },
+        "DataClumpOccurenceMetric":{
+            
+        },
+        "AffectedFilesMetric":{
+            
         },
         
         "SimpleInstructionHandler": {
@@ -24,14 +30,23 @@
             "args": {
                 "${programming_language}": "Java",
                 "%{examples}": "chatGPT_templates/DataClumpExamples.java",
-                "%{output_format}": "chatGPT_templates/json_output_format.json",
                 "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
                 "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
-                "%{output_format_refactor}":"chatGPT_templates/json_format_refactor_piecewise.json"
+                "%{output_format_refactor}":"chatGPT_templates/json_format_refactor_piecewise.json",
+                "%{llm_output_format}":"chatGPT_templates/use_json.template"
             }
         },
         "RandomRanker": {
             "type": "RandomRanker"
+        },
+        "MetricCombiner":{
+            "args":{
+                "metrics":[
+                    {"name":"DataClumpSizeMetric","weight":1},
+                    {"name":"DataClumpOccurenceMetric","weight":100},
+                    {"name":"AffectedFilesMetric","weight":0}
+                ]
+            }
         }
     },
     "PipeLine": {
@@ -42,10 +57,10 @@
                 "useArgPath": true
             }
         },
-        "FileFiltering":{
-            "handler":"FileFilterHandler",
+        "DataClumpFiltering":{
+            "handler":"DataClumpFilterStepHandler",
             "args":{
-                "include":["src/main/java/stirling/software/SPDF/controller/api/misc/StampController.java"]
+              "rankerName":"MetricCombiner"
                
             }
         },
@@ -57,14 +72,16 @@
                 "ranker": "RandomRanker"
             }
         },
-        "ReferenceFinding": {
-            "handler": "LanguageServerReferenceAPI",
-            "args": {
-                "apiName": "EclipseLSP_API"
+        "NameFinding":{
+            "handler":"LanguageModelNameFindingsStep",
+            "args":{
+                "languageModelName":"LanguageModelInterface"
             }
+        
         },
+    
         "Refactoring": {
-            "handler": "LanguageModelDetectOrRefactorHandler",
+            "handler": "RedcliffManualRefactoringStep",
             "args":{
                 "handlers":[
                     "SimpleInstructionHandler",

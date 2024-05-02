@@ -43,7 +43,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             relevantFiles.add(dc.to_file_path)
             if(usageFindingContext!=null && dc.key in usageFindingContext.getUsages()){
                 for(let usage of usageFindingContext.getUsages()[dc.key]!){
-                    throw  usage.filePath
+                    //throw  usage.filePath
                     relevantFiles.add(usage.filePath)
                 }
             }

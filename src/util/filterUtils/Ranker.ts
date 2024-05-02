@@ -2,7 +2,7 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { FilterOrMetric } from "./SingleItemFilter";
 import { Metric } from "./Metric";
-
+import fs from "fs"
 export  class   RankSampler{
       private rankThreshold:number|null=null
       private rankSign:number|null=null;
@@ -39,6 +39,7 @@ export  class   RankSampler{
                   evaluateMap[key]=value
 
             }
+            fs.writeFileSync("data/evaluateMap.json",JSON.stringify(evaluateMap))
           let result=input.sort(  (a,b) =>this.rankSign!* (evaluateMap[this.getKey(a)]-evaluateMap[this.getKey(b)]))
         
           return result.slice(0,this.rankThreshold!)

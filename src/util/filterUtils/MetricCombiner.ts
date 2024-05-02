@@ -21,6 +21,10 @@ export class MetricCombiner {
             let r = await metric.metric!.evaluate(data, context);
             result += r * metric.weight;
             (data as any).metrics[metric.name]=r
+            if(result==null || result==undefined || isNaN(result)){
+                console.log("result is null")
+                throw "result is null " + metric.name + " " + r + " " + metric.weight +" "+result
+            }
         }
         (data as any).metrics["combined"]=result;
         (data as any).metrics["nameType"]=context.getByType(DataClumpDetectorContext)!.createDataTypeNameClumpKey(data as DataClumpTypeContext)

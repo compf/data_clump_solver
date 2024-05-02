@@ -1,7 +1,7 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
-import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
+import { DataClumpDetectorContext, DataClumpRefactoringContext, createDataClumpsTypeContext } from "../../../context/DataContext";
 import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 import { resolveFromConcreteName } from "../../../config/Configuration";
 import {  Metric } from "../../../util/filterUtils/Metric";
@@ -40,7 +40,12 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
                 throw new Error("ranker is not compatible with data clump")
             }
             values = await this.rankSampler.rank(this.ranker!, values, detectionContext) as DataClumpTypeContext[]
-            detectionContext.setDataClumpDetectionResult(values)
+            let result=createDataClumpsTypeContext({})
+            for(let v of values){
+               result.data_clumps[v.key]=v
+            
+            }
+            detectionContext.setDataClumpDetectionResult(result)
         }
 
         detectionContext.updateStats();

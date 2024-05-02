@@ -36,11 +36,11 @@ export class KeepSimilarDataClumpsFilter  extends AbstractStepHandler{
          let newResult:DataClumpTypeContext[]=[]
          dcContext.cloneLastItem()
          for(let r of ranked){
-            if(this.createDataClumpKey(r)==headKey){
-                newResult.push(r)
+            if(this.createDataClumpKey(r)!=headKey){
+                dcContext.deleteEntry(r.key)
             }
          }
-            dcContext.setDataClumpDetectionResult(newResult)
+           
             dcContext.updateStats()
             return dcContext
      }        
