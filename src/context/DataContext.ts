@@ -195,9 +195,10 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
     }
 }
 export class DataClumpDetectorContext extends DataClumpRefactoringContext {
-    setDataClumpDetectionResult(values: DataClumpTypeContext[]) {
-       this.currDataClumpDetectionResult.data_clumps={}
-        for (let value of values) {
+    setDataClumpDetectionResult(values: DataClumpsTypeContext) {
+       this.currDataClumpDetectionResult=Object.assign(this.currDataClumpDetectionResult,values)
+       console.log("setting data clump detection result",this.currDataClumpDetectionResult)
+        for (let value of Object.values(values.data_clumps)) {
             this.currDataClumpDetectionResult.data_clumps[value.key] = value
             let nameTypeKey=this.createDataTypeNameClumpKey(value)
             if(!(nameTypeKey in this.byNameTypeKeys)){
@@ -211,9 +212,8 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
         return this.allDataClumpDetectionResult.length > 1
     }
     static fromArray(data: DataClumpsTypeContext[]): DataClumpDetectorContext {
-        let result= new DataClumpDetectorContext({} as any);
+        let result= new DataClumpDetectorContext(data[data.length - 1]);
         result.allDataClumpDetectionResult = data
-        result.setDataClumpDetectionResult(Object.values(data[data.length - 1].data_clumps))
         return result
     }
     private currDataClumpDetectionResult:  DataClumpsTypeContext=createDataClumpsTypeContext({})
@@ -248,6 +248,15 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
         super();
         this.allDataClumpDetectionResult = [dataClumpDetectionResult]
         this.currDataClumpDetectionResult = dataClumpDetectionResult
+        console.log("constructor",this.currDataClumpDetectionResult)
+        for (let value of Object.values(this.currDataClumpDetectionResult.data_clumps)) {
+            this.currDataClumpDetectionResult.data_clumps[value.key] = value
+            let nameTypeKey=this.createDataTypeNameClumpKey(value)
+            if(!(nameTypeKey in this.byNameTypeKeys)){
+                this.byNameTypeKeys[nameTypeKey]=[]
+            }
+            this.byNameTypeKeys[nameTypeKey].push(value)
+        }
     }
     cloneLastItem(){
         let cloned=JSON.parse(JSON.stringify(this.currDataClumpDetectionResult))
