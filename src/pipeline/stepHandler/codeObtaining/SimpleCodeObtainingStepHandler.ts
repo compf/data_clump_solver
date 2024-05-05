@@ -7,11 +7,15 @@ type SimpleCodeObtainingStepHandlerParams={
     useArgPath:boolean
 }
 export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
-    private path: string;
+    private path?: string;
     handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params:any): Promise<DataClumpRefactoringContext> {
         if(context.getByType(CodeObtainingContext)){
             return Promise.resolve(context)
         }
+        if(this.path==undefined){
+            this.path=context.sharedData.path
+        }
+        this.path=resolve(this.path!);
         return Promise.resolve(context.buildNewContext(new CodeObtainingContext(this.path)))
     }
     getExecutableSteps(): PipeLineStepType[] {
@@ -20,12 +24,11 @@ export class SimpleCodeObtainingStepHandler extends AbstractStepHandler{
     constructor(args:SimpleCodeObtainingStepHandlerParams){
         super();
         if(args.useArgPath){
-            this.path=process.argv[2];
+            this.path=undefined
         }
         else{
             this.path=args.path!!;
         }
-        this.path=resolve(this.path);
         
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {

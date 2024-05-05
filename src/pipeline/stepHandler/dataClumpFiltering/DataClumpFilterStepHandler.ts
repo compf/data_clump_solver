@@ -58,9 +58,9 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.DataClumpFiltering]
     }
-    constructor(args: { filterName?: string, rankerName?: string, rankThreshold?: number, sign?: number,doNothingIfFiltered?:boolean }) {
+    constructor(args: { filterName?: string, rankerName?: string, rankThreshold?: number, sign?: number,doNothingIfFiltered?:boolean, differentDataClumps?: boolean}) {
         super()
-        this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign })
+        this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign,differentDataClumps:args.differentDataClumps })
         if (args.rankerName) {
             this.ranker = resolveFromConcreteName(args.rankerName)
         }

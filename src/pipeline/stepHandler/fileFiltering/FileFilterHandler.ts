@@ -6,13 +6,14 @@ import { RankSampler } from "../../../util/filterUtils/Ranker";
 import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
-
+import fs from "fs"
 export class FileFilterHandler extends AbstractStepHandler {
     private filter?: SingleItemFilter = undefined
     private metric?: Metric = undefined
     private rankSampler: RankSampler;
     private include?: string[] = undefined
     private exclude?: string[] = undefined
+    private useGitIgnore=true
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         if ( this.metric!=undefined && !this.metric?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
@@ -22,6 +23,27 @@ export class FileFilterHandler extends AbstractStepHandler {
             getRelevantFilesRec(context.getProjectPath(), paths, new FileFilteringContext(this.include??[],this.exclude??[]))
             //throw "hallo "+paths.length
             return context.buildNewContext(new FileFilteringContext(this.include??[],this.exclude??[]))
+        }
+        else if(this.useGitIgnore && fs.existsSync(context.getProjectPath()+"/.gitignore")){
+            let gitIgnore=fs.readFileSync(context.getProjectPath()+"/.gitignore").toString()
+            let lines=gitIgnore.split("\n")
+            let includes: string[] = []
+            let excludes: string[] = []
+            for(let line of lines){
+                if(line.startsWith("#")){
+                    continue
+                }
+                if(line.trim()==""){
+                    continue
+                }
+                if(line.startsWith("!")){
+                    includes.push(line.substring(1))
+                }
+                else{
+                    excludes.push(line)
+                }
+            }
+            return context.buildNewContext(new FileFilteringContext(includes,excludes))
         }
         let originalPaths: string[] = []
         let filteredPaths: string[] = []
@@ -65,7 +87,7 @@ export class FileFilterHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.FileFiltering]
     }
-    constructor(args: { filterName?: string, metricName?: string, rankThreshold?: number, sign?: number,include?:string[],exclude?:string[] }) {
+    constructor(args: { filterName?: string, metricName?: string, rankThreshold?: number, sign?: number,include?:string[],exclude?:string[],useGitIgnore?:boolean }) {
         super()
         this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign })
         if (args.metricName) {
@@ -80,6 +102,9 @@ export class FileFilterHandler extends AbstractStepHandler {
         }
         if(args.exclude){
             this.exclude=args.exclude
+        }
+        if(args.useGitIgnore!=undefined){
+            this.useGitIgnore=args.useGitIgnore
         }
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {

@@ -16,50 +16,51 @@ import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFil
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { spawnSync } from "child_process";
 const allMetricWeights = [
-    [1,1,0],
-    [1,1,-100],
-    [100,1,0],
-    [1,100,0],
-    [100,1,-100],
-    [1,100,-100]]
+    [1, 1, 0],
+    [1, 1, -100],
+    [100, 1, 0],
+    [1, 100, 0],
+    [100, 1, -100],
+    [1, 100, -100]]
 const NUMBER_DATA_CLUMPS = 5;
 async function getDataClumpData() {
     let result = {}
-    let dataClumpStats={}
+    let dataClumpStats = {}
     let context = new DataClumpRefactoringContext();
     context = await new SimpleCodeObtainingStepHandler({ path: "/home/compf/data/uni/master/sem4/data_clump_solver/cloned_projects", useArgPath: false }).handle(PipeLineStep.CodeObtaining, context, null);
     let detector = new DataClumpDetectorStep({});
     context = await detector.handle(PipeLineStep.DataClumpDetection, context, null);
-    let obj=Object.assign(dataClumpStats,context.getByType(DataClumpDetectorContext)?.getDataClumpDetectionResult().report_summary);
+    let obj = Object.assign(dataClumpStats, context.getByType(DataClumpDetectorContext)?.getDataClumpDetectionResult().report_summary);
     console.log("finished", obj)
     registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});
     registerFromName("DataClumpOccurenceMetric", "DataClumpOccurenceMetric", {});
     registerFromName("AffectedFilesMetric", "AffectedFilesMetric", {});
-   
-    
+
+
     for (let metricWeights of allMetricWeights) {
+        result[metricWeights + ""] = {}
         let metricCombinerArgs = {
             metrics: [
                 { name: "DataClumpSizeMetric", weight: metricWeights[0] },
                 { name: "DataClumpOccurenceMetric", weight: metricWeights[1] },
                 { name: "AffectedFilesMetric", weight: metricWeights[2] }
-    
+
             ]
         }
-        let filterHandler = new DataClumpFilterStepHandler({ rankThreshold: NUMBER_DATA_CLUMPS });
+        let filterHandler = new DataClumpFilterStepHandler({ rankThreshold: NUMBER_DATA_CLUMPS,differentDataClumps:true });
         (filterHandler as any).ranker = new MetricCombiner(metricCombinerArgs);
-        context=DataClumpDetectorContext.fromArray([JSON.parse(fs.readFileSync("stuff/output.json","utf-8"))]);
-       
+        context = DataClumpDetectorContext.fromArray([JSON.parse(fs.readFileSync("stuff/output.json", "utf-8"))]);
+
         context = await filterHandler.handle(PipeLineStep.DataClumpFiltering, context, null);
         let data_clumps = context.getByType(DataClumpDetectorContext)?.getDataClumpDetectionResult().data_clumps;
         for (let dc of Object.values(data_clumps!)) {
-            result[metricWeights + ""] = dc["metrics"]
+            result[metricWeights + ""][dc["metrics"]["nameType"]]=dc["metrics"]
 
         }
         console.log("finished", dataClumpStats)
-        result["dataClumpStats"]=dataClumpStats
+        result["dataClumpStats"] = dataClumpStats
         console.log("finished", result)
-       
+
     }
     return result
 }
@@ -67,7 +68,7 @@ async function getDataClumpData() {
 
 async function getProjectList() {
     const outputPath = "github_data/github_projects_data.json"
-    if ( fs.existsSync(outputPath)) {
+    if (fs.existsSync(outputPath)) {
         let data = fs.readFileSync(outputPath, "utf-8")
         let json = JSON.parse(data)
         return json;
@@ -114,11 +115,11 @@ async function getProjectList() {
                 });
             });
         });
-        waitSync(1000*30);
+        waitSync(1000 * 30);
     }
 
-    fs.writeFileSync(outputPath, JSON.stringify({items: items}, null, 2));
-    return {items: items};
+    fs.writeFileSync(outputPath, JSON.stringify({ items: items }, null, 2));
+    return { items: items };
 }
 
 
@@ -127,10 +128,10 @@ function countLines() {
 
     console.log("cloc finished");
     let results = JSON.parse(fs.readFileSync("cloc_results.json", "utf-8"));
-    if(!("Java" in results)){
+    if (!("Java" in results)) {
         return null;
     }
-    let resultsJava=results["Java"]["code"]
+    let resultsJava = results["Java"]["code"]
     return resultsJava
 }
 async function analyzeProject(projectData: any) {
@@ -142,37 +143,37 @@ async function analyzeProject(projectData: any) {
     let pullRequestUpdateTime = await githubService.getMostRecentPullRequestTime(url)
     let lines = countLines()
     let data = await getDataClumpData()
-    const minYear=new Date().getFullYear()
-    let minLines=10000
-    if(pullRequestUpdateTime.getFullYear()<2024 ){
+    const minYear = new Date().getFullYear()
+    let minLines = 10000
+    if (pullRequestUpdateTime.getFullYear() < 2024) {
         return {
             "dataClumps": data,
-            "skipped":true,
-            "reason": "no pull requests "+pullRequestUpdateTime.toISOString(),
+            "skipped": true,
+            "reason": "no pull requests " + pullRequestUpdateTime.toISOString(),
         };
     }
-    
-    
-    else if(lines==null){
+
+
+    else if (lines == null) {
         return {
             "dataClumps": data,
-            "skipped":true,
+            "skipped": true,
             "reason": "no java files",
         };
     }
-    else if (lines<minLines) {
+    else if (lines < minLines) {
         return {
             "dataClumps": data,
-            "skipped":true,
-            "reason": "not enough lines "+lines,
+            "skipped": true,
+            "reason": "not enough lines " + lines,
         };
 
     }
-   
+
     let json = {
         "pullRequestUpdateTime": pullRequestUpdateTime.toISOString(),
-         "lines": lines,
-          "dataClumps": data,
+        "lines": lines,
+        "dataClumps": data,
         stars: projectData.stargazers_count,
         watchers: projectData.watchers_count,
     }
@@ -180,10 +181,10 @@ async function analyzeProject(projectData: any) {
 }
 
 async function main() {
-    const outPath="github_data/github_projects_results.json"
+    const outPath = "github_data/github_projects_results.json"
     let result = {}
-    if(fs.existsSync(outPath)){
-        result=JSON.parse(fs.readFileSync(outPath,"utf-8"))
+    if (fs.existsSync(outPath)) {
+        result = JSON.parse(fs.readFileSync(outPath, "utf-8"))
     }
     let projects = await getProjectList()
     while (true) {
@@ -195,18 +196,43 @@ async function main() {
             continue;
         }
         let data = await analyzeProject(randomProject)
-        
+
         result[randomProject.html_url] = data
         fs.writeFileSync("github_data/github_projects_results.json", JSON.stringify(result, null, 2));
-        waitSync(1000)}
+        waitSync(1000)
+    }
 
+
+}
+async function mainSingleProject() {
+    const outPath = "github_data/github_projects_results.json"
+    let result = {}
+    if (fs.existsSync(outPath)) {
+        result = JSON.parse(fs.readFileSync(outPath, "utf-8"))
+    }
+    let args = process.argv.slice(2)
+    if (args.length > 0) {
+        if (fs.existsSync("cloned_projects")) {
+            fs.rmSync("cloned_projects", { recursive: true })
+        }
+        let githubService = new GitHubService();
+        let url = args[0]
+        githubService.clone(url)
+        result[url]["dataClumps"] = await getDataClumpData()
+        fs.writeFileSync("github_data/github_projects_results.json", JSON.stringify(result, null, 2));
+    }
+    
 
 }
 if (require.main === module) {
-    main();
+    if(process.argv.length>2){
+        mainSingleProject()
+    }
+    else{
+        main();
 
+    }
 }
-
 
 console.log("finish")
 
