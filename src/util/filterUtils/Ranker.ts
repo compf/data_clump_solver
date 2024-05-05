@@ -6,12 +6,16 @@ import fs from "fs"
 export  class   RankSampler{
       private rankThreshold:number|null=null
       private rankSign:number|null=null;
-      constructor(args:{rankThreshold?:number,rankSign?:number}){
+      private differentDataClumps:boolean=false;
+      constructor(args:{rankThreshold?:number,rankSign?:number,differentDataClumps?:boolean}){
           if(args.rankThreshold){
               this.rankThreshold=args.rankThreshold
           }
           if(args.rankSign){
               this.rankSign=args.rankSign
+          }
+          if(args.differentDataClumps){
+              this.differentDataClumps=args.differentDataClumps
           }
       }
       protected getKey(data: string|DataClumpTypeContext):string{
@@ -41,8 +45,32 @@ export  class   RankSampler{
             }
             fs.writeFileSync("data/evaluateMap.json",JSON.stringify(evaluateMap))
           let result=input.sort(  (a,b) =>this.rankSign!* (evaluateMap[this.getKey(a)]-evaluateMap[this.getKey(b)]))
+
+          let slicedResult:DataClumpTypeContext[]=[]
+          let dcContext=context.getByType(DataClumpDetectorContext)!;
+          let counter=0;
+          let previousKey=""
+          for(let r of result){
+            if (typeof r === "string") {
+                break;
+            }
+            else if(Object.values(r.data_clump_data).some((it)=>it.name=="serialVersionUID")){
+            continue
+            }
+            slicedResult.push( ...dcContext.getRelatedDataClumpKeys(r as DataClumpTypeContext))
+            if(this.differentDataClumps && counter >= this.rankThreshold || !this.differentDataClumps && slicedResult.length>this.rankThreshold!){
+                //throw "slicedResult.length>this.rankThreshold! " + counter +" "+this.differentDataClumps;
+                break;
+            }
+            let key=dcContext.createDataTypeNameClumpKey(r as DataClumpTypeContext)
+            if(key!=previousKey){
+                counter++
+                previousKey=key
+            }
+            
+          }
         
-          return result.slice(0,this.rankThreshold!)
+          return slicedResult
       }
       
 }

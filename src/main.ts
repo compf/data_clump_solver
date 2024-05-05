@@ -13,7 +13,9 @@ import { loadConfiguration } from "./config/Configuration";
 
 async function main(){
     
-    let context=handleArguments(process.argv.slice(2))
+    let args=handleArguments(process.argv.slice(2))
+    let context=loadConfiguration(args.config_path)
+    context.sharedData.path=args.project_path
     /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler(project_path));
     PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DataClumpDetectorStep());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
@@ -29,24 +31,39 @@ async function main(){
     process.exit(0)
     //console.log(DataContext.NameFinding.names)
 }
-function handleArguments(args:string[]){
+type Arguments={
+    project_path?:string
+    config_path:string
+}
+function handleArguments(args:string[]):Arguments{
+    for(let i=0;i<args.length;i++){
+       args[i]=resolve(args[i])
+    }
     if(args.length<=0){
         throw new Error ("Please provide a path to a project")
     }
-    let config_arg=args[0];
-    if(config_arg.endsWith(".json")){
-        return loadConfiguration(config_arg)
+    else if(args.length==1 && fs.lstatSync(args[0]).isFile()){
+        return {
+            config_path:args[0],
+        }
     }
-    else if(fs.lstatSync(config_arg).isDirectory() && fs.existsSync(resolve(config_arg,"config.json"))){
-        let path=resolve(config_arg,"config.json")
-        config_arg=resolve(config_arg,"config.json")
-        let configContext=loadConfiguration(config_arg).buildNewContext(new CodeObtainingContext(path))
-       
-        return configContext
+    else if(args.length==1 && fs.lstatSync(args[0]).isDirectory()){
+        return {
+            project_path:args[0],
+            config_path:resolve(args[0],"config.json")
+        }
+    }
+    else if(args.length>=2){
+        let configPartIndex=fs.lstatSync(args[0]).isFile()?0:1;
+        return {
+            project_path:args[1-configPartIndex],
+            config_path:args[configPartIndex]
+        }
     }
     else{
-       return  loadConfiguration("./config.json")
+        throw new Error("Invalid arguments")
     }
+    
 }
 if(require.main === module){
     main();
