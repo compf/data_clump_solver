@@ -190,9 +190,7 @@ export class SendAndClearHandler extends LargeLanguageModelHandler {
 }
 export class SendHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
-        return api.sendMessages(false).then((x) => {
-            return [x]
-        })
+        return Promise.resolve([])
     }
 }
 export interface RandomDecider {

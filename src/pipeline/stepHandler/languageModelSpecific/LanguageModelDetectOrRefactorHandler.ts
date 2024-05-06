@@ -13,8 +13,9 @@ import { getContextSerializationPath, registerFromName, resolveFromConcreteName,
 import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } from "../../../util/languageModel/LanguageModelInterface";
 import { PipeLine } from "../../PipeLine";
-import { indexOfSubArray, tryParseJSON } from "../../../util/Utils";
+import { getRelevantFilesRec, indexOfSubArray, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
+import { BuildChecker } from "../../../util/languageModel/OutputChecker";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
@@ -52,6 +53,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let includes: string[] =Array.from(relevantFiles)
         return Promise.resolve( context.buildNewContext(new FileFilteringContext(includes, [])))
     }
+     relevantFiles:string[]=[]
     async handle(step:PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let api: LanguageModelInterface;
         if (this.providedApi != null) {
@@ -64,6 +66,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         this.providedApi = api
         let chat: ChatMessage[] = []
         let handlerIndex = 0
+        getRelevantFilesRec(context.getProjectPath(),this.relevantFiles,context.getByType(FileFilteringContext))
         context=await this.createDataClumpLocationAndUsageFilterContext(context)
         for (handlerIndex = 0; handlerIndex < this.handlers.length; handlerIndex++) {
             let handler = this.handlers[handlerIndex]
@@ -79,15 +82,116 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
 
 
-        return  await this.createFittingContext(chat, params!=null?null:step, context) as any;
+        return  await this.tryBuildContext(chat[chat.length-1], params!=null?null:step, context) as any;
     }
+    parsePath(filePath:string,context:DataClumpRefactoringContext){
+       
+        if(fs.existsSync(resolve(context.getProjectPath(),filePath))){
+            return resolve(context.getProjectPath(),filePath)
+        }
+        let bestMatchingResults=this.relevantFiles.filter((it)=>it.endsWith(filePath)).sort((a,b)=>a.length-b.length)
+        if(bestMatchingResults.length>0){
+            return bestMatchingResults[0]
+        }
+        else{
+            if(filePath.endsWith(".java")){
+                let dir=resolve(context.getProjectPath(),path.dirname(filePath))
+                if(fs.existsSync(dir)){
+                    console.log("existing file")
+                    return resolve(context.getProjectPath(),filePath)
+                }
+                else{
+                    let somePath=this.relevantFiles[0]
+                    console.log("somepath",somePath)
+                    return resolve(path.dirname(somePath),filePath)
+                }
+            }
+        }
+        throw "Could not parse "+filePath
+    }
+    parseMarkdown(context:DataClumpRefactoringContext,message:string, errorMessages:string[]){
+        let insideCodeBlock=false;
+        let path="";
+        let code=""
+        let foundPath=false;
+        let foundCode=false;
+        fs.writeFileSync("stuff/chat.txt",message)
+        const pathRegex=/([a-zA-z]:\\\\)?((\/|\\)?\w+(\\|\/)?)+\.java/gm
+        let lines=message.split("\n")
+        for(let line of lines){
+            console.log("line",line)
+            if ( !insideCodeBlock && line.match(pathRegex)){
+                let m=line.match(pathRegex)!
+                console.log(line)
+                console.log(m)
+                line=m[0]
+                console.log("detected",line)
+                console.log("parsing path")
+                path=this.parsePath(line,context);
+                foundPath=true;
+            }
+            else if(line.includes("``" )&& !insideCodeBlock){
+                insideCodeBlock=true;
+                foundCode=true;
+            }
+            else if(line.startsWith("``" )&& insideCodeBlock){
+              
+                console.log("path",path)
+                insideCodeBlock=false;
+             
+                fs.writeFileSync(path,code);
+                path=""
+                code=""
+            }
+            else if (insideCodeBlock){
+                console.log("code",line)
+                code+=line+"\n"
+            }
+            else{
+                console.log("OTHER:",line)
+            }
+        }
+        if(!foundCode){
+            errorMessages.push("I could not identify source code in your response. I am processing your response automatically so it is important to mark the coding sections as described")
+        }
+        if(!foundPath){
+            errorMessages.push("I could not identify a valid path in your response. I am processing your response automatically so it is important to mark the path as described")
 
-   async createFittingContext(chat: ChatMessage[], step: PipeLineStepType|null, context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
+        }
+    }
+    async tryBuildContext(chat: ChatMessage,step:PipeLineStepType|null,context:DataClumpRefactoringContext){
+        let maxAttempts=5
+        let outputCheckers=[new BuildChecker()];
+        let shallContinue=true;
+        let counter=0
+        let nextContext=context;
+        while(shallContinue){
+            shallContinue=counter<maxAttempts;
+            chat=await this.providedApi?.sendMessages(false)!
+            let errorMessages:string[]=["Correct the following errors:\n"]
+             nextContext=await this.createFittingContext(chat,step,context,errorMessages);
+            for(let checker of outputCheckers){
+                if(await checker.isValid("",context)){
+                    shallContinue=false;
+                }
+                else{
+                    errorMessages.push(checker.getErrorMessage())
+                   
+                }
+            }
+            this.providedApi?.prepareMessage(errorMessages.join("\n"))
+            counter++;
+        }
+        return nextContext
+
+    }
+   async createFittingContext(chat: ChatMessage, step: PipeLineStepType|null, context: DataClumpRefactoringContext,errorMessages:string[]): Promise<DataClumpRefactoringContext> {
 
         let resultContext:DataClumpRefactoringContext = step==PipeLineStep.DataClumpDetection? new DataClumpDetectorContext(createDataClumpsTypeContext({},context)): new RefactoredContext();
         resultContext=context.buildNewContext(resultContext);
         (resultContext as any).chat = chat
-        for (let c of chat) {
+        let c=chat
+        {
             if (c.messageType == "output") {
                 for (let m of c.messages) {
                     let json = tryParseJSON(m)
@@ -95,40 +199,9 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     
                      if (step == PipeLineStep.Refactoring) {
                         if(json==null){
-                            let splitted=m.split("\n");
-                            let path=""
-                            let markdown=false
-                            let content=""
-                            for(let line of splitted){
-                                console.log("line",line)
-
-                                if(line.startsWith("*** ")){
-                                    line=line.substring("*** ".length).trim();
-                                    path=line;
-                                    console.log(path)
-                                    
-                                }
-                                else if(line.startsWith("Java```")){
-                                    markdown=true
-                                }
-                                else if(markdown && line.startsWith("``")){
-                                    markdown=false;
-                                    console.log("CONTENT",content);
-                                    if(path.startsWith("/")){
-                                        path=path.substring(1)
-                                    }
-                                    path=resolve(context.getProjectPath(),path)
-                                    console.log(path)
-                                    fs.writeFileSync(path,content);
-                                    content=""
-
-
-                                }
-                                else if(markdown){
-                                    content+=line+"\n";
-                                }
+                          
                                
-                            }
+                            this.parseMarkdown(context,m,errorMessages)
                         }
                        else if(( "refactorings" in json)){
                             this.parse_piecewise_output(json, context)
