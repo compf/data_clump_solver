@@ -248,7 +248,6 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
         super();
         this.allDataClumpDetectionResult = [dataClumpDetectionResult]
         this.currDataClumpDetectionResult = dataClumpDetectionResult
-        console.log("constructor",this.currDataClumpDetectionResult)
         for (let value of Object.values(this.currDataClumpDetectionResult.data_clumps)) {
             this.currDataClumpDetectionResult.data_clumps[value.key] = value
             let nameTypeKey=this.createDataTypeNameClumpKey(value)

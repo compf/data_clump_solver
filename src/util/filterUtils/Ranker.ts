@@ -2,6 +2,11 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { FilterOrMetric } from "./SingleItemFilter";
 import { Metric } from "./Metric";
+import {InitializationRequiredMetric} from "./MetricCombiner"
+function isInitializationRequired(object: any): object is InitializationRequiredMetric {
+    // replace 'property' with a unique property of ReExecutePreviousHandlers
+    return 'initialize' in object;
+}
 import fs from "fs"
 export  class   RankSampler{
       private rankThreshold:number|null=null
@@ -37,6 +42,12 @@ export  class   RankSampler{
                   this.rankThreshold=input.length*this.rankThreshold!
             }
             let evaluateMap:{[key:string]:number}={}
+            if(isInitializationRequired(metric)){
+                for(let item of input){
+                   await  metric.initialize(item,context)
+  
+              }
+            }
             for(let item of input){
                   let key=this.getKey(item)
                   let value=await metric.evaluate(item,context)

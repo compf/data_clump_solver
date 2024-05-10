@@ -4,8 +4,8 @@
         "LanguageModelInterface": {
             "type": "OllamaInterface",
             "args": {
-                "model": "codegemma:7b",
-                "temperature": 0.5
+                "model": "codellama",
+                "temperature": 0.9
             }
         },
         
@@ -18,6 +18,14 @@
         "AffectedFilesMetric":{
             
         },
+        "ByTypeNameKeyFilter":{
+            "args":{
+                "typeNameKey":        "java.util.Collection<java.lang.Long> deviceIds;java.util.Date from;java.util.Collection<java.lang.Long> groupIds;java.util.Date to;java.util.Collection<java.lang.String> types;long userId"
+                    
+
+                
+            }
+        },
         
         "instructionHandler": {
             "type":"SimpleInstructionHandler",
@@ -28,7 +36,7 @@
         "systemMessageHandler": {
             "type":"SystemInstructionHandler",
             "args": {
-                "instructionPath": "chatGPT_templates/system_message.template"
+                "instructionPath": "chatGPT_templates/detectAndRefactor/definitionBased/fromScratch/instruction.template"
             }
         },
         "AllFilesHandler": {},
@@ -64,14 +72,26 @@
                 "useArgPath": true
             }
         },
-    
+        "DataClumpDetection": {
+            "handler": "DataClumpDetectorStep",
+            "args": {
+                "metricCombiner": "MetricCombiner",
+                "languageModel": "LanguageModelInterface",
+                "ranker": "RandomRanker"
+            }
+        },
+        "DataClumpFiltering":{
+            "handler":"DataClumpFilterStepHandler",
+            "args":{
+                "filterName":"ByTypeNameKeyFilter"
+            }
+        },
    
         "Refactoring": {
             "handler": "LanguageModelDetectOrRefactorHandler",
             "args":{
                 "handlers":[
                     "systemMessageHandler",
-                    "instructionHandler",
                     "AllFilesHandler"
                 ]
             }

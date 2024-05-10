@@ -2,7 +2,6 @@ import { VCS_Service, getRepoDataFromUrl } from "./VCS_Service";
 import { Octokit } from "octokit"
 import { spawnSync } from "child_process";
 import fs from "fs"
-
 const API_KEY = fs.readFileSync("GITHUB_TOKEN", "utf-8");
 export class GitHubService extends VCS_Service {
 

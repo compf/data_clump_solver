@@ -1,7 +1,10 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { Metric } from "../../../util/filterUtils/Metric";
-export class AffectedFilesMetric implements Metric {
+import {resolve} from "path"
+import fs from "fs"
+import { AffectedFilesMetric } from "./AffectedFilesMetric";
+export class AffectedFileSizeMetric extends AffectedFilesMetric {
   
 
    
@@ -12,24 +15,21 @@ export class AffectedFilesMetric implements Metric {
     isCompatibleWithString(): boolean {
         return false;
     }
-    getAffectedFiles(data:string|DataClumpTypeContext,context:DataClumpRefactoringContext):Set<string>{
-        let paths=new Set<string>();
-        let dectectorContext=context.getByType(DataClumpDetectorContext)!
-        let related= dectectorContext.getRelatedDataClumpKeys(data as DataClumpTypeContext)
-        for(let dc of related){
-            paths.add(dc.from_file_path);
-            paths.add(dc.to_file_path);
-        }
-        return paths
-    }
+    
     evaluate(data:string|DataClumpTypeContext,context:DataClumpRefactoringContext): Promise<number> {
         if(data instanceof String){
             throw "Cannot compare string"
         }
         else  {
-            
+            let result=0
             let paths=this.getAffectedFiles(data,context)
-            return Promise.resolve(paths.size);
+            for( let p of paths){
+                let full=resolve(context.getProjectPath(),p);
+                result+=fs.statSync(full).size
+
+
+            }
+            return Promise.resolve(result);
         }
        
        
