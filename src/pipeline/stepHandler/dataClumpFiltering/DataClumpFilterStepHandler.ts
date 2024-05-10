@@ -34,7 +34,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
                 }
             }
         }
-       
+       values=Object.values(detectionContext!.getDataClumpDetectionResult().data_clumps);
         if (this.ranker) {
             if(!this.ranker.isCompatibleWithDataClump()){
                 throw new Error("ranker is not compatible with data clump")

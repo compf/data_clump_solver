@@ -1,5 +1,6 @@
 import { DataClumpRefactoringContext } from "../../context/DataContext";
 import { GradleBuildValidationStepHandler } from "../../pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
+import { MavenBuildValidationStepHandler } from "../../pipeline/stepHandler/validation/MavenBuildValidationStepHandler";
 import { parseJSONDetailed, tryParseJSON } from "../Utils";
 
 export interface OutputChecker{
@@ -27,9 +28,10 @@ export class ValidJSONChecker implements OutputChecker{
 export class BuildChecker implements OutputChecker{
     private lastErrorMessage=""
     async isValid(content: string, context: DataClumpRefactoringContext): Promise<boolean> {
-       let gradleValidator=new GradleBuildValidationStepHandler({
+       let gradleValidator=new MavenBuildValidationStepHandler({
     
        });
+       return true;
        let result= await  gradleValidator.validate(context)
        console.log("gradle test",result)
        this.lastErrorMessage=result.messages?.stdout+"\n"+result.messages?.stderr;

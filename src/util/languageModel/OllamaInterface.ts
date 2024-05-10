@@ -109,8 +109,9 @@ export class OllamaInterface extends LanguageModelInterface {
         let chatMsg = { messages: [message], messageType: messageType ?? "input" }
         let role = "user";
         if (messageType == "system") {
-            role = "assistant"
+            role = "system"
         }
+       
         this.messages.push({ content: message, role })
         return chatMsg;
 

@@ -15,6 +15,27 @@ import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetectio
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { spawnSync } from "child_process";
+import { SingleItemFilter } from "../util/filterUtils/SingleItemFilter";
+import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpTypeContext";
+class BlackListFilter implements SingleItemFilter{
+    shallRemain(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<boolean> {
+        let dcContext=context.getByType(DataClumpDetectorContext)!;
+        let key=dcContext.createDataTypeNameClumpKey(data as DataClumpTypeContext)
+        if(this.blackList.has(key)){
+           console.log("remove",key)
+
+        }
+        return Promise.resolve(!this.blackList.has(key))
+    }
+    public blackList:Set <String> =new Set();
+    isCompatibleWithDataClump(): boolean {
+        return true;
+    }
+    isCompatibleWithString(): boolean {
+        return false;
+    }
+
+}
 const allMetricWeights = [
     [1, 1, 0],
     [1, 1, -100],
@@ -22,19 +43,22 @@ const allMetricWeights = [
     [1, 100, 0],
     [100, 1, -100],
     [1, 100, -100]]
-const NUMBER_DATA_CLUMPS = 5;
+const NUMBER_DATA_CLUMPS = 100;
 async function getDataClumpData() {
     let result = {}
     let dataClumpStats = {}
     let context = new DataClumpRefactoringContext();
-    context = await new SimpleCodeObtainingStepHandler({ path: "/home/compf/data/uni/master/sem4/data_clump_solver/cloned_projects", useArgPath: false }).handle(PipeLineStep.CodeObtaining, context, null);
+    let codeObtainingContext= await  new SimpleCodeObtainingStepHandler({ path: "/root/data_clump_solver/cloned_projects", useArgPath: false }).handle(PipeLineStep.CodeObtaining, context, null);
+    context = codeObtainingContext
     let detector = new DataClumpDetectorStep({});
-    context = await detector.handle(PipeLineStep.DataClumpDetection, context, null);
+    context = context.buildNewContext(await detector.handle(PipeLineStep.DataClumpDetection, context, null));
     let obj = Object.assign(dataClumpStats, context.getByType(DataClumpDetectorContext)?.getDataClumpDetectionResult().report_summary);
     console.log("finished", obj)
     registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});
     registerFromName("DataClumpOccurenceMetric", "DataClumpOccurenceMetric", {});
     registerFromName("AffectedFilesMetric", "AffectedFilesMetric", {});
+    registerFromName("AffectedFileSizeMetric", "AffectedFileSizeMetric", {});
+
 
 
     for (let metricWeights of allMetricWeights) {
@@ -43,18 +67,24 @@ async function getDataClumpData() {
             metrics: [
                 { name: "DataClumpSizeMetric", weight: metricWeights[0] },
                 { name: "DataClumpOccurenceMetric", weight: metricWeights[1] },
-                { name: "AffectedFilesMetric", weight: metricWeights[2] }
+                { name: "AffectedFilesMetric", weight: metricWeights[2] },
+                { name: "AffectedFileSizeMetric", weight: -0 },
+
 
             ]
         }
         let filterHandler = new DataClumpFilterStepHandler({ rankThreshold: NUMBER_DATA_CLUMPS,differentDataClumps:true });
         (filterHandler as any).ranker = new MetricCombiner(metricCombinerArgs);
-        context = DataClumpDetectorContext.fromArray([JSON.parse(fs.readFileSync("stuff/output.json", "utf-8"))]);
+        (filterHandler as any).filter = filter
+        
+        context = codeObtainingContext.buildNewContext( DataClumpDetectorContext.fromArray([JSON.parse(fs.readFileSync("stuff/output.json", "utf-8"))]));
 
-        context = await filterHandler.handle(PipeLineStep.DataClumpFiltering, context, null);
+        context =context.buildNewContext( await filterHandler.handle(PipeLineStep.DataClumpFiltering, context, null));
         let data_clumps = context.getByType(DataClumpDetectorContext)?.getDataClumpDetectionResult().data_clumps;
+        let dcContext=context.getByType(DataClumpDetectorContext)!
         for (let dc of Object.values(data_clumps!)) {
-            result[metricWeights + ""][dc["metrics"]["nameType"]]=dc["metrics"]
+           let key=dcContext.createDataTypeNameClumpKey(dc)
+            result[metricWeights + ""][context[key]["metrics"]["nameType"]]=context[key]["metrics"]
 
         }
         console.log("finished", dataClumpStats)
@@ -140,7 +170,7 @@ async function analyzeProject(projectData: any) {
     let githubService = new GitHubService()
     githubService.clone(url)
     waitSync(1000)
-    let pullRequestUpdateTime = await githubService.getMostRecentPullRequestTime(url)
+    let pullRequestUpdateTime = new Date()//await githubService.getMostRecentPullRequestTime(url)
     let lines = countLines()
     let data = await getDataClumpData()
     const minYear = new Date().getFullYear()
@@ -204,13 +234,17 @@ async function main() {
 
 
 }
+let filter=new BlackListFilter();
 async function mainSingleProject() {
     const outPath = "github_data/github_projects_results.json"
     let result = {}
     if (fs.existsSync(outPath)) {
         result = JSON.parse(fs.readFileSync(outPath, "utf-8"))
     }
+   
     let args = process.argv.slice(2)
+    let relevant=result[args[0]]["dataClumps"]
+    
     if (args.length > 0) {
         if (fs.existsSync("cloned_projects")) {
             fs.rmSync("cloned_projects", { recursive: true })

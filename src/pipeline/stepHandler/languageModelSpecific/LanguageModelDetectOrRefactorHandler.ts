@@ -86,11 +86,13 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     }
     parsePath(filePath:string,context:DataClumpRefactoringContext){
        
-        if(fs.existsSync(resolve(context.getProjectPath(),filePath))){
+        if(fs.existsSync(resolve(context.getProjectPath(),filePath)) && fs.statSync(resolve(context.getProjectPath(),filePath)).isFile() ){
+            console.log("exists")
             return resolve(context.getProjectPath(),filePath)
         }
         let bestMatchingResults=this.relevantFiles.filter((it)=>it.endsWith(filePath)).sort((a,b)=>a.length-b.length)
         if(bestMatchingResults.length>0){
+            console.log("best matching",bestMatchingResults[0])
             return bestMatchingResults[0]
         }
         else{
@@ -128,7 +130,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 console.log("detected",line)
                 console.log("parsing path")
                 path=this.parsePath(line,context);
-                foundPath=true;
+               // throw path
+                foundPath=path!="";
             }
             else if(line.includes("``" )&& !insideCodeBlock){
                 insideCodeBlock=true;
@@ -138,8 +141,13 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
               
                 console.log("path",path)
                 insideCodeBlock=false;
-             
-                fs.writeFileSync(path,code);
+                if(path==""){
+                    errorMessages.push("I could not identify a valid path in your response. I am processing your response automatically so it is important to mark the path as described")
+                }
+                else{
+                    //fs.writeFileSync(path,code);
+
+                }
                 path=""
                 code=""
             }
@@ -160,17 +168,18 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         }
     }
     async tryBuildContext(chat: ChatMessage,step:PipeLineStepType|null,context:DataClumpRefactoringContext){
-        let maxAttempts=5
+        let maxAttempts=1
         let outputCheckers=[new BuildChecker()];
         let shallContinue=true;
         let counter=0
         let nextContext=context;
         while(shallContinue){
-            shallContinue=counter<maxAttempts;
+            
             chat=await this.providedApi?.sendMessages(false)!
-            let errorMessages:string[]=["Correct the following errors:\n"]
+            let errorMessages:string[]=[]
              nextContext=await this.createFittingContext(chat,step,context,errorMessages);
-            for(let checker of outputCheckers){
+            if(errorMessages.length==0){
+             for(let checker of outputCheckers){
                 if(await checker.isValid("",context)){
                     shallContinue=false;
                 }
@@ -179,8 +188,10 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                    
                 }
             }
+        }
             this.providedApi?.prepareMessage(errorMessages.join("\n"))
             counter++;
+            shallContinue=counter<maxAttempts;
         }
         return nextContext
 

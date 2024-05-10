@@ -21,17 +21,11 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 
 import fs from "fs"
 import { OllamaInterface } from "./util/languageModel/OllamaInterface";
+import { ViaProxyInterface } from "./util/languageModel/ViaProxyInterface";
 
 async function main(){
-let phindra=new OllamaInterface({
-  model:"codellama",
-  temperature:0.9,outputCheckers:[]
-});
-console.log("start");
-(phindra as any).messages=["What is 1+1?"]
-phindra.sendMessages(false)
-
-
+let via=new ViaProxyInterface();
+via.send("hde")
 
 }
 if(require.main === module){
