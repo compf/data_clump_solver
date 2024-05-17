@@ -43,6 +43,7 @@ export class OllamaInterface extends LanguageModelInterface {
         this.messages = []
     }
     private messages: Message[] = []
+    private format=undefined
     private lastUsage = {
         prompt_tokens: 0,
         completion_tokens: 0,
@@ -54,6 +55,14 @@ export class OllamaInterface extends LanguageModelInterface {
         let onlyJson = response.slice(from, to)
         console.log("ONLY Json", onlyJson);
         return onlyJson;
+    }
+    getContextSize():number{
+        let result=0
+        switch(this.model){
+            default:
+                result= 1<<14;
+        }
+        return result
     }
     async sendMessages(clear: boolean): Promise<ChatMessage> {
 
@@ -67,11 +76,13 @@ export class OllamaInterface extends LanguageModelInterface {
         response = await ollama.chat({
             model: this.model,
             options: {
-                temperature: this.temperature
+                temperature: this.temperature,
+                num_ctx:this.getContextSize()
             },
             messages: this.messages,
-            /*format:"json"*/stream: false
+            format:this.format,stream: false
         })
+       
         console.log(response)
         this.messages.push({ content: response.message.content, role: "assistant" })
         fs.writeFileSync("stuff/phindra_output.txt", response.message.content)
