@@ -18,8 +18,24 @@
         "AffectedFilesMetric":{
             
         },
-        
-        "SimpleInstructionHandler": {
+        "ByTypeNameKeyFilter":{
+            "args":{
+                "typeNameKey":     [
+                    "java.lang.String authority",
+                    "java.lang.String fullMethodName",
+                    "io.micrometer.core.instrument.binder.grpc.io.grpc.Metadata headers",
+                    "java.lang.String methodName",
+                    "io.micrometer.core.instrument.binder.grpc.io.grpc.MethodDescriptor.MethodType methodType",
+                    "java.lang.String serviceName",
+                    "io.micrometer.core.instrument.binder.grpc.io.grpc.Status.Code statusCode",
+                    "io.micrometer.core.instrument.binder.grpc.io.grpc.Metadata trailers"
+                ]
+                    
+
+                
+            }
+        },
+        "SystemInstructionHandler": {
             "args": {
                 "instructionPath": "chatGPT_templates/detectAndRefactor/definitionBased/fromScratch/instruction.template"
             }
@@ -33,7 +49,7 @@
                 "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
                 "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
                 "%{output_format_refactor}":"chatGPT_templates/json_format_refactor_piecewise.json",
-                "%{llm_output_format}":"chatGPT_templates/use_json.template"
+                "%{llm_output_format}":"chatGPT_templates/use_markdown.template"
             }
         },
         "RandomRanker": {
@@ -60,8 +76,7 @@
         "DataClumpFiltering":{
             "handler":"DataClumpFilterStepHandler",
             "args":{
-              "rankerName":"MetricCombiner"
-               
+               "filterName":"ByTypeNameKeyFilter"
             }
         },
         "DataClumpDetection": {
@@ -72,19 +87,13 @@
                 "ranker": "RandomRanker"
             }
         },
-        "ReferenceFinding": {
-            "handler": "LanguageServerReferenceAPI",
-            "args": {
-                "apiName": "EclipseLSP_API"
-            }
-        },
+       
         "Refactoring": {
             "handler": "LanguageModelDetectOrRefactorHandler",
             "args":{
                 "handlers":[
-                    "SimpleInstructionHandler",
-                    "AllFilesHandler",
-                    "SendAndClearHandler"
+                    "SystemInstructionHandler",
+                    "AllFilesHandler"
                 ]
             }
         }

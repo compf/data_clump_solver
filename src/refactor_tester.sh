@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TIMEOUT=$((30*60 ))  # Evaluates to 1800 seconds
-COMMAND="npm run runRefactorTest ../traccar/ config_llm_ollama.json" # Command to run your Node.js application
+COMMAND="npm run runRefactorTest ../github_projects/micrometer config_llm.json" # Command to run your Node.js application
 
 while true; do
     $COMMAND &

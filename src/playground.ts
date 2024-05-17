@@ -21,15 +21,24 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 
 import fs from "fs"
 import { OllamaInterface } from "./util/languageModel/OllamaInterface";
-import { ViaProxyInterface } from "./util/languageModel/ViaProxyInterface";
+import https from "https"
+import { GeminiInterface } from "./util/languageModel/GeminiInterface";
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const GOOGLE_API_KEY =  "AIzaSyB-TmTBR0hHW9vdrYpJDHtdhvnACh1iH1Y"
 
-async function main(){
-let via=new ViaProxyInterface();
-via.send("hde")
+// Access your API key as an environment variable (see "Set up your API key" above)
+const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
 
+async function main() {
+  let gemini=new GeminiInterface()
+  gemini.prepareMessage("What is the weather like today?", "input")
+  let result=await gemini.sendMessages(true)
+  console.log(result)
 }
+
+
 if(require.main === module){
-  main();
+   main();
 
 }
 

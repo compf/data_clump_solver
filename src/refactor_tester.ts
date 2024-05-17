@@ -11,15 +11,21 @@ import { sys } from "typescript";
 
 import { loadConfiguration, resolveFromInterfaceName } from "./config/Configuration";
 import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface"
+import { waitSync } from "./util/Utils"
 const models=[
-"codeqwen:7b",
-"codellama",
-"codegemma"
+    "gpt-4-1106-preview"
+//"codeqwen:7b",
+//"codellama",
+//"codegemma"
 //"llama3"
 //,
 //"codellama:34b"
+//"gemini-pro"
 ]
-const temperatures=[0.1,0.5,0.9]
+const temperatures=[
+    0.1,
+  //  0.5,
+    0.9]
 const Repeats=10;
 function randInt(max:number){
     return Math.floor(max*Math.random())
@@ -51,12 +57,15 @@ async function main(){
         console.log(model,temp)
 
         let finalContext=await PipeLine.Instance.executeAllSteps( context);
+        waitSync(3000)
+
         let chat=fs.readFileSync("stuff/chat.txt",{encoding:"utf-8"});
         fs.writeFileSync("stuff/chat_"+model+tempStr+"_"+(new Date()).getTime()+".txt",chat);
         (api as any).messages=[];
         (result[model][tempStr] ).push(chat.split("\n"));
         fs.writeFileSync(out_path,JSON.stringify(result))
     }
+    waitSync(3000)
 
     console.log("program finished")
     process.exit(0)

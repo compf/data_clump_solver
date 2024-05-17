@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import { ChatMessage, LanguageModelInterface, MessageType } from "./LanguageModelInterface";
 export class ChatGPTInterface extends LanguageModelInterface{
     private api:OpenAI;
-
+    private format?:string="text"
     constructor(args:{model:string,temperature:number}|undefined){
         super();
         let model:string
@@ -19,7 +19,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
         this.completions={
             messages:[],
             model:model,
-            response_format:{type:"json_object"},
+            response_format:{type:this.format as any},
             temperature:temperature,
         }
         this.api=new OpenAI({
