@@ -15,7 +15,7 @@ import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } f
 import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
-import { BuildChecker } from "../../../util/languageModel/OutputChecker";
+import { BuildChecker, OutputChecker } from "../../../util/languageModel/OutputChecker";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
@@ -39,12 +39,13 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             return context
         }
         let relevantFiles = new Set<string>()
+        //throw " "+Object.values(detectionContext.getDataClumpDetectionResult().data_clumps).length
         for (let dc of Object.values(detectionContext.getDataClumpDetectionResult().data_clumps)) {
             relevantFiles.add(dc.from_file_path)
             relevantFiles.add(dc.to_file_path)
             if(usageFindingContext!=null && dc.key in usageFindingContext.getUsages()){
                 for(let usage of usageFindingContext.getUsages()[dc.key]!){
-                    //throw  usage.filePath
+                    throw  usage.filePath
                     relevantFiles.add(usage.filePath)
                 }
             }
@@ -169,7 +170,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     }
     async tryBuildContext(chat: ChatMessage,step:PipeLineStepType|null,context:DataClumpRefactoringContext){
         let maxAttempts=1
-        let outputCheckers=[new BuildChecker()];
+        let outputCheckers:OutputChecker[]=[];
         let shallContinue=true;
         let counter=0
         let nextContext=context;
