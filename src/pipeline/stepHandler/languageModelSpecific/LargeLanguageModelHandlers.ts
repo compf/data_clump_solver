@@ -1,7 +1,8 @@
-import { DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
+import { DataClumpRefactoringContext, FileFilteringContext, UsageFindingContext } from "../../../context/DataContext";
 import fs from "fs"
 import { Minimatch } from "minimatch";
 import path from "path";
+import { resolve } from "path";
 import { ChatMessage, LanguageModelInterface, MessageType } from "../../../util/languageModel/LanguageModelInterface";
 import { getRelevantFilesRec } from "../../../util/Utils";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
@@ -179,6 +180,65 @@ export class DirectoryBasedFilesHandler extends LargeLanguageModelHandler implem
         }
         this.index++;
         return Promise.resolve([api.prepareMessage(message)])
+    }
+}
+export class CodeSnippetHandler extends LargeLanguageModelHandler {
+    private additionalMargin=2
+    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+        let usageContext=context.getByType(UsageFindingContext)
+        if(usageContext==null){
+            throw new Error("Usage context not found")
+        }
+        let pathLinesMap:{[key:string]:Set<number>}={}
+        let allUsages=usageContext.getUsages()
+        for(let usages of Object.values(allUsages)){
+            for(let usage of usages){
+                if(usage.filePath.startsWith("/")){
+                    usage.filePath=usage.filePath.slice(1)
+                }
+                if(!(usage.filePath in pathLinesMap)){
+                   
+                    pathLinesMap[usage.filePath]=new Set<number>()
+                }
+                for(let i=usage.range.startLine-this.additionalMargin;i<=usage.range.endLine+this.additionalMargin;i++){    
+                    pathLinesMap[usage.filePath].add(i)
+                }
+               
+            }
+        }
+        let resultingMessages:{[key:string]:{
+            content:string,
+            fromLine:number,
+            toLine:number
+        }[]}={};
+        for(let path of Object.keys(pathLinesMap)){
+            let content=fs.readFileSync(resolve(context.getProjectPath(),path) ,{encoding:"utf-8"}).split("\n")
+            let lastLine=-1
+            let fromLine=-1;
+            let firstIteration=true;
+            resultingMessages[path]=[]
+            let lines=Array.from(pathLinesMap[path] ).sort((a:number,b:number)=>a-b)
+            for(let line of lines){
+                line=line
+                if(firstIteration){
+                    firstIteration=false;
+                    fromLine=line
+                    lastLine=line
+                }
+                else if(line-lastLine>1){
+                    resultingMessages[path].push({content:content.slice(fromLine,lastLine+1).join("\n"),fromLine,toLine:lastLine})
+                    fromLine=line
+                    lastLine=line
+                }
+                else {
+                    lastLine=line
+                
+                }
+            }
+            resultingMessages[path].push({content:content.slice(fromLine,lastLine+1).join("\n"),fromLine,toLine:lastLine})
+
+        }
+      return Promise.resolve( [api.prepareMessage(JSON.stringify(resultingMessages), "input")])
     }
 }
 export class SendAndClearHandler extends LargeLanguageModelHandler {

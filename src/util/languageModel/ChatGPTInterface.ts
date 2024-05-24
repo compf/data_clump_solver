@@ -39,7 +39,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
         total_tokens: 0
     }
     loadToken():string{
-        return fs.readFileSync("CHATGPT_TOKEN",{encoding:"utf-8"})
+        return fs.readFileSync("tokens/CHATGPT_TOKEN",{encoding:"utf-8"})
     }
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
         if(this.completions.messages.length==0)return {messages:[],messageType:"output"}

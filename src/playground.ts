@@ -20,20 +20,19 @@ import { DoNothingStepHandler } from "./pipeline/stepHandler/DoNothingStepHandle
 import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpTypeContext";
 
 import fs from "fs"
+import {resolve} from "path"
 import { OllamaInterface } from "./util/languageModel/OllamaInterface";
 import https from "https"
 import { GeminiInterface } from "./util/languageModel/GeminiInterface";
+import { CodeSnippetHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { StubInterface } from "./util/languageModel/StubInterface";
+import { LanguageModelTemplateResolver } from "./util/languageModel/LanguageModelTemplateResolver";
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const GOOGLE_API_KEY =  "AIzaSyB-TmTBR0hHW9vdrYpJDHtdhvnACh1iH1Y"
 
-// Access your API key as an environment variable (see "Set up your API key" above)
-const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
 
 async function main() {
-  let gemini=new GeminiInterface()
-  gemini.prepareMessage("What is the weather like today?", "input")
-  let result=await gemini.sendMessages(true)
-  console.log(result)
+
+
 }
 
 

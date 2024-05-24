@@ -13,7 +13,8 @@ import { loadConfiguration, resolveFromInterfaceName } from "./config/Configurat
 import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface"
 import { waitSync } from "./util/Utils"
 const models=[
-    "gpt-4-1106-preview"
+  //  "gpt-4-1106-preview",
+    "gemini-pro"
 //"codeqwen:7b",
 //"codellama",
 //"codegemma"
@@ -23,9 +24,10 @@ const models=[
 //"gemini-pro"
 ]
 const temperatures=[
-    0.1,
-  //  0.5,
-    0.9]
+  //  0.1,
+   0.5
+//    0.9
+]
 const Repeats=10;
 function randInt(max:number){
     return Math.floor(max*Math.random())

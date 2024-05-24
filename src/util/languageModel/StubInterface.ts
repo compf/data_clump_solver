@@ -20,26 +20,9 @@ private shallClear=false;
 private newMessages:string[]=[]
 private temperature=0.1
 private model="phind-codellama"
-    constructor(args:{model:string,temperature:number,outputCheckers:string[]}|undefined){
+    constructor(args:any){
         super();
        
-        
-
-        let temperature:number
-        if(args){
-            this.temperature=args.temperature
-            this.model=args.model;
-            if(args.outputCheckers){
-                for(let checker of args.outputCheckers){
-                    this.outputCheckers.push(resolveFromConcreteName(checker))
-                }
-            }
-            
-        }
-        else{
-            temperature=0.9
-        }
-      
         
     }
   

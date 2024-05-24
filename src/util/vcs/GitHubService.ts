@@ -2,9 +2,9 @@ import { VCS_Service, getRepoDataFromUrl } from "./VCS_Service";
 import { Octokit } from "octokit"
 import { spawnSync } from "child_process";
 import fs from "fs"
-const API_KEY = fs.readFileSync("GITHUB_TOKEN", "utf-8");
+ 
 export class GitHubService extends VCS_Service {
-
+    API_KEY = fs.readFileSync("GITHUB_TOKEN", "utf-8");
     clone(url: string) {
 
         console.log("pulling")
@@ -36,7 +36,7 @@ export class GitHubService extends VCS_Service {
     }
     createOctokitObject(): Octokit {
         return new Octokit({
-            auth: API_KEY,
+            auth: this.API_KEY,
 
         });
     }

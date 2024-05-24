@@ -43,12 +43,12 @@ const allMetricWeights = [
     [1, 100, 0],
     [100, 1, -100],
     [1, 100, -100]]
-const NUMBER_DATA_CLUMPS = 100;
+const NUMBER_DATA_CLUMPS = 20;
 async function getDataClumpData() {
     let result = {}
     let dataClumpStats = {}
     let context = new DataClumpRefactoringContext();
-    let codeObtainingContext= await  new SimpleCodeObtainingStepHandler({ path: "/root/data_clump_solver/cloned_projects", useArgPath: false }).handle(PipeLineStep.CodeObtaining, context, null);
+    let codeObtainingContext= await  new SimpleCodeObtainingStepHandler({ path: "/home/compf/data/uni/master/sem4/data_clump_solver/cloned_projects", useArgPath: false }).handle(PipeLineStep.CodeObtaining, context, null);
     context = codeObtainingContext
     let detector = new DataClumpDetectorStep({});
     context = context.buildNewContext(await detector.handle(PipeLineStep.DataClumpDetection, context, null));
@@ -62,7 +62,7 @@ async function getDataClumpData() {
 
 
     for (let metricWeights of allMetricWeights) {
-        result[metricWeights + ""] = {}
+        result[metricWeights + ""] = []
         let metricCombinerArgs = {
             metrics: [
                 { name: "DataClumpSizeMetric", weight: metricWeights[0] },
@@ -84,7 +84,7 @@ async function getDataClumpData() {
         let dcContext=context.getByType(DataClumpDetectorContext)!
         for (let dc of Object.values(data_clumps!)) {
            let key=dcContext.createDataTypeNameClumpKey(dc)
-            result[metricWeights + ""][context[key]["metrics"]["nameType"]]=context[key]["metrics"]
+            result[metricWeights + ""].push(context[key]["metrics"])
 
         }
         console.log("finished", dataClumpStats)
