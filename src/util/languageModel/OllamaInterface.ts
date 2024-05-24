@@ -82,7 +82,11 @@ export class OllamaInterface extends LanguageModelInterface {
             messages: this.messages,
             format:this.format,stream: false
         })
-       
+        this.lastUsage={
+            prompt_tokens: response.prompt_eval_count,
+            completion_tokens: response.eval_count,
+            total_tokens:response.prompt_eval_count+response.eval_count
+        }
         console.log(response)
         this.messages.push({ content: response.message.content, role: "assistant" })
         fs.writeFileSync("stuff/phindra_output.txt", response.message.content)
