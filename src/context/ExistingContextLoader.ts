@@ -8,16 +8,27 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
     switch (step) {
         case PipeLineStep.DataClumpDetection:
             {
-                let path = getContextSerializationPath(PipeLineStep.DataClumpDetection.name, context)
-                if (fs.existsSync(path)) {
-                    let data = JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }))
-                    if (Array.isArray(data)) {
-                        return context.buildNewContext(DataClumpDetectorContext.fromArray(data as DataClumpsTypeContext[]))
+                const basePath = getContextSerializationPath(PipeLineStep.DataClumpDetection.name, context)
+                let i=0;
+                let pathExist=fs.existsSync(basePath)
+                let allData:DataClumpsTypeContext[]=[]
+                while(pathExist){
+                    let path=basePath.replace(".json","_"+i+".json")
+                    if (fs.existsSync(path)) {
+                        let data = JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }))
+                        allData.push(data)
+                       
                     }
-                    else {
-                        return new DataClumpDetectorContext(data as DataClumpsTypeContext)
+                    else{
+                        pathExist=false
                     }
+                    i++
+                    pathExist=pathExist && fs.existsSync(basePath.replace(".json","_"+i+".json"))
                 }
+                if(allData.length>0){
+                    return DataClumpDetectorContext.fromArray(allData)
+                }
+                
                 return null
             }
         case PipeLineStep.NameFinding:

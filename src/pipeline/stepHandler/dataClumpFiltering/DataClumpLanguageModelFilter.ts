@@ -11,7 +11,7 @@ export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
 export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
    async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let dcContext =(await super.handle(step,context,params)).getByType(DataClumpDetectorContext)!
-
+        dcContext.serialize()
        let simplified= this.simplifyJson(dcContext.getDataClumpDetectionResult())
        console.log(Object.keys(simplified.data_clumps).length)
        let api=resolveFromInterfaceName("LanguageModelInterface") as LanguageModelInterface

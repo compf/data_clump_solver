@@ -213,6 +213,7 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     }
     static fromArray(data: DataClumpsTypeContext[]): DataClumpDetectorContext {
         let result= new DataClumpDetectorContext(data[data.length - 1]);
+        console.log( JSON.stringify(data))
         result.allDataClumpDetectionResult = data
         return result
     }
@@ -242,7 +243,11 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     }
     serialize(path?: string | undefined): void {
         const usedPath=this.getSerializationPath(path)
-        fs.writeFileSync(usedPath, JSON.stringify(this.allDataClumpDetectionResult))
+        for(let i=0;i<this.allDataClumpDetectionResult.length;i++){
+            let path=usedPath.replace(".json","_"+i+".json")
+            fs.writeFileSync(path, JSON.stringify(this.allDataClumpDetectionResult[i]))
+        }
+       
     }
     constructor(dataClumpDetectionResult: DataClumpsTypeContext) {
         super();
