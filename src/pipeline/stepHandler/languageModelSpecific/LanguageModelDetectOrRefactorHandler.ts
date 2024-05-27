@@ -118,7 +118,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let code=""
         let foundPath=false;
         let foundCode=false;
-        fs.writeFileSync("stuff/chat.txt",message)
+       
         const pathRegex=/([a-zA-z]:\\\\)?((\/|\\)?\w+(\\|\/)?)+\.java/gm
         let lines=message.split("\n")
         for(let line of lines){
@@ -177,6 +177,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         while(shallContinue){
             
             chat=await this.providedApi?.sendMessages(false)!
+            fs.writeFileSync("stuff/chat.txt",chat.messages[0])
+            
             let errorMessages:string[]=[]
              nextContext=await this.createFittingContext(chat,step,context,errorMessages);
             if(errorMessages.length==0){
@@ -313,7 +315,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 //throw minLevenshtein+" "+minOffset +" "+sign
 
                 for(let change of content.refactorings[refactoredPath]){
-                    let lines=change.lineRange.split("-").map((x)=>parseInt(x))
+                    let lines=[change.fromLine,change.toLine]
                     let start=lines[0]
                     let end=lines[1]
                     
@@ -362,7 +364,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                    
                 }
                 console.log(path)
-                fs.writeFileSync(path,fileContent)
+                //fs.writeFileSync(path,fileContent)
             }
             for(let extractedClassPath of Object.keys(content.extractedClasses)){
                 let path = resolve(context.getProjectPath(), extractedClassPath)

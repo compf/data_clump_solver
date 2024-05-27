@@ -1,16 +1,20 @@
 import fs from "fs"
 import OpenAI from 'openai';
-import { ChatMessage, LanguageModelInterface, MessageType } from "./LanguageModelInterface";
+import { ChatMessage, LanguageModelInterface, MessageType, TokenStats } from "./LanguageModelInterface";
+type Formats="json_object"|"text"
 export class ChatGPTInterface extends LanguageModelInterface{
     private api:OpenAI;
-    private format?:string="text"
-    constructor(args:{model:string,temperature:number}|undefined){
+    private format?:string="json_object"
+    constructor(args:{model:string,temperature:number,format?:Formats}|undefined){
         super();
         let model:string
         let temperature:number
         if(args){
             model=args.model
             temperature=args.temperature
+            if(args.format){
+                this.format=args.format
+            }
         }
         else{
             model="gpt-4-1106-preview"
@@ -61,7 +65,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
         }
         return {messages:["No response"],messageType:"output"}
     }
-    getTokenStats(): { prompt_tokens: number; completion_tokens: number; total_tokens: number; } {
+    getTokenStats(): TokenStats {
         return this.lastUsage
     
     }
