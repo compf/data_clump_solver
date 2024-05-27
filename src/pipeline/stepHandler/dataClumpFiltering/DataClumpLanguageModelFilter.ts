@@ -5,16 +5,15 @@ import { LanguageModelTemplateResolver } from "../../../util/languageModel/Langu
 import { PipeLineStepType } from "../../PipeLineStep";
 import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/LargeLanguageModelHandlers";
 import { DataClumpFilterArgs, DataClumpFilterStepHandler } from "./DataClumpFilterStepHandler";
-export type LanguageModelFilterArgs= DataClumpFilterArgs& {
+export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
     handlers:string[]
 }
-export class LanguageModelFilter extends DataClumpFilterStepHandler{
+export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
    async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let dcContext =(await super.handle(step,context,params)).getByType(DataClumpDetectorContext)!
 
        let simplified= this.simplifyJson(dcContext.getDataClumpDetectionResult())
        console.log(Object.keys(simplified.data_clumps).length)
-       //throw ""
        let api=resolveFromInterfaceName("LanguageModelInterface") as LanguageModelInterface
        let resolver=new LanguageModelTemplateResolver({})
        for(let h of this.handlers){
@@ -62,7 +61,7 @@ export class LanguageModelFilter extends DataClumpFilterStepHandler{
             }
         }
     }
-    constructor(args:LanguageModelFilterArgs){
+    constructor(args:DataClumpLanguageModelFilterArgs){
         super(args)
         for(let h of args.handlers){
             this.handlers.push(resolveFromConcreteName(h))

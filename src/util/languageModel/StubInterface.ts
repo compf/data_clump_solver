@@ -12,13 +12,8 @@ import http from "https"
 import { ChatMessage, LanguageModelInterface, MessageType } from "./LanguageModelInterface";
 import ChildProcessWithoutNullStreams = require("child_process");
 import { OutputChecker } from "./OutputChecker"
-import { resolveFromConcreteName } from "../../config/Configuration"
-import { coerceBoolean } from "openai/core.mjs"
 export class StubInterface extends LanguageModelInterface{
 private static  staticClient:net.Socket|null=null;
-private shallClear=false;
-private newMessages:string[]=[]
-private temperature=0.1
 private model="phind-codellama"
     constructor(args:any){
         super();
@@ -45,6 +40,7 @@ private model="phind-codellama"
     }
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
         const chatPath="stuff/chat.txt"
+        fs.writeFileSync("stuff/request.txt",this.messages.map((m)=>m.content).join("\n"))
         let output=fs.readFileSync(chatPath,{encoding:"utf-8"})
         return {messageType:"output",messages:[
             output

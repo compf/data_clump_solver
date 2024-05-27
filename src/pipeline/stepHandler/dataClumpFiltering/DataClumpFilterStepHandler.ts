@@ -57,7 +57,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     }
     private filter: SingleItemFilter | null = null
     private ranker: Metric | null = null
-    private doNothingIfFiltered:boolean=true;
+    private doNothingIfFiltered:boolean=false;
     private rankSampler: RankSampler;
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.DataClumpFiltering]
