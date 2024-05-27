@@ -6,8 +6,12 @@ import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 import { resolveFromConcreteName } from "../../../config/Configuration";
 import {  Metric } from "../../../util/filterUtils/Metric";
 import { compareTo } from "../../../util/Utils";
-import { RankSampler } from "../../../util/filterUtils/Ranker";
-
+import { RankSampler, RankSamplerArgs } from "../../../util/filterUtils/Ranker";
+export type DataClumpFilterArgs=RankSamplerArgs&{
+    filterName?:string,
+    rankerName?:string,
+    doNothingIfFiltered?:boolean
+}
 export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
 
@@ -58,9 +62,9 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.DataClumpFiltering]
     }
-    constructor(args: { filterName?: string, rankerName?: string, rankThreshold?: number, sign?: number,doNothingIfFiltered?:boolean, differentDataClumps?: boolean}) {
+    constructor(args: DataClumpFilterArgs) {
         super()
-        this.rankSampler = new RankSampler({ rankThreshold: args.rankThreshold, rankSign: args.sign,differentDataClumps:args.differentDataClumps })
+        this.rankSampler = new RankSampler(args)
         if (args.rankerName) {
             this.ranker = resolveFromConcreteName(args.rankerName)
         }

@@ -42,7 +42,12 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         let path=getContextSerializationPath(PipeLineStep.DataClumpDetection.name,context)
         if( fs.existsSync(path)){
             let data=JSON.parse(fs.readFileSync (path,{encoding:"utf-8"}))
+            if(Array.isArray(data)){
             return context.buildNewContext( DataClumpDetectorContext.fromArray(data as DataClumpsTypeContext[]))
+            }
+            else{
+                return new DataClumpDetectorContext(data as DataClumpsTypeContext)
+            }
         }
         return null
     }
