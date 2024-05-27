@@ -1,5 +1,6 @@
 import { getContextSerializationPath } from "../config/Configuration";
 import { DataClumpRefactoringContext, EvaluationContext, MandatoryContextNames } from "../context/DataContext";
+import { loadExistingContext } from "../context/ExistingContextLoader";
 import { PipeLineStep, PipeLineStepType } from "./PipeLineStep";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler";
 function difference<T>(set1: Set<T>, set2: Set<T>): Set<T> {
@@ -56,11 +57,8 @@ export class PipeLine {
                 let createdContextNames = context.getContextNames();
                 let addedContextNames = new Set<string>()
                 this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i], addedContextNames)
-                if (difference(createdContextNames,addedContextNames).size == 0) {
-                    //No new context data is added so we can skip    
-                    //continue;
-                }
-                let deserializedContext=this.stepHandlerList[i].deserializeExistingContext(context,pipeLineSteps[i])
+          
+                let deserializedContext=loadExistingContext(pipeLineSteps[i],context)
                 if(deserializedContext==null){
                     let startTime = Date.now();
                     console.log("Executing step " + pipeLineSteps[i].name)
@@ -87,3 +85,5 @@ export class PipeLine {
     }
 
 }
+
+
