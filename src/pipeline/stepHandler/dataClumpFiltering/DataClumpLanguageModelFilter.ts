@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { LanguageModelInterface } from "../../../util/languageModel/LanguageModelInterface";
@@ -5,6 +6,7 @@ import { LanguageModelTemplateResolver } from "../../../util/languageModel/Langu
 import { PipeLineStepType } from "../../PipeLineStep";
 import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/LargeLanguageModelHandlers";
 import { DataClumpFilterArgs, DataClumpFilterStepHandler } from "./DataClumpFilterStepHandler";
+import fs from "fs";
 export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
     handlers:string[]
 }
@@ -22,11 +24,16 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
        api.prepareMessage(JSON.stringify(simplified),"input")
        let result=await api.sendMessages(true)
        let parsed=JSON.parse(result.messages[0])
+       fs.writeFileSync("stuff/justification.json",(JSON.stringify(parsed,null,2)))
 
        let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
        let related= dcContext.getRelatedDataClumpKeys(relevantDc)
+       console.log("related",related)
        dcContext.cloneLastItem()
+       dcContext.getDataClumpDetectionResult().data_clumps={}
+      
        for(let r of related){
+        console.log("related",r.key)    
         dcContext.getDataClumpDetectionResult().data_clumps[r.key]=r
 
        }

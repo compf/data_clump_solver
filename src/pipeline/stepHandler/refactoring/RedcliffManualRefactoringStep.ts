@@ -9,7 +9,6 @@ import { spawnSync } from "child_process"
 export class RedcliffManualRefactoringStep extends AbstractStepHandler{
     handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const projectPath=context.getProjectPath()
-        
         /*
         demo-cli:runDemoPluginCLI -Prunner=DemoPluginCLI -PmyProjectPath='/home/compf/data/uni/master/sem4/data_clump_solver/javaTest/moreComprehensiveJavaTest'
          -PdataPath='/home/compf/data/uni/master/sem4/data_clump_solver/data' --stacktrace
@@ -28,7 +27,21 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
         }
         let currContext:DataClumpRefactoringContext|null=context.getByType(DataClumpDetectorContext)
         if(currContext!=null){
-            contextData["dataClumpContextPath"]=currContext.getDefaultSerializationPath()
+            const basePath = currContext.getDefaultSerializationPath()
+            let i=0;
+            let lastPath=""
+            let pathExist=fs.existsSync(basePath)
+            while(pathExist){
+                let path=basePath.replace(".json","_"+i+".json")
+                if (fs.existsSync(path)){
+                    lastPath=path
+                    i++;
+                }
+                else{
+                    pathExist=false
+                }
+            }
+            contextData["dataClumpContextPath"]=lastPath
         }
         currContext=context.getByType(NameFindingContext)
         if(currContext!=null){

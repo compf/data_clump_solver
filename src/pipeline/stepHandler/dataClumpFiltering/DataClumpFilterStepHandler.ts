@@ -34,6 +34,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
             for (let dc of values) {
                 let shallRemain = await this.filter!.shallRemain(dc, detectionContext)
                 if (!shallRemain) {
+                    console.log("removing",dc.key)
                     detectionContext.deleteEntry(dc.key)
                 }
             }

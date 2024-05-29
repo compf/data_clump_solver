@@ -7,6 +7,7 @@ import fs from "fs";
 export function loadExistingContext(step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext | null {
     switch (step) {
         case PipeLineStep.DataClumpDetection:
+        case PipeLineStep.DataClumpFiltering:
             {
                 const basePath = getContextSerializationPath(PipeLineStep.DataClumpDetection.name, context)
                 let i=0;
@@ -26,6 +27,9 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     pathExist=pathExist && fs.existsSync(basePath.replace(".json","_"+i+".json"))
                 }
                 if(allData.length>0){
+                    if(step==PipeLineStep.DataClumpFiltering && allData.length<2){
+                        return null
+                    }
                     return DataClumpDetectorContext.fromArray(allData)
                 }
                 
