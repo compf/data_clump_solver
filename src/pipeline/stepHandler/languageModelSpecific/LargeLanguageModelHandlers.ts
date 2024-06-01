@@ -240,6 +240,14 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
         }
       return Promise.resolve( [api.prepareMessage(JSON.stringify(resultingMessages), "input")])
     }
+    constructor(args:{additionalMargin?:number}){
+        super()
+        if(args){
+            if(args.additionalMargin!=null){
+                this.additionalMargin=args.additionalMargin
+            }
+        }
+    }
 }
 export class SendAndClearHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {

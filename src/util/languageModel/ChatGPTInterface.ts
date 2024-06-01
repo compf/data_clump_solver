@@ -4,7 +4,7 @@ import { ChatMessage, LanguageModelInterface, MessageType, TokenStats } from "./
 type Formats="json_object"|"text"
 export class ChatGPTInterface extends LanguageModelInterface{
     private api:OpenAI;
-    private format?:string="json_object"
+    private format?:string="text"
     constructor(args:{model:string,temperature:number,format?:Formats}|undefined){
         super();
         let model:string

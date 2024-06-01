@@ -313,7 +313,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 }*/
 
                 //throw minLevenshtein+" "+minOffset +" "+sign
-
+                console.log(content.refactorings[refactoredPath])
                 for(let change of content.refactorings[refactoredPath]){
                     let lines=[change.fromLine,change.toLine]
                     let start=lines[0]
@@ -322,10 +322,12 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     let newContent=change.newContent
                     let oldContent=change.oldContent
                     let index=fileContent.indexOf(oldContent)
+                    console.log("change",change)
                     const MAX_OFFSET=100
                     if(index==-1){
                         let splitted=fileContent.split("\n")
                         for(let i=Math.max(0,start-MAX_OFFSET);i<Math.min(end+MAX_OFFSET,splitted.length);i++){
+                            console.log("CHECK",splitted[i])
                             let s=splitted[i]
                             if(s!="" && oldContent.trim().startsWith(s.trim())){
                                 let newContentSplitted=newContent.split("\n")
@@ -342,7 +344,6 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
                                     
                                 }
-                                break;
                             }
                         }
                         fileContent=splitted.join("\n")
@@ -368,7 +369,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             }
             for(let extractedClassPath of Object.keys(content.extractedClasses)){
                 let path = resolve(context.getProjectPath(), extractedClassPath)
-                fs.writeFileSync(path,content.extractedClasses[extractedClassPath])
+                //fs.writeFileSync(path,content.extractedClasses[extractedClassPath])
             }
         }
         console.log("return")

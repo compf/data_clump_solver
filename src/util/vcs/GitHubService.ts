@@ -4,7 +4,7 @@ import { spawnSync } from "child_process";
 import fs from "fs"
  
 export class GitHubService extends VCS_Service {
-    API_KEY = fs.readFileSync("GITHUB_TOKEN", "utf-8");
+    API_KEY = fs.readFileSync("tokens/GITHUB_TOKEN", "utf-8");
     clone(url: string) {
 
         console.log("pulling")

@@ -13,7 +13,7 @@ import { loadConfiguration, resolveFromInterfaceName } from "./config/Configurat
 import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface"
 import { waitSync } from "./util/Utils"
 const models=[
-  // "gpt-4-1106-preview",
+   "gpt-4-1106-preview",
     //"gemini-pro"
 //"codeqwen:7b",
 //"codellama",
@@ -22,7 +22,7 @@ const models=[
 //,
 //"codellama:34b"
 //"gemini-pro"
-"claude-3-opus-20240229"
+//"claude-3-opus-20240229"
 ]
 const temperatures=[
    0.1,

@@ -1,11 +1,30 @@
 import { DataClumpsTypeContext } from "data-clumps-type-context";
 import { getContextSerializationPath } from "../config/Configuration";
 import { PipeLineStep, PipeLineStepType } from "../pipeline/PipeLineStep";
-import { DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, UsageFindingContext } from "./DataContext";
+import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, UsageFindingContext } from "./DataContext";
 import fs from "fs";
-
+import { resolve } from "path";
 export function loadExistingContext(step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext | null {
     switch (step) {
+        case PipeLineStep.ASTGeneration:
+            //throw "cool"
+            {
+                const ast_out_path = resolve("./temp")
+                let astContext=new ASTBuildingContext()
+                let any=false;
+                for(let p of fs.readdirSync(ast_out_path)){
+                    any=true;
+                    (astContext as ASTBuildingContext).load(resolve(ast_out_path,p))
+                }
+                if(any){
+                    return astContext
+                }
+                else{
+                    return null
+                
+                }
+            }
+   
         case PipeLineStep.DataClumpDetection:
         case PipeLineStep.DataClumpFiltering:
             {
@@ -30,6 +49,8 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     if(step==PipeLineStep.DataClumpFiltering && allData.length<2){
                         return null
                     }
+                    console.log(allData)
+                    //throw "test"
                     return DataClumpDetectorContext.fromArray(allData)
                 }
                 

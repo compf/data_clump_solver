@@ -18,7 +18,7 @@ import fs from "fs"
 export  class   RankSampler{
       private rankThreshold:number|null=null
       private rankSign:number|null=null;
-      private differentDataClumps:boolean=false;
+      private differentDataClumps:boolean=true;
     private strictSize: boolean=false;
       constructor(args:RankSamplerArgs){
           if(args.rankThreshold){

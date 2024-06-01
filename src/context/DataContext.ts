@@ -213,14 +213,16 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
     }
     static fromArray(data: DataClumpsTypeContext[]): DataClumpDetectorContext {
         let result= new DataClumpDetectorContext(data[data.length - 1]);
-        console.log( JSON.stringify(data))
+        //console.log( JSON.stringify(data))
         result.allDataClumpDetectionResult = data
+        result.currDataClumpDetectionResult = data[data.length - 1]
         return result
     }
     private currDataClumpDetectionResult:  DataClumpsTypeContext=createDataClumpsTypeContext({})
     private allDataClumpDetectionResult: DataClumpsTypeContext[]
     private byNameTypeKeys:{[key:string]:DataClumpTypeContext[]}={}
     getDataClumpDetectionResult(): DataClumpsTypeContext {
+        //throw this.currDataClumpDetectionResult
         return this.currDataClumpDetectionResult
     }
     getRelatedDataClumpKeys(dc:DataClumpTypeContext):DataClumpTypeContext[]{

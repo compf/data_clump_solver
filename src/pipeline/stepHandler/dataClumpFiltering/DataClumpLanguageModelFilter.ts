@@ -24,7 +24,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
        api.prepareMessage(JSON.stringify(simplified),"input")
        let result=await api.sendMessages(true)
        let parsed=JSON.parse(result.messages[0])
-       fs.writeFileSync("stuff/justification.json",(JSON.stringify(parsed,null,2)))
+       fs.writeFileSync("stuff/justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
 
        let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
        let related= dcContext.getRelatedDataClumpKeys(relevantDc)

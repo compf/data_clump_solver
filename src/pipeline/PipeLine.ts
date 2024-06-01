@@ -53,13 +53,16 @@ export class PipeLine {
             throw new Error("Pipeline is not correct")
         }
         for (let i = 0; i < NumberPipeLineSteps; i++) {
-            if (this.stepHandlerList[i] != null) {
+            let deserializedContext=loadExistingContext(pipeLineSteps[i],context)
+            if(deserializedContext!=null){
+                console.log("Deserialized context for step "+pipeLineSteps[i].name)
+                context=context.buildNewContext(deserializedContext);
+            }
+           else if (this.stepHandlerList[i] != null) {
                 let createdContextNames = context.getContextNames();
                 let addedContextNames = new Set<string>()
                 this.stepHandlerList[i].addCreatedContextNames(PipeLineStep[i], addedContextNames)
-          
-                let deserializedContext=loadExistingContext(pipeLineSteps[i],context)
-                if(deserializedContext==null){
+                    if(deserializedContext==null){
                     let startTime = Date.now();
                     console.log("Executing step " + pipeLineSteps[i].name)
                     context = await this.stepHandlerList[i].handle(pipeLineSteps[i],context, null);

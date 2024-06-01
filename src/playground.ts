@@ -27,10 +27,31 @@ import { GeminiInterface } from "./util/languageModel/GeminiInterface";
 import { CodeSnippetHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { StubInterface } from "./util/languageModel/StubInterface";
 import { LanguageModelTemplateResolver } from "./util/languageModel/LanguageModelTemplateResolver";
+import { waitSync } from "./util/Utils";
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 
 async function main() {
+   let githubService=new GitHubService();
+   let urls=fs.readFileSync(resolve("stuff/urls.txt.txt")).toString().split("\n");
+   let updatedUrls:string[]=[];
+   for(let u of urls){
+      u=u.trim()
+      let dt=new Date(0)
+      try{
+          dt=await githubService.getMostRecentPullRequestTime(u)
+      }
+      catch(e){
+         console.log("error",e)
+      }
+      
+      updatedUrls.push(u+";"+dt.toISOString())
+      fs.writeFileSync(resolve("stuff/urls2.txt.txt"),updatedUrls.join("\n"))
+
+      waitSync(500)
+   }
+
+
 
 
 }
