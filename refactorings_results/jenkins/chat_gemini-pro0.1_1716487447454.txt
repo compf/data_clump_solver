@@ -1,0 +1,91 @@
+The data clump I found is within the `ScriptListener` interface and related classes and methods. The clump consists of the `feature`, `context`, `correlationId`, and `user` fields and parameters, which are used together in several methods across different parts of the code.
+
+I'll refactor these by creating a new class to encapsulate these four parameters and then adjust the method signatures and related parts of the code accordingly.
+
+Here is the content of the extracted class:
+
+```java
+public class ScriptEventDetails {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+    
+    public ScriptEventDetails(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+    
+    public Object getFeature() {
+        return feature;
+    }
+    
+    public Object getContext() {
+        return context;
+    }
+    
+    public String getCorrelationId() {
+        return correlationId;
+    }
+    
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, I'll refactor the `ScriptListener` interface and the related classes to use the `ScriptEventDetails` class:
+
+(ScriptListener.java)
+```java
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+}
+
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, details));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, details));
+}
+
+// Update constructors and method calls in ListenerWriter and OutputStream inner classes to use ScriptEventDetails
+```
+
+(DefaultScriptListener.java)
+```java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventDetails details) {
+    String userFragment = details.getUser() == null ? " (no user)" : " by user: '" + details.getUser() + "'";
+    LOGGER.log(Level.FINE, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Execution of script: '" + script + "' with binding: '" + stringifyBinding(binding) + 
+                  "' in feature: '" + details.getFeature() + "' and context: '" + details.getContext() + 
+                  "' with correlation: '" + details.getCorrelationId() + "'" + userFragment);
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptEventDetails details) {
+    String userFragment = details.getUser() == null ? " (no user)" : " for user: '" + details.getUser() + "'";
+    LOGGER.log(Level.FINER, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Script output: '" + output + "' in feature: '" + details.getFeature() + 
+                  "' and context: '" + details.getContext() + "' with correlation: '" + details.getCorrelationId() + "'" + userFragment);
+}
+```
+
+(GroovyCommand.java, GroovyshCommand.java, RemotingDiagnostics.java, GroovyHookScript.java)
+```java
+// Replace calls to fireScriptExecution and fireScriptOutput with ScriptEventDetails instances
+
+// Example for GroovyCommand.java
+ScriptEventDetails details = new ScriptEventDetails(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(script, binding, details);
+```
+
+In each place where `fireScriptExecution` or `fireScriptOutput` is called, you will have to create an instance of `ScriptEventDetails` with the appropriate parameters, and then pass it to the method instead of the individual fields.
+
+This is the general approach to refactor the data clump. Each file mentioned in the JSON should be updated accordingly, replacing the parameters with instances of the `ScriptEventDetails` class and updating the method signatures.

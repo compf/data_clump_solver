@@ -1,0 +1,97 @@
+The identified data clumps in the provided Java files are the parameters `(Object feature, Object context, String correlationId, User user)` found in the methods `onScriptExecution`, `onScriptOutput`, `fireScriptExecution`, `fireScriptOutput`, and the constructors of `ListenerWriter` and the unnamed `OutputStream` subclass. These fields occur in multiple method signatures and constructors which indicates a data clump.
+
+To refactor these data clumps, we can create a new class that will encapsulate these four fields. Let's call this class `ScriptContext`.
+
+Here is the content for the `ScriptContext` class:
+
+```java
+public class ScriptContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptContext(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, we can refactor the method signatures and the constructors to use `ScriptContext` instead of the individual fields. Here's how we can refactor the `onScriptExecution` and `onScriptOutput` methods:
+
+```java
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptContext scriptContext) {
+    // Implementation here...
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptContext scriptContext) {
+    // Implementation here...
+}
+```
+
+Similarly, we replace the parameters in the `fireScriptExecution` and `fireScriptOutput` methods:
+
+```java
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptContext scriptContext) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, scriptContext));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptContext scriptContext) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, scriptContext));
+}
+```
+
+For the constructors of `ListenerWriter` and the unnamed `OutputStream` subclass, we also replace the four fields with `ScriptContext`:
+
+```java
+public ListenerWriter(Writer writer, ScriptContext scriptContext) {
+    this.writer = writer;
+    // Initialize other fields from scriptContext...
+}
+
+// Inside the OutputStream subclass:
+public OutputStreamWrapper(OutputStream os, Charset charset, ScriptContext scriptContext) {
+    this.os = os;
+    this.charset = charset;
+    // Initialize other fields from scriptContext...
+}
+```
+
+All usages throughout the code should be updated accordingly. Anywhere the four fields are passed together, they should be replaced with an instance of `ScriptContext`.
+
+For example, calls to `fireScriptExecution` and `fireScriptOutput` would now look like:
+
+```java
+ScriptContext scriptContext = new ScriptContext(feature, context, correlationId, user);
+ScriptListener.fireScriptExecution(script, binding, scriptContext);
+```
+
+And within the `ListenerWriter` and `OutputStreamWrapper`, the `write` methods should use `scriptContext`:
+
+```java
+public void write(@NonNull char[] cbuf, int off, int len) throws IOException {
+    ScriptListener.fireScriptOutput(String.copyValueOf(cbuf, off, len), scriptContext);
+    writer.write(cbuf, off, len);
+}
+```
+
+By performing these refactors, all data clumps related to the `feature`, `context`, `correlationId`, and `user` fields are replaced by a single instance of `ScriptContext`, thus improving code cohesion and maintainability.

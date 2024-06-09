@@ -1,0 +1,124 @@
+The `GrpcClientObservationContext` class and the `GrpcServerObservationContext` class have a data clump because they share several common fields: `serviceName`, `methodName`, `fullMethodName`, `methodType`, `statusCode`, `authority`, `headers`, and `trailers`. To refactor this data clump, we can extract these common fields into a separate class, which we can call `GrpcObservationMetadata`. We will then replace the instances of these fields in both classes with a single instance of `GrpcObservationMetadata`.
+
+Let's create the new `GrpcObservationMetadata` class and update the two context classes accordingly.
+
+## MARKDOWN
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcObservationMetadata.java
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.micrometer.common.lang.Nullable;
+import io.grpc.Status.Code;
+
+/**
+ * Metadata related to gRPC observations.
+ *
+ * @since 1.10.0
+ */
+public class GrpcObservationMetadata {
+    private final String serviceName;
+    private final String methodName;
+    private final String fullMethodName;
+    private final MethodType methodType;
+    @Nullable
+    private final Code statusCode;
+    private final String authority;
+    private final Metadata headers;
+    private final Metadata trailers;
+
+    public GrpcObservationMetadata(String serviceName, String methodName, String fullMethodName, MethodType methodType,
+                                   Code statusCode, String authority, Metadata headers, Metadata trailers) {
+        this.serviceName = serviceName;
+        this.methodName = methodName;
+        this.fullMethodName = fullMethodName;
+        this.methodType = methodType;
+        this.statusCode = statusCode;
+        this.authority = authority;
+        this.headers = headers;
+        this.trailers = trailers;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+
+    public String getAuthority() {
+        return authority;
+    }
+
+    public Metadata getHeaders() {
+        return headers;
+    }
+
+    public Metadata getTrailers() {
+        return trailers;
+    }
+}
+```
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java
+Java```
+// (Imports and package declaration are unchanged)
+
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcObservationMetadata grpcObservationMetadata;
+
+    // Constructor and other methods remain unchanged
+
+    // Getter and setter methods are either removed or modified to use GrpcObservationMetadata instance
+    public String getServiceName() {
+        return grpcObservationMetadata.getServiceName();
+    }
+
+    public String getMethodName() {
+        return grpcObservationMetadata.getMethodName();
+    }
+
+    // ... all other getter and setter methods are updated similarly ...
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcServerObservationContext.java
+Java```
+// (Imports and package declaration are unchanged)
+
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcObservationMetadata grpcObservationMetadata;
+
+    // Constructor and other methods remain unchanged
+
+    // Getter and setter methods are either removed or modified to use GrpcObservationMetadata instance
+    public String getServiceName() {
+        return grpcObservationMetadata.getServiceName();
+    }
+
+    public String getMethodName() {
+        return grpcObservationMetadata.getMethodName();
+    }
+    
+    // ... all other getter and setter methods are updated similarly ...
+}
+```
+##END MARKDOWN
+
+All getter and setter methods within `GrpcClientObservationContext` and `GrpcServerObservationContext` have been either removed or updated to delegate to the `GrpcObservationMetadata` instance. This change centralizes the common fields into a single class, thus avoiding duplication and making the code more maintainable.

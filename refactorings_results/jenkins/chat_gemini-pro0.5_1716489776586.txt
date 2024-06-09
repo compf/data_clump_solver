@@ -1,0 +1,84 @@
+From the provided code snippets, we can identify a data clump with the following fields: `Object feature`, `Object context`, `String correlationId`, and `User user`. These fields are common across several methods: `onScriptExecution`, `onScriptOutput`, `fireScriptExecution`, `fireScriptOutput`, and constructors of `ListenerWriter` and another unnamed class that is extending `OutputStream`.
+
+To refactor this data clump, we can introduce a new class named `ScriptEventContext` that encapsulates these fields.
+
+Here is the content of the extracted class:
+
+```java
+public class ScriptEventContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventContext(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now let's refactor the methods and constructors to use the new class.
+
+```java
+// Updated onScriptExecution method signature
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+    // method body remains unchanged
+}
+
+// Updated onScriptOutput method signature
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+    // method body remains unchanged
+}
+
+// Updated fireScriptExecution method signature
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, context));
+}
+
+// Updated fireScriptOutput method signature
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, context));
+}
+
+// Refactor ListenerWriter constructor to use ScriptEventContext
+public ListenerWriter(Writer writer, ScriptEventContext context) {
+    this.writer = writer;
+    this.context = context.getFeature();
+    this.correlationId = context.getCorrelationId();
+    this.user = context.getUser();
+}
+
+// Refactor OutputStream extending class to use ScriptEventContext
+// Assuming this class is named ListenerOutputStream
+public ListenerOutputStream(OutputStream os, Charset charset, ScriptEventContext context) {
+    this.os = os;
+    this.charset = charset;
+    this.feature = context.getFeature();
+    this.context = context.getContext();
+    this.correlationId = context.getCorrelationId();
+    this.user = context.getUser();
+}
+
+// Update other usages accordingly, passing in a ScriptEventContext object instead of individual fields feature, context, correlationId, and user
+```
+
+Replace the calls to the updated methods by creating an instance of `ScriptEventContext` and passing it as a parameter. Do this for all occurrences in the provided code snippets.

@@ -1,0 +1,127 @@
+{
+    "refactorings":{
+        "core/src/main/java/jenkins/util/ScriptListener.java": [
+            {
+                "fromLine": 66,
+                "toLine": 79,
+                "oldContent": "default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {\n    }\n",
+                "newContent": "default void onScriptExecution(ScriptEventDetails details, @CheckForNull String script, @CheckForNull Binding binding) {\n    }\n"
+            },
+            {
+                "fromLine": 82,
+                "toLine": 133,
+                "oldContent": "default void onScriptOutput(@CheckForNull String output, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {\n    }\n\n    static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {\n",
+                "newContent": "default void onScriptOutput(ScriptEventDetails details, @CheckForNull String output) {\n    }\n\n    static void fireScriptExecution(ScriptEventDetails details, @CheckForNull String script, @CheckForNull Binding binding) {\n"
+            },
+            {
+                "fromLine": 136,
+                "toLine": 156,
+                "oldContent": "public ListenerWriter(Writer writer, Object feature, Object context, String correlationId, User user) {\n",
+                "newContent": "public ListenerWriter(Writer writer, ScriptEventDetails details) {\n"
+            },
+            {
+                "fromLine": 177,
+                "toLine": 193,
+                "oldContent": "private final Object feature;\n",
+                "newContent": "private final ScriptEventDetails details;\n"
+            },
+            {
+                "fromLine": 177,
+                "toLine": 193,
+                "oldContent": "private final Object context;\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 177,
+                "toLine": 193,
+                "oldContent": "private final String correlationId;\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 177,
+                "toLine": 193,
+                "oldContent": "private final User user;\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 186,
+                "toLine": 193,
+                "oldContent": "this.feature = feature;\n",
+                "newContent": "this.details = details;\n"
+            },
+            {
+                "fromLine": 186,
+                "toLine": 193,
+                "oldContent": "this.context = context;\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 186,
+                "toLine": 193,
+                "oldContent": "this.correlationId = correlationId;\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 186,
+                "toLine": 193,
+                "oldContent": "this.user = user;\n",
+                "newContent": ""
+            }
+        ],
+        "core/src/main/java/jenkins/util/DefaultScriptListener.java": [
+            {
+                "fromLine": 45,
+                "toLine": 59,
+                "oldContent": "public void onScriptExecution(String script, Binding binding, @NonNull Object feature, Object context, @NonNull String correlationId, User user) {\n",
+                "newContent": "public void onScriptExecution(ScriptEventDetails details, String script, Binding binding) {\n"
+            },
+            {
+                "fromLine": 45,
+                "toLine": 59,
+                "oldContent": "public void onScriptOutput(String output, @NonNull Object feature, Object context, @NonNull String correlationId, User user) {\n",
+                "newContent": "public void onScriptOutput(ScriptEventDetails details, String output) {\n"
+            }
+        ],
+        "core/src/main/java/hudson/cli/GroovyCommand.java": [
+            {
+                "fromLine": 75,
+                "toLine": 79,
+                "oldContent": "ScriptListener.fireScriptExecution(script, binding, GroovyCommand.class, null, scriptListenerCorrelationId, User.current());\n",
+                "newContent": "ScriptListener.fireScriptExecution(new ScriptEventDetails(GroovyCommand.class, null, scriptListenerCorrelationId, User.current()), script, binding);\n"
+            }
+        ],
+        "core/src/main/java/hudson/cli/GroovyshCommand.java": [
+            {
+                "fromLine": 84,
+                "toLine": 88,
+                "oldContent": "ScriptListener.fireScriptExecution(null, null, GroovyshCommand.class, null, scriptListenerCorrelationId, User.current());\n",
+                "newContent": "ScriptListener.fireScriptExecution(new ScriptEventDetails(GroovyshCommand.class, null, scriptListenerCorrelationId, User.current()), null, null);\n"
+            },
+            {
+                "fromLine": 144,
+                "toLine": 148,
+                "oldContent": "ScriptListener.fireScriptExecution(line, binding, GroovyshCommand.class, null, scriptListenerCorrelationId, User.current());\n",
+                "newContent": "ScriptListener.fireScriptExecution(new ScriptEventDetails(GroovyshCommand.class, null, scriptListenerCorrelationId, User.current()), line, binding);\n"
+            }
+        ],
+        "core/src/main/java/hudson/util/RemotingDiagnostics.java": [
+            {
+                "fromLine": 121,
+                "toLine": 127,
+                "oldContent": "ScriptListener.fireScriptExecution(script, new Binding(), RemotingDiagnostics.class, context, correlationId, User.current());\n",
+                "newContent": "ScriptListener.fireScriptExecution(new ScriptEventDetails(RemotingDiagnostics.class, context, correlationId, User.current()), script, new Binding());\n"
+            }
+        ],
+        "core/src/main/java/jenkins/util/groovy/GroovyHookScript.java": [
+            {
+                "fromLine": 135,
+                "toLine": 139,
+                "oldContent": "ScriptListener.fireScriptExecution(s.getScriptText(), bindings, this.getClass(), s.getFile(), this.getClass().getName() + \":\" + hook, User.current());\n",
+                "newContent": "ScriptListener.fireScriptExecution(new ScriptEventDetails(this.getClass(), s.getFile(), this.getClass().getName() + \":\" + hook, User.current()), s.getScriptText(), bindings);\n"
+            }
+        ]
+    },
+    "extractedClasses":{
+        "core/src/main/java/jenkins/util/ScriptEventDetails.java": "package jenkins.util;\n\nimport edu.umd.cs.findbugs.annotations.CheckForNull;\nimport edu.umd.cs.findbugs.annotations.NonNull;\nimport hudson.model.User;\n\npublic final class ScriptEventDetails {\n\n    @NonNull private final Object feature;\n    @CheckForNull private final Object context;\n    @NonNull private final String correlationId;\n    @CheckForNull private final User user;\n\n    public ScriptEventDetails(@NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {\n        this.feature = feature;\n        this.context = context;\n        this.correlationId = correlationId;\n        this.user = user;\n    }\n\n    @NonNull\n    public Object getFeature() {\n        return feature;\n    }\n\n    @CheckForNull\n    public Object getContext() {\n        return context;\n    }\n\n    @NonNull\n    public String getCorrelationId() {\n        return correlationId;\n    }\n\n    @CheckForNull\n    public User getUser() {\n        return user;\n    }\n}\n"
+    }
+}

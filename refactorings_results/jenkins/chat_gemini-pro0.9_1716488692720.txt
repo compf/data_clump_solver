@@ -1,0 +1,105 @@
+Based on the provided code snippets, we can identify a data clump consisting of the parameters `Object feature`, `Object context`, `String correlationId`, and `User user`. These parameters are used across several methods and constructors in different classes.
+
+We'll define a new class `ScriptEventContext` to encapsulate these common parameters. Here's how the new class might look:
+
+```java
+import hudson.model.User;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+public class ScriptEventContext {
+    @Nonnull
+    private final Object feature;
+    @CheckForNull
+    private final Object context;
+    @Nonnull
+    private final String correlationId;
+    @CheckForNull
+    private final User user;
+
+    public ScriptEventContext(@Nonnull Object feature, @CheckForNull Object context,
+                              @Nonnull String correlationId, @CheckForNull User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    // Getters for each field
+    @Nonnull
+    public Object getFeature() {
+        return feature;
+    }
+
+    @CheckForNull
+    public Object getContext() {
+        return context;
+    }
+
+    @Nonnull
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    @CheckForNull
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Next, we will refactor the methods and constructors to use this new class. Here is the refactored `ScriptListener` interface:
+
+```java
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+public interface ScriptListener {
+    default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @Nonnull ScriptEventContext context) {
+    }
+
+    default void onScriptOutput(@CheckForNull String output, @Nonnull ScriptEventContext context) {
+    }
+
+    static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @Nonnull ScriptEventContext context) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, context));
+    }
+
+    static void fireScriptOutput(@CheckForNull String output, @Nonnull ScriptEventContext context) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, context));
+    }
+    
+    // The ListenerWriter and other inner classes constructors and methods should be updated accordingly
+}
+```
+
+The `DefaultScriptListener` class might be refactored like so:
+
+```java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventContext context) {
+    String userFragment = context.getUser() == null ? " (no user)" : " by user: '" + context.getUser() + "'";
+    LOGGER.log(Level.FINE, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Execution of script: '" + script + "' with binding: '" + stringifyBinding(binding) + "' in feature: '" + context.getFeature() +
+                  "' and context: '" + context.getContext() + "' with correlation: '" + context.getCorrelationId() + "'" + userFragment);
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptEventContext context) {
+    String userFragment = context.getUser() == null ? " (no user)" : " for user: '" + context.getUser() + "'";
+    LOGGER.log(Level.FINER, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Script output: '" + output + "' in feature: '" + context.getFeature() + "' and context: '" + context.getContext() +
+                  "' with correlation: '" + context.getCorrelationId() + "'" + userFragment);
+}
+```
+
+For other classes that use `fireScriptExecution` and `fireScriptOutput`, you would construct a `ScriptEventContext` object and pass it in. Here is an example for `GroovyCommand`:
+
+```java
+ScriptEventContext context = new ScriptEventContext(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(script, binding, context);
+```
+
+Make sure to update all other occurrences where `feature`, `context`, `correlationId`, and `user` are used together to use the new `ScriptEventContext` class.
+
+By doing so, you not only reduce the number of parameters passed around but also enhance the readability and maintainability of the code.

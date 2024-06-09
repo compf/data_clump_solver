@@ -1,0 +1,135 @@
+Both `GrpcClientObservationContext` and `GrpcServerObservationContext` classes have a set of common fields which can be considered as a data clump according to the definition (they are common fields across classes):
+
+- `serviceName`
+- `methodName`
+- `fullMethodName`
+- `methodType`
+- `statusCode`
+- `authority`
+- `headers`
+- `trailers`
+
+We will extract these fields into a new class named `GrpcObservationMetadata`. Then we'll replace the fields in both `GrpcClientObservationContext` and `GrpcServerObservationContext` with instances of `GrpcObservationMetadata` and update getters and setters accordingly. We will preserve the `@Nullable` attribute where applicable to match the original nullability constraints.
+
+Here is the refactored code:
+
+## MARKDOWN
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcObservationMetadata.java***
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.grpc.Status.Code;
+import io.micrometer.common.lang.Nullable;
+
+/**
+ * Holds metadata for gRPC observations.
+ */
+public class GrpcObservationMetadata {
+
+    private final String serviceName;
+    private final String methodName;
+    private final String fullMethodName;
+    private final MethodType methodType;
+    @Nullable
+    private final Code statusCode;
+    @Nullable
+    private final String authority;
+    private final Metadata headers;
+    private final Metadata trailers;
+
+    public GrpcObservationMetadata(String serviceName, String methodName, String fullMethodName, MethodType methodType,
+                                   @Nullable Code statusCode, @Nullable String authority, Metadata headers, Metadata trailers) {
+        this.serviceName = serviceName;
+        this.methodName = methodName;
+        this.fullMethodName = fullMethodName;
+        this.methodType = methodType;
+        this.statusCode = statusCode;
+        this.authority = authority;
+        this.headers = headers;
+        this.trailers = trailers;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+    
+    public String getMethodName() {
+        return methodName;
+    }
+    
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+    
+    public MethodType getMethodType() {
+        return methodType;
+    }
+    
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+    
+    @Nullable
+    public String getAuthority() {
+        return authority;
+    }
+    
+    public Metadata getHeaders() {
+        return headers;
+    }
+    
+    public Metadata getTrailers() {
+        return trailers;
+    }
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java***
+Java```
+// Same package and imports
+
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcObservationMetadata metadata;
+
+    public GrpcClientObservationContext(Setter<Metadata> setter) {
+        super(setter);
+    }
+
+    public GrpcObservationMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(GrpcObservationMetadata metadata) {
+        this.metadata = metadata;
+    }
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcServerObservationContext.java***
+Java```
+// Same package and imports
+
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcObservationMetadata metadata;
+
+    public GrpcServerObservationContext(Getter<Metadata> getter) {
+        super(getter);
+    }
+
+    public GrpcObservationMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(GrpcObservationMetadata metadata) {
+        this.metadata = metadata;
+    }
+}
+```
+##END MARKDOWN
+
+In the new `GrpcObservationMetadata` class, all the common fields have been combined, and the necessary getters are provided. The GrpcClientObservationContext and GrpcServerObservationContext now contain a single reference to `GrpcObservationMetadata` instead of individual fields.

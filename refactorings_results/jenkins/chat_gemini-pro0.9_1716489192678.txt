@@ -1,0 +1,104 @@
+After analyzing the provided code snippets, a data clump is identified in the parameters `Object feature`, `Object context`, and `String correlationId`. Additionally, `User user` is often included with these parameters, presenting a pattern where refactoring would improve the code structure. To refactor this data clump, we'll create a new class named `ScriptEventDetails` and use it to encapsulate these fields.
+
+First, let's create the new class `ScriptEventDetails`.
+
+```java
+import hudson.model.User;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+public class ScriptEventDetails {
+    @Nonnull
+    private final Object feature;
+    @CheckForNull
+    private final Object context;
+    @Nonnull
+    private final String correlationId;
+    @CheckForNull
+    private final User user;
+
+    public ScriptEventDetails(@Nonnull Object feature, @CheckForNull Object context, @Nonnull String correlationId, @CheckForNull User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    @Nonnull
+    public Object getFeature() {
+        return feature;
+    }
+
+    @CheckForNull
+    public Object getContext() {
+        return context;
+    }
+
+    @Nonnull
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    @CheckForNull
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, let's refactor the methods of `ScriptListener` and other related usages in the various classes to use `ScriptEventDetails`.
+
+In `ScriptListener`, we modify the method signatures:
+
+```java
+// We add imports if they are not present
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+public interface ScriptListener {
+    default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @Nonnull ScriptEventDetails eventDetails) {
+    }
+
+    default void onScriptOutput(@CheckForNull String output, @Nonnull ScriptEventDetails eventDetails) {
+    }
+
+    static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @Nonnull ScriptEventDetails eventDetails) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, eventDetails));
+    }
+
+    static void fireScriptOutput(@CheckForNull String output, @Nonnull ScriptEventDetails eventDetails) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, eventDetails));
+    }
+}
+```
+
+And for `DefaultScriptListener`, we adjust the overridden methods:
+
+```java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventDetails eventDetails) {
+    String userFragment = eventDetails.getUser() == null ? " (no user)" : " by user: '" + eventDetails.getUser() + "'";
+    LOGGER.log(Level.FINE, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Execution of script: '" + script + "' with binding: '" + stringifyBinding(binding) + "' in feature: '" + eventDetails.getFeature() + "' and context: '" + eventDetails.getContext() + "' with correlation: '" + eventDetails.getCorrelationId() + "'" + userFragment);
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptEventDetails eventDetails) {
+    String userFragment = eventDetails.getUser() == null ? " (no user)" : " for user: '" + eventDetails.getUser() + "'";
+    LOGGER.log(Level.FINER, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Script output: '" + output + "' in feature: '" + eventDetails.getFeature() + "' and context: '" + eventDetails.getContext() + "' with correlation: '" + eventDetails.getCorrelationId() + "'" + userFragment);
+}
+```
+
+In the `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript` classes, where `fireScriptExecution` and `fireScriptOutput` methods are called, we need to create an instance of `ScriptEventDetails` and pass it as an argument to the modified methods.
+
+For example, in `GroovyCommand`:
+
+```java
+ScriptEventDetails eventDetails = new ScriptEventDetails(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(script, binding, eventDetails);
+```
+
+Apply this approach to all instances where `fireScriptExecution` and `fireScriptOutput` are called, replacing the individual parameters with instances of `ScriptEventDetails`.
+
+Note: For classes like `ListenerWriter` and the anonymous `OutputStream` subclass that also include these fields, similar refactoring to use `ScriptEventDetails` should be applied. For brevity, I have not listed the changes for each class, but the same principles apply.

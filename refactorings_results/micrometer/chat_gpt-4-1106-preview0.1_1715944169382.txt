@@ -1,0 +1,183 @@
+Both `GrpcClientObservationContext` and `GrpcServerObservationContext` classes contain data clumps having common fields: `serviceName`, `methodName`, `fullMethodName`, `methodType`, `statusCode`, `headers`, and `trailers`. To refactor these data clumps, an extracted class `GrpcObservationContextDetails` will be created containing these fields along with their getters and setters. Then, instances of this new class will replace the individual fields in both `GrpcClientObservationContext` and `GrpcServerObservationContext`.
+
+Here's the result of the refactoring:
+
+## MARKDOWN
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcObservationContextDetails.java
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.grpc.Status.Code;
+import io.micrometer.common.lang.Nullable;
+
+/**
+ * A class that holds details common to both gRPC client and server Observation contexts.
+ */
+public class GrpcObservationContextDetails {
+
+    private String serviceName;
+    private String methodName;
+    private String fullMethodName;
+    private MethodType methodType;
+    @Nullable
+    private Code statusCode;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // Getters and setters for all fields
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+
+    public void setFullMethodName(String fullMethodName) {
+        this.fullMethodName = fullMethodName;
+    }
+
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    public void setMethodType(MethodType methodType) {
+        this.methodType = methodType;
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(@Nullable Code statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public Metadata getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Metadata headers) {
+        this.headers = headers;
+    }
+
+    public Metadata getTrailers() {
+        return trailers;
+    }
+
+    public void setTrailers(Metadata trailers) {
+        this.trailers = trailers;
+    }
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.transport.Propagator.Setter;
+import io.micrometer.observation.transport.RequestReplySenderContext;
+
+/**
+ * {@link Observation.Context} for gRPC client.
+ * Refactored to use GrpcObservationContextDetails for common fields.
+ */
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcObservationContextDetails details = new GrpcObservationContextDetails();
+    private String authority;
+
+    public GrpcClientObservationContext(Setter<Metadata> setter) {
+        super(setter);
+    }
+
+    // Delegated methods to interact with details
+    public String getServiceName() {
+        return details.getServiceName();
+    }
+
+    public void setServiceName(String serviceName) {
+        details.setServiceName(serviceName);
+    }
+
+    // ... (Additional delegated methods for each getter and setter in GrpcObservationContextDetails)
+
+    public String getAuthority() {
+        return this.authority;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    // ... (Keep other methods that are not related to the data clump)
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcServerObservationContext.java
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.transport.Propagator.Getter;
+import io.micrometer.observation.transport.RequestReplyReceiverContext;
+
+/**
+ * {@link Observation.Context} for gRPC server.
+ * Refactored to use GrpcObservationContextDetails for common fields.
+ */
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcObservationContextDetails details = new GrpcObservationContextDetails();
+    @Nullable
+    private String authority;
+
+    public GrpcServerObservationContext(Getter<Metadata> getter) {
+        super(getter);
+    }
+
+    // Delegated methods to interact with details
+    public String getServiceName() {
+        return details.getServiceName();
+    }
+
+    public void setServiceName(String serviceName) {
+        details.setServiceName(serviceName);
+    }
+
+    // ... (Additional delegated methods for each getter and setter in GrpcObservationContextDetails)
+
+    @Nullable
+    public String getAuthority() {
+        return this.authority;
+    }
+
+    public void setAuthority(@Nullable String authority) {
+        this.authority = authority;
+    }
+
+    // ... (Keep other methods that are not related to the data clump)
+}
+```
+##END MARKDOWN
+
+Explanation:
+- Created a new class `GrpcObservationContextDetails` to encapsulate the fields that were part of the data clump.
+- Refactored `GrpcClientObservationContext` and `GrpcServerObservationContext` classes to include an instance of `GrpcObservationContextDetails` and delegated getters and setters to interact with the encapsulated fields.
+- This refactoring reduces code duplication and improves maintainability by having a single point of modification for the shared context details.

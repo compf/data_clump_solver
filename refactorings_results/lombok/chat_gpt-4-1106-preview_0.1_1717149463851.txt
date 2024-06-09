@@ -1,0 +1,27 @@
+{
+    "refactorings": {
+        "src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java": [
+            {
+                "fromLine": 114,
+                "toLine": 122,
+                "oldContent": "\tpublic void generateMethods(JavacNode typeNode, JavacNode source, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members,\n\t\tBoolean callSuper, boolean whineIfExists, boolean cacheHashCode, FieldAccess fieldAccess, List<JCAnnotation> onParam) {",
+                "newContent": "\tpublic void generateMethods(JavacNode typeNode, JavacNode source, EqualsAndHashCodeConfiguration configuration) {"
+            },
+            {
+                "fromLine": 185,
+                "toLine": 209,
+                "oldContent": "\t\tJCMethodDecl equalsMethod = createEquals(typeNode, members, callSuper, fieldAccess, needsCanEqual, source, onParam);\n\t\t\n\t\tinjectMethod(typeNode, equalsMethod);\n\t\t\n\t\tif (needsCanEqual && canEqualExists == MemberExistsResult.NOT_EXISTS) {\n\t\t\tJCMethodDecl canEqualMethod = createCanEqual(typeNode, source, copyAnnotations(onParam));\n\t\t\tinjectMethod(typeNode, canEqualMethod);\n\t\t}\n\t\t\n\t\tif (cacheHashCode){\n\t\t\tif (fieldExists(HASH_CODE_CACHE_NAME, typeNode) != MemberExistsResult.NOT_EXISTS) {\n\t\t\t\tString msg = String.format(\"Not caching the result of hashCode: A field named %s already exists.\", HASH_CODE_CACHE_NAME);\n\t\t\t\tsource.addWarning(msg);\n\t\t\t\tcacheHashCode = false;\n\t\t\t} else {\n\t\t\t\tcreateHashCodeCacheField(typeNode, source);\n\t\t\t}\n\t\t}\n\t\t\n\t\tJCMethodDecl hashCodeMethod = createHashCode(typeNode, members, callSuper, cacheHashCode, fieldAccess, source);\n\t\tinjectMethod(typeNode, hashCodeMethod);\n\t}\n",
+                "newContent": "\t\tJCMethodDecl equalsMethod = createEquals(typeNode, configuration);\n\t\t\n\t\tinjectMethod(typeNode, equalsMethod);\n\t\t\n\t\tif (configuration.needsCanEqual && canEqualExists == MemberExistsResult.NOT_EXISTS) {\n\t\t\tJCMethodDecl canEqualMethod = createCanEqual(typeNode, source, copyAnnotations(configuration.onParam));\n\t\t\tinjectMethod(typeNode, canEqualMethod);\n\t\t}\n\t\t\n\t\tif (configuration.cacheHashCode){\n\t\t\tif (fieldExists(HASH_CODE_CACHE_NAME, typeNode) != MemberExistsResult.NOT_EXISTS) {\n\t\t\t\tString msg = String.format(\"Not caching the result of hashCode: A field named %s already exists.\", HASH_CODE_CACHE_NAME);\n\t\t\t\tsource.addWarning(msg);\n\t\t\t\tconfiguration.cacheHashCode = false;\n\t\t\t} else {\n\t\t\t\tcreateHashCodeCacheField(typeNode, source);\n\t\t\t}\n\t\t}\n\t\t\n\t\tJCMethodDecl hashCodeMethod = createHashCode(typeNode, configuration);\n\t\tinjectMethod(typeNode, hashCodeMethod);\n\t}\n"
+            },
+            {
+                "fromLine": 423,
+                "toLine": 447,
+                "oldContent": "\tpublic JCMethodDecl createEquals(JavacNode typeNode, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members, boolean callSuper, FieldAccess fieldAccess, boolean needsCanEqual, JavacNode source, List<JCAnnotation> onParam) {",
+                "newContent": "\tpublic JCMethodDecl createEquals(JavacNode typeNode, EqualsAndHashCodeConfiguration configuration) {"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "src/core/lombok/javac/handlers/EqualsAndHashCodeConfiguration.java": "package lombok.javac.handlers;\n\nimport com.sun.tools.javac.tree.JCTree.JCAnnotation;\nimport java.util.List;\nimport lombok.javac.handlers.HandleEqualsAndHashCode.FieldAccess;\nimport lombok.javac.handlers.HandleEqualsAndHashCode.Included;\nimport lombok.javac.JavacNode;\n\npublic class EqualsAndHashCodeConfiguration {\n\tfinal JavacNode typeNode;\n\tfinal List<Included<JavacNode, EqualsAndHashCode.Include>> members;\n\tBoolean callSuper;\n\tfinal boolean whineIfExists;\n\tboolean cacheHashCode;\n\tfinal FieldAccess fieldAccess;\n\tfinal List<JCAnnotation> onParam;\n\t\n\tpublic EqualsAndHashCodeConfiguration(JavacNode typeNode, List<Included<JavacNode, EqualsAndHashCode.Include>> members, Boolean callSuper, boolean whineIfExists, boolean cacheHashCode, FieldAccess fieldAccess, List<JCAnnotation> onParam) {\n\t\tthis.typeNode = typeNode;\n\t\tthis.members = members;\n\t\tthis.callSuper = callSuper;\n\t\tthis.whineIfExists = whineIfExists;\n\t\tthis.cacheHashCode = cacheHashCode;\n\t\tthis.fieldAccess = fieldAccess;\n\t\tthis.onParam = onParam;\n\t}\n}\n"
+    }
+}

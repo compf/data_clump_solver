@@ -1,0 +1,86 @@
+On reviewing the provided code snippets, I found that there is a data clump present in both the method parameters and fields in different classes. This data clump revolves around the feature, context, correlationId and user in the `ScriptListener` interface and classes that implement or call its methods like `DefaultScriptListener`, `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript`.
+
+To refactor this, I will introduce a new class named `ScriptEventDetails` that encapsulates these four fields (feature, context, correlationId, and user). Then, I will update the method parameters and fields in `ScriptListener` and related classes to use instances of this new class.
+
+Here is the content for the new class:
+
+```java
+// New ScriptEventDetails class to encapsulate data clumps
+import hudson.model.User;
+
+public class ScriptEventDetails {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventDetails(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Next, I will refactor the method signatures in the `ScriptListener` interface:
+
+```java
+// Refactored ScriptListener interface
+import hudson.model.User;
+
+public interface ScriptListener {
+
+    default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {
+    }
+
+    default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+    }
+
+    static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, details));
+    }
+
+    static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, details));
+    }
+
+    // ... rest of the code
+}
+```
+
+I will also refactor the implementation in `DefaultScriptListener.java` to match the new method signatures:
+
+```java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventDetails details) {
+    String userFragment = details.getUser() == null ? " (no user)" : " by user: '" + details.getUser() + "'";
+    LOGGER.log(Level.FINE, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Execution of script: '" + script + "' with binding: '" + stringifyBinding(binding) + "' in feature: '" + details.getFeature() + "' and context: '" + details.getContext() + "' with correlation: '" + details.getCorrelationId() + "'" + userFragment);
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptEventDetails details) {
+    String userFragment = details.getUser() == null ? " (no user)" : " for user: '" + details.getUser() + "'";
+    LOGGER.log(Level.FINER, LOGGER.isLoggable(Level.FINEST) ? new Exception() : null,
+            () -> "Script output: '" + output + "' in feature: '" + details.getFeature() + "' and context: '" + details.getContext() + "' with correlation: '" + details.getCorrelationId() + "'" + userFragment);
+}
+```
+
+You would need to continue refactoring across all the mentioned classes, replacing the individual parameters with instances of `ScriptEventDetails` and updating the code to use `details.getFeature()`, `details.getContext()`, `details.getCorrelationId()`, and `details.getUser()` methods to access these properties.

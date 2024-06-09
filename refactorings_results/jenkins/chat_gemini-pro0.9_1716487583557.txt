@@ -1,0 +1,102 @@
+We can spot a data clump in the parameters `Object feature, Object context, String correlationId, User user`, which are common across several methods like `onScriptExecution`, `onScriptOutput`, and in various classes such as `DefaultScriptListener` and `ListenerWriter`.
+
+First, let's define the extracted class `ScriptEventContext`:
+
+```java
+public class ScriptEventContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventContext(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, let's refactor the `ScriptListener` interface methods to use `ScriptEventContext` instead of individual parameters:
+
+```java
+// Inside ScriptListener interface
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+}
+```
+
+The static `fireScriptExecution` and `fireScriptOutput` methods should also be refactored accordingly:
+
+```java
+// Inside ScriptListener class
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, context));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, context));
+}
+```
+
+Refactor the `ListenerWriter` and similar classes to use `ScriptEventContext`:
+
+```java
+// Inside ListenerWriter class
+private final ScriptEventContext eventContext;
+// Update constructor and other methods to use eventContext
+```
+
+And the `DefaultScriptListener` class (and similar classes):
+
+```java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventContext context) {
+    // ...
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptEventContext context) {
+    // ...
+}
+```
+
+And finally, the usage in `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript`:
+
+```java
+// In GroovyCommand.java
+ScriptListener.fireScriptExecution(script, binding, new ScriptEventContext(GroovyCommand.class, null, scriptListenerCorrelationId, User.current()));
+
+// In GroovyshCommand.java
+ScriptListener.fireScriptExecution(null, null, new ScriptEventContext(GroovyshCommand.class, null, scriptListenerCorrelationId, User.current()));
+
+// In RemotingDiagnostics.java
+ScriptEventContext context = new ScriptEventContext(RemotingDiagnostics.class, channel.toString(), correlationId, User.current());
+ScriptListener.fireScriptExecution(script, new Binding(), context);
+ScriptListener.fireScriptOutput(output, context);
+
+// In GroovyHookScript.java
+ScriptEventContext context = new ScriptEventContext(this.getClass(), s.getFile(), this.getClass().getName() + ":" + hook, User.current());
+ScriptListener.fireScriptExecution(s.getScriptText(), bindings, context);
+```
+
+This refactor eliminates the data clump and simplifies method signatures and field declarations by using the `ScriptEventContext` class.

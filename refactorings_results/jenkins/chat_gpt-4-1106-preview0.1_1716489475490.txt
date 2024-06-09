@@ -1,0 +1,105 @@
+The data clump in this case is a group of parameters that are used across several methods and constructors to represent script event context. These parameters are `Object feature`, `Object context`, `String correlationId`, and `User user`. We can extract these parameters into a new class named `ScriptEventContext`.
+
+Here's the content of the extracted class:
+
+```java
+public class ScriptEventContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventContext(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, we need to refactor all affected methods to use the new `ScriptEventContext` class.
+
+Refactored code snippets:
+
+```java
+// In ScriptListener.java
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+}
+
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, context));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, context));
+}
+
+// The constructor of ListenerWriter class
+public ListenerWriter(Writer writer, ScriptEventContext context) {
+    this.writer = writer;
+    this.eventContext = context;
+}
+
+@Override
+public void write(@NonNull char[] cbuf, int off, int len) throws IOException {
+    ScriptListener.fireScriptOutput(String.copyValueOf(cbuf, off, len), eventContext);
+    writer.write(cbuf, off, len);
+}
+
+// The constructor of OutputStream wrapper class
+public OutputStreamWrapper(OutputStream os, Charset charset, ScriptEventContext context) {
+    this.os = os;
+    this.charset = charset;
+    this.eventContext = context;
+}
+
+public void write(int b) throws IOException {
+    ScriptListener.fireScriptOutput(new String(new byte[] { (byte) b }, charset), eventContext);
+    os.write(b);
+}
+
+public void write(@NonNull byte[] b, int off, int len) throws IOException {
+    final String writtenString = new String(b, charset).substring(off, len - off);
+    ScriptListener.fireScriptOutput(writtenString, eventContext);
+    os.write(b, off, len);
+}
+
+// In DefaultScriptListener.java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventContext context) {
+    // Implementation code using context.getFeature(), context.getContext(), ...
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptEventContext context) {
+    // Implementation code using context.getFeature(), context.getContext(), ...
+}
+
+// In GroovyCommand.java and other similar usages
+ScriptEventContext context = new ScriptEventContext(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(script, binding, context);
+
+// And so forth for all other instances where these parameters were used
+```
+
+In the provided snippets, you would now use instances of the `ScriptEventContext` class instead of passing the individual parameters directly. This refactoring improves code readability, reduces redundancy, and makes it easier to manage and extend the related data in the future.

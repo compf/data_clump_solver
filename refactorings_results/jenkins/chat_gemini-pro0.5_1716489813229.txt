@@ -1,0 +1,70 @@
+The data clump here seems to be the combination of `feature`, `context`, `correlationId`, and `user`. These four fields or parameters appear together in several methods within the `ScriptListener.java` file and other places where the `fireScriptExecution` and `fireScriptOutput` methods are called.
+
+Hence, we'll define a new class to encapsulate these parameters. Let's call the new class `ScriptEventDetails`.
+
+```java
+import hudson.model.User;
+
+public class ScriptEventDetails {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventDetails(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Next, we need to refactor the methods that contain the data clump by replacing the clumped parameters with an instance of `ScriptEventDetails`. We'll start with the `ScriptListener` interface methods:
+
+```java
+import javax.annotation.CheckForNull;
+
+public interface ScriptListener {
+    default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails eventDetails) {
+    }
+
+    default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails eventDetails) {
+    }
+
+    static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails eventDetails) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, eventDetails));
+    }
+
+    static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails eventDetails) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, eventDetails));
+    }
+}
+```
+
+Finally, for each place where `fireScriptExecution` and `fireScriptOutput` are called, we will need to construct a `ScriptEventDetails` object and pass it instead. Here is an example of how the calls would now look like:
+
+```java
+ScriptEventDetails eventDetails = new ScriptEventDetails(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(script, binding, eventDetails);
+```
+
+You would repeat this pattern for each call to `fireScriptExecution` and `fireScriptOutput`, creating a `ScriptEventDetails` object with the appropriate parameters and passing it to the method instead of the individual pieces of data.
+
+**Note**: Make sure to include all the necessary imports and to apply the refactoring changes across all classes that use the `fireScriptExecution` and `fireScriptOutput` methods. Also, after refactoring, ensure that all places that create instances of `ScriptEventDetails` are setting the fields correctly using the new constructors.

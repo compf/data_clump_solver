@@ -72,6 +72,9 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
             "<description>" +
             "Custom Ruleset with PLSQL Rules" +
             "</description>";
+            if(includeGlobs.length>0 && excludeGlobs.length==0){
+                excludeGlobs=["*"]
+            }
         for (let include of includeGlobs) {
             if (include.startsWith("*")) {
                 include = "." + include

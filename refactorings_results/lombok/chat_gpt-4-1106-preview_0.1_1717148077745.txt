@@ -1,0 +1,33 @@
+{
+    "refactorings":{
+        "src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java": [
+            {
+                "fromLine": 423,
+                "toLine": 457,
+                "oldContent": "\tpublic JCMethodDecl createEquals(JavacNode typeNode, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members, boolean callSuper, FieldAccess fieldAccess, boolean needsCanEqual, JavacNode source, List<JCAnnotation> onParam) {\n\t\tJavacTreeMaker maker = typeNode.getTreeMaker();\n\t\t\n\t\tName oName = typeNode.toName(\"o\");\n\t\tName otherName = typeNode.toName(\"other\");\n\t\tName thisName = typeNode.toName(\"this\");\n\t\t\n\t\tList<JCAnnotation> annsOnParamOnMethod = List.nil();\n\t\t\n\t\tJCAnnotation overrideAnnotation = maker.Annotation(genJavaLangTypeRef(typeNode, \"Override\"), List.<JCExpression>nil());\n\t\tList<JCAnnotation> annsOnMethod = List.of(overrideAnnotation);\n\t\tCheckerFrameworkVersion checkerFramework = getCheckerFrameworkVersion(typeNode);\n\t\tif (checkerFramework.generateSideEffectFree()) {\n\t\t\tannsOnMethod = annsOnMethod.prepend(maker.Annotation(genTypeRef(typeNode, CheckerFrameworkVersion.NAME__SIDE_EFFECT_FREE), List.<JCExpression>nil()));\n\t\t}\n\t\tJCModifiers mods = maker.Modifiers(Flags.PUBLIC, annsOnMethod);\n\t\tJCExpression objectType;\n\t\tif (annsOnParamOnMethod.isEmpty()) {\n\t\t\tobjectType = genJavaLangTypeRef(typeNode, \"Object\");\n\t\t} else {\n\t\t\tobjectType = chainDots(typeNode, \"java\", \"lang\", \"Object\");\n\t\t\tobjectType = maker.AnnotatedType(annsOnParamOnMethod, objectType);\n\t\t}",
+                "newContent": "\tpublic JCMethodDecl createEquals(JavacNode typeNode, EqualsAndHashCodeContext context) {\n\t\tJavacTreeMaker maker = typeNode.getTreeMaker();\n\t\t\n\t\tName oName = context.getoName();\n\t\tName otherName = context.getOtherName();\n\t\tName thisName = typeNode.toName(\"this\");\n\t\t\n\t\tList<JCAnnotation> annsOnParamOnMethod = List.nil();\n\t\t\n\t\tJCAnnotation overrideAnnotation = maker.Annotation(genJavaLangTypeRef(typeNode, \"Override\"), List.<JCExpression>nil());\n\t\tList<JCAnnotation> annsOnMethod = List.of(overrideAnnotation);\n\t\tCheckerFrameworkVersion checkerFramework = getCheckerFrameworkVersion(typeNode);\n\t\tif (checkerFramework.generateSideEffectFree()) {\n\t\t\tannsOnMethod = annsOnMethod.prepend(maker.Annotation(genTypeRef(typeNode, CheckerFrameworkVersion.NAME__SIDE_EFFECT_FREE), List.<JCExpression>nil()));\n\t\t}\n\t\tJCModifiers mods = maker.Modifiers(Flags.PUBLIC, annsOnMethod);\n\t\tJCExpression objectType;\n\t\tif (annsOnParamOnMethod.isEmpty()) {\n\t\t\tobjectType = genJavaLangTypeRef(typeNode, \"Object\");\n\t\t} else {\n\t\t\tobjectType = chainDots(typeNode, \"java\", \"lang\", \"Object\");\n\t\t\tobjectType = maker.AnnotatedType(annsOnParamOnMethod, objectType);\n\t\t}"
+            },
+            {
+                "fromLine": 114,
+                "toLine": 122,
+                "oldContent": "\tpublic void generateMethods(JavacNode typeNode, JavacNode source, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members,\n\t\tBoolean callSuper, boolean whineIfExists, boolean cacheHashCode, FieldAccess fieldAccess, List<JCAnnotation> onParam) {",
+                "newContent": "\tpublic void generateMethods(JavacNode typeNode, JavacNode source, EqualsAndHashCodeContext context) {"
+            },
+            {
+                "fromLine": 131,
+                "toLine": 141,
+                "oldContent": "\t\tboolean isDirectDescendantOfObject = isDirectDescendantOfObject(typeNode);\n\t\t\n\t\tboolean isFinal = (((JCClassDecl) typeNode.get()).mods.flags & Flags.FINAL) != 0;\n\t\tboolean needsCanEqual = !isFinal || !isDirectDescendantOfObject;\n\t\tMemberExistsResult equalsExists = methodExists(\"equals\", typeNode, 1);\n\t\tMemberExistsResult hashCodeExists = methodExists(\"hashCode\", typeNode, 0);\n\t\tMemberExistsResult canEqualExists = methodExists(\"canEqual\", typeNode, 1);\n\t\tswitch (Collections.max(Arrays.asList(equalsExists, hashCodeExists))) {",
+                "newContent": "\t\tboolean isDirectDescendantOfObject = isDirectDescendantOfObject(typeNode);\n\t\t\n\t\tboolean isFinal = (((JCClassDecl) typeNode.get()).mods.flags & Flags.FINAL) != 0;\n\t\tcontext.setNeedsCanEqual(!isFinal || !isDirectDescendantOfObject);\n\t\tMemberExistsResult equalsExists = methodExists(\"equals\", typeNode, 1);\n\t\tMemberExistsResult hashCodeExists = methodExists(\"hashCode\", typeNode, 0);\n\t\tMemberExistsResult canEqualExists = methodExists(\"canEqual\", typeNode, 1);\n\t\tswitch (Collections.max(Arrays.asList(equalsExists, hashCodeExists))) {"
+            },
+            {
+                "fromLine": 185,
+                "toLine": 209,
+                "oldContent": "\t\tJCMethodDecl equalsMethod = createEquals(typeNode, members, callSuper, fieldAccess, needsCanEqual, source, onParam);\n\t\t\n\t\tinjectMethod(typeNode, equalsMethod);",
+                "newContent": "\t\tJCMethodDecl equalsMethod = createEquals(typeNode, context);\n\t\t\n\t\tinjectMethod(typeNode, equalsMethod);"
+            }
+            ]
+    },
+    "extractedClasses":{
+        "src/core/lombok/javac/handlers/EqualsAndHashCodeContext.java": "package lombok.javac.handlers;\n\nimport com.sun.tools.javac.util.List;\nimport lombok.javac.JavacNode;\nimport lombok.javac.handlers.HandlersUtil.FieldAccess;\n\npublic class EqualsAndHashCodeContext {\n\tprivate final JavacNode typeNode;\n\tprivate final java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members;\n\tprivate final Boolean callSuper;\n\tprivate final boolean whineIfExists;\n\tprivate final boolean cacheHashCode;\n\tprivate final FieldAccess fieldAccess;\n\tprivate final List<JCAnnotation> onParam;\n\tprivate boolean needsCanEqual;\n\n\tpublic EqualsAndHashCodeContext(JavacNode typeNode, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members, Boolean callSuper, boolean whineIfExists, boolean cacheHashCode, FieldAccess fieldAccess, List<JCAnnotation> onParam) {\n\t\tthis.typeNode = typeNode;\n\t\tthis.members = members;\n\t\tthis.callSuper = callSuper;\n\t\tthis.whineIfExists = whineIfExists;\n\t\tthis.cacheHashCode = cacheHashCode;\n\t\tthis.fieldAccess = fieldAccess;\n\t\tthis.onParam = onParam;\n\t\tthis.needsCanEqual = false;\n\t}\n\n\t// Getters and Setters\n\t// ...\n\n}\n"
+    }
+}

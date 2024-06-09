@@ -1,0 +1,100 @@
+The `GrpcClientObservationContext` and `GrpcServerObservationContext` classes share several common fields (`serviceName`, `methodName`, `fullMethodName`, `methodType`, `statusCode`, `authority`, `headers`, and `trailers`). This suggests a data clump that can be refactored into a common class. I will create a class named `GrpcObservationInfo` to encapsulate these fields and then refactor the two aforementioned classes to use an instance of this new class.
+
+## MARKDOWN
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcObservationInfo.java***
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.grpc.Status.Code;
+import io.micrometer.common.lang.Nullable;
+
+/**
+ * Encapsulates common fields related to gRPC observation contexts.
+ */
+public class GrpcObservationInfo {
+
+    private String serviceName;
+
+    private String methodName;
+
+    private String fullMethodName;
+
+    private MethodType methodType;
+
+    @Nullable
+    private Code statusCode;
+
+    private String authority;
+
+    private Metadata headers;
+
+    private Metadata trailers;
+
+    // Constructors, getters, and setters for the fields
+    // ...
+
+}
+```
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java***
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+// Import statements...
+import io.micrometer.observation.transport.Propagator.Setter;
+import io.micrometer.observation.transport.RequestReplySenderContext;
+
+/**
+ * {@link Observation.Context} for gRPC client.
+ */
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcObservationInfo grpcInfo;
+
+    public GrpcClientObservationContext(Setter<Metadata> setter) {
+        super(setter);
+        this.grpcInfo = new GrpcObservationInfo();
+    }
+
+    public GrpcObservationInfo getGrpcInfo() {
+        return grpcInfo;
+    }
+
+    // Delegate methods to access the fields from GrpcObservationInfo
+    // ...
+
+}
+```
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcServerObservationContext.java***
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+// Import statements...
+import io.micrometer.observation.transport.Propagator.Getter;
+import io.micrometer.observation.transport.RequestReplyReceiverContext;
+
+/**
+ * {@link Observation.Context} for gRPC server.
+ */
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcObservationInfo grpcInfo;
+
+    public GrpcServerObservationContext(Getter<Metadata> getter) {
+        super(getter);
+        this.grpcInfo = new GrpcObservationInfo();
+    }
+
+    public GrpcObservationInfo getGrpcInfo() {
+        return grpcInfo;
+    }
+
+    // Delegate methods to access the fields from GrpcObservationInfo
+    // ...
+
+}
+```
+##END MARKDOWN
+
+I introduced `GrpcObservationInfo` to encapsulate the common fields between `GrpcClientObservationContext` and `GrpcServerObservationContext`. Both of the original classes were updated to include an instance of `GrpcObservationInfo` and delegate methods to access the encapsulated fields. This reduces the duplication of fields across these classes and makes the design more maintainable.

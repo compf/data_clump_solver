@@ -1,0 +1,79 @@
+The data clump we can identify here consists of the following fields and parameters that are repeated across methods:
+
+1. `feature` (Object)
+2. `context` (Object)
+3. `correlationId` (String)
+4. `user` (User)
+
+This pattern can be found in the interfaces `ScriptListener` and the implementing class `DefaultScriptListener`, as well as in the helper classes `ListenerWriter` and the other classes that call `fireScriptExecution` and `fireScriptOutput`.
+
+To refactor these data clumps, we can create a new class called `ScriptEventDetails` and replace the clumped parameters with this new class.
+
+Here is the content of the extracted class:
+
+```java
+import hudson.model.User;
+import jenkins.model.Jenkins;
+
+public class ScriptEventDetails {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventDetails(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    // This static method can be used to conveniently create new instances of ScriptEventDetails
+    // from classes where User.current() is passed as the user.
+    public static ScriptEventDetails forCurrentUser(Object feature, Object context, String correlationId) {
+        return new ScriptEventDetails(feature, context, correlationId, User.current());
+    }
+}
+```
+
+Now let's refactor the `ScriptListener` interface with the new `ScriptEventDetails` class:
+
+```java
+// Original:
+// default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {}
+
+// Refactored:
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {}
+```
+
+The same change should be applied to all methods that use the data clump parameters. For example, the `fireScriptExecution` and `fireScriptOutput` methods would be updated as follows:
+
+```java
+// Original:
+// static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {}
+// static void fireScriptOutput(@CheckForNull String output, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {}
+
+// Refactored:
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {}
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {}
+```
+
+And within the classes `ListenerWriter` and `DefaultScriptListener`, use the new `ScriptEventDetails` instead of passing individual parameters.
+
+For classes that invoke these methods, such as `RemotingDiagnostics`, `GroovyCommand`, `GroovyshCommand`, and `GroovyHookScript`, the call sites would need to construct a `ScriptEventDetails` object and pass it to the methods. Use the `ScriptEventDetails.forCurrentUser` static method where applicable.

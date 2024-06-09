@@ -48,6 +48,7 @@ export class ChatGPTInterface extends LanguageModelInterface{
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
         if(this.completions.messages.length==0)return {messages:[],messageType:"output"}
         console.log("SENDING",this.completions.messages)
+        //throw this.format
         let response= await this.api.chat.completions.create(this.completions);
         if(clear){
             this.clear()

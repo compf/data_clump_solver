@@ -1,0 +1,98 @@
+Upon reviewing the provided Java file snippets, a data clump can be identified in the parameters: `Object feature, Object context, String correlationId, User user`. These parameters are common among several methods in `jenkins.util.ScriptListener`, `jenkins.util.DefaultScriptListener`, and `hudson.cli.GroovyCommand`, among others. To refactor this, we will create a new class to encapsulate these parameters.
+
+Here is the content of the new class, which we will call `ScriptContext`:
+
+```java
+import hudson.model.User;
+
+public class ScriptContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptContext(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now we will refactor the method signatures in `ScriptListener`, `DefaultScriptListener`, and the places where the methods are called to use this new `ScriptContext`:
+
+`ScriptListener.java`:
+
+```java
+// Original onScriptExecution method
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {
+}
+
+// Refactored onScriptExecution method
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptContext scriptContext) {
+}
+
+// Original onScriptOutput method
+default void onScriptOutput(@CheckForNull String output, @NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {
+}
+
+// Refactored onScriptOutput method
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptContext scriptContext) {
+}
+
+// Similar refactoring for fireScriptExecution and fireScriptOutput methods
+```
+
+`DefaultScriptListener.java`:
+
+```java
+// Original onScriptExecution method
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull Object feature, Object context, @NonNull String correlationId, User user) {
+}
+
+// Refactored onScriptExecution method
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptContext scriptContext) {
+}
+
+// Original onScriptOutput method
+@Override
+public void onScriptOutput(String output, @NonNull Object feature, Object context, @NonNull String correlationId, User user) {
+}
+
+// Refactored onScriptOutput method
+@Override
+public void onScriptOutput(String output, @NonNull ScriptContext scriptContext) {
+}
+```
+
+For all classes that implement `ScriptListener` or call its methods, replace the method calls with the refactored version that uses `ScriptContext`. Here's an example of how a method call would be refactored in `RemotingDiagnostics.java`:
+
+```java
+// Original call
+ScriptListener.fireScriptExecution(script, new Binding(), RemotingDiagnostics.class, context, correlationId, User.current());
+
+// Refactored call
+ScriptContext scriptContext = new ScriptContext(RemotingDiagnostics.class, context, correlationId, User.current());
+ScriptListener.fireScriptExecution(script, new Binding(), scriptContext);
+```
+
+Make sure to apply this refactoring consistently throughout the codebase whenever the identified data clump appears.

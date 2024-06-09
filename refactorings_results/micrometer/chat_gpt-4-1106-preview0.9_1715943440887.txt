@@ -1,0 +1,87 @@
+The `GrpcClientObservationContext` and `GrpcServerObservationContext` classes have a data clump because they both have the same set of fields: `serviceName`, `methodName`, `fullMethodName`, `methodType`, `statusCode`, `authority`, `headers`, and `trailers`. To refactor this data clump, we will create a new class that encapsulates these fields and then replace the direct field accesses with calls to getters and setters on instances of this new class.
+
+Let's create a class named `GrpcObservationMetadata` to encapsulate the data clump and update the `GrpcClientObservationContext` and `GrpcServerObservationContext` classes to use this new class.
+
+Here is the content for `GrpcObservationMetadata`:
+
+## MARKDOWN
+*** <path to new file: GrpcObservationMetadata.java>
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.micrometer.common.lang.Nullable;
+import io.grpc.Status.Code;
+
+/**
+ * Encapsulates metadata for gRPC client and server observation contexts.
+ *
+ * @since NEXT_VERSION
+ */
+public class GrpcObservationMetadata {
+
+    private String serviceName;
+    private String methodName;
+    private String fullMethodName;
+    private MethodType methodType;
+    @Nullable
+    private Code statusCode;
+    private String authority;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // Getters and setters for all fields...
+}
+```
+##END MARKDOWN
+
+Now, let's refactor the `GrpcClientObservationContext` class:
+
+## MARKDOWN
+*** <path to file 1: GrpcClientObservationContext.java>
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+// imports...
+
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcObservationMetadata metadata;  // New instance to encapsulate data clump
+
+    public GrpcClientObservationContext(Setter<Metadata> setter) {
+        super(setter);
+        this.metadata = new GrpcObservationMetadata();
+    }
+
+    // Delegate getters and setters to the `metadata` instance...
+
+}
+```
+##END MARKDOWN
+
+Next, we'll apply similar refactoring to the `GrpcServerObservationContext` class:
+
+## MARKDOWN
+*** <path to file 2: GrpcServerObservationContext.java>
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+// imports...
+
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcObservationMetadata metadata;  // New instance to encapsulate data clump
+
+    public GrpcServerObservationContext(Getter<Metadata> getter) {
+        super(getter);
+        this.metadata = new GrpcObservationMetadata();
+    }
+
+    // Delegate getters and setters to the `metadata` instance...
+
+}
+```
+##END MARKDOWN
+
+With these changes, any references in the `GrpcClientObservationContext` and `GrpcServerObservationContext` classes to the fields that are now encapsulated within `GrpcObservationMetadata` would need to be updated to use the corresponding getters and setters of the `metadata` instance. Please note, the provided code snippets are indicative, and the actual implementation would include fully implemented getters and setters for the new `GrpcObservationMetadata` class and modified getters and setters in the refactored context classes that delegate to the `metadata` instance.

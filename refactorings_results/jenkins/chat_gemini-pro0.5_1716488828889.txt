@@ -1,0 +1,115 @@
+The data clump we can identify within the provided code snippets is the group of parameters `(Object feature, Object context, String correlationId, User user)` that is commonly used in multiple methods across the `ScriptListener` and `DefaultScriptListener` classes. We can extract these parameters into a single class, which we'll call `ScriptEventContext`.
+
+First, let's create the `ScriptEventContext` class:
+
+```java
+public class ScriptEventContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventContext(@NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {
+        this.feature = Objects.requireNonNull(feature, "Feature cannot be null");
+        this.correlationId = Objects.requireNonNull(correlationId, "CorrelationID cannot be null");
+        this.context = context;
+        this.user = user;
+    }
+
+    @NonNull
+    public Object getFeature() {
+        return feature;
+    }
+
+    @CheckForNull
+    public Object getContext() {
+        return context;
+    }
+
+    @NonNull
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    @CheckForNull
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, let's refactor the `ScriptListener` interface:
+
+```java
+public interface ScriptListener {
+    // ...
+
+    default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext eventContext) {
+        // Implementation here
+    }
+
+    default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext eventContext) {
+        // Implementation here
+    }
+
+    // ...
+
+    static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext eventContext) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, eventContext));
+    }
+
+    static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext eventContext) {
+        Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, eventContext));
+    }
+
+    // ...
+}
+```
+
+Refactor the `ListenerWriter` and `OutputStream` anonymous classes:
+
+```java
+public class ListenerWriter extends Writer {
+    // Define other fields and methods...
+
+    private final ScriptEventContext eventContext;
+
+    public ListenerWriter(Writer writer, ScriptEventContext eventContext) {
+        this.writer = writer;
+        this.eventContext = eventContext;
+    }
+
+    @Override
+    public void write(@NonNull char[] cbuf, int off, int len) throws IOException {
+        ScriptListener.fireScriptOutput(String.copyValueOf(cbuf, off, len), eventContext);
+        writer.write(cbuf, off, len);
+    }
+}
+
+public class OutputStream extends java.io.OutputStream {
+    // Define other fields and methods...
+
+    private final ScriptEventContext eventContext;
+
+    public OutputStream(OutputStream os, Charset charset, ScriptEventContext eventContext) {
+        this.os = os;
+        this.charset = charset;
+        this.eventContext = eventContext;
+    }
+
+    // Implement other methods using eventContext instead of individual members
+}
+```
+
+Finally, let's update all the usages accordingly:
+
+```java
+// In the calling code, you would create a ScriptEventContext instance like this:
+ScriptEventContext eventContext = new ScriptEventContext(feature, context, correlationId, user);
+
+// And then you use it as a single parameter where required:
+ScriptListener.fireScriptExecution(script, binding, eventContext);
+ScriptListener.fireScriptOutput(output, eventContext);
+```
+
+The calling code in `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript` files would need to change to create and use `ScriptEventContext` instances instead of passing the individual parameters separately. This refactoring helps keep the code cleaner and the relationships between these parameters explicit.

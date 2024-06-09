@@ -7,24 +7,28 @@ import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
+import path from "path"
 export class FileFilterHandler extends AbstractStepHandler {
     private filter?: SingleItemFilter = undefined
     private metric?: Metric = undefined
     private rankSampler: RankSampler;
     private include?: string[] = undefined
     private exclude?: string[] = undefined
-    private useGitIgnore=true
+    private useGitIgnore=false
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         if ( this.metric!=undefined && !this.metric?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
         }
         if(this.include || this.exclude){
+            throw "include and exclude are not supported"
             let paths=[]
             getRelevantFilesRec(context.getProjectPath(), paths, new FileFilteringContext(this.include??[],this.exclude??[]))
             //throw "hallo "+paths.length
             return context.buildNewContext(new FileFilteringContext(this.include??[],this.exclude??[]))
         }
         else if(this.useGitIgnore && fs.existsSync(context.getProjectPath()+"/.gitignore")){
+            throw "include and exclude are not supported"
+
             let gitIgnore=fs.readFileSync(context.getProjectPath()+"/.gitignore").toString()
             let lines=gitIgnore.split("\n")
             let includes: string[] = []
@@ -71,8 +75,8 @@ export class FileFilterHandler extends AbstractStepHandler {
     private buildFilterContextFromPaths(filteredPaths: string[], context: DataClumpRefactoringContext): FileFilteringContext {
         let includes: string[] = []
         let excludes: string[] = []
-        for (let path of filteredPaths) {
-            includes.push(path)
+        for (let myPath of filteredPaths) {
+            includes.push("*"+path.relative(context.getProjectPath(), myPath))
         }
         let projectPath = context.getProjectPath()
         if (projectPath.endsWith("/")) {
@@ -81,7 +85,7 @@ export class FileFilterHandler extends AbstractStepHandler {
         else {
             projectPath += "/*"
         }
-        excludes.push(projectPath)
+        //excludes.push(projectPath)
         return new FileFilteringContext(includes, excludes)
     }
     getExecutableSteps(): PipeLineStepType[] {

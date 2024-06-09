@@ -1,0 +1,80 @@
+It seems that there is a data clump formed by the parameters `Object feature`, `Object context`, `String correlationId`, and `User user` which are commonly used in several methods (both in `ScriptListener.java` and `DefaultScriptListener.java`) and constructor parameters in `ListenerWriter` and related classes.
+
+We'll extract these fields into a new class `ScriptEventDetails` and then refactor the methods and constructors to use instances of this new class.
+
+Here's the content of the extracted class `ScriptEventDetails`:
+
+```java
+import hudson.model.User;
+
+public class ScriptEventDetails {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventDetails(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+We will now refactor the `ScriptListener` interface, `ListenerWriter` class, and other relevant parts of the code to use `ScriptEventDetails`. Here's the refactored `ScriptListener` interface snippet:
+
+```java
+// Refactor method signatures to use ScriptEventDetails
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+}
+
+// Refactor static fire methods
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, details));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, details));
+}
+```
+
+Here's the refactored `ListenerWriter` constructor and method:
+
+```java
+// In ListenerWriter constructor:
+public ListenerWriter(Writer writer, ScriptEventDetails details) {
+    this.writer = writer;
+    this.details = details;
+}
+
+// Refactor the usage
+@Override
+public void write(@NonNull char[] cbuf, int off, int len) throws IOException {
+    ScriptListener.fireScriptOutput(String.copyValueOf(cbuf, off, len), details);
+    writer.write(cbuf, off, len);
+}
+```
+
+We will similarly refactor any other constructors and methods that use the data clump to use the new `ScriptEventDetails` class. This includes updates in files like `DefaultScriptListener.java`, `GroovyCommand.java`, `GroovyshCommand.java`, `RemotingDiagnostics.java`, and `GroovyHookScript.java`. All occurrences of the clumped parameters should be replaced with `ScriptEventDetails` and the corresponding getters for accessing individual fields.
+
+Remember that this refactoring will require updating the code wherever the `ScriptListener` interface is implemented, and where the `fireScriptExecution` and `fireScriptOutput` static methods are called, replacing the clumped parameters with a single `ScriptEventDetails` object. Similarly, any constructors or methods that previously used the data clump will need to be refactored to expect a `ScriptEventDetails` object instead.

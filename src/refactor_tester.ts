@@ -25,8 +25,10 @@ const models=[
 //"claude-3-opus-20240229"
 ]
 const temperatures=[
-   0.1,
+   0.1
+   ,
    0.5,
+   
     0.9
 ]
 const Repeats=10;

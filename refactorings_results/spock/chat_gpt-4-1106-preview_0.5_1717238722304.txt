@@ -1,0 +1,15 @@
+{
+    "refactorings": {
+        "spock-core/src/main/java/org/spockframework/builder/PropertySlot.java": [
+            {
+                "fromLine": 5,
+                "toLine": 46,
+                "oldContent": "public class PropertySlot implements ISlot {\n  private final Object owner;\n  private final Type ownerType;\n  private final MetaProperty property;\n\n  PropertySlot(Object owner, Type ownerType, MetaProperty property) {\n    this.owner = owner;\n    this.ownerType = ownerType;\n    this.property = property;\n  }\n\n  @Override\n  public Type getType() {\n    // could possibly add fast path here, but be careful (inner classes etc.)\n\n    Method setter = MopUtil.setterFor(property);\n    if (setter != null) return GenericTypeReflectorUtil.getParameterTypes(setter, ownerType)[0];\n\n    Field field = MopUtil.fieldFor(property);\n    if (field != null) return GenericTypeReflectorUtil.getExactFieldType(field, ownerType);\n\n    throw new UnreachableCodeError();\n  }\n\n  @Override",
+                "newContent": "public class PropertySlot implements ISlot {\n  private final SlotOwner owner;\n\n  PropertySlot(Object owner, Type ownerType, MetaProperty property) {\n    this.owner = new SlotOwner(owner, ownerType, property);\n  }\n\n  @Override\n  public Type getType() {\n    // could possibly add fast path here, but be careful (inner classes etc.)\n\n    Method setter = MopUtil.setterFor(owner.getProperty());\n    if (setter != null) return GenericTypeReflectorUtil.getParameterTypes(setter, owner.getOwnerType())[0];\n\n    Field field = MopUtil.fieldFor(owner.getProperty());\n    if (field != null) return GenericTypeReflectorUtil.getExactFieldType(field, owner.getOwnerType());\n\n    throw new UnreachableCodeError();\n  }\n\n  @Override"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "spock-core/src/main/java/org/spockframework/builder/SlotOwner.java": "package org.spockframework.builder;\n\nimport java.lang.reflect.Type;\nimport groovy.lang.MetaProperty;\n\npublic class SlotOwner {\n  private final Object owner;\n  private final Type ownerType;\n  private final MetaProperty property;\n\n  public SlotOwner(Object owner, Type ownerType, MetaProperty property) {\n    this.owner = owner;\n    this.ownerType = ownerType;\n    this.property = property;\n  }\n\n  public Object getOwner() {\n    return owner;\n  }\n\n  public Type getOwnerType() {\n    return ownerType;\n  }\n\n  public MetaProperty getProperty() {\n    return property;\n  }\n}\n"
+    }
+}

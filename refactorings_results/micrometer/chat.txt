@@ -1,0 +1,110 @@
+The `KafkaConsumerMetrics` class contains data clumps in the form of repetitive use of `ObjectName`, `String` for the JMX metric name, and `Tags` in multiple registration methods such as `registerGaugeForObject`, `registerFunctionCounterForObject`, and `registerTimeGaugeForObject`. To refactor these data clumps, we can introduce a class that encapsulates these parameters, such as `JmxMetric`.
+
+## MARKDOWN
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/kafka/JmxMetric.java***
+Java```
+package io.micrometer.core.instrument.binder.kafka;
+
+import io.micrometer.core.instrument.Tags;
+import javax.management.ObjectName;
+
+/**
+ * Encapsulates the details required to access a JMX metric.
+ */
+public class JmxMetric {
+    private final ObjectName objectName;
+    private final String jmxMetricName;
+    private final Tags tags;
+
+    public JmxMetric(ObjectName objectName, String jmxMetricName, Tags tags) {
+        this.objectName = objectName;
+        this.jmxMetricName = jmxMetricName;
+        this.tags = tags;
+    }
+
+    public ObjectName getObjectName() {
+        return objectName;
+    }
+
+    public String getJmxMetricName() {
+        return jmxMetricName;
+    }
+
+    public Tags getTags() {
+        return tags;
+    }
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/kafka/KafkaConsumerMetrics.java***
+Java```
+// Full file content omitted for brevity - only relevant changes are shown
+
+// Additional imports
+import io.micrometer.core.instrument.binder.kafka.JmxMetric;
+
+// Refactored methods to use JmxMetric
+private Gauge registerGaugeForObject(MeterRegistry registry, JmxMetric metric,
+        String description, @Nullable String baseUnit) {
+    final AtomicReference<Gauge> gaugeReference = new AtomicReference<>();
+    Gauge gauge = Gauge
+        .builder(METRIC_NAME_PREFIX + metric.getJmxMetricName(), mBeanServer,
+                getJmxAttribute(registry, gaugeReference, metric))
+        .description(description)
+        .baseUnit(baseUnit)
+        .tags(metric.getTags())
+        .register(registry);
+    gaugeReference.set(gauge);
+    return gauge;
+}
+
+private FunctionCounter registerFunctionCounterForObject(MeterRegistry registry, JmxMetric metric,
+        String description, @Nullable String baseUnit) {
+    final AtomicReference<FunctionCounter> counterReference = new AtomicReference<>();
+    FunctionCounter counter = FunctionCounter
+        .builder(METRIC_NAME_PREFIX + metric.getJmxMetricName(), mBeanServer,
+                getJmxAttribute(registry, counterReference, metric))
+        .description(description)
+        .baseUnit(baseUnit)
+        .tags(metric.getTags())
+        .register(registry);
+    counterReference.set(counter);
+    return counter;
+}
+
+private TimeGauge registerTimeGaugeForObject(MeterRegistry registry, JmxMetric metric,
+        String description, TimeUnit timeUnit) {
+    final AtomicReference<TimeGauge> timeGaugeReference = new AtomicReference<>();
+    TimeGauge timeGauge = TimeGauge
+        .builder(METRIC_NAME_PREFIX + metric.getJmxMetricName(), mBeanServer, timeUnit,
+                getJmxAttribute(registry, timeGaugeReference, metric))
+        .description(description)
+        .tags(metric.getTags())
+        .register(registry);
+    timeGaugeReference.set(timeGauge);
+    return timeGauge;
+}
+
+private ToDoubleFunction<MBeanServer> getJmxAttribute(MeterRegistry registry,
+        AtomicReference<? extends Meter> meter, JmxMetric metric) {
+    return s -> safeDouble(() -> {
+        if (!s.isRegistered(metric.getObjectName())) {
+            registry.remove(meter.get());
+        }
+        return s.getAttribute(metric.getObjectName(), metric.getJmxMetricName());
+    });
+}
+
+// Changes in bindTo method to use JmxMetric class
+meters.add(registerGaugeForObject(registry, new JmxMetric(o, "records-lag", tags),
+        "The latest lag of the partition", "records"));
+
+// Similar changes for all other corresponding method calls
+```
+##END MARKDOWN
+
+Explanation:
+- Created a new class `JmxMetric` that encapsulates the `ObjectName`, `jmxMetricName`, and `tags`.
+- Updated the methods `registerGaugeForObject`, `registerFunctionCounterForObject`, and `registerTimeGaugeForObject` to take a single `JmxMetric` object instead of separate parameters.
+- Within the `bindTo` method and other locations where these methods are called, instantiated `JmxMetric` objects with the relevant details are now passed instead of individual parameters.
+- The remainder of the `KafkaConsumerMetrics.java` file has not been shown, as it would remain unchanged except for the updated method calls.

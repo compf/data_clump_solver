@@ -1,0 +1,196 @@
+In the provided code, both `GrpcClientObservationContext` and `GrpcServerObservationContext` classes contain a group of fields that represent the details of a gRPC call. The fields are `serviceName`, `methodName`, `fullMethodName`, `methodType`, and `statusCode`. This group of fields can be considered a data clump because they are closely related and repeatedly appear together. As a result, we can refactor both classes by creating a new class that encapsulates these common fields.
+
+Here's the new class `GrpcCallAttributes` to encapsulate these fields:
+
+```java
+public class GrpcCallAttributes {
+
+    private String serviceName;
+    private String methodName;
+    private String fullMethodName;
+    private MethodType methodType;
+    @Nullable
+    private Code statusCode;
+
+    public GrpcCallAttributes(String serviceName, String methodName, String fullMethodName, MethodType methodType, @Nullable Code statusCode) {
+        this.serviceName = serviceName;
+        this.methodName = methodName;
+        this.fullMethodName = fullMethodName;
+        this.methodType = methodType;
+        this.statusCode = statusCode;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+
+    // Setters can also be added as needed.
+}
+```
+
+Now, we will refactor both `GrpcClientObservationContext` and `GrpcServerObservationContext` classes to use this new class instead of the individual fields:
+
+Refactored `GrpcClientObservationContext`:
+```java
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcCallAttributes callAttributes;
+    private String authority;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // ... other methods and constructors
+
+    public GrpcCallAttributes getCallAttributes() {
+        return callAttributes;
+    }
+
+    public void setCallAttributes(GrpcCallAttributes callAttributes) {
+        this.callAttributes = callAttributes;
+    }
+
+    // ... other getters and setters for authority, headers, and trailers
+}
+```
+
+Refactored `GrpcServerObservationContext`:
+```java
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcCallAttributes callAttributes;
+    @Nullable
+    private String authority;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // ... other methods and constructors
+
+    public GrpcCallAttributes getCallAttributes() {
+        return callAttributes;
+    }
+
+    public void setCallAttributes(GrpcCallAttributes callAttributes) {
+        this.callAttributes = callAttributes;
+    }
+
+    // ... other getters and setters for authority, headers, and trailers
+}
+```
+
+Please note that setters and other relevant methods should be updated accordingly to manipulate the `GrpcCallAttributes` object instead of individual fields.
+
+Now for the markdown output:
+
+## MARKDOWN
+*** <GrpcCallAttributes.java>
+Java```
+public class GrpcCallAttributes {
+
+    private String serviceName;
+    private String methodName;
+    private String fullMethodName;
+    private MethodType methodType;
+    @Nullable
+    private Code statusCode;
+
+    public GrpcCallAttributes(String serviceName, String methodName, String fullMethodName, MethodType methodType, @Nullable Code statusCode) {
+        this.serviceName = serviceName;
+        this.methodName = methodName;
+        this.fullMethodName = fullMethodName;
+        this.methodType = methodType;
+        this.statusCode = statusCode;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+
+    // Setters can also be added as needed.
+}
+```
+*** <GrpcClientObservationContext.java>
+Java```
+// ... class definition and imports
+
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcCallAttributes callAttributes;
+    private String authority;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // ... other methods and constructors
+
+    public GrpcCallAttributes getCallAttributes() {
+        return callAttributes;
+    }
+
+    public void setCallAttributes(GrpcCallAttributes callAttributes) {
+        this.callAttributes = callAttributes;
+    }
+
+    // ... other getters and setters for authority, headers, and trailers
+}
+```
+*** <GrpcServerObservationContext.java>
+Java```
+// ... class definition and imports
+
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcCallAttributes callAttributes;
+    @Nullable
+    private String authority;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // ... other methods and constructors
+
+    public GrpcCallAttributes getCallAttributes() {
+        return callAttributes;
+    }
+
+    public void setCallAttributes(GrpcCallAttributes callAttributes) {
+        this.callAttributes = callAttributes;
+    }
+
+    // ... other getters and setters for authority, headers, and trailers
+}
+```
+##END MARKDOWN
+
+By refactoring in this manner, we have removed the data clumps from the original classes and encapsulated the common fields into a single reusable class, making the code cleaner and less repetitive.

@@ -1,0 +1,13 @@
+{
+    "refactorings": {
+        "core/src/main/java/org/bitcoinj/core/Transaction.java": [
+            {
+                "fromLine": 891,
+                "toLine": 932,
+                "oldContent": "            } catch (SignatureDecodeException e) {\n                // This exception occurs when signing as we run partial/invalid scripts to see if they need more\n                // signing work to be done inside LocalTransactionSigner.signInputs.\n                // FIXME don't rely on exception message\n                if (e.getMessage() != null && !e.getMessage().contains(\"Reached past end of ASN.1 stream\"))\n                    // Don't put critical code here; the above check is not reliable on HotSpot due to optimization:\n                    // http://jawspeak.com/2010/05/26/hotspot-caused-exceptions-to-lose-their-stack-traces-in-production-and-the-fix/\n                    log.warn(\"Signature parsing failed!\", e);\n            } catch (Exception e) {\n                log.warn(\"Signature checking failed!\", e);\n            }\n\n            if (opcode == OP_CHECKSIG)\n                stack.add(sigValid ? new byte[] {1} : new byte[] {});\n            else if (opcode == OP_CHECKSIGVERIFY)\n                if (!sigValid)\n                    throw new ScriptException(ScriptError.SCRIPT_ERR_CHECKSIGVERIFY, \"Script failed OP_CHECKSIGVERIFY\");",
+                "newContent": "            } catch (SignatureDecodeException e) {\n                // This exception occurs when signing as we run partial/invalid scripts to see if they need more\n                // signing work to be done inside LocalTransactionSigner.signInputs.\n                // FIXME don't rely on exception message\n                if (!\"Reached past end of ASN.1 stream\".equals(e.getMessage()))\n                    // Don't put critical code here; the above check is not reliable on HotSpot due to optimization:\n                    // http://jawspeak.com/2010/05/26/hotspot-caused-exceptions-to-lose-their-stack-traces-in-production-and-the-fix/\n                    log.warn(\"Signature parsing failed!\", e);\n            } catch (Exception e) {\n                log.warn(\"Signature checking failed!\", e);\n            }\n\n            if (opcode == OP_CHECKSIG)\n                stack.add(sigValid ? new byte[] {1} : new byte[] {});\n            else if (opcode == OP_CHECKSIGVERIFY)\n                if (!sigValid)\n                    throw new ScriptException(ScriptError.SCRIPT_ERR_CHECKSIGVERIFY, \"Script failed OP_CHECKSIGVERIFY\");"
+            }
+        ]
+    },
+    "extractedClasses": {}
+}

@@ -1,0 +1,153 @@
+{
+    "refactorings":{
+        "spock-core/src/main/java/org/spockframework/builder/PropertySlot.java":[
+            {
+                "fromLine":12,
+                "toLine":24,
+                "oldContent":"  private final Object owner;\n  private final Type ownerType;\n  private final MetaProperty property;",
+                "newContent":"  private final SlotOwner slotOwner;"
+            },
+            {
+                "fromLine":26,
+                "toLine":26,
+                "oldContent":"    this.owner = owner;",
+                "newContent":"    this.slotOwner = new SlotOwner(owner, ownerType, property);"
+            },
+            {
+                "fromLine":27,
+                "toLine":27,
+                "oldContent":"    this.ownerType = ownerType;",
+                "newContent":""
+            },
+            {
+                "fromLine":28,
+                "toLine":28,
+                "oldContent":"    this.property = property;",
+                "newContent":""
+            }
+        ],
+        "spock-core/src/main/java/org/spockframework/mock/runtime/CglibMockInterceptorAdapter.java":[
+            {
+                "fromLine":15,
+                "toLine":17,
+                "oldContent":"  private final IProxyBasedMockInterceptor interceptor;",
+                "newContent":"  private final InterceptorAdapter interceptorAdapter;"
+            },
+            {
+                "fromLine":19,
+                "toLine":19,
+                "oldContent":"    this.interceptor = interceptor;",
+                "newContent":"    this.interceptorAdapter = new InterceptorAdapter(interceptor);"
+            }
+        ],
+        "spock-core/src/main/java/org/spockframework/mock/runtime/JavaMockInterceptor.java":[
+            {
+                "fromLine":15,
+                "toLine":27,
+                "oldContent":"  private final IMockConfiguration mockConfiguration;\n  private Specification specification;",
+                "newContent":"  private final MockInterceptorConfiguration mockInterceptorConfig;"
+            },
+            {
+                "fromLine":29,
+                "toLine":29,
+                "oldContent":"    this.mockConfiguration = mockConfiguration;",
+                "newContent":"    this.mockInterceptorConfig = new MockInterceptorConfiguration(mockConfiguration, specification);"
+            },
+            {
+                "fromLine":30,
+                "toLine":30,
+                "oldContent":"    this.specification = specification;",
+                "newContent":""
+            }
+        ],
+        "spock-core/src/main/java/org/spockframework/mock/runtime/JavaProxyMockInterceptorAdapter.java":[
+            {
+                "fromLine":13,
+                "toLine":15,
+                "oldContent":"  private final IProxyBasedMockInterceptor interceptor;",
+                "newContent":"  private final InterceptorAdapter interceptorAdapter;"
+            },
+            {
+                "fromLine":17,
+                "toLine":17,
+                "oldContent":"    this.interceptor = interceptor;",
+                "newContent":"    this.interceptorAdapter = new InterceptorAdapter(interceptor);"
+            }
+        ],
+        "spock-core/src/main/java/org/spockframework/mock/runtime/MockConfiguration.java":[
+            {
+                "fromLine":19,
+                "toLine":31,
+                "oldContent":"  private final String name;\n  private final Type type;\n  private final Object instance;",
+                "newContent":"  private final MockConfigurationData mockConfigData;"
+            },
+            {
+                "fromLine":33,
+                "toLine":35,
+                "oldContent":"    this.name = getOption(options, \"name\", String.class, name);",
+                "newContent":"    this.mockConfigData = new MockConfigurationData(name, type, instance);"
+            },
+            {
+                "fromLine":34,
+                "toLine":34,
+                "oldContent":"    this.type = getOption(options, \"type\", Type.class, type);",
+                "newContent":""
+            },
+            {
+                "fromLine":35,
+                "toLine":35,
+                "oldContent":"    this.instance = getOption(options, \"instance\", Object.class, instance);",
+                "newContent":""
+            }
+        ],
+        "spock-core/src/main/java/org/spockframework/mock/runtime/MockInteraction.java":[
+            {
+                "fromLine":20,
+                "toLine":24,
+                "oldContent":"  private final int line;\n  private final int column;\n  private final String text;",
+                "newContent":"  private final InteractionTextInfo interactionTextInfo;"
+            },
+            {
+                "fromLine":26,
+                "toLine":26,
+                "oldContent":"    this.line = line;",
+                "newContent":"    this.interactionTextInfo = new InteractionTextInfo(line, column, text);"
+            },
+            {
+                "fromLine":27,
+                "toLine":27,
+                "oldContent":"    this.column = column;",
+                "newContent":""
+            },
+            {
+                "fromLine":28,
+                "toLine":28,
+                "oldContent":"    this.text = text;",
+                "newContent":""
+            }
+        ],
+        "spock-core/src/main/java/org/spockframework/util/CollectionUtil.java":[
+            {
+                "fromLine":102,
+                "toLine":116,
+                "oldContent":"  public static <T> Set<T> asSet(T[] values) {\n    return new HashSet<>(asList(values));\n  }\n\n  @SafeVarargs\n  public static <E> List<E> listOf(E... elements) {\n    List<E> result = new ArrayList<>(elements.length);\n    result.addAll(asList(elements));\n    return result;\n  }\n\n  public static <K, V> Map<K, V> mapOf(K key, V value) {\n    Map<K, V> map = new LinkedHashMap<>();\n    map.put(key, value);\n    return map;\n  }",
+                "newContent":"  public static <T> Set<T> asSet(T[] values) {\n    return new HashSet<>(Arrays.asList(values));\n  }\n\n  @SafeVarargs\n  public static <E> List<E> listOf(E... elements) {\n    return new ArrayList<>(Arrays.asList(elements));\n  }\n\n  public static <K, V> Map<K, V> mapOf(K key, V value) {\n    return Collections.singletonMap(key, value);\n  }"
+            }
+        ],
+        "spock-core/src/main/java/spock/mock/DetachedMockFactory.java":[
+            {
+                "fromLine":135,
+                "toLine":151,
+                "oldContent":"  @SuppressWarnings(\"unchecked\")\n  public <T> T createMock(@Nullable String name, Class<T> type, MockNature nature, Map<String, Object> options) {\n    ClassLoader classLoader = type.getClassLoader();\n    if (classLoader == null) {\n      classLoader = ClassLoader.getSystemClassLoader();\n    }\n    return (T) new MockUtil().createDetachedMock(name, type, nature, MockImplementation.JAVA, options, classLoader);\n  }\n\n  @SuppressWarnings(\"unchecked\")\n  public <T> T createMock(@Nullable String name, T obj, MockNature nature, Map<String, Object> options) {\n    ClassLoader classLoader = obj.getClass().getClassLoader();\n    if (classLoader == null) {\n      classLoader = ClassLoader.getSystemClassLoader();\n    }\n    return (T) new MockUtil().createDetachedMock(name, obj, nature, MockImplementation.JAVA, options, classLoader);\n  }",
+                "newContent":"  @SuppressWarnings(\"unchecked\")\n  public <T> T createMock(@Nullable String name, Class<T> type, MockNature nature, Map<String, Object> options) {\n    return (T) new MockUtil().createDetachedMock(name, type, nature, MockImplementation.JAVA, options, getClassLoader(type));\n  }\n\n  @SuppressWarnings(\"unchecked\")\n  public <T> T createMock(@Nullable String name, T obj, MockNature nature, Map<String, Object> options) {\n    return (T) new MockUtil().createDetachedMock(name, obj, nature, MockImplementation.JAVA, options, getClassLoader(obj.getClass()));\n  }\n\n  private ClassLoader getClassLoader(Class<?> clazz) {\n    return Optional.ofNullable(clazz.getClassLoader()).orElseGet(ClassLoader::getSystemClassLoader);\n  }"
+            }
+        ]
+    },
+    "extractedClasses":{
+        "spock-core/src/main/java/org/spockframework/builder/SlotOwner.java":"package org.spockframework.builder;\n\nimport groovy.lang.MetaProperty;\nimport java.lang.reflect.Type;\n\npublic class SlotOwner {\n  private final Object owner;\n  private final Type ownerType;\n  private final MetaProperty property;\n\n  public SlotOwner(Object owner, Type ownerType, MetaProperty property) {\n    this.owner = owner;\n    this.ownerType = ownerType;\n    this.property = property;\n  }\n\n  public Object getOwner() {\n    return owner;\n  }\n\n  public Type getOwnerType() {\n    return ownerType;\n  }\n\n  public MetaProperty getProperty() {\n    return property;\n  }\n}\n",
+        "spock-core/src/main/java/org/spockframework/mock/runtime/InterceptorAdapter.java":"package org.spockframework.mock.runtime;\n\nimport org.spockframework.mock.IResponseGenerator;\nimport java.lang.reflect.Method;\n\npublic class InterceptorAdapter {\n  private final IProxyBasedMockInterceptor interceptor;\n\n  public InterceptorAdapter(IProxyBasedMockInterceptor interceptor) {\n    this.interceptor = interceptor;\n  }\n\n  public Object intercept(Object target, Method method, Object[] arguments, IResponseGenerator realMethodInvoker) throws Throwable {\n    return interceptor.intercept(target, method, arguments, realMethodInvoker);\n  }\n}\n",
+        "spock-core/src/main/java/org/spockframework/mock/runtime/MockInterceptorConfiguration.java":"package org.spockframework.mock.runtime;\n\nimport org.spockframework.mock.IMockConfiguration;\nimport spock.lang.Specification;\n\npublic class MockInterceptorConfiguration {\n  private final IMockConfiguration configuration;\n  private final Specification specification;\n\n  public MockInterceptorConfiguration(IMockConfiguration configuration, Specification specification) {\n    this.configuration = configuration;\n    this.specification = specification;\n  }\n\n  public IMockConfiguration getConfiguration() {\n    return configuration;\n  }\n\n  public Specification getSpecification() {\n    return specification;\n  }\n}\n",
+        "spock-core/src/main/java/org/spockframework/mock/runtime/MockConfigurationData.java":"package org.spockframework.mock.runtime;\n\nimport java.lang.reflect.Type;\n\npublic class MockConfigurationData {\n  private final String name;\n  private final Type type;\n  private final Object instance;\n\n  public MockConfigurationData(String name, Type type, Object instance) {\n    this.name = name;\n    this.type = type;\n    this.instance = instance;\n  }\n\n  public String getName() {\n    return name;\n  }\n\n  public Type getType() {\n    return type;\n  }\n\n  public Object getInstance() {\n    return instance;\n  }\n}\n",
+        "spock-core/src/main/java/org/spockframework/mock/runtime/InteractionTextInfo.java":"package org.spockframework.mock.runtime;\n\npublic class InteractionTextInfo {\n  private final int line;\n  private final int column;\n  private final String text;\n\n  public InteractionTextInfo(int line, int column, String text) {\n    this.line = line;\n    this.column = column;\n    this.text = text;\n  }\n\n  public int getLine() {\n    return line;\n  }\n\n  public int getColumn() {\n    return column;\n  }\n\n  public String getText() {\n    return text;\n  }\n}\n"
+    }
+}

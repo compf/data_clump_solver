@@ -1,0 +1,182 @@
+It appears that both `GrpcClientObservationContext` and `GrpcServerObservationContext` share a set of common fields: `serviceName`, `methodName`, `fullMethodName`, `methodType`, `statusCode`, `authority`, `headers`, and `trailers`. These fields can be extracted into a separate class to eliminate the data clump and improve the cohesion of the related data.
+
+I will create a new class called `GrpcObservationContextInfo` to encapsulate these common fields. I will then update both `GrpcClientObservationContext` and `GrpcServerObservationContext` to use this new class.
+
+## MARKDOWN
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcObservationContextInfo.java
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.grpc.Status.Code;
+import io.micrometer.common.lang.Nullable;
+
+/**
+ * Holds information relevant to gRPC client and server observation contexts.
+ */
+public class GrpcObservationContextInfo {
+    
+    private final String serviceName;
+    private final String methodName;
+    private final String fullMethodName;
+    private final MethodType methodType;
+    private final Code statusCode;
+    private final String authority;
+    private final Metadata headers;
+    private final Metadata trailers;
+
+    public GrpcObservationContextInfo(String serviceName, String methodName, String fullMethodName,
+                                      MethodType methodType, Code statusCode, String authority,
+                                      Metadata headers, Metadata trailers) {
+        this.serviceName = serviceName;
+        this.methodName = methodName;
+        this.fullMethodName = fullMethodName;
+        this.methodType = methodType;
+        this.statusCode = statusCode;
+        this.authority = authority;
+        this.headers = headers;
+        this.trailers = trailers;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+
+    public String getAuthority() {
+        return authority;
+    }
+
+    public Metadata getHeaders() {
+        return headers;
+    }
+
+    public Metadata getTrailers() {
+        return trailers;
+    }
+}
+```
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java
+Java```
+...
+
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcObservationContextInfo grpcInfo;
+
+    ...
+
+    public GrpcClientObservationContext(Setter<Metadata> setter, GrpcObservationContextInfo grpcInfo) {
+        super(setter);
+        this.grpcInfo = grpcInfo;
+    }
+
+    // Delegates to grpcInfo
+    public String getServiceName() {
+        return grpcInfo.getServiceName();
+    }
+
+    public String getMethodName() {
+        return grpcInfo.getMethodName();
+    }
+
+    public String getFullMethodName() {
+        return grpcInfo.getFullMethodName();
+    }
+
+    public MethodType getMethodType() {
+        return grpcInfo.getMethodType();
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return grpcInfo.getStatusCode();
+    }
+
+    public String getAuthority() {
+        return grpcInfo.getAuthority();
+    }
+
+    public Metadata getHeaders() {
+        return grpcInfo.getHeaders();
+    }
+
+    public Metadata getTrailers() {
+        return grpcInfo.getTrailers();
+    }
+
+    // ... existing methods for setting fields are removed
+}
+```
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcServerObservationContext.java
+Java```
+...
+
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcObservationContextInfo grpcInfo;
+
+    ...
+
+    public GrpcServerObservationContext(Getter<Metadata> getter, GrpcObservationContextInfo grpcInfo) {
+        super(getter);
+        this.grpcInfo = grpcInfo;
+    }
+
+    // Delegates to grpcInfo
+    public String getServiceName() {
+        return grpcInfo.getServiceName();
+    }
+
+    public String getMethodName() {
+        return grpcInfo.getMethodName();
+    }
+
+    public String getFullMethodName() {
+        return grpcInfo.getFullMethodName();
+    }
+
+    public MethodType getMethodType() {
+        return grpcInfo.getMethodType();
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return grpcInfo.getStatusCode();
+    }
+
+    public String getAuthority() {
+        return grpcInfo.getAuthority();
+    }
+
+    public Metadata getHeaders() {
+        return grpcInfo.getHeaders();
+    }
+
+    public Metadata getTrailers() {
+        return grpcInfo.getTrailers();
+    }
+
+    // ... existing methods for setting fields are removed
+}
+```
+##END MARKDOWN
+
+I have extracted the common fields into a new class `GrpcObservationContextInfo` and updated both `GrpcClientObservationContext` and `GrpcServerObservationContext` to include this class as a field. I have also added constructor parameters to both classes to initialize the `GrpcObservationContextInfo` and replaced the getters and setters with delegation methods. The documentation comments were removed for brevity in this output.

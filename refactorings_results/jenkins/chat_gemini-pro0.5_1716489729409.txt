@@ -1,0 +1,118 @@
+After analyzing the provided Java files, it seems that the parameters `feature`, `context`, and `correlationId` are common across multiple methods, satisfying the first condition for a data clump. Additionally, `user` is also frequently passed around with these, which suggests this set of parameters can be refactored into a new class.
+
+Here's the extracted class, named `ScriptEventMetadata`:
+```java
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+public class ScriptEventMetadata {
+    @Nonnull
+    private final Object feature;
+    @CheckForNull
+    private final Object context;
+    @Nonnull
+    private final String correlationId;
+    @CheckForNull
+    private final User user;
+
+    public ScriptEventMetadata(
+        @Nonnull Object feature,
+        @CheckForNull Object context,
+        @Nonnull String correlationId,
+        @CheckForNull User user
+    ) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    @Nonnull
+    public Object getFeature() {
+        return feature;
+    }
+
+    @CheckForNull
+    public Object getContext() {
+        return context;
+    }
+
+    @Nonnull
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    @CheckForNull
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Next, the methods will be refactored to use this new `ScriptEventMetadata` class:
+
+For `ScriptListener.java`:
+```java
+// Refactored method signatures in ScriptListener
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventMetadata metadata) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventMetadata metadata) {
+}
+
+// Refactored static fire methods in ScriptListener
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventMetadata metadata) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, metadata));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventMetadata metadata) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, metadata));
+}
+```
+
+For the concrete class `ListenerWriter`:
+```java
+// In ListenerWriter constructor
+public ListenerWriter(Writer writer, ScriptEventMetadata metadata) {
+    this.writer = writer;
+    this.metadata = metadata;
+}
+
+// In the write method
+@Override
+public void write(@NonNull char[] cbuf, int off, int len) throws IOException {
+    ScriptListener.fireScriptOutput(String.copyValueOf(cbuf, off, len), metadata);
+    writer.write(cbuf, off, len);
+}
+```
+
+For the concrete class that has an `OutputStream`:
+```java
+// In OutputStream constructor
+public ListenerOutputStream(OutputStream os, Charset charset, ScriptEventMetadata metadata) {
+    this.os = os;
+    this.charset = charset;
+    this.metadata = metadata;
+}
+
+// In the write methods
+public void write(int b) throws IOException {
+    ScriptListener.fireScriptOutput(new String(new byte[] { (byte) b }, charset), metadata);
+    os.write(b);
+}
+
+public void write(@NonNull byte[] b, int off, int len) throws IOException {
+    final String writtenString = new String(b, charset).substring(off, len - off);
+    ScriptListener.fireScriptOutput(writtenString, metadata);
+    os.write(b, off, len);
+}
+```
+
+Lastly, for each usage of these methods, we construct a `ScriptEventMetadata` instance to pass to the methods:
+```java
+// Example usage in some class like GroovyCommand
+ScriptEventMetadata metadata = new ScriptEventMetadata(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(script, binding, metadata);
+```
+
+Make sure to update all usages across the provided files in a similar manner, constructing and passing `ScriptEventMetadata` objects instead of individual parameters.

@@ -1,0 +1,79 @@
+Based on the provided Java files, there are common parameters between different methods and classes that form a data clump. The parameters `Object feature`, `Object context`, and `String correlationId` are common across methods `onScriptExecution`, `onScriptOutput`, `fireScriptExecution`, and `fireScriptOutput` as well as in the constructors of `ListenerWriter` and the anonymous class extending `OutputStream`. We'll define a new class, `ScriptEventContext`, to encapsulate these parameters and refactor the code accordingly.
+
+Here's the newly created class `ScriptEventContext`:
+
+```java
+public class ScriptEventContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+
+    public ScriptEventContext(Object feature, Object context, String correlationId) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+}
+```
+
+Next, we'll refactor the `ScriptListener` interface methods (pseudocode since we don't have the full files and dependencies):
+
+```java
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, 
+                                @NonNull ScriptEventContext scriptEventContext, @CheckForNull User user) {
+}
+
+default void onScriptOutput(@CheckForNull String output, 
+                            @NonNull ScriptEventContext scriptEventContext, @CheckForNull User user) {
+}
+
+// Refactored static methods
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, 
+                                @NonNull ScriptEventContext scriptEventContext, @CheckForNull User user) {
+    Listeners.notify(ScriptListener.class, true, 
+        listener -> listener.onScriptExecution(script, binding, scriptEventContext, user));
+}
+
+static void fireScriptOutput(@CheckForNull String output, 
+                             @NonNull ScriptEventContext scriptEventContext, @CheckForNull User user) {
+    Listeners.notify(ScriptListener.class, true, 
+        listener -> listener.onScriptOutput(output, scriptEventContext, user));
+}
+```
+
+Also, we'll refactor the constructors in `ListenerWriter` and the anonymous class extending `OutputStream`, replacing the individual parameters with an instance of `ScriptEventContext`. Here's an example of how the `ListenerWriter` class constructor might look like after refactoring:
+
+```java
+public ListenerWriter(Writer writer, @NonNull ScriptEventContext scriptEventContext, @CheckForNull User user) {
+    this.writer = writer;
+    this.scriptEventContext = scriptEventContext;
+    this.user = user;
+}
+```
+
+Finally, we'll need to update the usages of the old method signatures and constructors throughout the codebase to use the new `ScriptEventContext` class. This includes the implementations in `DefaultScriptListener`, the calls in `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript`.
+
+For example, the call in `GroovyCommand` will be updated to something like:
+
+```java
+// Before refactoring
+ScriptListener.fireScriptExecution(script, binding, GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+
+// After refactoring
+ScriptEventContext context = new ScriptEventContext(GroovyCommand.class, null, scriptListenerCorrelationId);
+ScriptListener.fireScriptExecution(script, binding, context, User.current());
+```
+
+All related code should be updated like this to use the new `ScriptEventContext` class.

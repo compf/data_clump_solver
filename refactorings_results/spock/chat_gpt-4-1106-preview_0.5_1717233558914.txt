@@ -1,0 +1,21 @@
+{
+    "refactorings": {
+        "spock-core/src/main/java/org/spockframework/builder/PropertySlot.java": [
+            {
+                "fromLine": 5,
+                "toLine": 46,
+                "oldContent": "public class PropertySlot implements ISlot {\n  private final Object owner;\n  private final Type ownerType;\n  private final MetaProperty property;\n\n  PropertySlot(Object owner, Type ownerType, MetaProperty property) {\n    this.owner = owner;\n    this.ownerType = ownerType;\n    this.property = property;\n  }",
+                "newContent": "public class PropertySlot implements ISlot {\n  private final PropertySlotData slotData;\n\n  PropertySlot(Object owner, Type ownerType, MetaProperty property) {\n    this.slotData = new PropertySlotData(owner, ownerType, property);\n  }"
+            },
+            {
+                "fromLine": 10,
+                "toLine": 10,
+                "oldContent": "  public Type getType() {\n    // could possibly add fast path here, but be careful (inner classes etc.)\n\n    Method setter = MopUtil.setterFor(property);\n    if (setter != null) return GenericTypeReflectorUtil.getParameterTypes(setter, ownerType)[0];\n\n    Field field = MopUtil.fieldFor(property);\n    if (field != null) return GenericFieldReflectorUtil.getExactFieldType(field, ownerType);\n\n    throw new UnreachableCodeError();\n  }\n\n  @Override",
+                "newContent": "  public Type getType() {\n    return slotData.getType();\n  }\n\n  @Override"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "spock-core/src/main/java/org/spockframework/builder/PropertySlotData.java": "package org.spockframework.builder;\n\nimport java.lang.reflect.Field;\nimport java.lang.reflect.Method;\nimport java.lang.reflect.Type;\nimport groovy.lang.MetaProperty;\nimport org.spockframework.util.GenericTypeReflectorUtil;\nimport org.spockframework.util.UnreachableCodeError;\n\npublic class PropertySlotData {\n  private final Object owner;\n  private final Type ownerType;\n  private final MetaProperty property;\n\n  PropertySlotData(Object owner, Type ownerType, MetaProperty property) {\n    this.owner = owner;\n    this.ownerType = ownerType;\n    this.property = property;\n  }\n\n  public Type getType() {\n    Method setter = MopUtil.setterFor(property);\n    if (setter != null) return GenericTypeReflectorUtil.getParameterTypes(setter, ownerType)[0];\n\n    Field field = MopUtil.fieldFor(property);\n    if (field != null) return GenericTypeReflectorUtil.getExactFieldType(field, ownerType);\n\n    throw new UnreachableCodeError();\n  }\n}"
+    }
+}

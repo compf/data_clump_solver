@@ -1,0 +1,96 @@
+In the provided `KafkaConsumerMetrics.java` file, multiple data clumps are identified according to the definition. Specifically, the constructor overloading with MBeanServer and tags parameters, and multiple calls to register metrics functions with ObjectName, Tags and description can be refactored.
+
+To address these data clumps, we can create a class that encapsulates the parameters that are repeated across different methods. The class can be called `KafkaMetricsContext` for encapsulating the `MBeanServer`, `Iterable<Tag>`, and the `ObjectName`.
+
+Here is the refactored `KafkaConsumerMetrics.java` file and the new `KafkaMetricsContext.java` class:
+
+## MARKDOWN
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/kafka/KafkaConsumerMetrics.java
+Java```
+// The file has been truncated for brevity, only changes shown
+...
+public class KafkaConsumerMetrics implements MeterBinder, AutoCloseable {
+    ...
+    // Removed the mBeanServer and tags fields as they are now part of KafkaMetricsContext
+    private final KafkaMetricsContext context;
+
+    public KafkaConsumerMetrics() {
+        this(emptyList());
+    }
+
+    public KafkaConsumerMetrics(Iterable<Tag> tags) {
+        this(getMBeanServer(), tags);
+    }
+
+    public KafkaConsumerMetrics(MBeanServer mBeanServer, Iterable<Tag> tags) {
+        this.context = new KafkaMetricsContext(mBeanServer, tags);
+    }
+    ...
+    @Override
+    public void bindTo(MeterRegistry registry) {
+        ...
+        // Refactored to use KafkaMetricsContext
+        registerMetricsEventually("consumer-fetch-manager-metrics", (context, tags) -> {
+            ...
+        });
+    }
+    
+    // Refactored methods to use KafkaMetricsContext
+    private void registerMetricsEventually(String type, BiFunction<KafkaMetricsContext, Tags, List<Meter>> perObject) {
+        try {
+            Set<ObjectName> objs = context.getMBeanServer().queryNames(new ObjectName(JMX_DOMAIN + ":type=" + type + ",*"), null);
+            ...
+            }
+            // Refactored to use context instead of individual class fields
+               List<Meter> meters = perObject.apply(context.forObjectName(o), Tags.concat(context.getTags(), nameTag(o)));
+            ...
+        }
+        ...
+    }
+    ...
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/kafka/KafkaMetricsContext.java
+Java```
+package io.micrometer.core.instrument.binder.kafka;
+
+import io.micrometer.core.instrument.Tag;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+/**
+ * Encapsulates context needed for Kafka metrics, such as MBeanServer and Tags.
+ */
+public class KafkaMetricsContext {
+    private final MBeanServer mBeanServer;
+    private final Iterable<Tag> tags;
+
+    public KafkaMetricsContext(MBeanServer mBeanServer, Iterable<Tag> tags) {
+        this.mBeanServer = mBeanServer;
+        this.tags = tags;
+    }
+
+    public MBeanServer getMBeanServer() {
+        return mBeanServer;
+    }
+
+    public Iterable<Tag> getTags() {
+        return tags;
+    }
+
+    public KafkaMetricsContext forObjectName(ObjectName objectName) {
+        return new KafkaMetricsContext(this.mBeanServer, Tags.concat(tags, nameTag(objectName)));
+    }
+
+    private Iterable<Tag> nameTag(ObjectName name) {
+        // This helper method can be used to generate additional tags based on the MBean's ObjectName properties.
+        ...
+    }
+}
+```
+##END MARKDOWN
+
+In this refactoring, the `KafkaConsumerMetrics` class's constructors and several methods have been refactored to use the new `KafkaMetricsContext` class, which encapsulates the `MBeanServer` and `Iterable<Tag>`. Additionally, a helper method `forObjectName` was added to `KafkaMetricsContext` for creating a new context with additional tags based on the MBean's `ObjectName`.
+
+This change has improved the readability of the code by reducing duplicated parameter lists and ensuring that related information is grouped together in a single concept (`KafkaMetricsContext`).

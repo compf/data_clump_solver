@@ -1,0 +1,93 @@
+The provided Java code snippets contain a data clump in the form of the parameters `Object feature`, `Object context`, `String correlationId`, and `User user` which are used together in several methods across the files. We can refactor this by creating an extracted class to represent this data clump, which I will name `ScriptEventDetails`. I will replace the multiple occurrences of these parameters with an instance of this new class.
+
+Here's the refactored code and the content of the extracted class `ScriptEventDetails`:
+
+### Refactored Usage in `ScriptListener.java`
+```java
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails scriptEventDetails) {
+   // ...
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails scriptEventDetails) {
+   // ...
+}
+
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails scriptEventDetails) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, scriptEventDetails));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails scriptEventDetails) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, scriptEventDetails));
+}
+
+// ListenerWriter constructor
+public ListenerWriter(Writer writer, ScriptEventDetails scriptEventDetails) {
+    // ...
+}
+
+// ListenerWriter write method
+public void write(@NonNull char[] cbuf, int off, int len) throws IOException {
+    ScriptListener.fireScriptOutput(String.copyValueOf(cbuf, off, len), scriptEventDetails);
+    // ...
+}
+```
+
+### Refactored Usage in `DefaultScriptListener.java`
+```java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventDetails scriptEventDetails) {
+    // Implementation using scriptEventDetails.feature, scriptEventDetails.context, etc.
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptEventDetails scriptEventDetails) {
+    // Implementation using scriptEventDetails.feature, scriptEventDetails.context, etc.
+}
+```
+
+### Refactored Usage in `GroovyCommand.java`
+```java
+ScriptListener.fireScriptExecution(script, binding, new ScriptEventDetails(GroovyCommand.class, null, scriptListenerCorrelationId, User.current()));
+```
+
+### Refactored Usage in `GroovyshCommand.java`
+```java
+ScriptListener.fireScriptExecution(null, null, new ScriptEventDetails(GroovyshCommand.class, null, scriptListenerCorrelationId, User.current()));
+```
+
+### Refactored Usage in `RemotingDiagnostics.java`
+```java
+ScriptEventDetails scriptEventDetails = new ScriptEventDetails(RemotingDiagnostics.class, context, correlationId, User.current());
+ScriptListener.fireScriptExecution(script, new Binding(), scriptEventDetails);
+```
+
+### Refactored Usage in `GroovyHookScript.java`
+```java
+ScriptEventDetails scriptEventDetails = new ScriptEventDetails(this.getClass(), s.getFile(), this.getClass().getName() + ":" + hook, User.current());
+ScriptListener.fireScriptExecution(s.getScriptText(), bindings, scriptEventDetails);
+```
+
+### Extracted Class `ScriptEventDetails.java`
+```java
+public class ScriptEventDetails {
+    @NonNull
+    private final Object feature;
+    @CheckForNull
+    private final Object context;
+    @NonNull
+    private final String correlationId;
+    @CheckForNull
+    private final User user;
+
+    public ScriptEventDetails(@NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    // Getters and potentially other methods to manipulate or access the properties.
+}
+```
+
+Please note that, for brevity, I've included only snippets of the refactored methods using `ScriptEventDetails`. The actual implementation may require you to adjust additional parts of the methods to handle the `scriptEventDetails` parameter appropriately. Moreover, the `@CheckForNull`, `@NonNull`, and other annotations should be retained as per the original design and coding standards of the project.

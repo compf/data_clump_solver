@@ -1,0 +1,57 @@
+{
+    "refactorings":{
+        "src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java": [
+            {
+                "fromLine": 114,
+                "toLine": 122,
+                "oldContent": "\tpublic void generateMethods(JavacNode typeNode, JavacNode source, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members,\n\t\tBoolean callSuper, boolean whineIfExists, boolean cacheHashCode, FieldAccess fieldAccess, List<JCAnnotation> onParam) {",
+                "newContent": "\tpublic void generateMethods(JavacNode typeNode, JavacNode source, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members,\n\t\tGeneratorConfiguration config) {"
+            },
+            {
+                "fromLine": 144,
+                "toLine": 148,
+                "oldContent": "\t\t\tif (whineIfExists) {",
+                "newContent": "\t\t\tif (config.isWhineIfExists()) {"
+            },
+            {
+                "fromLine": 162,
+                "toLine": 171,
+                "oldContent": "\t\t\n\t\tif (isDirectDescendantOfObject && callSuper) {",
+                "newContent": "\t\t\n\t\tif (isDirectDescendantOfObject && config.getCallSuper()) {"
+            },
+            {
+                "fromLine": 173,
+                "toLine": 177,
+                "oldContent": "\t\t\t\tsource.addWarning(\"Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.\");\n\t\t\t\tcallSuper = false;",
+                "newContent": "\t\t\t\tsource.addWarning(\"Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.\");\n\t\t\t\tconfig.setCallSuper(false);"
+            },
+            {
+                "fromLine": 185,
+                "toLine": 209,
+                "oldContent": "\t\tJCMethodDecl equalsMethod = createEquals(typeNode, members, callSuper, fieldAccess, needsCanEqual, source, onParam);\n\t\t",
+                "newContent": "\t\tJCMethodDecl equalsMethod = createEquals(typeNode, members, config, needsCanEqual, source);\n\t\t"
+            },
+            {
+                "fromLine": 423,
+                "toLine": 447,
+                "oldContent": "\tpublic JCMethodDecl createEquals(JavacNode typeNode, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members, boolean callSuper, FieldAccess fieldAccess, boolean needsCanEqual, JavacNode source, List<JCAnnotation> onParam) {",
+                "newContent": "\tpublic JCMethodDecl createEquals(JavacNode typeNode, java.util.List<Included<JavacNode, EqualsAndHashCode.Include>> members, GeneratorConfiguration config, boolean needsCanEqual, JavacNode source) {"
+            },
+            {
+                "fromLine": 449,
+                "toLine": 457,
+                "oldContent": "\t\t\n\t\tlong finalFlag = JavacHandlerUtil.addFinalIfNeeded(0L, typeNode.getContext());\n\t\t\n\t\tListBuffer<JCStatement> statements = new ListBuffer<JCStatement>();\n\t\tJCVariableDecl param = maker.VarDef(maker.Modifiers(finalFlag | Flags.PARAMETER, onParam), oName, objectType, null);",
+                "newContent": "\t\t\n\t\tlong finalFlag = JavacHandlerUtil.addFinalIfNeeded(0L, typeNode.getContext());\n\t\t\n\t\tListBuffer<JCStatement> statements = new ListBuffer<JCStatement>();\n\t\tJCVariableDecl param = maker.VarDef(maker.Modifiers(finalFlag | Flags.PARAMETER, config.getOnParam()), oName, objectType, null);"
+            },
+            {
+                "fromLine": 492,
+                "toLine": 496,
+                "oldContent": "\t\tif (callSuper) {",
+                "newContent": "\t\tif (config.getCallSuper()) {"
+            }
+        ]
+    },
+    "extractedClasses":{
+        "src/core/lombok/javac/handlers/GeneratorConfiguration.java": "package lombok.javac.handlers;\n\nimport lombok.javac.JavacNode;\nimport lombok.javac.JavacTreeMaker.TypeTag;\nimport com.sun.tools.javac.code.Flags;\nimport com.sun.tools.javac.util.List;\nimport com.sun.tools.javac.util.Name;\nimport lombok.javac.handlers.JavacHandlerUtil.FieldAccess;\n\npublic class GeneratorConfiguration {\n\n\tprivate final boolean callSuper;\n\tprivate final boolean whineIfExists;\n\tprivate final boolean cacheHashCode;\n\tprivate final FieldAccess fieldAccess;\n\tprivate final List<JCAnnotation> onParam;\n\n\tpublic GeneratorConfiguration(boolean callSuper, boolean whineIfExists, boolean cacheHashCode, FieldAccess fieldAccess, List<JCAnnotation> onParam) {\n\t\tthis.callSuper = callSuper;\n\t\tthis.whineIfExists = whineIfExists;\n\t\tthis.cacheHashCode = cacheHashCode;\n\t\tthis.fieldAccess = fieldAccess;\n\t\tthis.onParam = onParam;\n\t}\n\n\tpublic boolean getCallSuper() {\n\t\treturn callSuper;\n\t}\n\n\tpublic boolean isWhineIfExists() {\n\t\treturn whineIfExists;\n\t}\n\n\tpublic boolean isCacheHashCode() {\n\t\treturn cacheHashCode;\n\t}\n\n\tpublic FieldAccess getFieldAccess() {\n\t\treturn fieldAccess;\n\t}\n\n\tpublic List<JCAnnotation> getOnParam() {\n\t\treturn onParam;\n\t}\n\n\t// Additional methods to set field values if they need to be changed after construction\n\tpublic void setCallSuper(boolean newCallSuper) {\n\t\t// This method can be used to change the value of callAnother.\n\t\tcallSuper = newCallSuper;\n\t}\n\n\t/* Other field setters can be added here if necessary */\n}"
+    }
+}

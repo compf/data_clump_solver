@@ -1,0 +1,62 @@
+Based on the provided Java files, it appears that there are common fields and method parameters in different methods and classes that conform to the definition of a data clump. Specifically, fields `feature`, `context`, `correlationId`, and `user` appear to be a clump. We can extract these into a new class, which we could name `ScriptEventDetails`, and refactor the methods and constructors to use this new class.
+
+Let's create the extracted class:
+
+```java
+import hudson.model.User;
+
+public class ScriptEventDetails {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventDetails(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, let's refactor the method signatures and usages in `ScriptListener.java` by replacing the data clump fields with the `ScriptEventDetails` class:
+
+```java
+// Original method signature:
+void onScriptExecution(String script, Binding binding, Object feature, Object context, String correlationId, User user);
+
+// Refactored method signature:
+void onScriptExecution(String script, Binding binding, ScriptEventDetails details);
+
+// Original method call:
+ScriptListener.fireScriptExecution(script, binding, feature, context, correlationId, user);
+
+// Refactored method call:
+ScriptEventDetails details = new ScriptEventDetails(feature, context, correlationId, user);
+ScriptListener.fireScriptExecution(script, binding, details);
+
+// Do the same for the onScriptOutput method and its usages, and also apply this to other classes and methods listed in the files that have the same data clump.
+```
+
+Repeat the refactoring process for `ScriptListener.onScriptOutput`, `ListenerWriter` constructor, the implementation in `DefaultScriptListener`, and usages in other classes, such as `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript`.
+
+Note that for each refactoring, you'll need to create a `ScriptEventDetails` instance and pass it where it's required. This will also mean updating all call sites and possibly other interfacing methods that utilize these clumped data.
+
+This refactoring will lead to a more maintainable and cleaner codebase with reduced duplication and improved object-oriented structure.

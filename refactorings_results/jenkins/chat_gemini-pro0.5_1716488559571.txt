@@ -1,0 +1,70 @@
+Based on the provided code snippets, it appears that we have a recurring data clump composed of the parameters `Object feature`, `Object context`, `String correlationId`, and `User user`. These parameters are used in various methods in the `ScriptListener` class and other related classes.
+
+To refactor this, I'll create an extracted class named `ScriptEventDetails` that will encapsulate these parameters. I'll then modify the method signatures and update the relevant calls to use instances of the new class.
+
+Here is the content of the extracted class `ScriptEventDetails`:
+
+```java
+public class ScriptEventDetails {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventDetails(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, let's update the method signatures and calls:
+
+For `ScriptListener.java`, the `onScriptExecution` method signature would change to:
+
+```java
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventDetails details) {
+}
+```
+
+The `onScriptOutput` method signature would change to:
+
+```java
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+}
+```
+
+The corresponding calls to these methods within the `fireScriptExecution` and `fireScriptOutput` static methods would need to be updated to use the new `ScriptEventDetails` class.
+
+For `DefaultScriptListener.java`, the `onScriptExecution` method signature would change to:
+
+```java
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptEventDetails details) {
+    // existing implementation, using details.getFeature(), details.getContext(), etc.
+}
+```
+
+The `onScriptOutput` method signature would change similarly, and the implementation would be updated to use `details` object properties.
+
+For classes `GroovyCommand.java`, `GroovyshCommand.java`, `RemotingDiagnostics.java`, and `GroovyHookScript.java`, similar updates would be made to each place where the methods `fireScriptExecution` and `fireScriptOutput` are called. An instance of `ScriptEventDetails` would be created and passed instead of the individual parameters.
+
+This refactoring not only groups related data together but also makes the method signatures cleaner and the code more maintainable.

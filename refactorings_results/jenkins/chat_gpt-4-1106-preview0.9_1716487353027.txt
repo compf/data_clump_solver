@@ -1,0 +1,85 @@
+From the provided Java files, it's apparent that there is a data clump involving the parameters `(Object feature, Object context, String correlationId, User user)` which are common across multiple methods in `ScriptListener` interface and its usages. Therefore, I'll extract these parameters into a new class, which I'll call `ScriptEventDetails`, and update the methods to use this new class.
+
+Here is the content of the extracted class `ScriptEventDetails`:
+
+```java
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+public class ScriptEventDetails {
+    @Nonnull
+    private final Object feature;
+    @CheckForNull
+    private final Object context;
+    @Nonnull
+    private final String correlationId;
+    @CheckForNull
+    private final User user;
+
+    public ScriptEventDetails(@Nonnull Object feature, @CheckForNull Object context, 
+                              @Nonnull String correlationId, @CheckForNull User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    @Nonnull
+    public Object getFeature() {
+        return feature;
+    }
+
+    @CheckForNull
+    public Object getContext() {
+        return context;
+    }
+
+    @Nonnull
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    @CheckForNull
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now, let's refactor the methods in `ScriptListener` to use `ScriptEventDetails`. I will show the refactoring for `onScriptExecution` and `onScriptOutput` methods as an example:
+
+```java
+// Original method signatures
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull Object feature, 
+                               @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull Object feature, 
+                            @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {
+}
+
+// Refactored method signatures
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, 
+                               @NonNull ScriptEventDetails details) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventDetails details) {
+}
+```
+
+The calls to these methods should be updated accordingly, replacing the separate parameters with an instance of `ScriptEventDetails`.
+
+Here is how you would update the call in `fireScriptExecution` and `fireScriptOutput`:
+
+```java
+// Original calls
+ScriptListener.fireScriptExecution(script, binding, feature, context, correlationId, user);
+ScriptListener.fireScriptOutput(output, feature, context, correlationId, user);
+
+// Updated calls using ScriptEventDetails
+ScriptEventDetails details = new ScriptEventDetails(feature, context, correlationId, user);
+ScriptListener.fireScriptExecution(script, binding, details);
+ScriptListener.fireScriptOutput(output, details);
+```
+
+All other instances where these parameters are used together should also be refactored in a similar way, replacing the parameters with a `ScriptEventDetails` object.

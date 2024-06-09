@@ -1,0 +1,128 @@
+The data clump here consists of the common parameters: `Object feature`, `Object context`, `String correlationId`, and `User user`. These parameters appear in multiple methods across the `ScriptListener` interface, the `ListenerWriter` class, and the `DefaultScriptListener` class.
+
+To refactor these data clumps, we will create a new class called `ScriptContext` that encapsulates these common parameters. Here is the content of the extracted class:
+
+```java
+public class ScriptContext {
+    @NonNull
+    private final Object feature;
+    @CheckForNull
+    private final Object context;
+    @NonNull
+    private final String correlationId;
+    @CheckForNull
+    private final User user;
+
+    public ScriptContext(@NonNull Object feature, @CheckForNull Object context, @NonNull String correlationId, @CheckForNull User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    @NonNull
+    public Object getFeature() {
+        return feature;
+    }
+
+    @CheckForNull
+    public Object getContext() {
+        return context;
+    }
+
+    @NonNull
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    @CheckForNull
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Next, we'll update all methods in the `ScriptListener` interface to use an instance of `ScriptContext`, and similarly for other classes where the data clump is found:
+
+**ScriptListener.java**
+```java
+// ... (omitted unchanged code)
+
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptContext scriptContext) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptContext scriptContext) {
+}
+
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptContext scriptContext) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, scriptContext));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptContext scriptContext) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, scriptContext));
+}
+
+// ListenerWriter now will also use the ScriptContext class
+public class ListenerWriter extends Writer {
+    // ... (omitted unchanged code)
+    private ScriptContext scriptContext;
+
+    public ListenerWriter(Writer writer, ScriptContext scriptContext) {
+        this.writer = writer;
+        this.scriptContext = scriptContext;
+    }
+
+    @Override
+    public void write(@NonNull char[] cbuf, int off, int len) throws IOException {
+        ScriptListener.fireScriptOutput(String.copyValueOf(cbuf, off, len), scriptContext);
+        writer.write(cbuf, off, len);
+    }
+    
+    // ... (omitted unchanged code)
+}
+```
+
+**DefaultScriptListener.java**
+```java
+// ... (omitted unchanged code)
+
+@Override
+public void onScriptExecution(String script, Binding binding, @NonNull ScriptContext scriptContext) {
+    // ... (Refactor method to use scriptContext)
+}
+
+@Override
+public void onScriptOutput(String output, @NonNull ScriptContext scriptContext) {
+    // ... (Refactor method to use scriptContext)
+}
+
+// ... (omitted unchanged code)
+```
+
+The client code in `GroovyCommand.java`, `GroovyshCommand.java`, `RemotingDiagnostics.java`, and `GroovyHookScript.java` will also need to be updated to create a `ScriptContext` instance and pass it to the refactored methods:
+
+```java
+// GroovyCommand.java
+ScriptContext scriptContext = new ScriptContext(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(script, binding, scriptContext);
+// ... (omitted unchanged code)
+
+// GroovyshCommand.java
+ScriptContext scriptContext = new ScriptContext(GroovyshCommand.class, null, scriptListenerCorrelationId, User.current());
+ScriptListener.fireScriptExecution(null, null, scriptContext);
+// ... (omitted unchanged code)
+
+// RemotingDiagnostics.java
+ScriptContext scriptContext = new ScriptContext(RemotingDiagnostics.class, context, correlationId, User.current());
+ScriptListener.fireScriptExecution(script, new Binding(), scriptContext);
+String output = channel.call(new Script(script));
+ScriptListener.fireScriptOutput(output, scriptContext);
+// ... (omitted unchanged code)
+
+// GroovyHookScript.java
+ScriptContext scriptContext = new ScriptContext(this.getClass(), s.getFile(), this.getClass().getName() + ":" + hook, User.current());
+ScriptListener.fireScriptExecution(s.getScriptText(), bindings, scriptContext);
+// ... (omitted unchanged code)
+```
+
+You'll notice that the new `ScriptContext` class is being used in all the places where the data clump was originally present, removing the redundancy and making the codebase cleaner and more maintainable.

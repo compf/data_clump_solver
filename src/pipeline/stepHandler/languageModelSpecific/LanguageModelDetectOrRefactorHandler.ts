@@ -365,12 +365,17 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                    
                 }
                 console.log(path)
-                //fs.writeFileSync(path,fileContent)
+                if(this.doWrite)
+                    fs.writeFileSync(path,fileContent)
             }
+            if(this.doWrite){
             for(let extractedClassPath of Object.keys(content.extractedClasses)){
-                let path = resolve(context.getProjectPath(), extractedClassPath)
-                //fs.writeFileSync(path,content.extractedClasses[extractedClassPath])
+                let dirPath=path.dirname(resolve(context.getProjectPath(), extractedClassPath))
+                fs.mkdirSync(dirPath,{recursive:true})
+                let outPath = resolve(context.getProjectPath(), extractedClassPath)
+                fs.writeFileSync(outPath,content.extractedClasses[extractedClassPath])
             }
+        }
         }
         console.log("return")
         return content
@@ -381,8 +386,12 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         step.providedApi = api
         return step
     }
-    constructor(args: { handlers: string[] }) {
+    private  doWrite: boolean=false;
+    constructor(args: { handlers: string[],readOnly?:boolean }) {
         super();
+        if(args.readOnly!=null && !args.readOnly){
+            this.doWrite=false;
+        }
         for (let handler of args.handlers) {
             this.handlers.push(resolveFromConcreteName(handler) as LargeLanguageModelHandler)
         }

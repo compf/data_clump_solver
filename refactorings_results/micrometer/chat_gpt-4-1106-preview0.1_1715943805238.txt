@@ -1,0 +1,178 @@
+It appears that both `GrpcClientObservationContext` and `GrpcServerObservationContext` classes have a data clump where the following fields are common:
+
+- `serviceName: String`
+- `methodName: String`
+- `fullMethodName: String`
+- `methodType: MethodType`
+- `statusCode: Code`
+- `authority: String`
+- `headers: Metadata`
+- `trailers: Metadata`
+
+To refactor this, we can create a new class that encapsulates these fields. Let's call this class `GrpcRequestContext`. I will then update `GrpcClientObservationContext` and `GrpcServerObservationContext` to use an instance of this new class.
+
+Let's create `GrpcRequestContext` first:
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcRequestContext.java***
+```java
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.grpc.Status.Code;
+import io.micrometer.common.lang.Nullable;
+
+/**
+ * Encapsulates the context of a gRPC request.
+ */
+public class GrpcRequestContext {
+    private String serviceName;
+    private String methodName;
+    private String fullMethodName;
+    private MethodType methodType;
+    @Nullable
+    private Code statusCode;
+    private String authority;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // Getters and setters for each field
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+
+    public void setFullMethodName(String fullMethodName) {
+        this.fullMethodName = fullMethodName;
+    }
+
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    public void setMethodType(MethodType methodType) {
+        this.methodType = methodType;
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(Code statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String getAuthority() {
+        return authority;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public Metadata getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Metadata headers) {
+        this.headers = headers;
+    }
+
+    public Metadata getTrailers() {
+        return trailers;
+    }
+
+    public void setTrailers(Metadata trailers) {
+        this.trailers = trailers;
+    }
+}
+```
+
+Now, let's refactor `GrpcClientObservationContext` and `GrpcServerObservationContext` to use `GrpcRequestContext`.
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java***
+```java
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.transport.Propagator.Setter;
+import io.micrometer.observation.transport.RequestReplySenderContext;
+
+/**
+ * {@link Observation.Context} for gRPC client.
+ */
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcRequestContext grpcRequestContext = new GrpcRequestContext();
+
+    public GrpcClientObservationContext(Setter<Metadata> setter) {
+        super(setter);
+    }
+
+    // Delegate getters and setters to the GrpcRequestContext instance
+
+    public String getServiceName() {
+        return grpcRequestContext.getServiceName();
+    }
+
+    public void setServiceName(String serviceName) {
+        grpcRequestContext.setServiceName(serviceName);
+    }
+    
+    // ... (All the other getters and setters are similarly delegated to grpcRequestContext)
+}
+```
+
+***micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcServerObservationContext.java***
+```java
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.transport.Propagator.Getter;
+import io.micrometer.observation.transport.RequestReplyReceiverContext;
+
+/**
+ * {@link Observation.Context} for gRPC server.
+ */
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcRequestContext grpcRequestContext = new GrpcRequestContext();
+
+    public GrpcServerObservationContext(Getter<Metadata> getter) {
+        super(getter);
+    }
+
+    // Delegate getters and setters to the GrpcRequestContext instance
+
+    public String getServiceName() {
+        return grpcRequestContext.getServiceName();
+    }
+
+    public void setServiceName(String serviceName) {
+        grpcRequestContext.setServiceName(serviceName);
+    }
+    
+    // ... (All the other getters and setters are similarly delegated to grpcRequestContext)
+}
+```
+
+By doing this, we have removed the data clump by refactoring the common fields into a shared class, `GrpcRequestContext`. Both `GrpcClientObservationContext` and `GrpcServerObservationContext` now use this class, simplifying their structure and reducing redundancy.

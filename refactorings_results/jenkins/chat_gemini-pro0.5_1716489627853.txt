@@ -1,0 +1,101 @@
+Based on the code snippets provided, we have a data clump consisting of the following parameters:
+
+1. `Object feature`
+2. `Object context`
+3. `String correlationId`
+4. `User user`
+
+These parameters are repeated across multiple methods in `ScriptListener.java` and related classes, which qualifies as a data clump according to the given definition. We can extract these into a single class, which we will call `ScriptEventContext`.
+
+Let's create the `ScriptEventContext` class:
+
+```java
+import hudson.model.User;
+
+public class ScriptEventContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptEventContext(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+Now we will refactor the method signatures and usages in all the given classes to use the new `ScriptEventContext` class.
+
+For example, in `ScriptListener.java`, the `onScriptExecution` method signature would change to:
+
+```java
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+}
+```
+
+And the related method to fire the event would change to:
+
+```java
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, context));
+}
+```
+
+Similarly, the `onScriptOutput` method signature would change to:
+
+```java
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+}
+```
+
+And the `fireScriptOutput` method would change to:
+
+```java
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptEventContext context) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, context));
+}
+```
+
+Additionally, you would have to refactor the constructor and the `write` methods in the `ListenerWriter` and the OutputStream anonymous class to use the `ScriptEventContext`.
+
+For the `DefaultScriptListener`, the methods would be updated to receive `ScriptEventContext` instead of individual parameters and extract values from the `context` object.
+
+The other classes, such as `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript`, will also need to be refactored to create and pass an instance of `ScriptEventContext` instead of individual parameters to the `ScriptListener` methods. 
+
+Here is an example for `GroovyCommand`:
+
+```java
+public class GroovyCommand {
+    // ...
+    public int execute() {
+        ScriptEventContext context = new ScriptEventContext(GroovyCommand.class, null, scriptListenerCorrelationId, User.current());
+        GroovyShell groovy = new GroovyShell(Jenkins.get().getPluginManager().uberClassLoader, binding);
+        String script = loadScript();
+        ScriptListener.fireScriptExecution(script, binding, context);
+        groovy.run(script, "RemoteClass", remaining.toArray(new String[0]));
+        return 0;
+    }
+    // ...
+}
+```
+
+Make sure to replace all the occurrences of the data clump in the provided classes with the new `ScriptEventContext` class. Each class would require changes in method signatures and method calls to the refactored form to accommodate the new class holding the data clump.

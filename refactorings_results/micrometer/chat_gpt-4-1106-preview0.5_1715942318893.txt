@@ -1,0 +1,171 @@
+In both provided files (`GrpcClientObservationContext` and `GrpcServerObservationContext`), there are common fields that represent similar gRPC context information. The fields are:
+
+1. serviceName (String)
+2. methodName (String)
+3. fullMethodName (String)
+4. methodType (MethodType)
+5. statusCode (Code) - with nullable annotation
+6. authority (String) - with nullable annotation
+7. headers (Metadata)
+8. trailers (Metadata)
+
+Since these fields are a data clump according to the definition, I'll extract them into a new class called `GrpcObservationContextDetails` and refactor both `GrpcClientObservationContext` and `GrpcServerObservationContext` to have an instance of this extracted class.
+
+Here is the content of the new class `GrpcObservationContextDetails` and the refactored `GrpcClientObservationContext` and `GrpcServerObservationContext`:
+
+## MARKDOWN
+*** <path to new class: io/micrometer/core/instrument/binder/grpc/GrpcObservationContextDetails.java>
+Java```
+package io.micrometer.core.instrument.binder.grpc;
+
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor.MethodType;
+import io.grpc.Status.Code;
+import io.micrometer.common.lang.Nullable;
+
+/**
+ * Details for gRPC observation context shared between client and server.
+ */
+public class GrpcObservationContextDetails {
+
+    private String serviceName;
+    private String methodName;
+    private String fullMethodName;
+    private MethodType methodType;
+    @Nullable
+    private Code statusCode;
+    @Nullable
+    private String authority;
+    private Metadata headers;
+    private Metadata trailers;
+
+    // Getters and setters for all fields
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public String getFullMethodName() {
+        return fullMethodName;
+    }
+
+    public void setFullMethodName(String fullMethodName) {
+        this.fullMethodName = fullMethodName;
+    }
+
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    public void setMethodType(MethodType methodType) {
+        this.methodType = methodType;
+    }
+
+    @Nullable
+    public Code getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(Code statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    @Nullable
+    public String getAuthority() {
+        return authority;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public Metadata getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Metadata headers) {
+        this.headers = headers;
+    }
+
+    public Metadata getTrailers() {
+        return trailers;
+    }
+
+    public void setTrailers(Metadata trailers) {
+        this.trailers = trailers;
+    }
+}
+```
+
+*** <path to refactored file: io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java>
+Java```
+// same package and imports remain
+
+public class GrpcClientObservationContext extends RequestReplySenderContext<Metadata, Object> {
+
+    private GrpcObservationContextDetails contextDetails = new GrpcObservationContextDetails();
+
+    public GrpcClientObservationContext(Setter<Metadata> setter) {
+        super(setter);
+    }
+
+    // Delegate getters and setters to contextDetails
+
+    public String getServiceName() {
+        return contextDetails.getServiceName();
+    }
+
+    public void setServiceName(String serviceName) {
+        contextDetails.setServiceName(serviceName);
+    }
+
+    // ... and so on for other delegate methods
+
+    // Additional methods specific to GrpcClientObservationContext if any
+
+}
+```
+
+*** <path to refactored file: io/micrometer/core/instrument/binder/grpc/GrpcServerObservationContext.java>
+Java```
+// same package and imports remain
+
+public class GrpcServerObservationContext extends RequestReplyReceiverContext<Metadata, Object> {
+
+    private GrpcObservationContextDetails contextDetails = new GrpcObservationContextDetails();
+
+    public GrpcServerObservationContext(Getter<Metadata> getter) {
+        super(getter);
+    }
+
+    // Delegate getters and setters to contextDetails
+
+    public String getServiceName() {
+        return contextDetails.getServiceName();
+    }
+
+    public void setServiceName(String serviceName) {
+        contextDetails.setServiceName(serviceName);
+    }
+
+    // ... and so on for other delegate methods
+
+    // Additional methods specific to GrpcServerObservationContext if any
+
+}
+```
+##END MARKDOWN
+
+Refactoring both classes in such manner removes the data clump by encapsulating the shared gRPC context details into a single class, thus improving code maintainability and reducing duplication.

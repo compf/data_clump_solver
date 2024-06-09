@@ -1,0 +1,86 @@
+Let's identify the data clumps from the provided code snippets.
+
+From the provided snippets in `ScriptListener.java`, the following common fields are identified between methods `onScriptExecution`, `onScriptOutput`, `fireScriptExecution`, `fireScriptOutput`, and across the `ListenerWriter` and `OutputStream` inner class constructors:
+
+1. `Object feature`
+2. `Object context`
+3. `String correlationId`
+4. `User user`
+
+These four parameters/fields are repeated across various methods and constructors, satisfying the third condition for a data clump between methods and fields. We can refactor this by creating a new class representing the data clump. Let's call this class `ScriptContext`.
+
+### Content of the extracted `ScriptContext` class:
+
+```java
+// New ScriptContext class to encapsulate the repeated fields/parameters
+public class ScriptContext {
+    private final Object feature;
+    private final Object context;
+    private final String correlationId;
+    private final User user;
+
+    public ScriptContext(Object feature, Object context, String correlationId, User user) {
+        this.feature = feature;
+        this.context = context;
+        this.correlationId = correlationId;
+        this.user = user;
+    }
+
+    // Getters for each field
+    public Object getFeature() {
+        return feature;
+    }
+
+    public Object getContext() {
+        return context;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+}
+```
+
+### Updated `ScriptListener` interface with refactored methods:
+```java
+// Updated methods to use ScriptContext
+default void onScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptContext scriptContext) {
+}
+
+default void onScriptOutput(@CheckForNull String output, @NonNull ScriptContext scriptContext) {
+}
+```
+
+### Updated `ScriptListener` static methods:
+```java
+// Refactored static methods now take ScriptContext as a parameter
+static void fireScriptExecution(@CheckForNull String script, @CheckForNull Binding binding, @NonNull ScriptContext scriptContext) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptExecution(script, binding, scriptContext));
+}
+
+static void fireScriptOutput(@CheckForNull String output, @NonNull ScriptContext scriptContext) {
+    Listeners.notify(ScriptListener.class, true, listener -> listener.onScriptOutput(output, scriptContext));
+}
+```
+
+### Updated inner classes constructors and methods in `ScriptListener`:
+```java
+// ListenerWriter and OutputStream inner classes also need to be refactored to use ScriptContext
+public ListenerWriter(Writer writer, ScriptContext scriptContext) {
+    // ... initialization code using scriptContext
+}
+
+// Methods inside ListenerWriter and OutputStream inner classes should now use scriptContext instead of individual parameters
+
+// OutputStream class is similarly refactored
+```
+
+The rest of the classes that make use of `fireScriptExecution` and `fireScriptOutput` methods must also be updated to create and pass `ScriptContext` objects instead of the individual parameters. These changes should be propagated to all usages in `DefaultScriptListener`, `GroovyCommand`, `GroovyshCommand`, `RemotingDiagnostics`, and `GroovyHookScript`. 
+
+Remember that this update also affects any additional places in the codebase that use the refactored methods; all of them should now construct a `ScriptContext` object and pass it instead of the individual fields.
+
+This refactoring simplifies the method signatures and makes it easier to manage the related pieces of data, as well as to extend the `ScriptContext` class in the future if necessary.
