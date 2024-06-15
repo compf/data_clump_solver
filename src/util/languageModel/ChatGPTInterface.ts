@@ -1,8 +1,8 @@
 import fs from "fs"
 import OpenAI from 'openai';
-import { ChatMessage, LanguageModelInterface, MessageType, TokenStats } from "./LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel, MessageType, TokenStats } from "./AbstractLanguageModel";
 type Formats="json_object"|"text"
-export class ChatGPTInterface extends LanguageModelInterface{
+export class ChatGPTInterface extends AbstractLanguageModel{
     private api:OpenAI;
     private format?:string="text"
     constructor(args:{model:string,temperature:number,format?:Formats}|undefined){

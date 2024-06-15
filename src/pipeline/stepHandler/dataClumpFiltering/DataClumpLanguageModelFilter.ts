@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
-import { LanguageModelInterface } from "../../../util/languageModel/LanguageModelInterface";
+import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { PipeLineStepType } from "../../PipeLineStep";
 import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/LargeLanguageModelHandlers";
@@ -16,7 +16,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
         dcContext.serialize()
        let simplified= this.simplifyJson(dcContext.getDataClumpDetectionResult())
        console.log(Object.keys(simplified.data_clumps).length)
-       let api=resolveFromInterfaceName("LanguageModelInterface") as LanguageModelInterface
+       let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
        let resolver=new LanguageModelTemplateResolver({})
        for(let h of this.handlers){
         h.handle(context,api,resolver)

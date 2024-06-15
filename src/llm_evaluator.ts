@@ -3,7 +3,7 @@ import fs from "fs"
 import { createHash } from 'node:crypto'
 import { getRelevantFilesRec } from "./util/Utils";
 import { FileFilteringContext } from "./context/DataContext";
-import { ChatMessage } from "./util/languageModel/LanguageModelInterface";
+import { ChatMessage } from "./util/languageModel/AbstractLanguageModel";
 if(require.main==module){
 const ground_truth_filtered = JSON.parse(fs.readFileSync("llm_results/argoUml/detect/ground_truth_filtered.json", { encoding: "utf-8" }))
 const ground_truth_full = JSON.parse(fs.readFileSync("llm_results/argoUml/detect/ground_truth_full.json", { encoding: "utf-8" }))

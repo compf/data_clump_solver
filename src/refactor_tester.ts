@@ -10,7 +10,7 @@ import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection
 import { sys } from "typescript";
 
 import { loadConfiguration, resolveFromInterfaceName } from "./config/Configuration";
-import { LanguageModelInterface } from "./util/languageModel/LanguageModelInterface"
+import { AbstractLanguageModel } from "./util/languageModel/AbstractLanguageModel"
 import { waitSync } from "./util/Utils"
 const models=[
    "gpt-4-1106-preview",
@@ -56,7 +56,7 @@ async function main(){
             result[model][tempStr]=[]
         }
       
-        let api=resolveFromInterfaceName("LanguageModelInterface");
+        let api=resolveFromInterfaceName("AbstractLanguageModel");
         (api as any).temperature=temp;
         (api as any).model=model;
         console.log(model,temp)

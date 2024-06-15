@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { ChatMessage, LanguageModelInterface, MessageType } from "./LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import fs from "fs"
-export class GeminiInterface implements LanguageModelInterface{
+export class GeminiInterface implements AbstractLanguageModel{
     private model:string="gemini-pro"
     private temperature:number=0.9
     completions: { history: { role: string; parts: {text:string}[]; }[]; }={history:[]};

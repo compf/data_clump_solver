@@ -10,7 +10,7 @@ import { PipeLine } from "./pipeline/PipeLine";
 import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, RefactoredContext } from "./context/DataContext";
 import { LanguageModelDetectOrRefactorHandler } from "./pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
 import { AllFilesHandler, LargeLanguageModelHandler, PairOfFileContentHandler, SendAndClearHandler, SimpleInstructionHandler, SingleFileHandler } from "./pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
-import { ChatMessage, LanguageModelInterface } from "./util/languageModel/LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel } from "./util/languageModel/AbstractLanguageModel";
 import { OllamaInterface } from "./util/languageModel/OllamaInterface";
 import { waitSync } from "./util/Utils";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
@@ -45,7 +45,7 @@ function createDataHandler(name:string):LargeLanguageModelHandler{
     }
 }
 let phindra:OllamaInterface|null=null;
-function createAPI(apiType: string, model: string, temperature: number): LanguageModelInterface {
+function createAPI(apiType: string, model: string, temperature: number): AbstractLanguageModel {
     if(apiType=="PhindraInterface"){
         if(phindra==null)phindra=new OllamaInterface({model,temperature,outputCheckers:[]});
         return phindra;

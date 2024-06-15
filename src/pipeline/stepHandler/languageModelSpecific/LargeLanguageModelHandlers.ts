@@ -3,7 +3,7 @@ import fs from "fs"
 import { Minimatch } from "minimatch";
 import path from "path";
 import { resolve } from "path";
-import { ChatMessage, LanguageModelInterface, MessageType } from "../../../util/languageModel/LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel, MessageType } from "../../../util/languageModel/AbstractLanguageModel";
 import { getRelevantFilesRec } from "../../../util/Utils";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
 export type DependentOnAnotherIteratorReturnType = { messages: string[]; clear: boolean; shallSend: boolean }
@@ -12,11 +12,11 @@ export type StateInformationType = { hasOtherFinished: boolean, context: DataClu
 
 export abstract class LargeLanguageModelHandler {
 
-    abstract handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]>;
+    abstract handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]>;
 }
 export class SimpleInstructionHandler extends LargeLanguageModelHandler {
     private instructionPath: string
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let template = fs.readFileSync(this.instructionPath, { encoding: "utf-8" })
         let content = templateResolver.resolveTemplate(template)
         let messages = [api.prepareMessage(content,this.getMessageType())]
@@ -44,7 +44,7 @@ export class SystemInstructionHandler extends SimpleInstructionHandler {
 export class AllFilesHandler extends LargeLanguageModelHandler {
     protected allFiles: string[] = []
     fileFilteringContext: FileFilteringContext | null = null;
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
 
         getRelevantFilesRec(context.getProjectPath(), this.allFiles, context.getByType(FileFilteringContext))
         let messages: string[] = []
@@ -90,7 +90,7 @@ export class PairOfFileContentHandler  implements ReExecutePreviousHandlers {
     private index = 0;
     private singleFileHandler: SingleFileHandler | null = null;
     private singleFileMode = false;
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         if (this.fileTuples == null) {
             this.fileTuples = this.getFileTuples(context);
             this.singleFileHandler = new SingleFileHandler();
@@ -123,7 +123,7 @@ export class PairOfFileContentHandler  implements ReExecutePreviousHandlers {
 export class SingleFileHandler extends LargeLanguageModelHandler implements ReExecutePreviousHandlers {
     private files: string[] | null = null
     private index = 0
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         if (this.files == null) {
             this.files = []
             getRelevantFilesRec(context.getProjectPath(), this.files, context.getByType(FileFilteringContext))
@@ -155,7 +155,7 @@ export class DirectoryBasedFilesHandler extends LargeLanguageModelHandler implem
     shallReExecute(): boolean {
         return this.index < this.baseDirs.length;
     }
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         if (this.allFiles == null) {
             this.allFiles = []
             getRelevantFilesRec(context.getProjectPath(), this.allFiles, context.getByType(FileFilteringContext))
@@ -184,7 +184,7 @@ export class DirectoryBasedFilesHandler extends LargeLanguageModelHandler implem
 }
 export class CodeSnippetHandler extends LargeLanguageModelHandler {
     private additionalMargin=2
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let usageContext=context.getByType(UsageFindingContext)
         if(usageContext==null){
             throw new Error("Usage context not found")
@@ -250,14 +250,14 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
     }
 }
 export class SendAndClearHandler extends LargeLanguageModelHandler {
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         return api.sendMessages(true).then((x) => {
             return [x]
         })
     }
 }
 export class SendHandler extends LargeLanguageModelHandler {
-    handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         return Promise.resolve([])
     }
 }
@@ -276,7 +276,7 @@ export class RandomIterationsDecider implements RandomDecider {
 }
 export class RepeatInstructionRandomlyHandler extends SimpleInstructionHandler {
     private decider: RandomDecider = new RandomIterationsDecider({ minIterations: 1, maxIterations: 5 })
-    async handle(context: DataClumpRefactoringContext, api: LanguageModelInterface, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let results: ChatMessage[] = []
         while (this.decider.decide(context)) {
             let res = await super.handle(context, api, templateResolver)

@@ -3,10 +3,10 @@ import net from "net"
 
 
 
-import { ChatMessage, LanguageModelInterface, MessageType } from "./LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import { OutputChecker } from "./OutputChecker"
 
-export class StubInterface extends LanguageModelInterface{
+export class StubInterface extends AbstractLanguageModel{
 
     private responsePath:string="stuff/response.txt"
 

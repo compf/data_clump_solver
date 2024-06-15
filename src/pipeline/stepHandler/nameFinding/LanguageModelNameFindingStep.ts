@@ -1,6 +1,6 @@
 import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { DataClumpRefactoringContext } from "../../../context/DataContext";
-import { LanguageModelInterface } from "../../../util/languageModel/LanguageModelInterface";
+import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
@@ -13,10 +13,10 @@ export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandle
     async getSuggestedName(variableInfos: {name:string,type:string}[],context:DataClumpRefactoringContext,counter:number): Promise<string | null> {
         if (!this.languageModel) {
             if( this.args==undefined || !this.args.languageModelName){
-                this.languageModel=resolveFromInterfaceName(LanguageModelInterface.name) as LanguageModelInterface
+                this.languageModel=resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
             }
             else{
-            this.languageModel = resolveFromConcreteName(this.args.languageModelName) as LanguageModelInterface;
+            this.languageModel = resolveFromConcreteName(this.args.languageModelName) as AbstractLanguageModel;
             }
         }
         let resolver=resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
@@ -30,7 +30,7 @@ export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandle
         let suggestedName=await this.languageModel.sendMessages(false);
         return JSON.parse(suggestedName.messages[0]).suggested_name
     }
-    languageModel: LanguageModelInterface | null = null;
+    languageModel: AbstractLanguageModel | null = null;
     args: any
 
 

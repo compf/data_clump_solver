@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { ChatMessage, LanguageModelInterface, MessageType, TokenStats } from "./LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel, MessageType, TokenStats } from "./AbstractLanguageModel";
 import fs from "fs"
-export class ClaudeInterface implements LanguageModelInterface{
+export class ClaudeInterface implements AbstractLanguageModel{
     private model:string="gemini-pro"
     private temperature:number=0.9
    private messages: { role: "user"|"assistant"; content:string }[]=[];

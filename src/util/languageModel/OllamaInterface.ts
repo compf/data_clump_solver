@@ -9,12 +9,12 @@ globalThis[Symbol.for("undici.globalDispatcher.1")] = new Agent({
     headersTimeout: 1000 * 60 * 60 * 24,
 });
 import http from "https"
-import { ChatMessage, LanguageModelInterface, MessageType } from "./LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import ChildProcessWithoutNullStreams = require("child_process");
 import { OutputChecker } from "./OutputChecker"
 import { resolveFromConcreteName } from "../../config/Configuration"
 import { coerceBoolean } from "openai/core.mjs"
-export class OllamaInterface extends LanguageModelInterface {
+export class OllamaInterface extends AbstractLanguageModel {
     private static staticClient: net.Socket | null = null;
     private shallClear = false;
     private newMessages: string[] = []

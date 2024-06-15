@@ -11,7 +11,7 @@ import path from "path";
 import { resolve } from "path"
 import { getContextSerializationPath, registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
-import { ChatMessage, LanguageModelInterface, LanguageModelInterfaceCategory } from "../../../util/languageModel/LanguageModelInterface";
+import { ChatMessage, AbstractLanguageModel, AbstractLanguageModelCategory } from "../../../util/languageModel/AbstractLanguageModel";
 import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
@@ -23,7 +23,7 @@ function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHa
 }
 export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
-    private providedApi: LanguageModelInterface | null = null
+    private providedApi: AbstractLanguageModel | null = null
     deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
         let path=getContextSerializationPath(PipeLineStep.DataClumpDetection.name,context)
         if( step== PipeLineStep.DataClumpDetection && fs.existsSync(path)){
@@ -56,12 +56,12 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     }
      relevantFiles:string[]=[]
     async handle(step:PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let api: LanguageModelInterface;
+        let api: AbstractLanguageModel;
         if (this.providedApi != null) {
             api = this.providedApi
         }
         else {
-            api = resolveFromInterfaceName(LanguageModelInterface.name) as LanguageModelInterface
+            api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
         }
         let templateResolver = resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
         this.providedApi = api
@@ -380,7 +380,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         console.log("return")
         return content
     }
-    static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: LanguageModelInterface): LanguageModelDetectOrRefactorHandler {
+    static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: AbstractLanguageModel): LanguageModelDetectOrRefactorHandler {
         let step = new LanguageModelDetectOrRefactorHandler({ handlers: [] })
         step.handlers = handlers
         step.providedApi = api
