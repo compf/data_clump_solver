@@ -12,4 +12,5 @@ export abstract class AbstractLanguageModel {
      abstract sendMessages(clear: boolean): Promise<ChatMessage>
      abstract clear(): void
      abstract getTokenStats():TokenStats
+     abstract resetParameters(parameters:{temperature:number,model:string})
 }

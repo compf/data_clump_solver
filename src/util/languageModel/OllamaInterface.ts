@@ -43,7 +43,7 @@ export class OllamaInterface extends AbstractLanguageModel {
         this.messages = []
     }
     private messages: Message[] = []
-    private format=undefined
+    private format = undefined
     private lastUsage = {
         prompt_tokens: 0,
         completion_tokens: 0,
@@ -56,11 +56,11 @@ export class OllamaInterface extends AbstractLanguageModel {
         console.log("ONLY Json", onlyJson);
         return onlyJson;
     }
-    getContextSize():number{
-        let result=0
-        switch(this.model){
+    getContextSize(): number {
+        let result = 0
+        switch (this.model) {
             default:
-                result= 1<<14;
+                result = 1 << 14;
         }
         return result
     }
@@ -77,15 +77,15 @@ export class OllamaInterface extends AbstractLanguageModel {
             model: this.model,
             options: {
                 temperature: this.temperature,
-                num_ctx:this.getContextSize()
+                num_ctx: this.getContextSize()
             },
             messages: this.messages,
-            format:this.format,stream: false
+            format: this.format, stream: false
         })
-        this.lastUsage={
+        this.lastUsage = {
             prompt_tokens: response.prompt_eval_count,
             completion_tokens: response.eval_count,
-            total_tokens:response.prompt_eval_count+response.eval_count
+            total_tokens: response.prompt_eval_count + response.eval_count
         }
         console.log(response)
         this.messages.push({ content: response.message.content, role: "assistant" })
@@ -101,15 +101,19 @@ export class OllamaInterface extends AbstractLanguageModel {
         })
 
 
-
-
-
     }
 
 
 
 
 
+    resetParameters(parameters: { temperature: number; model: string; }) {
+      
+
+        this.model=parameters.model
+        this.temperature=parameters.temperature
+
+    }
 
 
 
@@ -126,7 +130,7 @@ export class OllamaInterface extends AbstractLanguageModel {
         if (messageType == "system") {
             role = "system"
         }
-       
+
         this.messages.push({ content: message, role })
         return chatMsg;
 

@@ -52,5 +52,14 @@ export class GeminiInterface implements AbstractLanguageModel{
     getTokenStats(): { prompt_tokens: number; completion_tokens: number; total_tokens: number; } {
         return {} as any
     }
+    resetParameters(parameters: { temperature: number; model: string; }) {
+        const genAI = new GoogleGenerativeAI(fs.readFileSync("tokens/GOOGLE_API_KEY",{encoding:"utf-8"}));
+
+        this.model=parameters.model
+        this.temperature=parameters.temperature
+        this.api=genAI.getGenerativeModel({ model: this.model,generationConfig:{
+            temperature:this.temperature
+        }});
+    }
 
 }

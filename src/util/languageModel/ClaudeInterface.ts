@@ -73,5 +73,9 @@ export class ClaudeInterface implements AbstractLanguageModel{
     getTokenStats():TokenStats {
         return this.tokenStats
     }
+    resetParameters(parameters: { temperature: number; model: string; }) {
+        this.model=parameters.model
+        this.temperature=parameters.temperature
+    }
 
 }

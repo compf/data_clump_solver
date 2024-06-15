@@ -3,8 +3,14 @@ import OpenAI from 'openai';
 import { ChatMessage, AbstractLanguageModel, MessageType, TokenStats } from "./AbstractLanguageModel";
 type Formats="json_object"|"text"
 export class ChatGPTInterface extends AbstractLanguageModel{
+
+    resetParameters(parameters: { temperature: number; model: string; }) {
+        this.completions.model=parameters.model
+        this.completions.temperature=parameters.temperature
+    }
     private api:OpenAI;
     private format?:string="text"
+    
     constructor(args:{model:string,temperature:number,format?:Formats}|undefined){
         super();
         let model:string
@@ -42,6 +48,7 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         completion_tokens: 0,
         total_tokens: 0
     }
+    
     loadToken():string{
         return fs.readFileSync("tokens/CHATGPT_TOKEN",{encoding:"utf-8"})
     }

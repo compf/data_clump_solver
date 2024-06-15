@@ -20,7 +20,6 @@ export class StubInterface extends AbstractLanguageModel{
         this.messages=[]
     }
     private  messages:string[]=[]
-    private outputCheckers:OutputChecker[]=[]
     private lastUsage={
         prompt_tokens: 0,
         completion_tokens: 0,
@@ -51,6 +50,9 @@ export class StubInterface extends AbstractLanguageModel{
         this.messages.push(message)
         return chatMsg; 
            
+    }
+    resetParameters(parameters: { temperature: number; model: string; }) {
+        
     }
  
 }
