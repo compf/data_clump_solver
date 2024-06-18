@@ -123,3 +123,7 @@ export function indexOfSubArray(array:any[],subArray:any[]){
     }
     return -1;
 }
+
+export function randInt(max:number){
+    return Math.floor(max*Math.random())
+}
