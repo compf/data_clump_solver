@@ -10,6 +10,9 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
             //throw "cool"
             {
                 const ast_out_path = resolve("./temp")
+                if(!fs.existsSync(ast_out_path)){
+                    return null;
+                }
                 let astContext=new ASTBuildingContext()
                 let any=false;
                 for(let p of fs.readdirSync(ast_out_path)){

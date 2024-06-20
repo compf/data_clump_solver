@@ -1,4 +1,4 @@
-import { DataClumpRefactoringContext, FileFilteringContext, UsageFindingContext } from "../../../context/DataContext";
+import { DataClumpRefactoringContext, FileFilteringContext, UsageFindingContext, RelevantLocationsContext } from "../../../context/DataContext";
 import fs from "fs"
 import { Minimatch } from "minimatch";
 import path from "path";
@@ -46,9 +46,16 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
     fileFilteringContext: FileFilteringContext | null = null;
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver:LanguageModelTemplateResolver): Promise<ChatMessage[]> {
 
-        getRelevantFilesRec(context.getProjectPath(), this.allFiles, context.getByType(FileFilteringContext))
+        let usageContext=context.getRelevantLocation();
+        if(usageContext==null){
+            throw new Error("Usage context not found")
+        }
+        let pathLinesMap:{[key:string]:Set<number>}={}
+        usageContext.getRelevantLocations( pathLinesMap)
+       
         let messages: string[] = []
-        for (let file of this.allFiles) {
+        for (let file of Object.keys(pathLinesMap)) {
+            file=resolve(context.getProjectPath(),file)
             let name = path.relative(context.getProjectPath(), file)
             let content = fs.readFileSync(file, { encoding: "utf-8" })
             messages.push("//" + name + "\n" + content)
@@ -182,27 +189,35 @@ export class DirectoryBasedFilesHandler extends LargeLanguageModelHandler implem
         return Promise.resolve([api.prepareMessage(message)])
     }
 }
+enum ExtractionDirection{Up, Down, UpAndDown}
+
 export class CodeSnippetHandler extends LargeLanguageModelHandler {
-    private additionalMargin=2
+    private additionalMargin=20
+    private headerMargin=15;
+    generateLines(centerLine:number,margin:number,extractionDirection:ExtractionDirection, lines:Set<number>){
+        let start=extractionDirection==ExtractionDirection.Up || extractionDirection==ExtractionDirection.UpAndDown?centerLine-margin:centerLine;
+        let end=extractionDirection==ExtractionDirection.Down || extractionDirection==ExtractionDirection.UpAndDown?centerLine+margin:centerLine;
+        start=Math.max(0,start);
+        
+        for(let i=start;i<=end;i++){    
+           lines.add(i)
+         
+        }
+    }
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
-        let usageContext=context.getByType(UsageFindingContext)
+        let usageContext=context.getRelevantLocation();
         if(usageContext==null){
             throw new Error("Usage context not found")
         }
         let pathLinesMap:{[key:string]:Set<number>}={}
-        let allUsages=usageContext.getUsages()
-        for(let usages of Object.values(allUsages)){
-            for(let usage of usages){
-                if(usage.filePath.startsWith("/")){
-                    usage.filePath=usage.filePath.slice(1)
-                }
-                if(!(usage.filePath in pathLinesMap)){
-                   
-                    pathLinesMap[usage.filePath]=new Set<number>()
-                }
-                for(let i=usage.range.startLine-this.additionalMargin;i<=usage.range.endLine+this.additionalMargin;i++){    
-                    pathLinesMap[usage.filePath].add(i)
-                }
+        usageContext.getRelevantLocations( pathLinesMap)
+        let pathLinesMapCopy:{[key:string]:Set<number>}={}
+        for(let path of Object.keys(pathLinesMap)){
+            pathLinesMapCopy[path]=new Set<number>();
+
+            for(let line of pathLinesMap[path]){
+               
+            this.generateLines(line,this.additionalMargin,ExtractionDirection.UpAndDown,pathLinesMapCopy[path])
                
             }
         }
@@ -211,15 +226,15 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
             fromLine:number,
             toLine:number
         }[]}={};
-        for(let path of Object.keys(pathLinesMap)){
+        for(let path of Object.keys(pathLinesMapCopy)){
             let content=fs.readFileSync(resolve(context.getProjectPath(),path) ,{encoding:"utf-8"}).split("\n")
             let lastLine=-1
             let fromLine=-1;
             let firstIteration=true;
             resultingMessages[path]=[]
-            let lines=Array.from(pathLinesMap[path] ).sort((a:number,b:number)=>a-b)
+            let lines=Array.from(pathLinesMapCopy[path] ).sort((a:number,b:number)=>a-b)
             for(let line of lines){
-                line=line
+                if(line>=content.length)continue;
                 if(firstIteration){
                     firstIteration=false;
                     fromLine=line

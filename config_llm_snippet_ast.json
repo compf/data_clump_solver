@@ -20,12 +20,26 @@
         "AffectedFilesMetric":{
             
         },
-        "ByTypeNameKeyFilter":{
+        "ByClassNameFilter":{
             "args":{
-                "typeNameKey":    "java.lang.Object context;java.lang.String correlationId;java.lang.Object feature;jenkins.util.hudson.model.User user"
+                "name":    "QuickAssistProcessor"
                     
 
                 
+            }
+        },
+        "AllMultipleFilter":{
+            "args":{
+                "filters":["ByClassNameFilter","ByTypesFilter"]
+            }
+        },
+        "ByTypesFilter":{
+            "args":{
+                "types":[
+                    "IInvocationContext"
+                     , "ASTNode" ,
+                      "Collection<ProposalKindWrapper>"
+                ]
             }
         },
         "SystemInstructionHandler": {
@@ -35,6 +49,7 @@
         },
         "AllFilesHandler": {},
         "SendAndClearHandler": {},
+        "SendHandler":{},
         "LanguageModelTemplateResolver": {
             "args": {
                 "${programming_language}": "Java",
@@ -47,7 +62,7 @@
         },
         "CodeSnippetHandler":{
             "args":{
-                "additionalMargin": 50
+                "additionalMargin": 10
             }
         },
         "RandomRanker": {
@@ -71,28 +86,30 @@
                 "useArgPath": true
             }
         },
+        "FileFiltering":
+        {
+            "handler":"FileFilterHandler",
+            "args":{
+                "include":[".*/pinot-core/src/main/java/org/apache/pinot/core/common/DataFetcher.java.*"],
+                "exclude":[".*"]
+            }
+        },
         
-        "DataClumpDetection": {
-            "handler": "DataClumpDetectorStep",
-            "args": {
-                "metricCombiner": "MetricCombiner",
-                "languageModel": "AbstractLanguageModel",
-                "ranker": "RandomRanker"
-            }
+        "ASTGeneration": {
+            "handler": "DataClumpDoctorASTGeneratorStep"
+           
         },
-        "ReferenceFinding":{
-            "handler":"LanguageServerReferenceAPI","args":{
-                "apiName":"EclipseLSP_API"
-            }
-        },
+       
+        
        
         "Refactoring": {
             "handler": "LanguageModelDetectOrRefactorHandler",
             "args":{
+                "models":["gpt-4-1106-preview"],
                 "handlers":[
                     "SystemInstructionHandler",
                     "CodeSnippetHandler",
-                    "SendAndClearHandler"
+                    "SendHandler"
                 ]
             }
         }

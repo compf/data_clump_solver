@@ -20,7 +20,7 @@ export class FileFilterHandler extends AbstractStepHandler {
             throw new Error("ranker is not compatible with string")
         }
         if(this.include || this.exclude){
-            throw "include and exclude are not supported"
+            //throw "include and exclude are not supported"
             let paths=[]
             getRelevantFilesRec(context.getProjectPath(), paths, new FileFilteringContext(this.include??[],this.exclude??[]))
             //throw "hallo "+paths.length
@@ -76,7 +76,7 @@ export class FileFilterHandler extends AbstractStepHandler {
         let includes: string[] = []
         let excludes: string[] = []
         for (let myPath of filteredPaths) {
-            includes.push("*"+path.relative(context.getProjectPath(), myPath))
+            includes.push(".*/"+path.relative(context.getProjectPath(), myPath).replace(".java","")+".*")
         }
         let projectPath = context.getProjectPath()
         if (projectPath.endsWith("/")) {

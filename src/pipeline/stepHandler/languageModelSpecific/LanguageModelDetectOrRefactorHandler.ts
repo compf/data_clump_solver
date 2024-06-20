@@ -16,7 +16,7 @@ import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
 import { BuildChecker, OutputChecker } from "../../../util/languageModel/OutputChecker";
-import { InteractiveProposalHandler, OutputHandler } from "./OutputHandler";
+import { InteractiveProposalHandler, MultipleBrancheHandler, OutputHandler } from "./OutputHandler";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
@@ -25,7 +25,7 @@ function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHa
 export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: AbstractLanguageModel | null = null
-    private temperatures: number[] = [0.1, 0.5, 0.9]
+    private temperatures: number[] = [0.9]
     private models: string[] = [""]
     private numberAttempts: number = 10;
     private outputHandler:OutputHandler=new InteractiveProposalHandler();
@@ -76,7 +76,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         for (let i = 0; i < this.numberAttempts; i++) {
             api.clear();
             let temperature=this.temperatures[randInt(this.temperatures.length)]
-            let model=this.models[randInt(this.models.length)]
+            let model="gpt-4-1106-preview"
             api.resetParameters({model,temperature})
             let chat: ChatMessage[] = []
 
@@ -134,7 +134,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let code = ""
         let foundPath = false;
         let foundCode = false;
-
+        let changes={}
         const pathRegex = /([a-zA-z]:\\\\)?((\/|\\)?\w+(\\|\/)?)+\.java/gm
         let lines = message.split("\n")
         for (let line of lines) {
@@ -162,6 +162,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     errorMessages.push("I could not identify a valid path in your response. I am processing your response automatically so it is important to mark the path as described")
                 }
                 else {
+                    changes[path]=code
                     //fs.writeFileSync(path,code);
 
                 }
@@ -183,6 +184,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             errorMessages.push("I could not identify a valid path in your response. I am processing your response automatically so it is important to mark the path as described")
 
         }
+        this.outputHandler.handleProposal(changes,context,message);
+
     }
     async tryBuildContext(chat: ChatMessage, step: PipeLineStepType | null, context: DataClumpRefactoringContext) {
         let maxAttempts = 1
@@ -329,12 +332,12 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 }
                 console.log(path)
                 changes[path]=fileContent;
-            if (this.doWrite) {
+           
                 for (let extractedClassPath of Object.keys(content.extractedClasses)) {
                     let outPath = resolve(context.getProjectPath(), extractedClassPath)
                     changes[outPath]=fileContent;
                 }
-            }
+            
         }
      
     }

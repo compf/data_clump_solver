@@ -56,6 +56,17 @@ export  class DataClumpRefactoringContext {
         }
         return curr as T
     }
+    getRelevantLocation():RelevantLocationsContext|null{
+        let curr: DataClumpRefactoringContext = this;
+        while (!("getRelevantLocations" in curr)) {
+            curr = curr.previousContext!
+            if (curr == null) {
+                return null;
+            }
+
+        }
+        return curr as RelevantLocationsContext
+    }
     getProgrammingLanguage():string{
         return this.sharedData["config"].ProgrammingLanguage
     }
@@ -121,7 +132,7 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
     }
 }
 
-export class ASTBuildingContext extends DataClumpRefactoringContext {
+export class ASTBuildingContext extends DataClumpRefactoringContext implements RelevantLocationsContext {
     private ast_type:{[key:string]:AST_Class}={}
     load(path:string){
         const MAX_ATTEMPTS=3;
@@ -140,6 +151,33 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
         }
         throw new Error("Could not load file "+path)
         
+    }
+    getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
+        const DATA_CLUMP_THRESHOLD=3;
+        for(let type of Object.values(this.ast_type)){
+            
+            let set=new Set<number>();
+            let fields=Object.values(type.fields);
+            if(fields.length>=DATA_CLUMP_THRESHOLD){
+                for(let f of fields){
+                    set.add(f.position.startLine);
+                }
+
+            }
+            for(let m of Object.values(type.methods)){
+                if(m.parameters.length>=DATA_CLUMP_THRESHOLD){
+                    for(let f of m.parameters){
+                        set.add(f.position.startLine);
+                    }
+                }
+            }
+            if (set.size>0 && !(type.file_path in lines)){
+                lines[type.file_path]=set;
+            }
+            
+            
+        }
+
     }
     static fromAstType(ast_type:AST_Type):ASTBuildingContext{
         let result=new ASTBuildingContext()
@@ -194,7 +232,12 @@ export class ASTBuildingContext extends DataClumpRefactoringContext {
         
     }
 }
-export class DataClumpDetectorContext extends DataClumpRefactoringContext {
+
+export  class RelevantLocationsContext{
+     getRelevantLocations(lines:{[path:string]:Set<number>}):void{}
+}
+
+export class DataClumpDetectorContext extends DataClumpRefactoringContext implements RelevantLocationsContext {
     setDataClumpDetectionResult(values: DataClumpsTypeContext) {
        this.currDataClumpDetectionResult=Object.assign(this.currDataClumpDetectionResult,values)
        //console.log("setting data clump detection result",this.currDataClumpDetectionResult)
@@ -207,6 +250,23 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext {
             this.byNameTypeKeys[nameTypeKey].push(value)
         }
         
+    }
+    getRelevantLocations(lines:{[path:string]:Set<number>}):void {
+        for(let dc of Object.values(this.currDataClumpDetectionResult.data_clumps)){
+            if (!(dc.from_file_path in lines)){
+                lines[dc.from_file_path]=new Set<number>();
+            }
+            for(let dcData of Object.values(dc.data_clump_data)){
+                lines[dc.from_file_path].add(dcData.position.startLine)
+            }
+            if (!(dc.to_file_path in lines)){
+                lines[dc.to_file_path]=new Set<number>();
+            }
+            for(let dcData of Object.values(dc.data_clump_data)){
+                lines[dc.to_file_path].add(dcData.to_variable.position.startLine)
+            }
+            
+        }
     }
     isFiltered() {
         return this.allDataClumpDetectionResult.length > 1
@@ -384,7 +444,7 @@ export class ClassPathContext extends DataClumpRefactoringContext {
     }
 
 }
-export class UsageFindingContext extends DataClumpRefactoringContext {
+export class UsageFindingContext extends DataClumpRefactoringContext implements RelevantLocationsContext {
     usages: { [key: string]: VariableOrMethodUsage[] } = {};
     constructor(usages: { [key: string]: VariableOrMethodUsage[] }) {
         super();
@@ -392,6 +452,18 @@ export class UsageFindingContext extends DataClumpRefactoringContext {
     }
     getDefaultSerializationPath(): string {
         return resolve( "data", "usageFindingContext.json")
+    }
+    getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
+        for(let usages of Object.values(this.usages)){
+            for(let usg of usages){
+                if (!(usg.filePath in lines)){
+                    lines[usg.filePath]=new Set<number>();
+                }
+               
+                lines[usg.filePath].add(usg.range.startLine)
+            }
+           
+        }
     }
     serialize(path?: string | undefined): void {
         const usedPath=this.getSerializationPath(path)

@@ -8,6 +8,7 @@ import fs from "fs";
 import AdmZip from "adm-zip";
 import { getContextSerializationPath } from "../../../config/Configuration";
 import { AST } from "minimatch";
+import { applyIncludeExclude } from "../astGeneration/DataClumpDoctorASTGeratorStep";
 export class DataClumpDetectorStep extends AbstractStepHandler {
     private detectorArgs:any;
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
@@ -22,7 +23,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         }
         output_path = resolve(output_path, "output.json")
         console.log(project_path)
-        this.applyIncludeExclude(context, ruleset_jar_location);
+        applyIncludeExclude(context, ruleset_jar_location);
         let analyser = new Analyzer(project_path, ast_generator_path,
             output_path, project_path, "java", ast_out_path, null, null, null, 1.0, true, this.detectorArgs)
         await analyser.analyse(null);
@@ -51,48 +52,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         }
         return null
     }
-    applyIncludeExclude(context: DataClumpRefactoringContext, jarPath: string) {
-        let filtering_context = context.getByType(FileFilteringContext)
-        if (filtering_context == null) {
-            filtering_context = new FileFilteringContext([], [//".*/*MathStuff*.*"
-        ]);
-        }
-        let xml = this.buildXml(filtering_context.includeGlobs, filtering_context.excludeGlobs)
-        let zip = new AdmZip(jarPath)
-        zip.updateFile("custom-java-ruleset.xml", Buffer.from(xml));
-        zip.writeZip(jarPath);
 
-    }
-    buildXml(includeGlobs: string[], excludeGlobs: string[]): string {
-        let content = "<?xml version='1.0' encoding='UTF-8'?> " +
-            "<ruleset name='Custom Ruleset' "+
-        "xmlns='http://pmd.sourceforge.net/ruleset/2.0.0' " +
-            "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' " +
-            "xsi:schemaLocation='http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd' >" +
-            "<description>" +
-            "Custom Ruleset with PLSQL Rules" +
-            "</description>";
-            if(includeGlobs.length>0 && excludeGlobs.length==0){
-                excludeGlobs=["*"]
-            }
-        for (let include of includeGlobs) {
-            if (include.startsWith("*")) {
-                include = "." + include
-            }
-            content += `<include-pattern>${include}</include-pattern>`
-        }
-        for (let exclude of excludeGlobs) {
-            if (exclude.startsWith("*")) {
-                exclude = "." + exclude
-            }
-            content += `<exclude-pattern>${exclude}</exclude-pattern>`
-        }
-
-
-        content += "<rule ref='net/sourceforge/pmd/examples/java/rules/MyRule.xml/MyRule' />" +
-            "</ruleset>";
-        return content;
-    }
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.SimilarityDetection, PipeLineStep.DataClumpDetection]
     }

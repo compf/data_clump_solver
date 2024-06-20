@@ -42,6 +42,7 @@ export class MultipleBrancheHandler extends OutputHandler{
         await  git.checkout(originalBranch)
     }
     async chooseProposal(context:DataClumpRefactoringContext) {
+        readlineSync.question("Switch to the correct branch")
         let git=simpleGit(context.getProjectPath());
         let currBranch=(await git.status()).current!;
         await git.checkout(this.originalBranch);
