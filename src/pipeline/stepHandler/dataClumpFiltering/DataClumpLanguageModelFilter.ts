@@ -22,7 +22,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
         h.handle(context,api,resolver)
        }
        api.prepareMessage(JSON.stringify(simplified),"input")
-       let result=await api.sendMessages(true)
+       let result=await api.sendMessages(false)
        let parsed=JSON.parse(result.messages[0])
        fs.writeFileSync("stuff/justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
 

@@ -26,9 +26,10 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: AbstractLanguageModel | null = null
     private temperatures: number[] = [0.9]
+    private lastTemp = 0;
     private models: string[] = [""]
-    private numberAttempts: number = 10;
-    private outputHandler:OutputHandler=new InteractiveProposalHandler();
+    private numberAttempts: number = 1;
+    private outputHandler: OutputHandler = new InteractiveProposalHandler();
     deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
         let path = getContextSerializationPath(PipeLineStep.DataClumpDetection.name, context)
         if (step == PipeLineStep.DataClumpDetection && fs.existsSync(path)) {
@@ -75,9 +76,10 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
         for (let i = 0; i < this.numberAttempts; i++) {
             api.clear();
-            let temperature=this.temperatures[randInt(this.temperatures.length)]
-            let model="gpt-4-1106-preview"
-            api.resetParameters({model,temperature})
+            let temperature = this.temperatures[randInt(this.temperatures.length)]
+            this.lastTemp = temperature
+            let model = "gpt-4-1106-preview"
+            api.resetParameters({ model, temperature })
             let chat: ChatMessage[] = []
 
             context = await this.createDataClumpLocationAndUsageFilterContext(context)
@@ -92,8 +94,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 }
                 chat.push(...messages)
             }
-            let reply=chat[chat.length-1];
-           await this.createFittingContext(reply,step,context,[])
+            let reply = chat[chat.length - 1];
+            await this.createFittingContext(reply, step, context, [])
         }
         this.outputHandler.chooseProposal(context)
         return context.buildNewContext(new RefactoredContext())
@@ -134,7 +136,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let code = ""
         let foundPath = false;
         let foundCode = false;
-        let changes={}
+        let changes = {}
         const pathRegex = /([a-zA-z]:\\\\)?((\/|\\)?\w+(\\|\/)?)+\.java/gm
         let lines = message.split("\n")
         for (let line of lines) {
@@ -162,7 +164,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     errorMessages.push("I could not identify a valid path in your response. I am processing your response automatically so it is important to mark the path as described")
                 }
                 else {
-                    changes[path]=code
+                    changes[path] = code
                     //fs.writeFileSync(path,code);
 
                 }
@@ -184,7 +186,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             errorMessages.push("I could not identify a valid path in your response. I am processing your response automatically so it is important to mark the path as described")
 
         }
-        this.outputHandler.handleProposal(changes,context,message);
+        this.outputHandler.handleProposal(changes, context, message);
 
     }
     async tryBuildContext(chat: ChatMessage, step: PipeLineStepType | null, context: DataClumpRefactoringContext) {
@@ -270,10 +272,18 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         return Promise.resolve(null)
     }
     parse_piecewise_output(content: any, context: DataClumpRefactoringContext): string | null {
-        let changes={};
+        let changes = {};
 
         if (typeof content == "object") {
+            content.tenperature = this.lastTemp
+            content.date=(new Date()).toISOString();
             for (let refactoredPath of Object.keys(content.refactorings)) {
+                if (refactoredPath=="extractedClasses") {
+
+                    content["extractedClasses"]=content.refactorings.extractedClasses
+                    delete content.refactorings["extractedClasses"]
+                    continue
+                }
                 console.log(refactoredPath)
                 let path = resolve(context.getProjectPath(), refactoredPath)
                 let fileContent = fs.readFileSync(path, { encoding: "utf-8" })
@@ -316,7 +326,10 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
 
                     }
-                    fileContent = fileContent.replaceAll(oldContent, newContent)
+                    if (oldContent != "") {
+                        fileContent = fileContent.replaceAll(oldContent, newContent)
+
+                    }
                     console.log()
                     // console.log(oldContent)
                     //console.log(newContent)
@@ -331,21 +344,24 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
                 }
                 console.log(path)
-                changes[path]=fileContent;
-           
-                for (let extractedClassPath of Object.keys(content.extractedClasses)) {
-                    let outPath = resolve(context.getProjectPath(), extractedClassPath)
-                    changes[outPath]=fileContent;
-                }
-            
-        }
-     
-    }
-    console.log("handle proposal")
-    this.outputHandler.handleProposal(changes,context,content);
-    return content
+                changes[path] = fileContent;
+                if ("extractedClasses" in content) {
 
-}
+
+                    for (let extractedClassPath of Object.keys(content.extractedClasses)) {
+                        let outPath = resolve(context.getProjectPath(), extractedClassPath)
+                        changes[outPath] = content.extractedClasses[extractedClassPath]
+                    }
+                }
+
+            }
+
+        }
+        console.log("handle proposal")
+        this.outputHandler.handleProposal(changes, context, content);
+        return content
+
+    }
     static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: AbstractLanguageModel): LanguageModelDetectOrRefactorHandler {
         let step = new LanguageModelDetectOrRefactorHandler({ handlers: [] })
         step.handlers = handlers
@@ -355,8 +371,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private doWrite: boolean = false;
     constructor(args: { handlers: string[], readOnly?: boolean }) {
         super();
-        Object.assign(this,args)
-        this.handlers=[]
+        Object.assign(this, args)
+        this.handlers = []
 
         for (let handler of args.handlers) {
             this.handlers.push(resolveFromConcreteName(handler) as LargeLanguageModelHandler)

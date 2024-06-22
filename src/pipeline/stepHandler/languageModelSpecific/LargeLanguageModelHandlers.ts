@@ -192,7 +192,7 @@ export class DirectoryBasedFilesHandler extends LargeLanguageModelHandler implem
 enum ExtractionDirection{Up, Down, UpAndDown}
 
 export class CodeSnippetHandler extends LargeLanguageModelHandler {
-    private additionalMargin=20
+    private additionalMargin=0
     private headerMargin=15;
     generateLines(centerLine:number,margin:number,extractionDirection:ExtractionDirection, lines:Set<number>){
         let start=extractionDirection==ExtractionDirection.Up || extractionDirection==ExtractionDirection.UpAndDown?centerLine-margin:centerLine;

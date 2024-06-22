@@ -12,6 +12,7 @@ import { LanguageServerAPI, Methods } from "../../../util/languageServer/Languag
 import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
 import { getContextSerializationPath, registerFromName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { DataClumpTypeContext, Position } from "data-clumps-type-context";
+import { waitSync } from "../../../util/Utils";
 
 type LanguageServerReferenceAPIParams = {
     apiName: string,
@@ -21,10 +22,10 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
     api: LanguageServerAPI | null = null;
     apiArgs: LanguageServerReferenceAPIParams
     globalCounter = 3
-    balance = 0;
+    balanceQueue=new Set<number>();
     private useExistingReferences: boolean=true;
     visitedMethods: Set<string> = new Set();
-    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[],originKey:string,isParameter:boolean }> = new Map();
+    counterDataClumpInfoMap: Map<number, { variableKey: string, variableName: string, usageType: UsageType,variableNames:string[],originKey:string,isParameter:boolean, request:string }> = new Map();
     constructor(args: LanguageServerReferenceAPIParams & {useExistingReferences:boolean}) {
         super();
         registerFromName(args.apiName, "LanguageServerAPI", args.apiArgs)
@@ -35,8 +36,9 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
         }
     }
     nextCounterValue(): number {
-        this.balance++;
-        return this.globalCounter++;
+       let n=this.globalCounter++;
+       this.balanceQueue.add(n)
+        return n;
     }
     deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
        
@@ -118,17 +120,20 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
 
     
             }
-             let nextId=this.nextCounterValue();
+            let nextId=this.nextCounterValue();
+
+            let request=this.api?.create_request_message(nextId,Methods.References,requestParam)
+
              this.counterDataClumpInfoMap.set(nextId,
                 {variableKey:dcKey,
                     variableName:paramName,
                     usageType:UsageType.VariableUsed,
                     variableNames:[],
-                    originKey:methodKey,isParameter:true
+                    originKey:methodKey,isParameter:true,
+                    request:request!
 
                 }
             );
-             let request=this.api?.create_request_message(nextId,Methods.References,requestParam)
              socket.write(request)
             
         }
@@ -151,16 +156,18 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
 
         }
          let nextId=this.nextCounterValue();
+         let request=this.api?.create_request_message(nextId,Methods.References,methodUsedReferenceParams)
+
          this.counterDataClumpInfoMap.set(nextId,
             {variableKey:dcKey,
                 variableName:methodName,
                 usageType:UsageType.MethodUsed,
                 variableNames:variableNames,
-                originKey:methodKey,isParameter:false
+                originKey:methodKey,isParameter:false,
+                request:request!
 
             }
         );
-         let request=this.api?.create_request_message(nextId,Methods.References,methodUsedReferenceParams)
          socket.write(request)
     
        }while(fileQueue.length>0)
@@ -187,8 +194,10 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     variableName:fieldName
                     ,usageType:UsageType.VariableDeclared,
                     variableNames:variableNames,
-                    originKey:fieldKey,isParameter:isParameter
+                    originKey:fieldKey,isParameter:isParameter,
+                    request:request!
                 })
+               // waitSync(1000)
             socket.write(request)
         }
        
@@ -213,7 +222,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                 variableName:fieldName,
                 usageType:UsageType.VariableUsed,
                 variableNames:[],
-                originKey:fieldKey,isParameter:isParameter
+                originKey:fieldKey,isParameter:isParameter,
+                request:request!
 
             }
                 );
@@ -253,7 +263,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     let info = this.counterDataClumpInfoMap.get(data.id)!
                     if (info == undefined) return;
                     let combined=Object.assign(info,data,)
-                    this.balance--
+                    this.balanceQueue.delete(data.id)
                     if (!(info.variableKey in this.usages)){
                         this.usages[info.variableKey]= []
                     }
@@ -272,8 +282,8 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                         this.usages[(info.variableKey)]!.push(usage)
 
                     }
-                    console.log("balance", this.balance)
-                    if (this.balance == 0) {
+                    console.log("balance", this.balanceQueue.size)
+                    if (this.balanceQueue.size == 0) {
                         for(let usg of  Object.entries(this.usages)){
                        
                             this.usages[usg[0]]= this.usages[usg[0]]!.sort(function(a,b){
@@ -289,6 +299,16 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                     let dc = detectorContext.getDataClumpTypeContext(dataClumpKey)
                     this.sendRequestsForDataClump(socket.writer,dc,context)
 
+
+                }
+                while(false){
+                    console.log("Queue has "+this.balanceQueue.size)
+                    let id=Array.from(this.balanceQueue)[0]
+                    console.log("use id",id)
+                    let request=this.counterDataClumpInfoMap.get(id)!.request
+                    console.log(request)
+                    socket.writer.write(request)
+                    waitSync(1000)
 
                 }
             });

@@ -2,30 +2,20 @@
     "ProgrammingLanguageIdentifier": "Java",
     "Objects": {
         "AbstractLanguageModel": {
-            "type": "ChatGPTInterface",
+            "type": "StubInterface",
             "args": {
                 "model": "gpt-4-1106-preview",
                 "temperature": 0.9,
-                "format":"json_object"
-
+                "format":"json_object",
+                "responsePath":"stuff/propoosal1 copy 2.json"
             }
         },
-        "RandomProbabilityFilter":{
-            "args":{
-                "probability":1
-            }
-        },
-  
+        
         "DataClumpSizeMetric":{
            
         },
         "DataClumpOccurenceMetric":{
             
-        },
-        "ByDataClumpTypeFilter":{
-            "args":{
-                "type": "fields_to_fields_data_clump"
-            }
         },
         "AffectedFilesMetric":{
             
@@ -38,20 +28,9 @@
                 
             }
         },
-        "SingleTypeLetterFilter":{},
         "SystemInstructionHandler": {
             "args": {
-                "instructionPath": "chatGPT_templates/dataClumpFiltering/filter.template"
-            }
-        },
-        "SimpleInstructionHandler": {
-            "args": {
-                "instructionPath": "stuff/output.json"
-            }
-        },
-        "ByClassNameFilter": {
-            "args": {
-                "name": "JavaGenerator"
+                "instructionPath": "chatGPT_templates/refactor/definitionBased/givenContext/instructionSnippet.template"
             }
         },
         "AllFilesHandler": {},
@@ -66,7 +45,11 @@
                 "%{llm_output_format}":"chatGPT_templates/use_json.template"
             }
         },
-        "CodeSnippetHandler":{},
+        "CodeSnippetHandler":{
+            "args":{
+                "additionalMargin": 5
+            }
+        },
         "RandomRanker": {
             "type": "RandomRanker"
         },
@@ -75,7 +58,7 @@
                 "metrics":[
                     {"name":"DataClumpSizeMetric","weight":1},
                     {"name":"DataClumpOccurenceMetric","weight":100},
-                    {"name":"AffectedFilesMetric","weight":100}
+                    {"name":"AffectedFilesMetric","weight":-100}
                 ]
             }
         }
@@ -88,7 +71,6 @@
                 "useArgPath": true
             }
         },
-       
         
         "DataClumpDetection": {
             "handler": "DataClumpDetectorStep",
@@ -98,30 +80,21 @@
                 "ranker": "RandomRanker"
             }
         },
+        "ReferenceFinding":{
+            "handler":"TextBasedReferenceFinder","args":{
+                "apiName":"EclipseLSP_API"
+            }
+        },
        
-       
-        "DataClumpFiltering": {
-            "handler": "DataClumpLanguageModelFilter",
+        "Refactoring": {
+            "handler": "LanguageModelDetectOrRefactorHandler",
             "args":{
-                "rankerName":"MetricCombiner",
-                "filterName":"ByDataClumpTypeFilter",
-                "rankThreshold":100,
-                "strictSize":true,
                 "handlers":[
-                    "SystemInstructionHandler"
+                    "SystemInstructionHandler",
+                    "CodeSnippetHandler",
+                    "SendAndClearHandler"
                 ]
             }
-        },
-        "NameFinding":{
-            "handler":"LanguageModelNameFindingsStep",
-            "args":{
-                "languageModelName":"AbstractLanguageModel"
-            }
-        
-        },
-        
-        "Refactoring":{
-            "handler":"DoNothingStepHandler"
         }
        
     }
