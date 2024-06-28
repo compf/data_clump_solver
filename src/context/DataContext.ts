@@ -9,6 +9,7 @@ import { AST_Class, AST_Type } from "./AST_Type";
 import { getRelevantFilesRec, waitSync } from "../util/Utils";
 import { Configuration } from "../config/Configuration";
 import simpleGit from "simple-git";
+import { ValidationInfo } from "../pipeline/stepHandler/validation/ValidationStepHandler";
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
@@ -492,16 +493,22 @@ export class RefactoredContext extends DataClumpRefactoringContext {
   
 
 }
-export class ValidationContext extends DataClumpRefactoringContext {
-    validationResult: {
-        success: boolean,
-        messages: {stderr:string,stdout:string} | null
-    }
+export class ValidationContext extends DataClumpRefactoringContext  implements RelevantLocationsContext {
+    validationResult: ValidationInfo[]
  
-    constructor(validationResult: { success: boolean, messages: {stderr:string,stdout:string} | null }) {
+    constructor(validationResult: ValidationInfo[]) {
 
         super()
         this.validationResult = validationResult;
+    }
+    getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
+       
+        for(let v of this.validationResult){
+            if(!(v.filePath in lines)){
+                lines[v.filePath]=new Set<number>();
+            }
+            lines[v.filePath].add(v.lineNumber)
+        }
     }
 }
 export class EvaluationContext extends DataClumpRefactoringContext {

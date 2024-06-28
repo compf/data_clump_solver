@@ -15,15 +15,15 @@ export abstract class ValidationStepHandler extends AbstractStepHandler {
         let result1 =  this.validate(context)
         let result=await result1
         if (!result.success && this.throwIfInvalid) {
-            context.fail(result.messages!.stderr)
+            context.fail(JSON.stringify(result.validationInfos))
         }
-        return context.buildNewContext(new ValidationContext(result))
+        return context.buildNewContext(new ValidationContext(result.validationInfos))
     }
     public throwIfInvalid: boolean = true;
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.Validation]
     }
-    abstract validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; messages: { stderr: string, stdout: string } | null; }>
+    abstract  validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; validationInfos:ValidationInfo[] }>;
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(ValidationContext.name)
     }
