@@ -9,7 +9,7 @@ const Levenshtein = require("levenshtein")
 import { files } from "node-dir"
 import path from "path";
 import { resolve } from "path"
-import { getContextSerializationPath, registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
+import {  registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage, AbstractLanguageModel, AbstractLanguageModelCategory } from "../../../util/languageModel/AbstractLanguageModel";
 import { PipeLine } from "../../PipeLine";
@@ -30,14 +30,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private models: string[] = [""]
     private numberAttempts: number = 1;
     private outputHandler: OutputHandler = new InteractiveProposalHandler();
-    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
-        let path = getContextSerializationPath(PipeLineStep.DataClumpDetection.name, context)
-        if (step == PipeLineStep.DataClumpDetection && fs.existsSync(path)) {
-            let data = JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }))
-            return context.buildNewContext(DataClumpDetectorContext.fromArray(data as DataClumpsTypeContext[]))
-        }
-        return null
-    }
+
     async createDataClumpLocationAndUsageFilterContext(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
         let usageFindingContext = context.getByType(UsageFindingContext) as UsageFindingContext

@@ -2,7 +2,6 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import { ClassPathContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext } from "../../../context/DataContext";
 import { PipeLineStep,PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
-import { getContextSerializationPath } from "../../../config/Configuration";
 import fs from "fs"
 import path from "path"
 export interface ClassExtractionLocationProvider{
@@ -15,20 +14,7 @@ export class AlwaysFromLocationProvider implements ClassExtractionLocationProvid
 }
 export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler {
     useExistingNames: boolean=true;
-    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
-        if(step==PipeLineStep.NameFinding && this.useExistingNames){
-            if(fs.existsSync(getContextSerializationPath(step.name,context))){
-                let data=JSON.parse(fs.readFileSync(getContextSerializationPath(step.name,context)).toString())
-                let newContext= context.buildNewContext(new NameFindingContext()) as NameFindingContext
-                for(let key of Object.keys(data)){
-                    newContext.setNameKeyPair(data[key],key)
-                    
-                }
-                return newContext
-            }
-        }
-        return null;
-    }
+    
    async  handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any):Promise<DataClumpRefactoringContext> {
        
 

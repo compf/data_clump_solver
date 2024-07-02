@@ -1,4 +1,3 @@
-import { getContextSerializationPath } from "../config/Configuration";
 import { DataClumpRefactoringContext, EvaluationContext, MandatoryContextNames } from "../context/DataContext";
 import { loadExistingContext } from "../context/ExistingContextLoader";
 import { PipeLineStep, PipeLineStepType } from "./PipeLineStep";
@@ -68,7 +67,7 @@ export class PipeLine {
                     context = await this.stepHandlerList[i].handle(pipeLineSteps[i],context, null);
                     this.stepRunningTimes[pipeLineSteps[i].name] = Date.now() - startTime;
                     console.log("Step " + pipeLineSteps[i].name + " executed in " + this.stepRunningTimes[pipeLineSteps[i].name] + " ms")
-                    context.serialize(undefined)
+                    context.serialize()
                 }
                 else{
                     context=context.buildNewContext(deserializedContext);

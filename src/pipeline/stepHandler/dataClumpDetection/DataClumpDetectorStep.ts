@@ -1,12 +1,11 @@
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
-import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
+import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext, getContextSerializationPath } from "../../../context/DataContext";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { Analyzer } from "../../../data-clumps-doctor/analyse/src/ignoreCoverage/Analyzer";
 import { resolve } from "path"
 import { DataClumpTypeContext, DataClumpsTypeContext } from "data-clumps-type-context";
 import fs from "fs";
 import AdmZip from "adm-zip";
-import { getContextSerializationPath } from "../../../config/Configuration";
 import { AST } from "minimatch";
 import { applyIncludeExclude } from "../astGeneration/DataClumpDoctorASTGeratorStep";
 export class DataClumpDetectorStep extends AbstractStepHandler {
@@ -35,23 +34,12 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
             (newContext as ASTBuildingContext).load(resolve(ast_out_path,p))
         }
         newContext=newContext.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
-        fs.copyFileSync(output_path, getContextSerializationPath(PipeLineStep.DataClumpDetection.name,context)!)
+        fs.copyFileSync(output_path, getContextSerializationPath(newContext,newContext)!)
         return newContext
 
     }
-    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
-        let path=getContextSerializationPath(PipeLineStep.DataClumpDetection.name,context)
-        if( fs.existsSync(path)){
-            let data=JSON.parse(fs.readFileSync (path,{encoding:"utf-8"}))
-            if(Array.isArray(data)){
-            return context.buildNewContext( DataClumpDetectorContext.fromArray(data as DataClumpsTypeContext[]))
-            }
-            else{
-                return new DataClumpDetectorContext(data as DataClumpsTypeContext)
-            }
-        }
-        return null
-    }
+   
+
 
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration, PipeLineStep.SimilarityDetection, PipeLineStep.DataClumpDetection]

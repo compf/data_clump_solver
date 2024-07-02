@@ -1,7 +1,6 @@
 import { DataClumpsTypeContext } from "data-clumps-type-context";
-import { getContextSerializationPath } from "../config/Configuration";
 import { PipeLineStep, PipeLineStepType } from "../pipeline/PipeLineStep";
-import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, UsageFindingContext } from "./DataContext";
+import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, UsageFindingContext, getContextSerializationPath } from "./DataContext";
 import fs from "fs";
 import { resolve } from "path";
 export function loadExistingContext(step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext | null {
@@ -31,7 +30,8 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
         case PipeLineStep.DataClumpDetection:
         case PipeLineStep.DataClumpFiltering:
             {
-                const basePath = getContextSerializationPath(PipeLineStep.DataClumpDetection.name, context)
+                let tempContext=new DataClumpDetectorContext({data_clumps:{}} as any)
+                const basePath = getContextSerializationPath(tempContext, context)
                 let i=0;
                 let pathExist=fs.existsSync(basePath)
                 let allData:DataClumpsTypeContext[]=[]
@@ -61,8 +61,9 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
             }
         case PipeLineStep.NameFinding:
             {
-                if (fs.existsSync(getContextSerializationPath(step.name, context))) {
-                    let data = JSON.parse(fs.readFileSync(getContextSerializationPath(step.name, context)).toString())
+                let tempContext=new NameFindingContext()
+                if (fs.existsSync(getContextSerializationPath(tempContext, context))) {
+                    let data = JSON.parse(fs.readFileSync(getContextSerializationPath(tempContext, context)).toString())
                     let newContext = context.buildNewContext(new NameFindingContext()) as NameFindingContext
                     for (let key of Object.keys(data)) {
                         newContext.setNameKeyPair(data[key], key)
@@ -74,8 +75,9 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
             }
         case PipeLineStep.ReferenceFinding:
             {
-                if (fs.existsSync(getContextSerializationPath(step.name, context))) {
-                    let data = JSON.parse(fs.readFileSync(getContextSerializationPath(step.name, context)).toString())
+                let tempContext=new UsageFindingContext({})
+                if (fs.existsSync(getContextSerializationPath(tempContext, context))) {
+                    let data = JSON.parse(fs.readFileSync(getContextSerializationPath(tempContext, context)).toString())
                     return context.buildNewContext(new UsageFindingContext(data))
                 }
 

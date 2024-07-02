@@ -10,6 +10,21 @@ import { getRelevantFilesRec, waitSync } from "../util/Utils";
 import { Configuration } from "../config/Configuration";
 import simpleGit from "simple-git";
 import { ValidationInfo } from "../pipeline/stepHandler/validation/ValidationStepHandler";
+export function getContextSerializationPath(targetContext:DataClumpRefactoringContext|null,context:DataClumpRefactoringContext):string{
+
+    let result= targetContext!=null ? targetContext: context;
+
+    let outputPath=resolve(context.getProjectPath(),".data_clump_solver_data/")
+    if(!fs.existsSync(outputPath)){
+        fs.mkdirSync(outputPath)
+        if(fs.existsSync(resolve(context.getProjectPath(),".git"))){
+            let exclude=fs.readFileSync(resolve(context.getProjectPath(),".git","info","exclude"),{encoding:"utf-8"})
+            exclude+="\n"+".data_clump_solver_data/*"
+            fs.writeFileSync(resolve(context.getProjectPath(),".git","info","exclude"),exclude)
+        }
+    }
+    return resolve(context.getProjectPath(),".data_clump_solver_data/",result.getDefaultSerializationPath())
+}
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
@@ -74,15 +89,16 @@ export  class DataClumpRefactoringContext {
     getProjectPath(): string {
         return this.getByType(CodeObtainingContext)!!.getPath()
     }
-     serialize(path?:string){}
-     getSerializationPath(path?:string):string{
-         return path?path:this.getDefaultSerializationPath()
+     serialize(){}
+     getSerializationPath():string{
+         return getContextSerializationPath(this,this)
      }
-     getDefaultSerializationPath():string{
-        console.log("default serialization path")
-         return resolve("data",this.constructor.name+".json")
-     }
+     getDefaultSerializationPath(): string {
+        return  "other.json"
+    }
 }
+
+
 
 export class CodeObtainingContext extends DataClumpRefactoringContext {
     path: string;
@@ -305,7 +321,7 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
         
     }
     serialize(path?: string | undefined): void {
-        const usedPath=this.getSerializationPath(path)
+        const usedPath=this.getSerializationPath()
         for(let i=0;i<this.allDataClumpDetectionResult.length;i++){
             let path=usedPath.replace(".json","_"+i+".json")
             fs.writeFileSync(path, JSON.stringify(this.allDataClumpDetectionResult[i]))
@@ -376,7 +392,7 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
     }
 
     getDefaultSerializationPath(): string {
-        return resolve("data", "dataClumpDetectorContext.json")
+        return  "dataClumpDetectorContext.json"
     }
 }
 
@@ -393,10 +409,10 @@ export class NameFindingContext extends DataClumpRefactoringContext {
         return 4;
     }
     getDefaultSerializationPath():string{
-        return resolve("data","nameFindingContext.json")
+        return "nameFindingContext.json"
     }
     override serialize(path?: string): void {
-        const usedPath=this.getSerializationPath(path)
+        const usedPath=this.getSerializationPath()
         let serialized: Dictionary<string> = {}
         for (let [key, value] of this.dataClumpKeyName) {
             serialized[key] = value
@@ -433,10 +449,10 @@ export class ClassPathContext extends DataClumpRefactoringContext {
     }
     private dataClumpKeyClassPath: { [key: string]: string } = {}
     getDefaultSerializationPath(): string {
-        return resolve( "data", "classExtractionContext.json")
+        return "classExtractionContext.json"
     }
     serialize(path?: string | undefined): void {
-        const usedPath=this.getSerializationPath(path)
+        const usedPath=this.getSerializationPath()
 
         fs.writeFileSync(usedPath, JSON.stringify(this.dataClumpKeyClassPath))
     }
@@ -452,7 +468,7 @@ export class UsageFindingContext extends DataClumpRefactoringContext implements 
         this.usages = usages;
     }
     getDefaultSerializationPath(): string {
-        return resolve( "data", "usageFindingContext.json")
+        return  "usageFindingContext.json"
     }
     getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
         for(let usages of Object.values(this.usages)){
@@ -467,7 +483,7 @@ export class UsageFindingContext extends DataClumpRefactoringContext implements 
         }
     }
     serialize(path?: string | undefined): void {
-        const usedPath=this.getSerializationPath(path)
+        const usedPath=this.getSerializationPath()
         let serialized: Dictionary<VariableOrMethodUsage[]> = {}
         for (let [key, value] of Object.entries(this.usages)) {
             serialized[key] = value
@@ -519,7 +535,7 @@ export class EvaluationContext extends DataClumpRefactoringContext {
         this.runningTimes=runningTimes
     }
     serialize(path?: string | undefined): void {
-        const usedPath=this.getSerializationPath(path)
+        const usedPath=this.getSerializationPath()
         fs.writeFileSync(usedPath, JSON.stringify(this.runningTimes))
     
     }

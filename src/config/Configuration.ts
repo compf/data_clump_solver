@@ -70,28 +70,7 @@ export function resolveFromInterfaceName(interfaceName:string): any {
 export function resolveFromConcreteName(concreteName:string):any{
     return container.get(concreteName) 
 }
-export function getContextSerializationPath(name:string,context:DataClumpRefactoringContext):string{
-    let result="other.json"
-    switch(name){
-        case PipeLineStep.DataClumpDetection.name:
-        case PipeLineStep.DataClumpFiltering.name:
-            result= "dataClumpDetectorContext.json";break;
-        case PipeLineStep.NameFinding.name:
-            result= "nameFindingContext.json";break;
 
-        case PipeLineStep.ClassExtraction.name:
-            result= "classExtractionContext.json";break;
-        case PipeLineStep.ReferenceFinding.name:
-            result= "usageFindingContext.json";break;
-    
-    }
-    if(fs.existsSync(resolve(context.getProjectPath(),".data_clump_solver_data/"))){
-        return resolve(context.getProjectPath(),".data_clump_solver_data/",result)
-    }
-    else{
-        return "data/"+result
-    }
-}
 export function processConfiguration(config:Configuration){
     // register as objects
     for(let step of Object.keys(PipeLineStep)){

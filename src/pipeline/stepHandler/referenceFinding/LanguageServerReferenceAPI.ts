@@ -10,7 +10,7 @@ import { readFileSync } from "fs"
 import fs from "fs"
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
 import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
-import { getContextSerializationPath, registerFromName, resolveFromInterfaceName } from "../../../config/Configuration";
+import {  registerFromName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { DataClumpTypeContext, Position } from "data-clumps-type-context";
 import { waitSync } from "../../../util/Utils";
 
@@ -40,17 +40,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
        this.balanceQueue.add(n)
         return n;
     }
-    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
-       
-        if(step==PipeLineStep.ReferenceFinding && this.useExistingReferences){
-            let path=getContextSerializationPath(step.name,context)
-            if(fs.existsSync(getContextSerializationPath(step.name,context))){
-                let data=JSON.parse(fs.readFileSync(getContextSerializationPath(step.name,context)).toString())
-                return context.buildNewContext(new UsageFindingContext(data))
-            }
-        }
-        return null;
-    }
+
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(UsageFindingContext.name)
     }
