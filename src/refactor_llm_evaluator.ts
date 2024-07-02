@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto'
 import { getRelevantFilesRec, waitSync } from "./util/Utils";
 import { ASTBuildingContext, CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, ValidationContext } from "./context/DataContext";
 import { ChatMessage } from "./util/languageModel/AbstractLanguageModel";
-import { DataClumpDoctorASTGeneratorStep } from "./pipeline/stepHandler/astGeneration/DataClumpDoctorASTGeratorStep";
+import { DataClumpDoctorASTGeneratorStep } from "./pipeline/stepHandler/astGeneration/DataClumpDoctorASTGeneratorStep";
 import { AST_Class, AST_Type } from "./context/AST_Type";
 import { GradleBuildValidationStepHandler } from "./pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
