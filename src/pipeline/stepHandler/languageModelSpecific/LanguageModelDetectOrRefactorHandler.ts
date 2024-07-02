@@ -15,7 +15,7 @@ import { ChatMessage, AbstractLanguageModel, AbstractLanguageModelCategory } fro
 import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
-import { BuildChecker, OutputChecker } from "../../../util/languageModel/OutputChecker";
+import {  OutputChecker } from "../../../util/languageModel/OutputChecker";
 import { InteractiveProposalHandler, MultipleBrancheHandler, OutputHandler } from "./OutputHandler";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {

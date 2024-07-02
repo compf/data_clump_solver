@@ -24,21 +24,3 @@ export class ValidJSONChecker implements OutputChecker{
         return "Your output is not valid JSON.\n"+this.lastError
     }
 }
-
-export class BuildChecker implements OutputChecker{
-    private lastErrorMessage=""
-    async isValid(content: string, context: DataClumpRefactoringContext): Promise<boolean> {
-       let gradleValidator=new MavenBuildValidationStepHandler({
-    
-       });
-       return true;
-       let result= await  gradleValidator.validate(context)
-       console.log("gradle test",result)
-       this.lastErrorMessage=result.messages?.stdout+"\n"+result.messages?.stderr;
-       return result.success
-    }
-    getErrorMessage(): string {
-        return this.lastErrorMessage
-    }
-
-}

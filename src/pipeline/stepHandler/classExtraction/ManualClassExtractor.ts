@@ -59,31 +59,7 @@ export abstract class ManualClassExtractor extends AbstractStepHandler{
             
 
         }
-        if(this.args.checkValid){
-            let validator=resolveFromInterfaceName(PipeLineStep.Validation.name) as ValidationStepHandler
-            let result=await validator.validate(context)
-            if(!result.success){
-                let filteredContext=context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
-                let classExtractionContext=context.getByType(ClassPathContext) as ClassPathContext
-                let classPaths=classExtractionContext.getAllExtractedClassPaths()
-                filteredContext.cloneLastItem()
-                let paths=validator.getPathsOfFilesWithErrors(result.messages!.stderr.split("\n"))
-                for(let p of paths){
-                    if( classPaths.has(p) &&  fs.existsSync(p))
-                    {
-                        fs.unlinkSync(p)
-                        console.log("deleting",p)
-                    }
-                    
-                    let keys=classExtractionContext.getDataClumpKeysByPath(p)
-                    for(let key of keys){
-                        filteredContext.deleteEntry(key)
-                    }
-                    
-                }
-            }
-
-        }
+      
         return Promise.resolve(context)
                 
     }

@@ -495,11 +495,12 @@ export class RefactoredContext extends DataClumpRefactoringContext {
 }
 export class ValidationContext extends DataClumpRefactoringContext  implements RelevantLocationsContext {
     validationResult: ValidationInfo[]
- 
+    success: boolean;
     constructor(validationResult: ValidationInfo[]) {
 
         super()
         this.validationResult = validationResult;
+        this.success=validationResult.length==0
     }
     getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
        

@@ -86,12 +86,12 @@ async function evaluateData(paths: string[]) {
             waitSync(1000)
             let validator = new GradleBuildValidationStepHandler({});
             let result = await validator.handle(PipeLineStep.Validation,compareContext, null) as ValidationContext
-            evalResult["reachedPoints"] += (result.validationResult.success ? comparisonResult.counter : 0)
+            evalResult["reachedPoints"] += (result.success ? comparisonResult.counter : 0)
             evalResult["allPoints"] += comparisonResult.allCounter
             evalResult["percentage"] = 100 * evalResult["reachedPoints"] / evalResult["allPoints"]
-            console.log(result.validationResult.success)
+            console.log(result.success)
             evalResult[path]["validation"] = result.validationResult;
-            evalResult.success = evalResult.success && result.validationResult.success;
+            evalResult.success = evalResult.success && result.success;
         }
 
 

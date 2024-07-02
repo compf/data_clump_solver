@@ -114,7 +114,8 @@ async function doesCompile(buildSystem: string): Promise<{ success: boolean; mes
 
     }
     checker.throwIfInvalid = false;
-    return checker!.validate(obtainingContext);
+    let result= await checker!.validate(obtainingContext);
+    return {success:result.success,messages:{stderr:"",stdout:result.validationInfos.map((it)=>it.errorMessage).join("\n")}}
 }
 function countLines() {
     let cp = spawnSync("cloc", ["cloned_projects", "--json", "--out", "cloc_results.json"])
