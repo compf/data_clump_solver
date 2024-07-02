@@ -15,7 +15,7 @@ export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
     outPath: string
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const ast_generator_path = resolve("src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/")
-        const ast_out_path = resolve("temp")
+        const ast_out_path = resolve(context.getProjectPath(),".data_clump_solver_data","astOut")
        // fs.mkdirSync(ast_out_path)
         const ruleset_jar_location = resolve(ast_generator_path, "pmd-bin-7.0.0-rc3/lib/pmd-java-custom-1.0.0-SNAPSHOT.jar")
 

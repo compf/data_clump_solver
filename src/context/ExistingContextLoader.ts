@@ -8,7 +8,7 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
         case PipeLineStep.ASTGeneration:
             //throw "cool"
             {
-                const ast_out_path = resolve("./temp")
+                const ast_out_path = resolve(context.getProjectPath(),".data_clump_solver_data","astOut")
                 if(!fs.existsSync(ast_out_path)){
                     return null;
                 }
