@@ -19,7 +19,7 @@ export function getContextSerializationPath(targetContext:DataClumpRefactoringCo
         fs.mkdirSync(outputPath)
         if(fs.existsSync(resolve(context.getProjectPath(),".git"))){
             let exclude=fs.readFileSync(resolve(context.getProjectPath(),".git","info","exclude"),{encoding:"utf-8"})
-            exclude+="\n"+".data_clump_solver_data/*"
+            exclude+="\n"+".data_clump_solver_data/*\n"+".data_clump_solver_data/astOut/*"
             fs.writeFileSync(resolve(context.getProjectPath(),".git","info","exclude"),exclude)
             fs.mkdirSync(resolve(resolve(context.getProjectPath(),".data_clump_solver_data","astOut")))
         }
