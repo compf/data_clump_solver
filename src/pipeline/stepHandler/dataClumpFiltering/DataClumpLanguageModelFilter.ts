@@ -28,16 +28,15 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
 
        let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
        let related= dcContext.getRelatedDataClumpKeys(relevantDc)
-       console.log("related",related)
-       dcContext.cloneLastItem()
-       dcContext.getDataClumpDetectionResult().data_clumps={}
+       let filtered=dcContext.cloneLastItem();
+
       
        for(let r of related){
         console.log("related",r.key)    
-        dcContext.getDataClumpDetectionResult().data_clumps[r.key]=r
+       filtered.data_clumps[r.key]=r
 
        }
-       return dcContext
+       return dcContext.buildNewContext(new DataClumpDetectorContext(filtered))
        
 
     }

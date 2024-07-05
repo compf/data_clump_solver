@@ -77,7 +77,7 @@ async function getDataClumpData() {
         (filterHandler as any).ranker = new MetricCombiner(metricCombinerArgs);
         (filterHandler as any).filter = filter
         
-        context = codeObtainingContext.buildNewContext( DataClumpDetectorContext.fromArray([JSON.parse(fs.readFileSync("stuff/output.json", "utf-8"))]));
+        context = codeObtainingContext.buildNewContext( new DataClumpDetectorContext(JSON.parse(fs.readFileSync("stuff/output.json", "utf-8"))));
 
         context =context.buildNewContext( await filterHandler.handle(PipeLineStep.DataClumpFiltering, context, null));
         let data_clumps = context.getByType(DataClumpDetectorContext)?.getDataClumpDetectionResult().data_clumps;

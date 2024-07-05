@@ -28,6 +28,10 @@ export function getContextSerializationPath(targetContext:DataClumpRefactoringCo
 }
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
+
+    getPreviousContext(): DataClumpRefactoringContext | null {
+        return this.previousContext
+    }
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
         context.previousContext = this
         context.sharedData = this.sharedData
@@ -287,17 +291,10 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
         }
     }
     isFiltered() {
-        return this.allDataClumpDetectionResult.length > 1
+        return false;
     }
-    static fromArray(data: DataClumpsTypeContext[]): DataClumpDetectorContext {
-        let result= new DataClumpDetectorContext(data[data.length - 1]);
-        //console.log( JSON.stringify(data))
-        result.allDataClumpDetectionResult = data
-        result.currDataClumpDetectionResult = data[data.length - 1]
-        return result
-    }
+
     private currDataClumpDetectionResult:  DataClumpsTypeContext=createDataClumpsTypeContext({})
-    private allDataClumpDetectionResult: DataClumpsTypeContext[]
     private byNameTypeKeys:{[key:string]:DataClumpTypeContext[]}={}
     getDataClumpDetectionResult(): DataClumpsTypeContext {
         //throw this.currDataClumpDetectionResult
@@ -321,17 +318,28 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
         return Object.values(dataClump.data_clump_data).sort((a,b)=>a.name.localeCompare(b.name)).map((it)=>it.type +" " +it.name   ).join(";");
         
     }
-    serialize(path?: string | undefined): void {
-        const usedPath=this.getSerializationPath()
-        for(let i=0;i<this.allDataClumpDetectionResult.length;i++){
-            let path=usedPath.replace(".json","_"+i+".json")
-            fs.writeFileSync(path, JSON.stringify(this.allDataClumpDetectionResult[i]))
+
+    getContextIndex(): number {
+        let index=0;
+        let curr:DataClumpRefactoringContext|null=this;
+        while(curr != null && curr.getPreviousContext()!=null){
+            curr=curr.getPreviousContext()!;
+            curr=curr.getByType(DataClumpDetectorContext);
+            index++;
         }
+        return index;
+
+    }
+
+    serialize(path?: string | undefined): void {
+        let usedPath=this.getSerializationPath()
+        usedPath=usedPath.replace(".json","_"+this.getContextIndex()+".json")
+        fs.writeFileSync(usedPath, JSON.stringify(this.currDataClumpDetectionResult))
+       
        
     }
     constructor(dataClumpDetectionResult: DataClumpsTypeContext) {
         super();
-        this.allDataClumpDetectionResult = [dataClumpDetectionResult]
         this.currDataClumpDetectionResult = dataClumpDetectionResult
         for (let value of Object.values(this.currDataClumpDetectionResult.data_clumps)) {
             this.currDataClumpDetectionResult.data_clumps[value.key] = value
@@ -344,8 +352,6 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
     }
     cloneLastItem(){
         let cloned=JSON.parse(JSON.stringify(this.currDataClumpDetectionResult))
-        this.allDataClumpDetectionResult.push(cloned)
-        this.currDataClumpDetectionResult=cloned
         return cloned;
     }
     updateStats(){

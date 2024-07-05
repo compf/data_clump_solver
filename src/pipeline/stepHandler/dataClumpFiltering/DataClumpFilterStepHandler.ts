@@ -26,7 +26,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
             return context
         }
         let values = Object.values(detectionContext!.getDataClumpDetectionResult().data_clumps);
-        detectionContext.cloneLastItem()
+        context=new DataClumpDetectorContext(detectionContext.cloneLastItem())
         if(this.filter){
             if(!this.filter.isCompatibleWithDataClump()){
                 throw new Error("filter is not compatible with data clump")

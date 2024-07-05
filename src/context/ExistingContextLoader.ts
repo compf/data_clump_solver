@@ -3,7 +3,9 @@ import { PipeLineStep, PipeLineStepType } from "../pipeline/PipeLineStep";
 import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, UsageFindingContext, getContextSerializationPath } from "./DataContext";
 import fs from "fs";
 import { resolve } from "path";
+const  DEBUG=true;
 export function loadExistingContext(step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext | null {
+    if(DEBUG)return null;
     switch (step) {
         case PipeLineStep.ASTGeneration:
             //throw "cool"
@@ -39,7 +41,7 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     let path=basePath.replace(".json","_"+i+".json")
                     if (fs.existsSync(path)) {
                         let data = JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }))
-                        allData.push(data)
+                       context=context.buildNewContext(new DataClumpDetectorContext(data))
                        
                     }
                     else{
@@ -54,7 +56,7 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     }
                     console.log(allData)
                     //throw "test"
-                    return DataClumpDetectorContext.fromArray(allData)
+                    return context;
                 }
                 
                 return null
