@@ -16,7 +16,7 @@ import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
 import {  OutputChecker } from "../../../util/languageModel/OutputChecker";
-import { InteractiveProposalHandler, MultipleBrancheHandler, OutputHandler } from "./OutputHandler";
+import { InteractiveProposalHandler, MultipleBrancheHandler, OutputHandler, StubOutputHandler } from "./OutputHandler";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
@@ -29,7 +29,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private lastTemp = 0;
     private models: string[] = [""]
     private numberAttempts: number = 1;
-    private outputHandler: OutputHandler = new InteractiveProposalHandler();
+    private outputHandler: OutputHandler = new StubOutputHandler();
 
     async createDataClumpLocationAndUsageFilterContext(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext

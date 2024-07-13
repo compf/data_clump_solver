@@ -26,6 +26,15 @@ export abstract class OutputHandler{
         }
     }
 }
+export class StubOutputHandler extends OutputHandler{
+    handleProposal(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): void {
+        this.applyProposal(modifiedFiles, context)
+        
+    }
+    chooseProposal(context: DataClumpRefactoringContext): void {
+        
+    }
+}
 export class MultipleBrancheHandler extends OutputHandler{
     private originalBranch:string="main"
 

@@ -19,7 +19,7 @@ export abstract class ValidationStepHandler extends AbstractStepHandler {
         }
         return context.buildNewContext(new ValidationContext(result.validationInfos))
     }
-    public throwIfInvalid: boolean = true;
+    public throwIfInvalid: boolean = false;
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.Validation]
     }
