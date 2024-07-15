@@ -28,8 +28,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private temperatures: number[] = [0.9]
     private lastTemp = 0;
     private models: string[] = [""]
-    private numberAttempts: number = 1;
-    private outputHandler: OutputHandler = new StubOutputHandler();
+    private numberAttempts: number = 10;
+    private outputHandler: OutputHandler = new InteractiveProposalHandler();
 
     async createDataClumpLocationAndUsageFilterContext(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
@@ -78,6 +78,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             context = await this.createDataClumpLocationAndUsageFilterContext(context)
             for (handlerIndex = 0; handlerIndex < this.handlers.length; handlerIndex++) {
                 let handler = this.handlers[handlerIndex]
+                console.log("Running attempt "+i+" with handler "+handler.constructor.name )
                 let messages = await handler.handle(context, api, templateResolver)
                 if (isReExecutePreviousHandlers(handler) && handler.shallReExecute()) {
                     handlerIndex = -1;

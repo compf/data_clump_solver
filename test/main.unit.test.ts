@@ -29,8 +29,6 @@ test("Test occurence of data clumps",async() =>{
     
 });
 test("Test interfaces excluding",async() =>{
-    //let backup=getRelevantFilesRec;
-    //(getRelevantFilesRec as any) =()=>Object.keys(AST_DATA)
     let filter=new NoAbstractClassOrInterfaceFilter()
     let handler=new DataClumpFilterStepHandler({});
 
@@ -44,6 +42,31 @@ test("Test interfaces excluding",async() =>{
    expect(anyInterface).toBeFalsy();
 
 });
+jest.mock("fs",()=>({
+    ...jest.requireActual("fs"),
+    readdirSync:(baseDir:string)=>{
+        return [
+            {name:"file1",isDirectory:()=>false},
+            {name:"file2.java",isDirectory:()=>false},
+            {name:"file3.java",isDirectory:()=>false},
+            {name:"outsider",isDirectory:()=>false},
+
+
+
+        ]
+    }
+    
+}
+));
+test("File filtering",async()=>{
+
+
+
+let out=[]
+getRelevantFilesRec("test",out,null)
+console.log(out)
+})
+
 function getDataClumpByVariableNames(names:string[]){
     let values= Object.values(DATA_CLUMP_DATA.data_clumps)
     for(let dc of values){

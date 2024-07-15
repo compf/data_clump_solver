@@ -3,7 +3,7 @@ import { PipeLineStep, PipeLineStepType } from "../pipeline/PipeLineStep";
 import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, UsageFindingContext, getContextSerializationPath } from "./DataContext";
 import fs from "fs";
 import { resolve } from "path";
-const  DEBUG=true;
+const  DEBUG=false;
 export function loadExistingContext(step: PipeLineStepType, context: DataClumpRefactoringContext): DataClumpRefactoringContext | null {
     if(DEBUG)return null;
     switch (step) {
@@ -34,12 +34,14 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
             {
                 let tempContext=new DataClumpDetectorContext({data_clumps:{}} as any)
                 const basePath = getContextSerializationPath(tempContext, context)
-                let i=0;
+                let i=2;
+                let filterExists=false;
                 let pathExist=fs.existsSync(basePath)
                 let allData:DataClumpsTypeContext[]=[]
                 while(pathExist){
                     let path=basePath.replace(".json","_"+i+".json")
                     if (fs.existsSync(path)) {
+                        filterExists=true;
                         let data = JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }))
                        context=context.buildNewContext(new DataClumpDetectorContext(data))
                        
@@ -50,16 +52,14 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     i++
                     pathExist=pathExist && fs.existsSync(basePath.replace(".json","_"+i+".json"))
                 }
-                if(allData.length>0){
-                    if(step==PipeLineStep.DataClumpFiltering && allData.length<2){
-                        return null
-                    }
-                    console.log(allData)
-                    //throw "test"
-                    return context;
+               
+                if(step==PipeLineStep.DataClumpFiltering && filterExists){
+                    return context
                 }
-                
-                return null
+                else if(step==PipeLineStep.DataClumpDetection && !filterExists){
+                    return null;
+                }
+               else  return null;
             }
         case PipeLineStep.NameFinding:
             {

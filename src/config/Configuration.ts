@@ -50,7 +50,6 @@ function loadAllClasses(){
             nameScriptFileMap[cls]=relativized
         }
     }
-    console.log(nameScriptFileMap)
     console.log("Loaded all classes in "+(Date.now()-startTime)+"ms")
 
 }
@@ -109,5 +108,6 @@ export function loadConfiguration(path:string):DataClumpRefactoringContext{
     return initialContext
     
 }
+if(process.env.JEST_WORKER_ID == undefined){
 loadAllClasses()
-
+}
