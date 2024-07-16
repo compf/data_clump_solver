@@ -66,7 +66,7 @@ export class InteractiveProposalHandler extends OutputHandler{
     handleProposal(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,  fullOutput?:any): void {
         this.proposals.push(modifiedFiles)
         this.outputs.push(fullOutput)
-        fs.writeFileSync("stuff/propoosal"+this.outputs.length+".json",JSON.stringify(fullOutput,null,2))
+        fs.writeFileSync("stuff/proposal"+(new Date().getTime())+".json",JSON.stringify(fullOutput,null,2))
     }
 
     chooseProposal(context: DataClumpRefactoringContext): void {

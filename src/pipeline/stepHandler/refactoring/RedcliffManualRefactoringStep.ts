@@ -1,4 +1,4 @@
-import { DataClumpDetectorContext, DataClumpRefactoringContext, NameFindingContext, RefactoredContext, UsageFindingContext } from "../../../context/DataContext";
+import { DataClumpDetectorContext, DataClumpRefactoringContext, getContextSerializationPath, NameFindingContext, RefactoredContext, UsageFindingContext } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
@@ -27,8 +27,8 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
         }
         let currContext:DataClumpRefactoringContext|null=context.getByType(DataClumpDetectorContext)
         if(currContext!=null){
-            const basePath = currContext.getDefaultSerializationPath()
-            let i=0;
+            const basePath = getContextSerializationPath(currContext,currContext)
+            let i=1;
             let lastPath=""
             let pathExist=fs.existsSync(basePath)
             while(pathExist){
@@ -45,11 +45,11 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
         }
         currContext=context.getByType(NameFindingContext)
         if(currContext!=null){
-            contextData["classNamesContextPath"]=currContext.getDefaultSerializationPath()
+            contextData["classNamesContextPath"]=getContextSerializationPath(currContext,currContext)
         }
         currContext=context.getByType(UsageFindingContext)
         if(currContext!=null){
-            contextData["referenceFindingContextePath"]=currContext.getDefaultSerializationPath()
+            contextData["referenceFindingContextePath"]=getContextSerializationPath(currContext,currContext)
         }
         fs.writeFileSync(dataPath+"/contextPaths.json",JSON.stringify(contextData))
         
