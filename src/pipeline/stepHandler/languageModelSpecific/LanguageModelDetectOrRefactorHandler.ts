@@ -16,11 +16,32 @@ import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
 import {  OutputChecker } from "../../../util/languageModel/OutputChecker";
-import { InteractiveProposalHandler, MultipleBrancheHandler, OutputHandler, StubOutputHandler } from "./OutputHandler";
+import { InteractiveProposalHandler, MetricBasedProposalHandler, MultipleBrancheHandler, OutputHandler, StubOutputHandler } from "./OutputHandler";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
     return 'shallReExecute' in object;
+}
+export interface NumberAttemptsProvider{
+    getNumberAttempts(context:DataClumpRefactoringContext):number
+
+}
+export class ConstantNumberAttemptsProvider implements NumberAttemptsProvider{
+    private numberAttempts:number
+    constructor(numberAttempts:number){
+        this.numberAttempts=numberAttempts
+    }
+    getNumberAttempts(context: DataClumpRefactoringContext): number {
+        return this.numberAttempts
+    }
+}
+
+export class ProposalsNumberAttemptsProvider implements NumberAttemptsProvider{
+    getNumberAttempts(context: DataClumpRefactoringContext): number {
+       let path=resolve(context.getProjectPath(),".data_clump_solver_data","proposals")
+       return fs.readdirSync(path).length
+    }
+
 }
 export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
@@ -28,8 +49,8 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private temperatures: number[] = [0.9]
     private lastTemp = 0;
     private models: string[] = [""]
-    private numberAttempts: number = 10;
-    private outputHandler: OutputHandler = new InteractiveProposalHandler();
+    private numberAttempts: NumberAttemptsProvider;;
+    private outputHandler: OutputHandler = new  InteractiveProposalHandler();
 
     async createDataClumpLocationAndUsageFilterContext(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
@@ -65,9 +86,10 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let templateResolver = resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
         this.providedApi = api
         let handlerIndex = 0
-        getRelevantFilesRec(context.getProjectPath(), this.relevantFiles, context.getByType(FileFilteringContext))
+        getRelevantFilesRec(context.getProjectPath(), this.relevantFiles, context.getByType(FileFilteringContext));
+        let numberAttempts=this.numberAttempts.getNumberAttempts(context);
 
-        for (let i = 0; i < this.numberAttempts; i++) {
+        for (let i = 0; i < numberAttempts; i++) {
             api.clear();
             let temperature = this.temperatures[randInt(this.temperatures.length)]
             this.lastTemp = temperature
@@ -280,6 +302,9 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 }
                 console.log(refactoredPath)
                 let path = resolve(context.getProjectPath(), refactoredPath)
+                if(!fs.existsSync(path) ||  fs.statSync(path).isDirectory()){
+                    continue;
+                }
                 let fileContent = fs.readFileSync(path, { encoding: "utf-8" })
 
 
@@ -357,15 +382,21 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
     }
     static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: AbstractLanguageModel): LanguageModelDetectOrRefactorHandler {
-        let step = new LanguageModelDetectOrRefactorHandler({ handlers: [] })
+        let step = new LanguageModelDetectOrRefactorHandler({ handlers: [],numberAttempts:1 })
         step.handlers = handlers
         step.providedApi = api
         return step
     }
     private doWrite: boolean = false;
-    constructor(args: { handlers: string[], readOnly?: boolean }) {
+    constructor(args: { handlers: string[], numberAttempts:string | number }) {
         super();
         Object.assign(this, args)
+        if(typeof(args.numberAttempts)=="number"){
+            this.numberAttempts=new ConstantNumberAttemptsProvider(args.numberAttempts)
+        }
+        else{
+            this.numberAttempts=resolveFromConcreteName(args.numberAttempts) as NumberAttemptsProvider
+        }
         this.handlers = []
 
         for (let handler of args.handlers) {

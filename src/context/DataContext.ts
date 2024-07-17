@@ -10,10 +10,8 @@ import { getRelevantFilesRec, waitSync } from "../util/Utils";
 import { Configuration } from "../config/Configuration";
 import simpleGit from "simple-git";
 import { ValidationInfo } from "../pipeline/stepHandler/validation/ValidationStepHandler";
-export function getContextSerializationPath(targetContext:DataClumpRefactoringContext|null,context:DataClumpRefactoringContext):string{
 
-    let result= targetContext!=null ? targetContext: context;
-
+export function getContextSerializationBasePath(context:DataClumpRefactoringContext):string{
     let outputPath=resolve(context.getProjectPath(),".data_clump_solver_data/")
     if(!fs.existsSync(outputPath)){
         fs.mkdirSync(outputPath)
@@ -24,7 +22,12 @@ export function getContextSerializationPath(targetContext:DataClumpRefactoringCo
             fs.mkdirSync(resolve(resolve(context.getProjectPath(),".data_clump_solver_data","astOut")))
         }
     }
-    return resolve(context.getProjectPath(),".data_clump_solver_data/",result.getDefaultSerializationPath())
+    return outputPath
+}
+export function getContextSerializationPath(targetContext:DataClumpRefactoringContext|null,context:DataClumpRefactoringContext):string{
+
+    let result= targetContext!=null ? targetContext: context;
+    return resolve(getContextSerializationBasePath(context),result.getDefaultSerializationPath())
 }
 export  class DataClumpRefactoringContext {
     protected previousContext: DataClumpRefactoringContext | null = null;
@@ -232,14 +235,14 @@ export class ASTBuildingContext extends DataClumpRefactoringContext implements R
         }
         throw new Error("Could not find class "+className+" in "+path)
     }
-    getCorrectPath(id:string):string{
+    getCorrectPath(id:string):string|null{
         for(let key of Object.keys(this.ast_type)){
             if(id.endsWith(this.ast_type[key].key)){
                 return this.ast_type[key].file_path
 
             }
         }
-        throw new Error("Could not find path for "+id)
+        return null;
     }
     getExtendingOrImplementingClassKeys(filePath:string):string[]{
         let astKey=this.getByPath(filePath).key;

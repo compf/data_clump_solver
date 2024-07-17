@@ -25,6 +25,7 @@ export class NoAbstractClassOrInterfaceFilter implements SingleItemFilter {
             }
             if(part.method){
                 let method=item.methods[part.method];
+                if(method)
                 item=this.getMostSuperClassOrInterfaceWithMethod(astContext,item,method);
             }
 
@@ -53,10 +54,12 @@ export class NoAbstractClassOrInterfaceFilter implements SingleItemFilter {
                     superClass=currentClass;
                     for(let extends_ of currentClass.extends_){
                         let path=astContext.getCorrectPath(extends_);
+                        if(path!=null)
                         queue.push(path);
                     }
                     for(let implements_ of currentClass.implements_){
                         let path=astContext.getCorrectPath(implements_);
+                        if(path!=null)
                         queue.push(path);
                     }
                 }

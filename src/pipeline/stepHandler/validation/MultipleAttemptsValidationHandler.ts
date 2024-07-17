@@ -41,7 +41,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler{
        api.prepareMessage(JSON.stringify(errors), "input")
        let reply=await api.sendMessages(false);
        fs.writeFileSync("stuff/error_proposal"+new Date().getTime()+"_"+errors.length+".json", JSON.stringify(JSON.parse(reply.messages[0])))
-       let handler=new LanguageModelDetectOrRefactorHandler({handlers:[]});
+       let handler=new LanguageModelDetectOrRefactorHandler({handlers:[],numberAttempts:1});
        await handler.createFittingContext(reply,PipeLineStep.Refactoring,context,[]);
        console.log("Refactoring", result)
 

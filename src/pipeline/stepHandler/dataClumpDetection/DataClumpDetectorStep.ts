@@ -32,7 +32,7 @@ export class DataClumpDetectorStep extends AbstractStepHandler {
         else {
             applyIncludeExclude(context, ruleset_jar_location);
             await analyser.analyse(null);
-            let newContext = context.buildNewContext(new ASTBuildingContext())
+            newContext = context.buildNewContext(new ASTBuildingContext())
             for (let p of fs.readdirSync(ast_out_path)) {
                 (newContext as ASTBuildingContext).load(resolve(ast_out_path, p))
             }

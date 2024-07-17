@@ -81,6 +81,6 @@ async function analyzeProject(url:string){
 if(require.main===module){
     let urls= await (new ProjectListByPullRequest()).getProjectList()
     for(let url of urls){
-        await analyzeProject(url)
+        //await analyzeProject(url)
     }
 }

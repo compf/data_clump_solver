@@ -10,8 +10,7 @@ export type ComparisionSign=">"|"<"|"<="|">="|"="
 export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
     private threshold: number;
     private  requiredCompareSigns:number[];
-    private rankThreshold?: number=undefined;
-    private rankSign?: number=undefined;
+
     private metric?:Metric=undefined;
     constructor(args:{rankThreshold?:number,rankSign?:number,comparisonSign?:ComparisionSign,filterThreshold:number,metricName?:string}) {
         this.threshold = args.filterThreshold;
@@ -37,14 +36,13 @@ export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
             this.metric=resolveFromConcreteName(args.metricName)
 
         }
-        this.rankThreshold = args.rankThreshold;
-        this.rankSign = args.rankSign;
+
     }
     isCompatibleWithDataClump(): boolean {
-        throw new Error("Method not implemented.");
+        return this.metric?.isCompatibleWithDataClump() ?? false;
     }
     isCompatibleWithString(): boolean {
-        throw new Error("Method not implemented.");
+        return this.metric?.isCompatibleWithString() ?? false;
     }
     public async shallRemain(data: string|DataClumpTypeContext,context:DataClumpDetectorContext): Promise<boolean> {
         let occurences=await this.metric!.evaluate(data,context)

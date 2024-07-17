@@ -36,7 +36,11 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                 const basePath = getContextSerializationPath(tempContext, context)
                 let i=2;
                 let filterExists=false;
-                let pathExist=fs.existsSync(basePath)
+                let basePathExists=fs.existsSync(basePath)
+                if(basePathExists){
+                    context=context.buildNewContext(new DataClumpDetectorContext(JSON.parse(fs.readFileSync(basePath, { encoding: "utf-8" }))))
+                }
+                let pathExist=true;
                 let allData:DataClumpsTypeContext[]=[]
                 while(pathExist){
                     let path=basePath.replace(".json","_"+i+".json")
@@ -56,8 +60,8 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                 if(step==PipeLineStep.DataClumpFiltering && filterExists){
                     return context
                 }
-                else if(step==PipeLineStep.DataClumpDetection && !filterExists){
-                    return null;
+                else if(step==PipeLineStep.DataClumpDetection && basePathExists){
+                    return context;
                 }
                else  return null;
             }

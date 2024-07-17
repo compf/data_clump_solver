@@ -1,9 +1,10 @@
 import simpleGit from "simple-git";
-import { DataClumpRefactoringContext, ValidationContext } from "../../../context/DataContext";
+import { DataClumpRefactoringContext, getContextSerializationBasePath, getContextSerializationPath, ValidationContext } from "../../../context/DataContext";
 import {resolve} from "path"
 import fs from "fs"
 import path from "path"
 import readlineSync from "readline-sync"
+import { resolveFromConcreteName } from "../../../config/Configuration";
 export abstract class OutputHandler{
     abstract handleProposal(modifiedFiles:{[key:string]:string},context:DataClumpRefactoringContext,fullOutput?:any):void;
     abstract chooseProposal(context:DataClumpRefactoringContext):void;
@@ -12,17 +13,32 @@ export abstract class OutputHandler{
         fs.mkdirSync(path.dirname(fullPath),{recursive:true})
         fs.writeFileSync(fullPath,content)
     }
+    private existingFiles:{[key:string]:string}={}
+    private newFiles:{[key:string]:boolean}={}
+
     applyProposal(modifiedFiles:{[key:string]:string}, context:DataClumpRefactoringContext){
         for(let p of Object.keys(modifiedFiles)){
             let content=modifiedFiles[p]
             p=resolve(context.getProjectPath(),p);
+            if(!(p in this.existingFiles) && fs.existsSync(p)){
+                this.existingFiles[p]=fs.readFileSync(p,{encoding:"utf-8"})
+            }
+            else if(!(p in this.newFiles) && !fs.existsSync(p)){
+                this.newFiles[p]=true
+            }
             this.writeToFile(p,content)
         }
     }
     deleteProposal(modifiedFiles:{[key:string]:string}, context:DataClumpRefactoringContext){
         for(let p of Object.keys(modifiedFiles)){
             p=resolve(context.getProjectPath(),p);
-            fs.rmSync(p)
+            if(p in this.existingFiles){
+                this.writeToFile(p,this.existingFiles[p])
+            }
+            else if (p in this.newFiles){
+                fs.unlinkSync(p)
+
+            }
         }
     }
 }
@@ -59,14 +75,24 @@ export class MultipleBrancheHandler extends OutputHandler{
     }
 
 }
-
-export class InteractiveProposalHandler extends OutputHandler{
-    private proposals:{ [key: string]: string; }[]=[]
-    private outputs:string[]=[]
+export abstract class SimpleProposalHandler extends OutputHandler{
+    protected proposals:{ [key: string]: string; }[]=[]
+    protected outputs:string[]=[]
     handleProposal(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,  fullOutput?:any): void {
         this.proposals.push(modifiedFiles)
         this.outputs.push(fullOutput)
         fs.writeFileSync("stuff/proposal"+(new Date().getTime())+".json",JSON.stringify(fullOutput,null,2))
+    }
+    abstract chooseProposal(context:DataClumpRefactoringContext):void;
+
+}
+export class InteractiveProposalHandler extends SimpleProposalHandler{
+ 
+    handleProposal(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,  fullOutput?:any): void {
+        this.proposals.push(modifiedFiles)
+        this.outputs.push(fullOutput)
+        let outPath=getContextSerializationBasePath(context)
+        fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),JSON.stringify(fullOutput,null,2))
     }
 
     chooseProposal(context: DataClumpRefactoringContext): void {
@@ -130,15 +156,44 @@ export class InteractiveProposalHandler extends OutputHandler{
         }
     }
 }
-export interface OutputMetric{
+export interface ProposalMetric{
     evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,   fullOutput?:any): number
 }
 export interface ValidationMetric{
     evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,   validationResult:ValidationContext,  fullOutput?:any): number
 
 }
+export class MetricBasedProposalHandler extends SimpleProposalHandler{
+   
+    chooseProposal(context: DataClumpRefactoringContext): void {
+        let mostScoredProposalIndex=0;
+        let bestScore=0;
+       for(let i=0;i<this.proposals.length;i++){
+        let score=this.metric.evaluate(this.proposals[i],context,this.outputs[i])
+        if(score>bestScore){
+            bestScore=score;
+            mostScoredProposalIndex=i
+        }
+       }
+       console.log("Best proposal is ",mostScoredProposalIndex, bestScore, Object.keys(this.proposals[mostScoredProposalIndex]))
+       this.applyProposal(this.proposals[mostScoredProposalIndex],context)
 
-export class NumberOfLinesMetric implements OutputMetric{
+    }
+    private metric:ProposalMetric
+    constructor(args:{proposalMetricName}){
+        super()
+        this.metric=resolveFromConcreteName(args.proposalMetricName) as ProposalMetric
+    
+    }
+}
+
+export class AffectedFilesProposalMetric implements ProposalMetric{
+    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): number {
+        return Object.keys(modifiedFiles).length
+    }
+
+}
+export class NumberOfLinesProposalMetric implements ProposalMetric{
     evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,   fullOutput?:any): number {
        let result=0
         if(fullOutput){
@@ -152,7 +207,7 @@ export class NumberOfLinesMetric implements OutputMetric{
     }
     
 }
-export class SizeChangeMetric implements OutputMetric{
+export class SizeChangeProposalMetric implements ProposalMetric{
     evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): number {
         let oldSize=0;
         let newSize=0
@@ -163,6 +218,9 @@ export class SizeChangeMetric implements OutputMetric{
                     oldSize+=change.oldContent.length
                 }
             }
+           }
+           if(newSize==0){
+            return 0
            }
            return oldSize/newSize
 
