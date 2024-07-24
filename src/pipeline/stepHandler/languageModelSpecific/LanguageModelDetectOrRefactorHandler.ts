@@ -50,7 +50,7 @@ export class ProposalsNumberAttemptsProvider implements NumberAttemptsProvider{
 export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: AbstractLanguageModel | null = null
-    private temperatures: number[] = [0.9]
+    private temperatures: number[] = [0.1]
     private lastTemp = 0;
     private models: string[] = [""]
     private numberAttempts: NumberAttemptsProvider;;

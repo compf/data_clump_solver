@@ -14,19 +14,14 @@ export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
 }
 export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
    async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let dcContext =(await super.handle(step,context,params)).getByType(DataClumpDetectorContext)!
-        dcContext.serialize()
-       // console.log("filtering",dcContext.getDataClumpDetectionResult())
-       let simplified= this.simplifyJson(dcContext.getDataClumpDetectionResult())
-      // console.log(Object.keys(simplified.data_clumps).length)
+      context=await super.handle(step,context,params);
        let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
        let resolver=new LanguageModelTemplateResolver({})
        for(let h of this.handlers){
         h.handle(context,api,resolver)
        }
-       console.log("simplified",Object.keys(simplified.data_clumps).length);
-       //if(1==1)throw "sds"
-       api.prepareMessage(JSON.stringify(simplified),"input")
+       let dcContext=context.getByType(DataClumpDetectorContext)!
+    
        let tolerantParser=new TolerantOutputParser(api,
         [
             (s,d)=>tryParseJSONWithSlice(s),
@@ -94,47 +89,6 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
             this.handlers.push(resolveFromConcreteName(h))
         }
     }
-    private counterMap:{[key:number]:string}={}
-    simplifyJson(source:any):any{
-        let template=this.filterTemplate
-        let counter=0
-        let fullTarget={}
-        source=source.data_clumps;
-        for(let dcKey in source){
-            this.counterMap[counter]=dcKey
-            let target={
-                key:counter,
-                data_clump_type:source[dcKey].data_clump_type,
-                from_file_path:source[dcKey].from_file_path,
-                from_class_or_interface_name:source[dcKey].from_class_or_interface_name,
-                from_method_name:source[dcKey].from_method_name,
-                to_file_path:source[dcKey].to_file_path,
-                to_class_or_interface_name:source[dcKey].to_class_or_interface_name,
-                to_method_name:source[dcKey].to_method_name,
-                data_clump_data:{}
 
-
-
-            }
-           fullTarget[counter]=target
-            for(let dcData of Object.keys(source[dcKey].data_clump_data)){
-                let data=source[dcKey].data_clump_data[dcData]
-                target.data_clump_data[-counter]={
-                    name:data.name,
-                    type:data.type,
-                    modifiers:data.modifiers
-                }
-                counter++;
-                
-            }
-            counter++;
-           
-        }
-      
-     
-        console.log("fullTarget",fullTarget)
-      return {data_clumps:fullTarget}
-    }
-    counter=0
     
 }

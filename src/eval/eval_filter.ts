@@ -12,7 +12,7 @@ import { AffectedFileSizeMetric } from "../pipeline/stepHandler/dataClumpFilteri
 import { RankSampler } from "../util/filterUtils/Ranker";
 import { all } from "axios";
 import { DataClumpLanguageModelFilter } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilter";
-import { SimpleInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { DataClumpCodeSnippetHandler, SimpleInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { registerFromName, resolveFromInterfaceName } from "../config/Configuration";
 import { ProjectListByPullRequest } from "./project_list_retriever";
@@ -53,9 +53,10 @@ async function analyzeProject(url:string){
         rankThreshold:10
     });
     (llmFilter as any).handlers=[
-        new SimpleInstructionHandler({instructionPath:"chatGPT_templates/dataClumpFiltering/filter.template"})
+        new SimpleInstructionHandler({instructionPath:"chatGPT_templates/dataClumpFiltering/filter_code_snippet.template"}),
+        new DataClumpCodeSnippetHandler({additionalMargin:0}),
     ];
-    const models=["llama3"]
+    const models=["llama2"]
     const temperatures=[0.1,0.5,0.9]
     registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});
     registerFromName("DataClumpOccurenceMetric", "DataClumpOccurenceMetric", {});
@@ -110,7 +111,7 @@ async function analyzeProject(url:string){
 async function main(){
     let urls= await (new ProjectListByPullRequest()).getProjectList()
     for(let url of urls){
-        //await analyzeProject(url)
+        await analyzeProject(url)
     }
 }
 

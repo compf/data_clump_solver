@@ -61,6 +61,8 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         if(clear){
             this.clear()
         }
+        fs.writeFileSync("stuff/response.json",JSON.stringify(response,undefined,4))
+        //throw this.format
         this.lastUsage=response.usage!
         console.log(JSON.stringify(response,undefined,4))
         if(response.choices.length>0){

@@ -3,6 +3,7 @@ import { spawn } from "child_process"
 import {resolve} from "path"
 import { LanguageServerAPI } from "./LanguageServerAPI";
 import { ResponseMessage } from "./TypeDefinitions";
+import { tryParseJSON } from "../Utils";
 enum State{NotInitialized,Initialized}
 let currState=State.NotInitialized;
 let first=true;
@@ -15,11 +16,12 @@ export class EclipseLSP_API extends LanguageServerAPI {
             console.log ("ERROR",d.toString())
         })
         
-        super.callInitialize(cp.stdin, path)
+        super.callInitialize(cp.stdin, path);
+        let buffer=""
         let data = cp.stdout.on("data", (data: Buffer) => {
             let s = data.toString("utf-8")
             s = s.replace(/\}C/g, "\}\r\n\r\nC")
-
+            s=buffer+s;
             //console.log(s)
 
             let splitted = s.split("\r\n");
@@ -27,7 +29,14 @@ export class EclipseLSP_API extends LanguageServerAPI {
                 if (line.startsWith("Content-Length: ")) {
                 }
                 else if (line.startsWith("{")) {
-                    let content = JSON.parse(line);
+                    let content = tryParseJSON(line)
+                    if(content==null){
+                        buffer=line;
+                        return;
+                    }
+                    else{
+                        buffer="";
+                    }
                     if (currState == State.NotInitialized && content.id == 1 && first) {
                         first = false;
                         currState = State.Initialized;
