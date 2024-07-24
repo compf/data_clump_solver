@@ -7,7 +7,7 @@ export class ByClassNameFilter implements SingleItemFilter{
     shallRemain(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<boolean> {
         let d=(data as DataClumpTypeContext)
         console.log("class name",d.from_class_or_interface_name, this.name)
-        return Promise.resolve( d.from_class_or_interface_name==this.name &&  d.to_class_or_interface_name==this.name);
+        return Promise.resolve( d.from_class_or_interface_name==this.name ||  d.to_class_or_interface_name==this.name);
     }
     isCompatibleWithDataClump(): boolean {
        return true;

@@ -51,6 +51,25 @@ function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext
     }
     return isExcluded || !isIncluded
 }
+
+export function checkPath(path:string, include:string[],exclude:string[], includePrevails:boolean):boolean{
+    let isIncluded = include.length == 0
+    let isExcluded = false
+    for (let includeGlob of include) {
+        if (path.endsWith(includeGlob)|| new Minimatch(includeGlob,MiniMatchConf).match(path,true)) {
+            isIncluded = true
+            break
+        }
+    }
+    for (let excludeGlob of exclude) {
+        if (new Minimatch(excludeGlob,MiniMatchConf).match(path)) {
+            isExcluded = true
+            break
+        }
+    }
+    return (isIncluded && !isExcluded) || (includePrevails && isIncluded)
+}
+
 export async function wait(ms:number){
     return new Promise((resolve,reject)=>{
         setTimeout(resolve,ms)

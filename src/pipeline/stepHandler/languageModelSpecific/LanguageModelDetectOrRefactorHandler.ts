@@ -37,8 +37,12 @@ export class ConstantNumberAttemptsProvider implements NumberAttemptsProvider{
 }
 
 export class ProposalsNumberAttemptsProvider implements NumberAttemptsProvider{
+    path: string | undefined;
+    constructor(args:{path?:string}){
+        this.path=args.path
+    }
     getNumberAttempts(context: DataClumpRefactoringContext): number {
-       let path=resolve(context.getProjectPath(),".data_clump_solver_data","proposals")
+       let path=this.path??resolve(context.getProjectPath(),".data_clump_solver_data","proposals")
        return fs.readdirSync(path).length
     }
 
@@ -157,7 +161,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let lines = message.split("\n")
         for (let line of lines) {
             console.log("line", line)
-            if (!insideCodeBlock && line.match(pathRegex)) {
+            if (!insideCodeBlock && !line.includes("\\n") && line.match(pathRegex)) {
                 let m = line.match(pathRegex)!
                 console.log(line)
                 console.log(m)
@@ -253,7 +257,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
                             this.parseMarkdown(context, m, errorMessages)
                         }
-                        else if (("refactorings" in json)) {
+                        else if (typeof(json)=="object" && ("refactorings" in json)) {
                             this.parse_piecewise_output(json, context)
                         }
 
@@ -319,7 +323,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                     let index = fileContent.indexOf(oldContent)
                     console.log("change", change)
                     const MAX_OFFSET = 100
-                    if (index == -1) {
+                    if (false) {
                         let splitted = fileContent.split("\n")
                         for (let i = Math.max(0, start - MAX_OFFSET); i < Math.min(end + MAX_OFFSET, splitted.length); i++) {
                             console.log("CHECK", splitted[i])

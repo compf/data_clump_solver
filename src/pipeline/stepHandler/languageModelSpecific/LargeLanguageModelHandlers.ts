@@ -214,6 +214,7 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
         let pathLinesMapCopy:{[key:string]:Set<number>}={}
         for(let path of Object.keys(pathLinesMap)){
             pathLinesMapCopy[path]=new Set<number>();
+            this.generateLines(0,this.headerMargin,ExtractionDirection.Up,pathLinesMapCopy[path])
 
             for(let line of pathLinesMap[path]){
                

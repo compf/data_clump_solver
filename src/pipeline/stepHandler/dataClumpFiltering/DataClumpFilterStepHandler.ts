@@ -22,8 +22,10 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         
         let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
+        console.log("before",detectionContext.getDataClumpDetectionResult(),"dscdsc")
+
         if(detectionContext.isFiltered() && this.doNothingIfFiltered){
-            return context
+            //return context
         }
         let values = Object.values(detectionContext!.getDataClumpDetectionResult().data_clumps);
         context=new DataClumpDetectorContext(detectionContext.cloneLastItem())
@@ -33,6 +35,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
             }
             for (let dc of values) {
                 let shallRemain = await this.filter!.shallRemain(dc, detectionContext)
+                console.log("shall remain",shallRemain,dc.key)
                 if (!shallRemain) {
                     console.log("removing",dc.key)
                     detectionContext.deleteEntry(dc.key)
@@ -52,6 +55,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
             }
             detectionContext.setDataClumpDetectionResult(result)
         }
+
 
         detectionContext.updateStats();
         return detectionContext

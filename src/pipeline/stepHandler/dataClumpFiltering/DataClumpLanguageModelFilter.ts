@@ -14,13 +14,16 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
    async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let dcContext =(await super.handle(step,context,params)).getByType(DataClumpDetectorContext)!
         dcContext.serialize()
+       // console.log("filtering",dcContext.getDataClumpDetectionResult())
        let simplified= this.simplifyJson(dcContext.getDataClumpDetectionResult())
-       console.log(Object.keys(simplified.data_clumps).length)
+      // console.log(Object.keys(simplified.data_clumps).length)
        let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
        let resolver=new LanguageModelTemplateResolver({})
        for(let h of this.handlers){
         h.handle(context,api,resolver)
        }
+       console.log("simplified",Object.keys(simplified.data_clumps).length);
+       //if(1==1)throw "sds"
        api.prepareMessage(JSON.stringify(simplified),"input")
        let result=await api.sendMessages(false)
        let parsed=JSON.parse(result.messages[0])
@@ -76,30 +79,43 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
     }
     simplifyJson(source:any):any{
         let template=this.filterTemplate
+        let counter=0
+        let fullTarget={}
+        source=source.data_clumps;
+        for(let dcKey in source){
+            let target={
+                key:counter,
+                data_clump_type:source[dcKey].data_clump_type,
+                from_file_path:source[dcKey].from_file_path,
+                from_class_or_interface_name:source[dcKey].from_class_or_interface_name,
+                from_method_name:source[dcKey].from_method_name,
+                to_file_path:source[dcKey].to_file_path,
+                to_class_or_interface_name:source[dcKey].to_class_or_interface_name,
+                to_method_name:source[dcKey].to_method_name,
+                data_clump_data:{}
 
-        let target={}
-        this.simplifyJsonRec(source,target,template)
-        return target
-    }
-    simplifyJsonRec(source:any,target:any,template:any){
-        let templateKeys=Object.keys(template)
-        if(templateKeys.length==1 && templateKeys[0]=="<all>"){
-           for(let key in source){
-               target[key]={}
-               this.simplifyJsonRec(source[key],target[key],template["<all>"])
-           }
-           return
-        }
-        for(let key of templateKeys){
-            let value=source[key]
-            if( typeof value=="object" && value!=null){
-                target[key]={}
-                this.simplifyJsonRec(value,target[key],template[key])
-            }
-            else {
-                target[key]=source[key]
-            }
 
+
+            }
+           fullTarget[counter]=target
+            for(let dcData of Object.keys(source[dcKey].data_clump_data)){
+                let data=source[dcKey].data_clump_data[dcData]
+                target.data_clump_data[-counter]={
+                    name:data.name,
+                    type:data.type,
+                    modifiers:data.modifiers
+                }
+                counter++;
+                
+            }
+            counter++;
+           
         }
+      
+     
+        console.log("fullTarget",fullTarget)
+      return {data_clumps:fullTarget}
     }
+    counter=0
+    
 }

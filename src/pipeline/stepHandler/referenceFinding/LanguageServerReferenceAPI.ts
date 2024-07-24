@@ -265,7 +265,7 @@ export class LanguageServerReferenceAPI extends AbstractStepHandler {
                         let usage:VariableOrMethodUsage={
                             symbolType: info.usageType,
                             range:{startLine:result.range.start.line,startColumn:result.range.start.character,endLine:result.range.end.line,endColumn:result.range.end.character},
-                            filePath: result.uri.substring("file://".length).replace(context.getProjectPath(),""),
+                            filePath: result.uri.substring("file://".length).replace(context.getProjectPath(),"").replace("/",""),
                             name: info.variableName,
                             originKey:info.originKey,
                         }

@@ -67,13 +67,14 @@ export  class   RankSampler{
             }
             fs.writeFileSync("data/evaluateMap.json",JSON.stringify(evaluateMap))
           let result=input.sort(  (a,b) =>this.rankSign!* (evaluateMap[this.getKey(a)]-evaluateMap[this.getKey(b)]))
-
+            console.log("result",result)
           let slicedResult:DataClumpTypeContext[]=[]
           let dcContext=context.getByType(DataClumpDetectorContext)!;
           let counter=0;
           let previousKey=""
           let typeNameKeys_DataClumps={}
           for(let r of result){
+            //if(1==1)throw "iteration"
             if (typeof r === "string") {
                 break;
             }
@@ -90,17 +91,21 @@ export  class   RankSampler{
                     typeNameKeys_DataClumps[typeNameKey].push(related)
                 }
             }
-            const compareCount = this.differentDataClumps ? Object.values(typeNameKeys_DataClumps).flat().length : Object.keys(typeNameKeys_DataClumps).length
+            const compareCount = !this.differentDataClumps ? Object.values(typeNameKeys_DataClumps).flat().length : Object.keys(typeNameKeys_DataClumps).length
             if(compareCount>this.rankThreshold!){
-                //throw "slicedResult.length>this.rankThreshold! " + counter +" "+this.differentDataClumps;
+                //throw "csyc " + compareCount +" "+this.rankThreshold;
                 break;
             }
           
             
           }
+
           slicedResult=Object.values(typeNameKeys_DataClumps).flat() as DataClumpTypeContext[]
+
           if(this.strictSize){
-                return slicedResult.slice(0,this.rankThreshold!)
+                slicedResult=slicedResult.slice(0,this.rankThreshold!)
+               //throw "sliced "+slicedResult.length
+                return slicedResult
           }
           return slicedResult
       }

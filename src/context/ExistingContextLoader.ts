@@ -34,7 +34,7 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
             {
                 let tempContext=new DataClumpDetectorContext({data_clumps:{}} as any)
                 const basePath = getContextSerializationPath(tempContext, context)
-                let i=2;
+                let i=1;
                 let filterExists=false;
                 let basePathExists=fs.existsSync(basePath)
                 if(basePathExists){
@@ -58,9 +58,10 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                 }
                
                 if(step==PipeLineStep.DataClumpFiltering && filterExists){
-                    return context
+                    return null
                 }
                 else if(step==PipeLineStep.DataClumpDetection && basePathExists){
+       
                     return context;
                 }
                else  return null;
