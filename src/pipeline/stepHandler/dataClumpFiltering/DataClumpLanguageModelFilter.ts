@@ -46,7 +46,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
        console.log("parsed",result)
        fs.writeFileSync("stuff/justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
 
-       let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
+       let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[this.counterMap[parsed.key]]
        let related= dcContext.getRelatedDataClumpKeys(relevantDc)
        let filtered=dcContext.cloneLastItem();
        filtered.data_clumps={}
@@ -94,12 +94,14 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
             this.handlers.push(resolveFromConcreteName(h))
         }
     }
+    private counterMap:{[key:number]:string}={}
     simplifyJson(source:any):any{
         let template=this.filterTemplate
         let counter=0
         let fullTarget={}
         source=source.data_clumps;
         for(let dcKey in source){
+            this.counterMap[counter]=dcKey
             let target={
                 key:counter,
                 data_clump_type:source[dcKey].data_clump_type,
