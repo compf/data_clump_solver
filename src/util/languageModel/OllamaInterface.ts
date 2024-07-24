@@ -73,6 +73,7 @@ export class OllamaInterface extends AbstractLanguageModel {
         let response: ChatResponse = {} as any
 
         console.log("SENDING", this.messages)
+        fs.writeFileSync("stuff/request.json", JSON.stringify(this.messages,null,2))
         response = await ollama.chat({
             model: this.model,
             options: {

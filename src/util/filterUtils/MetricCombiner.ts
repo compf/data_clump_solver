@@ -19,6 +19,7 @@ export class MetricCombiner implements Metric, InitializationRequiredMetric{
     }
     scale(metricName:string,value:number):number{
         let stats=this.metricsStat[metricName]
+        if(stats.max==stats.min)return value;
         return (value-stats.min)/(stats.max-stats.min)
     }
     async evaluate(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
@@ -34,7 +35,7 @@ export class MetricCombiner implements Metric, InitializationRequiredMetric{
             result += r * metric.weight;
             (context as any)[key].metrics[metric.name]=originalValue
             if(result==null || result==undefined || isNaN(result)){
-                console.log("result is null")
+                console.log("result is null",metric.name,r)
                 //throw "result is null " + metric.name + " " + r + " " + metric.weight +" "+result
             }
         }

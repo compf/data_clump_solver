@@ -96,6 +96,16 @@ export function tryParseJSON(jsonString:string){
         return null
     }
 }
+export function tryParseJSONWithSlice(jsonString:string){
+    let parsed=tryParseJSON(jsonString);
+    if(parsed==null){
+        let start=jsonString.indexOf("{")
+        let end=jsonString.lastIndexOf("}")+1
+        jsonString=jsonString.slice(start,end);
+        return tryParseJSON(jsonString);
+    }
+    return parsed;
+}
 export function parseJSONDetailed(json:string):{jsonResult:any,errorMessage?:string} {
     try {
         let result= JSON.parse(json);

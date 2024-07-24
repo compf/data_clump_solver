@@ -3,6 +3,8 @@ import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../conf
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
+import { TolerantOutputParser } from "../../../util/languageModel/TolerantOutputParser";
+import { tryParseJSONWithSlice } from "../../../util/Utils";
 import { PipeLineStepType } from "../../PipeLineStep";
 import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/LargeLanguageModelHandlers";
 import { DataClumpFilterArgs, DataClumpFilterStepHandler } from "./DataClumpFilterStepHandler";
@@ -25,8 +27,23 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
        console.log("simplified",Object.keys(simplified.data_clumps).length);
        //if(1==1)throw "sds"
        api.prepareMessage(JSON.stringify(simplified),"input")
-       let result=await api.sendMessages(false)
-       let parsed=JSON.parse(result.messages[0])
+       let tolerantParser=new TolerantOutputParser(api,
+        [
+            (s,d)=>tryParseJSONWithSlice(s),
+            (s,d)=>{
+                let dcContext=d.getByType(DataClumpDetectorContext)!
+                for(let key of dcContext.getDataClumpKeys()){
+                    if(s.includes(key)){
+                        return {key:key};
+                    }
+                }
+                return null;
+            }
+        ]
+       );
+       let result=await tolerantParser.send(false,dcContext)
+       let parsed=result;
+       console.log("parsed",result)
        fs.writeFileSync("stuff/justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
 
        let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
