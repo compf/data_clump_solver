@@ -333,20 +333,16 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
 
 export class SimplifiedDataClumpContextHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
-        let dcContext = context.getByType(DataClumpDetectorContext)!;
-
-        let simplified = this.simplifyJson(dcContext.getDataClumpDetectionResult())
-        return Promise.resolve([api.prepareMessage(JSON.stringify(simplified), "input")])
+        let dcContext = context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult();
+        dcContext = this.simplifyJson(dcContext);
+        return Promise.resolve([api.prepareMessage(JSON.stringify(dcContext), "input")])
     }
-    private counterMap: { [key: number]: string } = {}
     simplifyJson(source: any): any {
-        let counter = 0
         let fullTarget = {}
         source = source.data_clumps;
         for (let dcKey in source) {
-            this.counterMap[counter] = dcKey
             let target = {
-                key: counter,
+                key: source[dcKey].key,
                 data_clump_type: source[dcKey].data_clump_type,
                 from_file_path: source[dcKey].from_file_path,
                 from_class_or_interface_name: source[dcKey].from_class_or_interface_name,
@@ -359,23 +355,20 @@ export class SimplifiedDataClumpContextHandler extends LargeLanguageModelHandler
 
 
             }
-            fullTarget[counter] = target
+            fullTarget[dcKey] = target
             for (let dcData of Object.keys(source[dcKey].data_clump_data)) {
                 let data = source[dcKey].data_clump_data[dcData]
-                target.data_clump_data[-counter] = {
+                target.data_clump_data[dcData] = {
                     name: data.name,
                     type: data.type,
                     modifiers: data.modifiers
                 }
-                counter++;
 
             }
-            counter++;
 
         }
 
 
-        console.log("fullTarget", fullTarget)
         return { data_clumps: fullTarget }
     }
     counter = 0

@@ -15,13 +15,16 @@ export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
 export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
    async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
       context=await super.handle(step,context,params);
+      let dcContext=context.getByType(DataClumpDetectorContext)!
+
        let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
        let resolver=new LanguageModelTemplateResolver({})
+       dcContext.getDataClumpDetectionResult().data_clumps=this.simplifyKeys(dcContext.getDataClumpDetectionResult()).data_clumps
+
        for(let h of this.handlers){
-        h.handle(context,api,resolver)
+        h.handle(dcContext,api,resolver)
        }
-       let dcContext=context.getByType(DataClumpDetectorContext)!
-    
+       console.log("dcContext",dcContext.getDataClumpDetectionResult())
        let tolerantParser=new TolerantOutputParser(api,
         [
             (s,d)=>tryParseJSONWithSlice(s),
@@ -41,7 +44,8 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
        console.log("parsed",result)
        fs.writeFileSync("stuff/justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
 
-       let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[this.counterMap[parsed.key]]
+       let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
+       console.log("relevantDc",relevantDc)
        let related= dcContext.getRelatedDataClumpKeys(relevantDc)
        let filtered=dcContext.cloneLastItem();
        filtered.data_clumps={}
@@ -89,6 +93,33 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
             this.handlers.push(resolveFromConcreteName(h))
         }
     }
+    private counterMap: { [key: number]: string } = {}
+    simplifyKeys(source: any): any {
+        let counter = 0
+        let fullTarget = {}
+        source = source.data_clumps;
+        for (let dcKey in source) {
+            this.counterMap[counter] = dcKey
+            let target=Object.assign({},source[dcKey])
+            target.key=counter
+            fullTarget[counter]=target
+            let dataClumpData = source[dcKey].data_clump_data
+            target.data_clump_data = {}
+            for (let dcData of Object.keys(dataClumpData)) {
+                let data = dataClumpData[dcData]
+                target.data_clump_data[-counter] = dataClumpData[dcData]
+                target.data_clump_data[-counter].key = counter
+                counter++;
 
+            }
+            counter++;
+
+        }
+
+
+        console.log("fullTarget", fullTarget)
+        return { data_clumps: fullTarget }
+    }
+    counter = 0
     
 }
