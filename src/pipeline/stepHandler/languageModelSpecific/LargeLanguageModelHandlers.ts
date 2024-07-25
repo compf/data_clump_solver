@@ -206,8 +206,8 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
 
         }
     }
-    splitIntoBlocks(lines: Set<number>, key?: string): { fromLine: number, toLine: number, key?: string }[] {
-        let blocks: { fromLine: number, toLine: number, key?: string }[] = []
+    splitIntoBlocks(content:string,lines: Set<number>, key?: string): { fromLine: number, toLine: number,content:string, key?: string }[] {
+        let blocks: { fromLine: number, toLine: number,content:string, key?: string }[] = []
         let lastLine = -1
         let fromLine = -1;
         let firstIteration = true;
@@ -220,7 +220,7 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
                 continue;
             }
             else if (line - lastLine > 1) {
-                blocks.push({ fromLine, toLine: lastLine, key })
+                blocks.push({ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") , key })
                 fromLine = line
                 lastLine = line
             }
@@ -229,7 +229,7 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
 
             }
         }
-        blocks.push({ fromLine, toLine: lastLine })
+        blocks.push({ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") })
         return blocks;
     }
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
@@ -254,19 +254,19 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
             [key: string]: {
                 content: string,
                 fromLine: number,
-                toLine: number
+                toLine: number,
             }[]
         } = {};
         for (let path of Object.keys(pathLinesMapCopy)) {
-            let content = fs.readFileSync(resolve(context.getProjectPath(), path), { encoding: "utf-8" }).split("\n")
-            let blocks = this.splitIntoBlocks(pathLinesMapCopy[path], undefined)
-            for (let block of blocks) {
-                let contentBlock = content.slice(block.fromLine, block.toLine + 1).join("\n")
-                if (resultingMessages[path] == null) {
-                    resultingMessages[path] = []
-                }
-                resultingMessages[path].push({ content: contentBlock, fromLine: block.fromLine, toLine: block.toLine })
+            let content = fs.readFileSync(resolve(context.getProjectPath(), path), { encoding: "utf-8" })
+            let blocks = this.splitIntoBlocks(content,pathLinesMapCopy[path], undefined)!;
+            if(!(path in resultingMessages)){
+                resultingMessages[path]=[]
             }
+           for(let b  of blocks){
+            resultingMessages[path].push(b);
+           }
+           
 
         }
         return Promise.resolve([api.prepareMessage(JSON.stringify(resultingMessages), "input")])
@@ -318,9 +318,12 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
             if (!(dc.to_file_path in allBlocks)) {
                 allBlocks[dc.to_file_path] = []
             }
-            let blocks = this.splitIntoBlocks(pathLinesMap[dc.from_file_path], dc.key)
+            let content=fs.readFileSync(resolve(context.getProjectPath(),dc.from_file_path),{encoding:"utf-8"})
+            let blocks = this.splitIntoBlocks(content,pathLinesMap[dc.from_file_path], dc.key)
             allBlocks[dc.from_file_path].push(...blocks)
-            blocks = this.splitIntoBlocks(pathLinesMap[dc.to_file_path], dc.key)
+             content=fs.readFileSync(resolve(context.getProjectPath(),dc.to_file_path),{encoding:"utf-8"})
+
+            blocks = this.splitIntoBlocks(content,pathLinesMap[dc.to_file_path], dc.key)
             allBlocks[dc.to_file_path].push(...blocks)
 
 

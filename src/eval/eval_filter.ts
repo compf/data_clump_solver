@@ -56,7 +56,7 @@ async function analyzeProject(url:string){
         new SimpleInstructionHandler({instructionPath:"chatGPT_templates/dataClumpFiltering/filter_code_snippet.template"}),
         new DataClumpCodeSnippetHandler({additionalMargin:0}),
     ];
-    const models=["llama2"]
+    const models=["codellama"]
     const temperatures=[0.1,0.5,0.9]
     registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});
     registerFromName("DataClumpOccurenceMetric", "DataClumpOccurenceMetric", {});
