@@ -20,7 +20,6 @@ export class AffectedFilesMetric implements Metric {
             paths.add(dc.from_file_path);
             paths.add(dc.to_file_path);
         }
-        console.log("paths",paths.size)
         return paths
     }
     evaluate(data:string|DataClumpTypeContext,context:DataClumpRefactoringContext): Promise<number> {
