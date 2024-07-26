@@ -92,7 +92,14 @@ export class InteractiveProposalHandler extends SimpleProposalHandler{
         this.proposals.push(modifiedFiles)
         this.outputs.push(fullOutput)
         let outPath=getContextSerializationBasePath(context)
-        fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),JSON.stringify(fullOutput,null,2))
+        if(typeof(fullOutput)=="string"){
+        fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),fullOutput)
+
+        }
+        else{
+            fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),JSON.stringify(fullOutput,null,2))
+
+        }
     }
 
     chooseProposal(context: DataClumpRefactoringContext): void {

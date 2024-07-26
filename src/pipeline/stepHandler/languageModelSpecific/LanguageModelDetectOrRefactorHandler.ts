@@ -50,7 +50,7 @@ export class ProposalsNumberAttemptsProvider implements NumberAttemptsProvider{
 export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: AbstractLanguageModel | null = null
-    private temperatures: number[] = [0.1]
+    private temperatures: number[] = [0.1,0.5]
     private lastTemp = 0;
     private models: string[] = [""]
     private numberAttempts: NumberAttemptsProvider;;
@@ -157,11 +157,11 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let foundPath = false;
         let foundCode = false;
         let changes = {}
-        const pathRegex = /([a-zA-z]:\\\\)?((\/|\\)?\w+(\\|\/)?)+\.java/gm
+        const pathRegex = /([a-zA-Z]:\\)?(\\?\w+)+\.java/gm
         let lines = message.split("\n")
         for (let line of lines) {
             console.log("line", line)
-            if (!insideCodeBlock && !line.includes("\\n") && line.match(pathRegex)) {
+            if (false && !insideCodeBlock && !line.includes("\\n") && line.match(pathRegex)) {
                 let m = line.match(pathRegex)!
                 console.log(line)
                 console.log(m)

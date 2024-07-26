@@ -16,9 +16,9 @@ export class TextBasedReferenceFinder extends AbstractStepHandler{
 
             for(let i=0;i<lines.length;i++){
                 let line=lines[i]
-                console.log(line)
+                
                 if(line.includes(";")){
-                   console.log()
+                  
                 }
                 for(let dcData of Object.values(dc.data_clump_data) ){
                     if(line.includes(dcData.name)){
