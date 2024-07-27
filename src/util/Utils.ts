@@ -156,3 +156,5 @@ export function indexOfSubArray(array:any[],subArray:any[]){
 export function randInt(max:number){
     return Math.floor(max*Math.random())
 }
+
+export function nop(){}

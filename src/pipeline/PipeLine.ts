@@ -53,6 +53,9 @@ export class PipeLine {
         }
         for (let i = 0; i < NumberPipeLineSteps; i++) {
             let deserializedContext=loadExistingContext(pipeLineSteps[i],context)
+            if(deserializedContext!=null && this.stepHandlerList[i]!=null){
+                deserializedContext=this.stepHandlerList[i].deserializeExistingContext(deserializedContext,pipeLineSteps[i])
+            }
             if(deserializedContext!=null){
                 console.log("Deserialized context for step "+pipeLineSteps[i].name)
                 context=context.buildNewContext(deserializedContext);

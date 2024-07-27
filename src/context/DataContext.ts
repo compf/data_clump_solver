@@ -6,7 +6,7 @@ import fs from "fs"
 import path from "path"
 import { resolve } from "path";
 import { AST_Class, AST_Type } from "./AST_Type";
-import { getRelevantFilesRec, waitSync } from "../util/Utils";
+import { getRelevantFilesRec, nop, waitSync } from "../util/Utils";
 import { Configuration } from "../config/Configuration";
 import simpleGit from "simple-git";
 import { ValidationInfo } from "../pipeline/stepHandler/validation/ValidationStepHandler";
@@ -305,7 +305,16 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
     }
     getRelatedDataClumpKeys(dc:DataClumpTypeContext):DataClumpTypeContext[]{
         let key=this.createDataTypeNameClumpKey(dc)
+        let related=this.byNameTypeKeys[key]
+        if(related.length>1000){
+            let unique=(related.map((it)=>it.key))
+            fs.writeFileSync("stuff/out",unique.join("\n"))
+            nop();
+        }
         return this.byNameTypeKeys[key];
+    }
+    getFirstDataClumpByTypeNameKey(key:string):DataClumpTypeContext{
+        return this.byNameTypeKeys[key][0]
     }
     getDataClumpTypeContext(key: string): DataClumpTypeContext {
         return this.currDataClumpDetectionResult.data_clumps[key]!

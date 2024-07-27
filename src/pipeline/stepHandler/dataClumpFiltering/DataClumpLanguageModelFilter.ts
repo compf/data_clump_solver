@@ -83,7 +83,9 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
     }
     private handlers:LargeLanguageModelHandler[]=[
     ]
-
+    deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
+        return null;
+    }
     constructor(args:DataClumpLanguageModelFilterArgs){
         super(args)
         for(let h of args.handlers){

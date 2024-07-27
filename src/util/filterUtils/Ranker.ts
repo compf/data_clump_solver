@@ -34,14 +34,22 @@ export  class   RankSampler{
               this.strictSize=args.strictSize
           }
       }
-      protected getKey(data: string|DataClumpTypeContext):string{
+      protected getKey(data: string|DataClumpTypeContext, context:DataClumpRefactoringContext):string{
           if(typeof data==="string"){
               return data
           }
           else{
-              return data.key
+            let dcContext=context.getByType(DataClumpDetectorContext)!
+              return dcContext.createDataTypeNameClumpKey(data)
           }
       }
+      getItemByKey(key:string,context:DataClumpRefactoringContext):DataClumpTypeContext|string{
+            let dcContext=context.getByType(DataClumpDetectorContext)
+            if(dcContext==null){
+                return key;
+            }
+            return dcContext.getFirstDataClumpByTypeNameKey(key)
+        }
       async rank(metric:Metric,input:(string|DataClumpTypeContext)[],context:DataClumpRefactoringContext):Promise<(string|DataClumpTypeContext)[]>{
             if(this.rankThreshold==null){
                   this.rankThreshold=1
@@ -52,24 +60,26 @@ export  class   RankSampler{
             if(this.rankThreshold!<1){
                   this.rankThreshold=input.length*this.rankThreshold!
             }
+            let dcContext=context.getByType(DataClumpDetectorContext)!
+            let keys=Array.from(new Set(input.map((it)=>this.getKey(it,context))))
             let evaluateMap:{[key:string]:number}={}
             if(isInitializationRequired(metric)){
-                for(let item of input){
+                for(let  key of keys){
+                    let item=this.getItemByKey(key,context)
                    await  metric.initialize(item,context)
   
               }
             }
-            for(let item of input){
-                  let key=this.getKey(item)
+            for(let key of keys){
+                let item=this.getItemByKey(key,context)
                   let value=await metric.evaluate(item,context)
                   evaluateMap[key]=value
 
             }
             fs.writeFileSync("data/evaluateMap.json",JSON.stringify(evaluateMap))
-          let result=input.sort(  (a,b) =>this.rankSign!* (evaluateMap[this.getKey(a)]-evaluateMap[this.getKey(b)]))
+          let result=keys.sort(  (a,b) =>this.rankSign!* (evaluateMap[a]-evaluateMap[b])).map((it)=>dcContext.getFirstDataClumpByTypeNameKey(it))
             console.log("result",result)
           let slicedResult:DataClumpTypeContext[]=[]
-          let dcContext=context.getByType(DataClumpDetectorContext)!;
           let counter=0;
           let previousKey=""
           let typeNameKeys_DataClumps={}
