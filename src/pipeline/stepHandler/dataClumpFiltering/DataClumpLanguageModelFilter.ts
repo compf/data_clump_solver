@@ -9,6 +9,7 @@ import { PipeLineStepType } from "../../PipeLineStep";
 import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/LargeLanguageModelHandlers";
 import { DataClumpFilterArgs, DataClumpFilterStepHandler } from "./DataClumpFilterStepHandler";
 import fs from "fs";
+import readlineSync from "readline-sync"
 export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
     handlers:string[]
 }
@@ -18,51 +19,16 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
       let dcContext=context.getByType(DataClumpDetectorContext)!
 
        let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
-       let resolver=new LanguageModelTemplateResolver({})
+       let resolver=resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver
        dcContext.getDataClumpDetectionResult().data_clumps=this.simplifyKeys(dcContext.getDataClumpDetectionResult()).data_clumps
 
        for(let h of this.handlers){
         h.handle(dcContext,api,resolver)
        }
        console.log("dcContext",dcContext.getDataClumpDetectionResult())
-       let tolerantParser=new TolerantOutputParser(api,
-        [
-            (s,d)=>tryParseJSONWithSlice(s),
-            (s,d)=>{
-                let dcContext=d.getByType(DataClumpDetectorContext)!
-                for(let key of dcContext.getDataClumpKeys()){
-                    if(s.includes(key)){
-                        return {key:key};
-                    }
-                }
-                return null;
-            },
-            (s,d)=>{
-                let maxKey="";
-                let max=0
-                let maxValues=[]
-                for(let key of dcContext.getDataClumpKeys()){
-                    let dcValue=dcContext.getDataClumpTypeContext(key);
-                    let values=Object.values(dcValue).filter((it)=>typeof(it)=="string" && s.includes(it))
-                    values.push(...(Object.values(dcValue.data_clump_data).map((it)=>it.name)))
-                    values=new Set(values);
-                    let cnt=values.size
-                    if(cnt>max){
-                        maxKey=key;
-                        max=cnt;
-                        maxValues=values;
-                    }
-                        
-                    
-                }
-                return {key:maxKey}
-                
-            }
-        ]
-       );
-       let result=await tolerantParser.send(false,dcContext)
-       let parsed=result;
-       console.log("parsed",result)
+      
+       let parsed=await this.parseOutput(api,dcContext);
+       console.log("parsed",parsed)
        fs.writeFileSync("stuff/justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
 
        let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
@@ -83,6 +49,45 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
     }
     private handlers:LargeLanguageModelHandler[]=[
     ]
+    async parseOutput(api:AbstractLanguageModel, dcContext:DataClumpDetectorContext): any {
+        let tolerantParser=new TolerantOutputParser(api,
+            [
+                (s,d)=>tryParseJSONWithSlice(s),
+                (s,d)=>{
+                    let dcContext=d.getByType(DataClumpDetectorContext)!
+                    for(let key of dcContext.getDataClumpKeys()){
+                        if(s.includes(key)){
+                            return {key:key};
+                        }
+                    }
+                    return null;
+                },
+                (s,d)=>{
+                    let maxKey="";
+                    let max=0
+                    let maxValues=[]
+                    for(let key of dcContext.getDataClumpKeys()){
+                        let dcValue=dcContext.getDataClumpTypeContext(key);
+                        let values=Object.values(dcValue).filter((it)=>typeof(it)=="string" && s.includes(it))
+                        values.push(...(Object.values(dcValue.data_clump_data).map((it)=>it.name)))
+                        values=new Set(values);
+                        let cnt=values.size
+                        if(cnt>max){
+                            maxKey=key;
+                            max=cnt;
+                            maxValues=values;
+                        }
+                            
+                        
+                    }
+                    return {key:maxKey}
+                    
+                }
+            ]
+           );
+           let result=await tolerantParser.send(false,dcContext)
+           return Promise.resolve(result);
+    }
     deserializeExistingContext(context: DataClumpRefactoringContext, step: PipeLineStepType): DataClumpRefactoringContext | null {
         return null;
     }
@@ -125,4 +130,81 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
     }
     counter = 0
     
+}
+
+export class MultipleAlternativesLanguageModelFilter extends DataClumpLanguageModelFilter{
+    private numberAlternatives:number=10;
+    async parseOutput(api: AbstractLanguageModel, dcContext: DataClumpDetectorContext) {
+        let tolerantParser=new TolerantOutputParser(api,
+            [
+                (s,d)=>tryParseJSONWithSlice(s).proposals,
+                (s,d)=>{
+                    let result=[]
+                    let dcContext=d.getByType(DataClumpDetectorContext)!
+                    for(let key of dcContext.getDataClumpKeys()){
+                        if(s.includes(key)){
+                            result.push({key:key});
+                        }
+                    }
+                    return null;
+                },
+                (s,d)=>{
+                    let maxKey="";
+                    let keyScores:{score:number,key:string}=[]
+                    let max=0
+                    let maxValues=[]
+                    for(let key of dcContext.getDataClumpKeys()){
+                        let dcValue=dcContext.getDataClumpTypeContext(key);
+                        let values=Object.values(dcValue).filter((it)=>typeof(it)=="string" && s.includes(it))
+                        values.push(...(Object.values(dcValue.data_clump_data).map((it)=>it.name)))
+                        values=new Set(values);
+                        keyScores.push({score:values.size,key:key})
+                        
+                            
+                        
+                    }
+                    return keyScores.sort((a,b)=>b.score-a.score).slice(0,this.numberAlternatives).map((it)=>{return {key:it.key}})
+                    
+                }
+            ]
+           );
+           let result=await tolerantParser.send(false,dcContext);
+           if(!Array.isArray(result)){
+            result=[result]
+           }
+           let dataClumpInformation=result.map((it,i)=>{
+                let dc=dcContext.getDataClumpTypeContext(it.key)
+                return JSON.stringify(
+                  
+                    {
+                    index:i,
+                    key:it.key,
+                    from_file_path:dc.from_file_path,
+                    from_class_name:dc.from_class_or_interface_name,
+                    from_method_name:dc.from_method_name,
+
+                    to_file_path:dc.to_file_path,
+                    to_class_name:dc.to_class_or_interface_name,
+                    to_method_name:dc.to_method_name,
+                    whiteSPace:"               ",
+                    data_clump_data:Object.values(dc.data_clump_data).map((it)=>it.type +" "+it.name)
+                    },undefined,2)})
+           
+
+           let question=dataClumpInformation.join("\n\n\n")
+           do{
+                let index= readlineSync.question("Choose a data clump:\n "+question);
+                if(index==""){
+                     return null;
+                }
+                if(!isNaN(index)  && index>=0 && index<dataClumpInformation.length){
+                     return  Promise.resolve(result[index]);
+                }
+                
+           }while(true)
+          
+           
+
+
+    }
 }
