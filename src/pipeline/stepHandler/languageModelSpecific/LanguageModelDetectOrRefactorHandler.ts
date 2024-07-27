@@ -16,7 +16,7 @@ import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
 import {  OutputChecker } from "../../../util/languageModel/OutputChecker";
-import { InteractiveProposalHandler, MetricBasedProposalHandler, MultipleBrancheHandler, OutputHandler, StubOutputHandler } from "./OutputHandler";
+import { InteractiveProposalHandler, MetricBasedProposalHandler, ModifiedFilesProposal, MultipleBrancheHandler, OutputHandler, StubOutputHandler } from "./OutputHandler";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
@@ -206,7 +206,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             errorMessages.push("I could not identify a valid path in your response. I am processing your response automatically so it is important to mark the path as described")
 
         }
-        this.outputHandler.handleProposal(changes, context, message);
+        this.outputHandler.handleProposal(new ModifiedFilesProposal(changes,message), context);
 
     }
     async tryBuildContext(chat: ChatMessage, step: PipeLineStepType | null, context: DataClumpRefactoringContext) {
@@ -381,7 +381,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
         }
         console.log("handle proposal")
-        this.outputHandler.handleProposal(changes, context, content);
+        this.outputHandler.handleProposal(new  ModifiedFilesProposal(changes,content),context);
         return content
 
     }

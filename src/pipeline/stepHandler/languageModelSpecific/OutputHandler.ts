@@ -5,18 +5,29 @@ import fs from "fs"
 import path from "path"
 import readlineSync from "readline-sync"
 import { resolveFromConcreteName } from "../../../config/Configuration";
-export abstract class OutputHandler{
-    abstract handleProposal(modifiedFiles:{[key:string]:string},context:DataClumpRefactoringContext,fullOutput?:any):void;
-    abstract chooseProposal(context:DataClumpRefactoringContext):void;
 
-    writeToFile(fullPath:string,content:string){
-        fs.mkdirSync(path.dirname(fullPath),{recursive:true})
-        fs.writeFileSync(fullPath,content)
+export interface Proposal{
+    apply(context:DataClumpRefactoringContext):DataClumpRefactoringContext
+    delete(context:DataClumpRefactoringContext);
+    getFullOutput():any
+    evaluate(context:DataClumpRefactoringContext):number
+}
+
+export class ModifiedFilesProposal implements Proposal{
+    constructor(private modifiedFiles:{[key:string]:string}, fullOutput?:any){
+        this.modifiedFiles=modifiedFiles
+        this.fullOutput=fullOutput
     }
-    private existingFiles:{[key:string]:string}={}
-    private newFiles:{[key:string]:boolean}={}
-
-    applyProposal(modifiedFiles:{[key:string]:string}, context:DataClumpRefactoringContext){
+    private fullOutput:any
+    private metric:ProposalMetric=new NumberOfLinesProposalMetric()
+    evaluate(context: DataClumpRefactoringContext): number {
+        return this.metric.evaluate(this.modifiedFiles,context)
+    }
+    getFullOutput() {
+        return this.fullOutput;
+    }
+    apply(context:DataClumpRefactoringContext): DataClumpRefactoringContext {
+        let modifiedFiles=this.modifiedFiles;
         for(let p of Object.keys(modifiedFiles)){
             let content=modifiedFiles[p]
             p=resolve(context.getProjectPath(),p);
@@ -28,9 +39,10 @@ export abstract class OutputHandler{
             }
             this.writeToFile(p,content)
         }
+        return context
     }
-    deleteProposal(modifiedFiles:{[key:string]:string}, context:DataClumpRefactoringContext){
-        for(let p of Object.keys(modifiedFiles)){
+    delete(context:DataClumpRefactoringContext){
+        for(let p of Object.keys(this.modifiedFiles)){
             p=resolve(context.getProjectPath(),p);
             if(p in this.existingFiles){
                 this.writeToFile(p,this.existingFiles[p])
@@ -41,68 +53,76 @@ export abstract class OutputHandler{
             }
         }
     }
+    private existingFiles:{[key:string]:string}={}
+    private newFiles:{[key:string]:boolean}={}
+    writeToFile(fullPath:string,content:string){
+        fs.mkdirSync(path.dirname(fullPath),{recursive:true})
+        fs.writeFileSync(fullPath,content)
+    }
+}
+
+export abstract class OutputHandler{
+    abstract handleProposal(proposal:Proposal, context:DataClumpRefactoringContext):void;
+    abstract chooseProposal(context:DataClumpRefactoringContext):Promise<DataClumpRefactoringContext>;
 }
 export class StubOutputHandler extends OutputHandler{
-    handleProposal(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): void {
-        this.applyProposal(modifiedFiles, context)
+    handleProposal(proposal: Proposal, context: DataClumpRefactoringContext): void {
+       proposal.apply(context)
         
     }
-    chooseProposal(context: DataClumpRefactoringContext): void {
-        
+    chooseProposal(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
+        return Promise.resolve(context);
     }
 }
 export class MultipleBrancheHandler extends OutputHandler{
     private originalBranch:string="main"
 
-    async handleProposal(modifiedFiles:{[key:string]:string},context:DataClumpRefactoringContext, fullOutput?:any) {
+    async handleProposal(proposal: Proposal, context: DataClumpRefactoringContext){
         let git=simpleGit(context.getProjectPath());
         let status=await git.status()
         let originalBranch=status.current!
         this.originalBranch=originalBranch;
        await git.checkout("-b data_clump_proposal"+(new Date()).getTime().toString())
-       this.applyProposal(modifiedFiles, context)
+       proposal.apply(context)
        
         await git.add("-A");
         await  git.commit("Refactored data clumps");
         await  git.checkout(originalBranch)
     }
-    async chooseProposal(context:DataClumpRefactoringContext) {
+    async chooseProposal(context:DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         readlineSync.question("Switch to the correct branch")
         let git=simpleGit(context.getProjectPath());
         let currBranch=(await git.status()).current!;
         await git.checkout(this.originalBranch);
-        await git.merge([currBranch])
+        await git.merge([currBranch]);
+        return context;
     }
 
 }
 export abstract class SimpleProposalHandler extends OutputHandler{
-    protected proposals:{ [key: string]: string; }[]=[]
-    protected outputs:string[]=[]
-    handleProposal(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,  fullOutput?:any): void {
-        this.proposals.push(modifiedFiles)
-        this.outputs.push(fullOutput)
-        fs.writeFileSync("stuff/proposal"+(new Date().getTime())+".json",JSON.stringify(fullOutput,null,2))
+    protected proposals:Proposal[]=[]
+    handleProposal(proposal: Proposal,  context: DataClumpRefactoringContext): void {
+        this.proposals.push(proposal)
+        fs.writeFileSync("stuff/proposal"+(new Date().getTime())+".json",JSON.stringify(proposal.getFullOutput(),null,2))
     }
-    abstract chooseProposal(context:DataClumpRefactoringContext):void;
 
 }
 export class InteractiveProposalHandler extends SimpleProposalHandler{
  
-    handleProposal(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext,  fullOutput?:any): void {
-        this.proposals.push(modifiedFiles)
-        this.outputs.push(fullOutput)
+    handleProposal(proposal: Proposal,  context: DataClumpRefactoringContext): void {
+        this.proposals.push(proposal)
         let outPath=getContextSerializationBasePath(context)
-        if(typeof(fullOutput)=="string"){
-        fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),fullOutput)
+        if(typeof(proposal.getFullOutput())=="string"){
+        fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),proposal.getFullOutput());
 
         }
         else{
-            fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),JSON.stringify(fullOutput,null,2))
+            fs.writeFileSync(resolve(outPath,"proposal"+(new Date().getTime())+".json"),JSON.stringify(proposal.getFullOutput(),null,2))
 
         }
     }
 
-    chooseProposal(context: DataClumpRefactoringContext): void {
+    chooseProposal(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         const question=`
         Choose an option?
         0) Next proposal
@@ -112,8 +132,8 @@ export class InteractiveProposalHandler extends SimpleProposalHandler{
         4) Exit
         
         `;
-        let currProposal:{ [key: string]: string; }=this.proposals[0]
-        this.applyProposal(currProposal,context)
+        let currProposal=this.proposals[0];
+        let tempContext= context.buildNewContext(currProposal.apply(context))
         let bestProposalIndex=0;
         let currProposalIndex=0;
         let shallContinue=true;
@@ -123,33 +143,33 @@ export class InteractiveProposalHandler extends SimpleProposalHandler{
 
             switch(index){
                 case 0:
-                    this.deleteProposal(currProposal,context)
+                   tempContext= currProposal.delete(context)
                     currProposalIndex++;
                     if(currProposalIndex>=this.proposals.length){
                         currProposalIndex=0;
                     }
                     currProposal=this.proposals[currProposalIndex];
-                    console.log(currProposalIndex,this.outputs[currProposalIndex])
-                    this.applyProposal(currProposal,context)
+                    console.log(currProposalIndex,currProposal.getFullOutput())
+                    tempContext= currProposal.apply(context)
                     break;
                 case 1:
-                    this.deleteProposal(currProposal,context)
+                    tempContext= currProposal.delete(context)
                     currProposalIndex--;
                     if(currProposalIndex<0){
                         currProposalIndex=this.proposals.length-1;
                     }
                     currProposal=this.proposals[currProposalIndex];
-                    this.applyProposal(currProposal,context)
+                    tempContext= currProposal.apply(context)
                     break;
                 case 2:
                     bestProposalIndex=currProposalIndex;
                     break;
                 case 3:
-                    this.deleteProposal(currProposal,context)
+                    tempContext= currProposal.delete(context)
                     currProposalIndex=bestProposalIndex
                    
                     currProposal=this.proposals[currProposalIndex];
-                    this.applyProposal(currProposal,context);
+                    tempContext= currProposal.apply(context)
                 case 4:
                     shallContinue=false;
                     break;
@@ -161,6 +181,7 @@ export class InteractiveProposalHandler extends SimpleProposalHandler{
 
             }
         }
+        return Promise.resolve(context.buildNewContext(tempContext))
     }
 }
 export interface ProposalMetric{
@@ -172,18 +193,18 @@ export interface ValidationMetric{
 }
 export class MetricBasedProposalHandler extends SimpleProposalHandler{
    
-    chooseProposal(context: DataClumpRefactoringContext): void {
+    chooseProposal(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         let mostScoredProposalIndex=0;
         let bestScore=0;
        for(let i=0;i<this.proposals.length;i++){
-        let score=this.metric.evaluate(this.proposals[i],context,this.outputs[i])
+        let score=this.proposals[i].evaluate(context)
         if(score>bestScore){
             bestScore=score;
             mostScoredProposalIndex=i
         }
        }
        console.log("Best proposal is ",mostScoredProposalIndex, bestScore, Object.keys(this.proposals[mostScoredProposalIndex]))
-       this.applyProposal(this.proposals[mostScoredProposalIndex],context)
+       return  Promise.resolve(this.proposals[mostScoredProposalIndex].apply(context))
 
     }
     private metric:ProposalMetric
