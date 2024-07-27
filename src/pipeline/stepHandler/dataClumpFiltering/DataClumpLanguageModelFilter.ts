@@ -36,6 +36,27 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
                     }
                 }
                 return null;
+            },
+            (s,d)=>{
+                let maxKey="";
+                let max=0
+                let maxValues=[]
+                for(let key of dcContext.getDataClumpKeys()){
+                    let dcValue=dcContext.getDataClumpTypeContext(key);
+                    let values=Object.values(dcValue).filter((it)=>typeof(it)=="string" && s.includes(it))
+                    values.push(...(Object.values(dcValue.data_clump_data).map((it)=>it.name)))
+                    values=new Set(values);
+                    let cnt=values.size
+                    if(cnt>max){
+                        maxKey=key;
+                        max=cnt;
+                        maxValues=values;
+                    }
+                        
+                    
+                }
+                return {key:maxKey}
+                
             }
         ]
        );
@@ -62,36 +83,16 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
     }
     private handlers:LargeLanguageModelHandler[]=[
     ]
-    private filterTemplate={
-        "data_clumps": {
-            "<all>":{
-                "key":true,
-                "from_file_path": true,
-                "from_class_or_interface_name":true,
-                "from_class_or_interface_key": true,
-                "from_method_name": true,
-                "from_method_key": true,
-                "to_file_path": true,
-                "to_class_or_interface_name": true,
-                "to_class_or_interface_key": true,
-                "to_method_name": true,
-                "to_method_key": true,
-                "data_clump_type": true,
-                "data_clump_data":{
-                    "<all>":{
-                    "name": true,
-                    "type": true,
-                    "modifiers": true
-                    }
-                }
-            }
-        }
-    }
+
     constructor(args:DataClumpLanguageModelFilterArgs){
         super(args)
         for(let h of args.handlers){
             this.handlers.push(resolveFromConcreteName(h))
         }
+    }
+
+    getOriginalKey(numericKey:number):string{
+        return this.counterMap[numericKey]
     }
     private counterMap: { [key: number]: string } = {}
     simplifyKeys(source: any): any {
