@@ -133,7 +133,7 @@ export class InteractiveProposalHandler extends SimpleProposalHandler{
         
         `;
         let currProposal=this.proposals[0];
-        let tempContext= context.buildNewContext(currProposal.apply(context))
+        let tempContext= currProposal.apply(context);
         let bestProposalIndex=0;
         let currProposalIndex=0;
         let shallContinue=true;
