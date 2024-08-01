@@ -5,7 +5,7 @@ import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs";
 import { resolve, basename, dirname, relative } from "path"
-import { getRelevantFilesRec, makeUnique } from "../../../util/Utils";
+import { getRelevantFilesRec, makeUnique, nop } from "../../../util/Utils";
 import { getDataClumpThreshold } from "../../../config/Configuration";
 type IncludedFiles = "data_clump" | "folder" | "folderRecursive"
 export class TextBasedReferenceFinder extends AbstractStepHandler {
@@ -22,14 +22,18 @@ export class TextBasedReferenceFinder extends AbstractStepHandler {
             for (let r of result) {
                 let dir = dirname(r)
                 let files = fs.readdirSync(dir, { withFileTypes: true }).map((it) => resolve(dir, it.name))
-                result.push(...files)
-                result=makeUnique(result)
                 for (let file of files) {
+                    if(fs.statSync(file).isDirectory()){
+                        continue;
+                    }
+                    result.push(file);
                     this.processedFiles[file] = true
                     if (!(file in this.fileContentCache)) {
                         this.fileContentCache[file] = fs.readFileSync(file, { encoding: "utf-8" })
                     }
                 }
+                result=makeUnique(result)
+
             }
         }
         else if (this.includedFiles == "folderRecursive") {
@@ -50,12 +54,15 @@ export class TextBasedReferenceFinder extends AbstractStepHandler {
         }
         return result
     }
+    
     handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let dcContext = context.getByType(DataClumpDetectorContext)!;
         let allUsages: { [key: string]: VariableOrMethodUsage[] } = {}
         for (let dc of Object.values(dcContext.getDataClumpDetectionResult().data_clumps)) {
             let usages: VariableOrMethodUsage[] = []
             let files = this.getFilesToSearch(dc, context)
+            let tempUsages: VariableOrMethodUsage[] = []
+            let counter=0
             for (let f of files) {
                 let lines = this.fileContentCache[f].split("\n")
 
@@ -64,10 +71,12 @@ export class TextBasedReferenceFinder extends AbstractStepHandler {
                     let line = lines[i]
 
                    
-                    let tempUsages: VariableOrMethodUsage[] = []
-                    let counter=0
+                   
                     for (let dcData of Object.values(dc.data_clump_data)) {
-                        if (line.includes(dcData.name)) {
+                        if (line.match("\\W"+dcData.name+"\\W")) {
+                            if(!(f.includes(dc.from_file_path) || f.includes(dc.to_file_path))){
+                                nop()
+                            }
                             if (line.includes((dcData as any).displayedType)) {
                                 tempUsages.push(
                                     {
@@ -92,16 +101,18 @@ export class TextBasedReferenceFinder extends AbstractStepHandler {
                             }
                             counter++;
                         }
-                        if(counter>=getDataClumpThreshold(dc.type)){
-                            usages.push(...tempUsages)
-                        }
+                        
                     }
 
                 }
-                allUsages[dc.key] = usages;
+                if(counter>=getDataClumpThreshold(dc.type)){
+                    usages.push(...tempUsages)
+                }
+              
 
 
             }
+            allUsages[dc.key] = usages;
 
         }
         return Promise.resolve(context.buildNewContext(new UsageFindingContext(allUsages)));

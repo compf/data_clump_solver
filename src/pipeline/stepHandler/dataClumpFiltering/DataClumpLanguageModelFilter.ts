@@ -186,7 +186,8 @@ export class MultipleAlternativesLanguageModelFilter extends DataClumpLanguageMo
                     to_file_path:dc.to_file_path,
                     to_class_name:dc.to_class_or_interface_name,
                     to_method_name:dc.to_method_name,
-                    whiteSPace:"               ",
+                    WHITESPACE:"##############################",
+                    number_items:Object.keys(dc.data_clump_data).length,
                     data_clump_data:Object.values(dc.data_clump_data).map((it)=>it.type +" "+it.name)
                     },undefined,2)})
            
