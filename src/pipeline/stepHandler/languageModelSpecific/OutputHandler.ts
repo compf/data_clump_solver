@@ -181,7 +181,13 @@ export class InteractiveProposalHandler extends SimpleProposalHandler{
 
             }
         }
-        return Promise.resolve(context.buildNewContext(tempContext))
+        if(context!=tempContext){
+            return Promise.resolve(context.buildNewContext(tempContext))
+
+        }
+        else{
+            return Promise.resolve(context);
+        }
     }
 }
 export interface ProposalMetric{

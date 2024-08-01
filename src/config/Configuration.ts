@@ -20,7 +20,6 @@ export type Configuration={
          SimilarityDetection:PipeLineStepConf,
          DataClumpDetection:PipeLineStepConf,
          DataClumpFiltering:PipeLineStepConf,
-         SecondFileFiltering:PipeLineStepConf,
          NameFinding:PipeLineStepConf,
          ClassExtraction:PipeLineStepConf
          UsageFinding:PipeLineStepConf,
@@ -36,6 +35,11 @@ const nameScriptFileMap={
   
     
 }
+
+export function getDataClumpThreshold(dataClumpTyo:string):number{
+    return 3;
+}
+
 function loadAllClasses(){
     let paths:string[]=[]
     let startTime=Date.now()

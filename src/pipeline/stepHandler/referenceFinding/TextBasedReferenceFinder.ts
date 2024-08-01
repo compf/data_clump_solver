@@ -1,57 +1,108 @@
+import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext, UsageFindingContext } from "../../../context/DataContext";
 import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs";
-import {resolve} from "path"
-export class TextBasedReferenceFinder extends AbstractStepHandler{
+import { resolve, basename, dirname, relative } from "path"
+import { getRelevantFilesRec, makeUnique } from "../../../util/Utils";
+import { getDataClumpThreshold } from "../../../config/Configuration";
+type IncludedFiles = "data_clump" | "folder" | "folderRecursive"
+export class TextBasedReferenceFinder extends AbstractStepHandler {
 
-    handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        let dcContext=context.getByType(DataClumpDetectorContext)!;
-        let allUsages:{ [key: string]: VariableOrMethodUsage[] }={}
-        for(let dc of Object.values(dcContext.getDataClumpDetectionResult().data_clumps)){
-            let usages:VariableOrMethodUsage[]=[]
-            let lines=fs.readFileSync(resolve(context.getProjectPath(),dc.from_file_path),{encoding:"utf-8"}).split("\n")
-           
-
-            for(let i=0;i<lines.length;i++){
-                let line=lines[i]
-                
-                if(line.includes(";")){
-                  
+    private fileContentCache: { [path: string]: string } = {}
+    private includedFiles: IncludedFiles = "folder"
+    private processedFiles: { [path: string]: boolean } = {}
+    private getFilesToSearch(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): string[] {
+        let result = makeUnique([resolve(context.getProjectPath(), dc.from_file_path), resolve(context.getProjectPath(), dc.to_file_path)])
+        if (result.every((it) => it in this.processedFiles)) {
+            return []
+        }
+        if (this.includedFiles == "folder") {
+            for (let r of result) {
+                let dir = dirname(r)
+                let files = fs.readdirSync(dir, { withFileTypes: true }).map((it) => resolve(dir, it.name))
+                result.push(...files)
+                result=makeUnique(result)
+                for (let file of files) {
+                    this.processedFiles[file] = true
+                    if (!(file in this.fileContentCache)) {
+                        this.fileContentCache[file] = fs.readFileSync(file, { encoding: "utf-8" })
+                    }
                 }
-                for(let dcData of Object.values(dc.data_clump_data) ){
-                    if(line.includes(dcData.name)){
-                        if(line.includes((dcData as any).displayedType)){
-                            usages.push(
-                                {
-                                    filePath:dc.from_file_path,
-                                    name:dcData.name,
-                                    originKey:dcData.key,
-                                    range:{startLine:i,endLine:i,startColumn:line.indexOf(dcData.name),endColumn:line.indexOf(dcData.name)},
-                                    symbolType:UsageType.VariableDeclared
-                                }
-                            );
+            }
+        }
+        else if (this.includedFiles == "folderRecursive") {
+
+            for (let r of result) {
+                let dir = dirname(r)
+                let files: string[] = []
+                getRelevantFilesRec(dir, files, null)
+                result.push(...files)
+                for (let file of files) {
+                    this.processedFiles[file] = true
+                    if (!(file in this.fileContentCache)) {
+                        this.fileContentCache[file] = fs.readFileSync(file, { encoding: "utf-8" })
+                    }
+                }
+
+            }
+        }
+        return result
+    }
+    handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+        let dcContext = context.getByType(DataClumpDetectorContext)!;
+        let allUsages: { [key: string]: VariableOrMethodUsage[] } = {}
+        for (let dc of Object.values(dcContext.getDataClumpDetectionResult().data_clumps)) {
+            let usages: VariableOrMethodUsage[] = []
+            let files = this.getFilesToSearch(dc, context)
+            for (let f of files) {
+                let lines = this.fileContentCache[f].split("\n")
+
+
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i]
+
+                   
+                    let tempUsages: VariableOrMethodUsage[] = []
+                    let counter=0
+                    for (let dcData of Object.values(dc.data_clump_data)) {
+                        if (line.includes(dcData.name)) {
+                            if (line.includes((dcData as any).displayedType)) {
+                                tempUsages.push(
+                                    {
+                                        filePath: relative(context.getProjectPath(), f),
+                                        name: dcData.name,
+                                        originKey: dcData.key,
+                                        range: { startLine: i, endLine: i, startColumn: line.indexOf(dcData.name), endColumn: line.indexOf(dcData.name) },
+                                        symbolType: UsageType.VariableDeclared
+                                    }
+                                );
+                            }
+                            else {
+                                tempUsages.push(
+                                    {
+                                        filePath: relative(context.getProjectPath(), f),
+                                        name: dcData.name,
+                                        originKey: dcData.key,
+                                        range: { startLine: i, endLine: i, startColumn: line.indexOf(dcData.name), endColumn: line.indexOf(dcData.name) },
+                                        symbolType: UsageType.VariableUsed
+                                    }
+                                );
+                            }
+                            counter++;
                         }
-                        else{
-                            usages.push(
-                                {
-                                    filePath:dc.from_file_path,
-                                    name:dcData.name,
-                                    originKey:dcData.key,
-                                    range:{startLine:i,endLine:i,startColumn:line.indexOf(dcData.name),endColumn:line.indexOf(dcData.name)},
-                                    symbolType:UsageType.VariableUsed
-                                }
-                            );
+                        if(counter>=getDataClumpThreshold(dc.type)){
+                            usages.push(...tempUsages)
                         }
                     }
 
                 }
-                allUsages[dc.key]=usages;
+                allUsages[dc.key] = usages;
 
-               
+
             }
-           
+
         }
         return Promise.resolve(context.buildNewContext(new UsageFindingContext(allUsages)));
     }
@@ -59,7 +110,7 @@ export class TextBasedReferenceFinder extends AbstractStepHandler{
         return [PipeLineStep.ReferenceFinding]
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
-       createdContexts.add(UsageFindingContext.name)
+        createdContexts.add(UsageFindingContext.name)
     }
 
 }

@@ -158,3 +158,7 @@ export function randInt(max:number){
 }
 
 export function nop(){}
+
+export function makeUnique<T>(array:T[]):T[]{
+    return Array.from(new Set(array))
+}
