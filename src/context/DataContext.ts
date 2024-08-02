@@ -147,6 +147,7 @@ export class GitRepositoryContext extends DataClumpRefactoringContext {
 export class FileFilteringContext extends DataClumpRefactoringContext {
     includeGlobs: string[];
     excludeGlobs: string[];
+    includePrevails: boolean=true;
     constructor(includeGlobs: string[], excludeGlobs: string[]) {
         super()
         this.includeGlobs = includeGlobs

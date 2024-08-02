@@ -69,15 +69,14 @@ export function buildXml(includeGlobs: string[], excludeGlobs: string[]): string
             excludeGlobs=["*"]
         }
     for (let include of includeGlobs) {
-        if (include.startsWith("*")) {
-            include = "." + include
-        }
+        include=include.replaceAll("*",".*")
+        include=include.replaceAll("..*",".*")
+        
         content += `<include-pattern>${include}</include-pattern>`
     }
     for (let exclude of excludeGlobs) {
-        if (exclude.startsWith("*")) {
-            exclude = "." + exclude
-        }
+        exclude=exclude.replaceAll("*",".*")
+        exclude=exclude.replaceAll("..*",".*")
         content += `<exclude-pattern>${exclude}</exclude-pattern>`
     }
 

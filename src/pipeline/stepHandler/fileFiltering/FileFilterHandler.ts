@@ -12,27 +12,18 @@ export class FileFilterHandler extends AbstractStepHandler {
     private filter?: SingleItemFilter = undefined
     private metric?: Metric = undefined
     private rankSampler: RankSampler;
-    private include?: string[] = undefined
-    private exclude?: string[] = undefined
-    private useGitIgnore=false
+    private include: string[] = []
+    private exclude: string[] = []
+    private useGitIgnore=true
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
+        this.exclude.push(".data_clump_solver_data")
         if ( this.metric!=undefined && !this.metric?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
         }
-        if(this.include || this.exclude){
-            //throw "include and exclude are not supported"
-            let paths=[]
-            getRelevantFilesRec(context.getProjectPath(), paths, new FileFilteringContext(this.include??[],this.exclude??[]))
-            //throw "hallo "+paths.length
-            return context.buildNewContext(new FileFilteringContext(this.include??[],this.exclude??[]))
-        }
-        else if(this.useGitIgnore && fs.existsSync(context.getProjectPath()+"/.gitignore")){
-            throw "include and exclude are not supported"
+      if(this.useGitIgnore && fs.existsSync(context.getProjectPath()+"/.gitignore")){
 
             let gitIgnore=fs.readFileSync(context.getProjectPath()+"/.gitignore").toString()
             let lines=gitIgnore.split("\n")
-            let includes: string[] = []
-            let excludes: string[] = []
             for(let line of lines){
                 if(line.startsWith("#")){
                     continue
@@ -41,53 +32,43 @@ export class FileFilterHandler extends AbstractStepHandler {
                     continue
                 }
                 if(line.startsWith("!")){
-                    includes.push(line.substring(1))
+                    this.include.push(line.substring(1))
                 }
                 else{
-                    excludes.push(line)
+                    this.exclude.push(line)
                 }
             }
-            return context.buildNewContext(new FileFilteringContext(includes,excludes))
         }
         let originalPaths: string[] = []
-        let filteredPaths: string[] = []
+
+
         let filterContext=new FileFilteringContext(this.include??[],this.exclude??[])
         getRelevantFilesRec(context.getProjectPath(), originalPaths, filterContext)
         if (this.filter) {
+            getRelevantFilesRec(context.getProjectPath(), originalPaths, filterContext)
+
             for (let p of originalPaths) {
                 if (await this.filter!!.shallRemain(p, context)) {
-                    filteredPaths.push(p)
+                    this.include.push(p)
+                }
+                else{
+                    this.exclude.push(p)
                 }
 
             }
         }
-        else {
-            filteredPaths = originalPaths
-        }
+        
         if (this.metric) {
            
-            filteredPaths = await this.rankSampler.rank(this.metric!!, filteredPaths, context) as string[]
+           let tmpInclude=new Set( await this.rankSampler.rank(this.metric!!,this.include, context) as string[])
+           let tmpExclude=this.include.filter((it)=>!tmpInclude.has(it))
+           this.include=Array.from(tmpInclude)
+            this.exclude.push(...tmpExclude)
         }
-        let newContext = this.buildFilterContextFromPaths(filteredPaths, context)
-        return context.buildNewContext(newContext)
+        return   context.buildNewContext(new FileFilteringContext(this.include, this.exclude))
 
     }
-    private buildFilterContextFromPaths(filteredPaths: string[], context: DataClumpRefactoringContext): FileFilteringContext {
-        let includes: string[] = []
-        let excludes: string[] = []
-        for (let myPath of filteredPaths) {
-            includes.push(".*/"+path.relative(context.getProjectPath(), myPath).replace(".java","")+".*")
-        }
-        let projectPath = context.getProjectPath()
-        if (projectPath.endsWith("/")) {
-            projectPath += "*"
-        }
-        else {
-            projectPath += "/*"
-        }
-        //excludes.push(projectPath)
-        return new FileFilteringContext(includes, excludes)
-    }
+    
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.FileFiltering]
     }

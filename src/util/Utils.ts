@@ -23,9 +23,7 @@ export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileF
     }
 }
 function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext|null): boolean {
-    if ( fileFilteringContext==null && !filePath.endsWith(".java")) {
-        return true;
-    }
+
     if (fileFilteringContext == null) {
         return false
     }
@@ -34,11 +32,12 @@ function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext
     let excludeGlobs = fileFilteringContext.excludeGlobs
     let isIncluded = includeGlobs.length == 0
     let isExcluded = false
+    let includePrevails=fileFilteringContext.includePrevails
     for (let includeGlob of includeGlobs) {
         
        
 
-        if (filePath.endsWith(includeGlob)|| new Minimatch(includeGlob,MiniMatchConf).match(filePath,true)) {
+        if (new Minimatch(includeGlob,MiniMatchConf).match(filePath,true)) {
             isIncluded = true
             break
         }
@@ -49,7 +48,7 @@ function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext
             break
         }
     }
-    return isExcluded || !isIncluded
+    return  (includePrevails && (isExcluded || !isIncluded)) || (!includePrevails && (isExcluded ))
 }
 
 export function checkPath(path:string, include:string[],exclude:string[], includePrevails:boolean):boolean{

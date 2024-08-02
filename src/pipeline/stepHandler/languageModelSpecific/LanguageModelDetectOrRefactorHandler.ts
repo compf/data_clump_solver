@@ -398,6 +398,9 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         if(typeof(args.numberAttempts)=="number"){
             this.numberAttempts=new ConstantNumberAttemptsProvider(args.numberAttempts)
         }
+        else if(args.numberAttempts==undefined){
+            this.numberAttempts=new ConstantNumberAttemptsProvider(1)
+        }
         else{
             this.numberAttempts=resolveFromConcreteName(args.numberAttempts) as NumberAttemptsProvider
         }
