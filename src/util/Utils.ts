@@ -161,3 +161,55 @@ export function nop(){}
 export function makeUnique<T>(array:T[]):T[]{
     return Array.from(new Set(array))
 }
+
+export function prettyInvalidJson(obj:any){
+    let  result=prettyInvalidJsonRec(obj,0)
+    fs.writeFileSync("stuff/last_request_pretty.txt",result)
+    return result;
+
+}
+function prettyInvalidJsonRec(obj:any, depth:number):string{
+    let text=""
+    let indent="\t".repeat(depth)
+    if(obj==null || obj==undefined)return ""
+    for(let key of Object.keys(obj)){
+     
+        text+=indent+key+":\n"
+        let value=obj[key];
+         if(Array.isArray(value)){
+            console.log(value)
+            text+"\n[\n"+indent
+            for(let v of value){
+        
+                let result=prettyInvalidJsonRec(v,depth+1);
+                console.log(result.length)
+     
+                    text+="\n{\n"+indent+result+indent+"\n}\n";
+
+                
+               
+
+            }
+            text+="\n]\n"+indent
+        }
+        else if(typeof(value)=="object"){
+            text+="\n{\n"+indent+prettyInvalidJsonRec(value,depth+1)+indent+"\n}\n";
+        }
+      
+        else if(typeof(value)=="string"){
+            let parsed=tryParseJSON(value);
+            if(parsed){
+                text+="\n{\n"+indent+prettyInvalidJsonRec(parsed,depth+1)+indent+"\n}\n";
+
+            }
+            else{
+                value=value.replaceAll("\n","\n"+indent)
+                text+=+"\""+"\n"+indent+value +indent+"\n"+"\""
+            }
+        }
+        else{
+            text+=+"\""+"\n"+indent+value +indent+"\n"+"\""
+        }
+    }
+    return text;
+}
