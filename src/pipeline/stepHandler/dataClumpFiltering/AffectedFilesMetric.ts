@@ -14,7 +14,7 @@ export class AffectedFilesMetric implements Metric {
     }
     getAffectedFiles(data:string|DataClumpTypeContext,context:DataClumpRefactoringContext):Set<string>{
         let paths=new Set<string>();
-        let dectectorContext=context.getByType(DataClumpDetectorContext)!
+        let dectectorContext=context.getFirstByType(DataClumpDetectorContext)!
         let related= dectectorContext.getRelatedDataClumpKeys(data as DataClumpTypeContext)
         for(let dc of related){
             paths.add(dc.from_file_path);

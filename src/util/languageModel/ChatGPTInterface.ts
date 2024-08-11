@@ -2,6 +2,7 @@ import fs from "fs"
 import OpenAI from 'openai';
 import { ChatMessage, AbstractLanguageModel, MessageType, TokenStats } from "./AbstractLanguageModel";
 type Formats="json_object"|"text"
+import { HttpsProxyAgent } from 'https-proxy-agent';
 export class ChatGPTInterface extends AbstractLanguageModel{
 
     resetParameters(parameters: { temperature: number; model: string; }) {
@@ -10,7 +11,7 @@ export class ChatGPTInterface extends AbstractLanguageModel{
     }
     private api:OpenAI;
     private format?:string="text"
-    
+    private proxy=true
     constructor(args:{model:string,temperature:number,format?:Formats}|undefined){
         super();
         let model:string
@@ -37,6 +38,9 @@ export class ChatGPTInterface extends AbstractLanguageModel{
             
         
         });
+        if(this.proxy){
+            this.api.httpAgent=new HttpsProxyAgent("http://www-proxy.rz.uni-osnabrueck.de:80")
+        }
         
     }
     clear(): void {

@@ -4,10 +4,12 @@ import { Minimatch } from "minimatch";
 import path from "path";
 import { resolve } from "path";
 import { ChatMessage, AbstractLanguageModel, MessageType } from "../../../util/languageModel/AbstractLanguageModel";
-import { getRelevantFilesRec } from "../../../util/Utils";
+import { getRelevantFilesRec, makeUnique } from "../../../util/Utils";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
 import { all } from "axios";
+import { resolveFromConcreteName } from "../../../config/Configuration";
+import { Metric } from "../../../util/filterUtils/Metric";
 export type DependentOnAnotherIteratorReturnType = { messages: string[]; clear: boolean; shallSend: boolean }
 export type InstructionReturnType = DependentOnAnotherIteratorReturnType & { doWrite: boolean }
 export type StateInformationType = { hasOtherFinished: boolean, context: DataClumpRefactoringContext }
@@ -206,7 +208,7 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
 
         }
     }
-    splitIntoBlocks(content:string,lines: Set<number>, key?: string): { fromLine: number, toLine: number,content:string, key?: string }[] {
+    splitIntoBlocks(content:string,lines: Set<number>, additionalData): { fromLine: number, toLine: number,content:string }[] {
         let blocks: { fromLine: number, toLine: number,content:string, key?: string }[] = []
         let lastLine = -1
         let fromLine = -1;
@@ -220,7 +222,9 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
                 continue;
             }
             else if (line - lastLine > 1) {
-                blocks.push({ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") , key })
+                let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") }
+                Object.assign(block,additionalData)
+                blocks.push(block)
                 fromLine = line
                 lastLine = line
             }
@@ -229,7 +233,9 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
 
             }
         }
-        blocks.push({ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") })
+        let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") }
+        Object.assign(block,additionalData)
+        blocks.push( block)
         return blocks;
     }
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
@@ -281,7 +287,7 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
     }
 }
 export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
-    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+   async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let dcContext = context.getByType(DataClumpDetectorContext)!;
         let pathLinesMap: { [key: string]: Set<number> } = {}
         let allBlocks: { [path: string]: { fromLine: number, toLine: number, id?: string }[] } = {}
@@ -318,13 +324,25 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
             if (!(dc.to_file_path in allBlocks)) {
                 allBlocks[dc.to_file_path] = []
             }
+            let additionalData={
+                metrics:{
+                affected_files:await (resolveFromConcreteName("AffectedFilesMetric") as Metric).evaluate(dc,context),
+                occurence:await (resolveFromConcreteName("DataClumpOccurenceMetric") as Metric).evaluate(dc,context),
+                size:await (resolveFromConcreteName("DataClumpSizeMetric") as Metric).evaluate(dc,context)
+                },
+                key:dc.key
+
+            }
             let content=fs.readFileSync(resolve(context.getProjectPath(),dc.from_file_path),{encoding:"utf-8"})
-            let blocks = this.splitIntoBlocks(content,pathLinesMap[dc.from_file_path], dc.key)
+            let blocks = this.splitIntoBlocks(content,pathLinesMap[dc.from_file_path],additionalData)
             allBlocks[dc.from_file_path].push(...blocks)
+            allBlocks[dc.from_file_path]=makeUnique(allBlocks[dc.from_file_path],(k)=>JSON.stringify(k))
+
              content=fs.readFileSync(resolve(context.getProjectPath(),dc.to_file_path),{encoding:"utf-8"})
 
-            blocks = this.splitIntoBlocks(content,pathLinesMap[dc.to_file_path], dc.key)
+            blocks = this.splitIntoBlocks(content,pathLinesMap[dc.to_file_path], additionalData)
             allBlocks[dc.to_file_path].push(...blocks)
+            allBlocks[dc.to_file_path]=makeUnique(allBlocks[dc.to_file_path],(k)=>JSON.stringify(k))
 
 
         }

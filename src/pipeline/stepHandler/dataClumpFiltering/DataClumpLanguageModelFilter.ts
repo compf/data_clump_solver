@@ -23,7 +23,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
        dcContext.getDataClumpDetectionResult().data_clumps=this.simplifyKeys(dcContext.getDataClumpDetectionResult()).data_clumps
 
        for(let h of this.handlers){
-        h.handle(dcContext,api,resolver)
+        await h.handle(dcContext,api,resolver)
        }
        console.log("dcContext",dcContext.getDataClumpDetectionResult())
       
@@ -52,7 +52,18 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
     async parseOutput(api:AbstractLanguageModel, dcContext:DataClumpDetectorContext): any {
         let tolerantParser=new TolerantOutputParser(api,
             [
-                (s,d)=>tryParseJSONWithSlice(s),
+                (s,d)=>{
+                    let res=tryParseJSONWithSlice(s)
+                    let dcContext=d.getByType(DataClumpDetectorContext)!
+                    let keys=Array.from(dcContext.getDataClumpKeys());
+                    if(keys.includes(res.key)){
+                        return res; 
+                    }
+                    else{
+                        return null;
+                    }
+                   
+                },
                 (s,d)=>{
                     let dcContext=d.getByType(DataClumpDetectorContext)!
                     for(let key of dcContext.getDataClumpKeys()){
@@ -68,9 +79,9 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
                     let maxValues=[]
                     for(let key of dcContext.getDataClumpKeys()){
                         let dcValue=dcContext.getDataClumpTypeContext(key);
-                        let values=Object.values(dcValue).filter((it)=>typeof(it)=="string" && s.includes(it))
-                        values.push(...(Object.values(dcValue.data_clump_data).map((it)=>it.name)))
-                        values=new Set(values);
+                        let values=Object.values(dcValue).filter((it)=>typeof(it)=="string")
+                        values.push(...(Object.values(dcValue.data_clump_data).map((it)=>it.name).filter((it)=>it.length>1)))
+                        values=new Set(values.filter((it)=>  s.includes(it)));
                         let cnt=values.size
                         if(cnt>max){
                             maxKey=key;

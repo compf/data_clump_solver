@@ -80,6 +80,19 @@ export  class DataClumpRefactoringContext {
         }
         return curr as T
     }
+    getFirstByType<T>(ctor: new (...a: any) => T): T | null {
+        let curr: DataClumpRefactoringContext|null = this;
+        let best:DataClumpRefactoringContext|null=null;
+        while (curr!=null) {
+            if(curr instanceof ctor){
+                best=curr;
+            }
+            curr=curr.previousContext;
+            
+
+        }
+        return best as T;
+    }
     getRelevantLocation():RelevantLocationsContext|null{
         let curr: DataClumpRefactoringContext = this;
         while (!("getRelevantLocations" in curr)) {

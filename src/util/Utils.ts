@@ -158,7 +158,21 @@ export function randInt(max:number){
 
 export function nop(){}
 
-export function makeUnique<T>(array:T[]):T[]{
+export function makeUnique<T>(array:T[], keyFunction?:{(o:T):string}):T[]{
+    if(keyFunction){
+        let keys=new Set<string>();
+        let result:T[]=[]
+        for(let a of array){
+            if(!keys.has(keyFunction(a))){
+                keys.add(keyFunction(a))
+            }
+            else{
+                continue;
+            }
+            result.push(a);
+        }
+        return Array.from(result)
+    }
     return Array.from(new Set(array))
 }
 
@@ -174,23 +188,21 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
     if(obj==null || obj==undefined)return ""
     for(let key of Object.keys(obj)){
      
-        text+=indent+key+":\n"
+        text+=indent+key+":"
         let value=obj[key];
          if(Array.isArray(value)){
-            console.log(value)
-            text+"\n[\n"+indent
+            text+="\n"+indent+"[\n"
             for(let v of value){
         
                 let result=prettyInvalidJsonRec(v,depth+1);
-                console.log(result.length)
-     
-                    text+="\n{\n"+indent+result+indent+"\n}\n";
+                text+=result+",\n"
+
 
                 
                
 
             }
-            text+="\n]\n"+indent
+            text+="\n"+indent+"],\n"
         }
         else if(typeof(value)=="object"){
             text+="\n{\n"+indent+prettyInvalidJsonRec(value,depth+1)+indent+"\n}\n";
@@ -204,11 +216,11 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
             }
             else{
                 value=value.replaceAll("\n","\n"+indent)
-                text+=+"\""+"\n"+indent+value +indent+"\n"+"\""
+                text+="\""+"\n"+indent+value +indent+"\n"+"\",\n"
             }
         }
         else{
-            text+=+"\""+"\n"+indent+value +indent+"\n"+"\""
+            text+="\""+indent+value+"\",\n"
         }
     }
     return text;
