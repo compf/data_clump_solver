@@ -8,11 +8,11 @@ import { OutputChecker } from "./OutputChecker"
 
 export class StubInterface extends AbstractLanguageModel{
 
-    private responsePath:string="stuff/response.txt"
+    private responsePath:string="stuff/response.json"
 
     constructor(args:any){
         super();
-       this.responsePath=args.responsePath
+        Object.assign(this,args)
         
     }
   
@@ -30,8 +30,10 @@ export class StubInterface extends AbstractLanguageModel{
         const chatPath="stuff/chat.txt"
         fs.writeFileSync("stuff/request.txt",this.messages.join("\n"))
         let output=fs.readFileSync(this.responsePath,{encoding:"utf-8"})
+        let parsed=JSON.parse(output)
+
         return {messageType:"output",messages:[
-            output
+            parsed.choices[0].message.content
         ]}
         
         

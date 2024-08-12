@@ -4,7 +4,13 @@ import { spawnSync } from "child_process"
 import fs from "fs";
 export class GradleBuildValidationStepHandler extends ValidationStepHandler {
   validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; validationInfos:ValidationInfo[] }>  {
-       let runResult= spawnSync("gradle",["build"],{cwd:context.getProjectPath()})
+    let args=["build"]
+    if(this.args.skipTests){
+        args.push("-x")
+        args.push("test")
+    }
+    
+       let runResult= spawnSync("gradle",args,{cwd:context.getProjectPath()})
        runResult.error
        const status=runResult.status
 

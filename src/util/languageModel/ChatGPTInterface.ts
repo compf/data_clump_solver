@@ -11,7 +11,7 @@ export class ChatGPTInterface extends AbstractLanguageModel{
     }
     private api:OpenAI;
     private format?:string="text"
-    private proxy=true
+    private proxy=fs.existsSync("tokens/use_proxy")
     constructor(args:{model:string,temperature:number,format?:Formats}|undefined){
         super();
         let model:string

@@ -17,6 +17,18 @@
                 ]
             }
         },
+        "ByTypeNameKeyFilter": {
+            "args": {
+                "typeNameKey": [
+                    "long instanceId",
+                    "long runId",
+                    "long stepAttemptId",
+                    "java.lang.String stepId",
+                    "long version",
+               "java.lang.String workflowId"
+                ]
+            }
+        },
 
         "DataClumpSizeMetric": {
             "type": "DataClumpSizeMetric"
@@ -38,16 +50,7 @@
         },
         "AllFilesHandler": {},
         "SendHandler": {},
-        "LanguageModelTemplateResolver": {
-            "args": {
-                "${programming_language}": "Java",
-                "%{examples}": "chatGPT_templates/DataClumpExamples.java",
-                "%{output_format}": "chatGPT_templates/json_output_format.json",
-                "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
-                "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
-                "%{output_format_refactor}": "chatGPT_templates/json_format_refactor_piecewise.json"
-            }
-        },
+       
         "ByPathFilter":{
             "args":{
                 "name":    "AwsSqsMonolithQueueFactory",
@@ -57,8 +60,11 @@
                 
             }
         },
-        "RandomRanker": {
-            "type": "RandomRanker"
+        "RandomProbabilityFilter": {
+            "args": {
+                "probability": 0.3
+            }
+        
         }
     },
     "PipeLine": {
@@ -69,33 +75,29 @@
                 "useArgPath": true
             }
         },
-       "FileFiltering":{
-            "handler":"FileFilterHandler",
-            "args":{
-                "exclude":[".*Lexer.java",".*Parser.java",".*ParserVisitor.java"]
-
-            }
-        },
+     
       "DataClumpDetection": {
             "handler": "DataClumpDetectorStep",
             "args": {
-                "metricCombiner": "MetricCombiner",
-                "languageModel": "AbstractLanguageModel",
-                "ranker": "RandomRanker"
-            }
-        },
-       
- 
-       
-        "DataClumpFiltering": {
-            "handler": "DataClumpFilterStepHandler",
-            "args":{
-                "strictSize":true,
-                "handlers":[
-                    "SystemInstructionHandler"
+                "handlers": [
+                    "introductionHandler",
+                    "refactorInstructionHandler",
+                    "AllFilesHandler",
+                    "SendHandler"
                 ]
             }
         },
+       
+ "DataClumpFiltering":{
+    "handler":"DataClumpFilterStepHandler",
+    "args":{
+        "filterName":"ByTypeNameKeyFilter"
+    }
+ },
+       
+       
+
+    
         
         "Refactoring": {
             "handler": "DoNothingStepHandler",

@@ -1,10 +1,14 @@
 import { DataClumpRefactoringContext } from "../../../context/DataContext";
-import { ValidationInfo, ValidationStepHandler } from "./ValidationStepHandler";
+import { ValidationArgs, ValidationInfo, ValidationStepHandler } from "./ValidationStepHandler";
 import {spawnSync} from 'child_process';
 import fs from "fs";
 export class MavenBuildValidationStepHandler extends ValidationStepHandler {
     validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; validationInfos:ValidationInfo[] }>  {
-       let result= spawnSync("mvn",["compile"],{cwd:context.getProjectPath()});
+        let args=["package"]
+        if(this.args.skipTests){
+            args.push("-DskipTests")
+        }
+       let result= spawnSync("mvn",args,{cwd:context.getProjectPath()});
          if(result.status==0){
               return Promise.resolve({success:true,validationInfos:[]});
          }
@@ -64,6 +68,10 @@ export class MavenBuildValidationStepHandler extends ValidationStepHandler {
             }
         );
         return errors;
+    }
+
+    constructor(args:ValidationArgs){
+        super(args);
     }
  
 }

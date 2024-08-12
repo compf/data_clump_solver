@@ -1,4 +1,4 @@
-import { DataClumpRefactoringContext, FileFilteringContext, UsageFindingContext, RelevantLocationsContext, DataClumpDetectorContext } from "../../../context/DataContext";
+import { DataClumpRefactoringContext, FileFilteringContext, UsageFindingContext, RelevantLocationsContext, DataClumpDetectorContext, ValidationContext } from "../../../context/DataContext";
 import fs from "fs"
 import { Minimatch } from "minimatch";
 import path from "path";
@@ -394,6 +394,19 @@ export class SimplifiedDataClumpContextHandler extends LargeLanguageModelHandler
     }
     counter = 0
 }
+
+export class ValidationResultHandler extends LargeLanguageModelHandler {
+    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+        let validationContext=context.getByType(ValidationContext)! as ValidationContext;
+        let errors: { path: string, line: number, errorMessage: string }[] = []
+        for (let v of validationContext.validationResult) {
+            errors.push({ path: v.filePath, line: v.lineNumber, errorMessage: v.errorMessage })
+        }
+        let msg:ChatMessage=api.prepareMessage(JSON.stringify(errors), "input")
+        api.prepareMessage(msg.messages[0],msg.messageType)
+        return Promise.resolve([msg])
+}
+}
 export class SendAndClearHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         return api.sendMessages(true).then((x) => {
@@ -435,4 +448,17 @@ export class RepeatInstructionRandomlyHandler extends SimpleInstructionHandler {
         }
         return results
     }
+}
+
+export function resolveHandlers(handlers:(LargeLanguageModelHandler|string)[]):LargeLanguageModelHandler[]{
+    let result:LargeLanguageModelHandler[]=[]
+    for(let handler of handlers){
+        if(typeof handler=="string"){
+            result.push(resolveFromConcreteName(handler) as LargeLanguageModelHandler)
+        }
+        else{
+            result.push(handler)
+        }
+    }
+    return result;
 }

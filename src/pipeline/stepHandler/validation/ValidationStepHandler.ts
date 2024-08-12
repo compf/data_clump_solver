@@ -8,6 +8,11 @@ export type ValidationInfo={
     colNumber?:number,
     errorMessage:string
 }
+
+export type ValidationArgs={
+    skipTests:boolean
+}
+
 export abstract class ValidationStepHandler extends AbstractStepHandler {
     async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
 
@@ -27,8 +32,8 @@ export abstract class ValidationStepHandler extends AbstractStepHandler {
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(ValidationContext.name)
     }
-    private args: any;
-    constructor(args: any) {
+    protected args: ValidationArgs;
+    constructor(args: ValidationArgs) {
         super();
         this.args = args;
     }

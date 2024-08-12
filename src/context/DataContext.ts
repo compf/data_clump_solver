@@ -10,6 +10,7 @@ import { getRelevantFilesRec, nop, waitSync } from "../util/Utils";
 import { Configuration } from "../config/Configuration";
 import simpleGit from "simple-git";
 import { ValidationInfo } from "../pipeline/stepHandler/validation/ValidationStepHandler";
+import { ChatMessage } from "../util/languageModel/AbstractLanguageModel";
 
 export function getContextSerializationBasePath(context:DataClumpRefactoringContext):string{
     let outputPath=resolve(context.getProjectPath(),".data_clump_solver_data/")
@@ -426,6 +427,17 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
 
     getDefaultSerializationPath(): string {
         return  "dataClumpDetectorContext.json"
+    }
+}
+
+export class LargeLanguageModelContext extends DataClumpRefactoringContext {
+    private chat:ChatMessage[]=[]   
+    constructor(chat:ChatMessage[]) {
+        super();
+        this.chat=chat
+    }
+    getChat():ChatMessage[]{
+        return this.chat
     }
 }
 

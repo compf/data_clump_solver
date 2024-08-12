@@ -84,7 +84,7 @@ async function evaluateData(paths: string[]) {
             }
 
             waitSync(1000)
-            let validator = new GradleBuildValidationStepHandler({});
+            let validator = new GradleBuildValidationStepHandler({skipTests:false});
             let result = await validator.handle(PipeLineStep.Validation,compareContext, null) as ValidationContext
             evalResult["reachedPoints"] += (result.success ? comparisonResult.counter : 0)
             evalResult["allPoints"] += comparisonResult.allCounter
