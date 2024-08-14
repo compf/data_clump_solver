@@ -6,7 +6,7 @@ import path from "path"
 import readlineSync from "readline-sync"
 import { resolveFromConcreteName } from "../../../config/Configuration";
 import { ChatMessage } from "../../../util/languageModel/AbstractLanguageModel";
-import { getRelevantFilesRec, tryParseJSON } from "../../../util/Utils";
+import { getRelevantFilesRec, tryParseJSON, writeFileSync } from "../../../util/Utils";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 
 export function parsePath(filePath: string, context: DataClumpRefactoringContext) {
@@ -260,6 +260,9 @@ export class ModifiedFilesProposal implements Proposal{
         let modifiedFiles=this.modifiedFiles;
         for(let p of Object.keys(modifiedFiles)){
             let content=modifiedFiles[p]
+
+            writeFileSync( path.relative(context.getProjectPath(),p),content)
+
             p=resolve(context.getProjectPath(),p);
             if(!(p in this.existingFiles) && fs.existsSync(p)){
                 this.existingFiles[p]=fs.readFileSync(p,{encoding:"utf-8"})
@@ -335,7 +338,7 @@ export abstract class SimpleProposalHandler extends OutputHandler{
     protected proposals:Proposal[]=[]
     handleProposal(proposal: Proposal,  context: DataClumpRefactoringContext): void {
         this.proposals.push(proposal)
-        fs.writeFileSync("stuff/proposal"+(new Date().getTime())+".json",JSON.stringify(proposal.getFullOutput(),null,2))
+        writeFileSync("proposal"+(new Date().getTime())+".json",JSON.stringify(proposal.getFullOutput(),null,2))
     }
 
 }

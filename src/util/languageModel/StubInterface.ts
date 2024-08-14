@@ -5,10 +5,11 @@ import net from "net"
 
 import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import { OutputChecker } from "./OutputChecker"
+import { readFileSync, writeFileSync } from "../Utils";
 
 export class StubInterface extends AbstractLanguageModel{
 
-    private responsePath:string="stuff/response.json"
+    private responsePath:string="response.json"
 
     constructor(args:any){
         super();
@@ -27,9 +28,8 @@ export class StubInterface extends AbstractLanguageModel{
     }
 
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
-        const chatPath="stuff/chat.txt"
-        fs.writeFileSync("stuff/request.txt",this.messages.join("\n"))
-        let output=fs.readFileSync(this.responsePath,{encoding:"utf-8"})
+        writeFileSync("request.txt",this.messages.join("\n"))
+        let output=readFileSync(this.responsePath)
         let parsed=JSON.parse(output)
 
         return {messageType:"output",messages:[

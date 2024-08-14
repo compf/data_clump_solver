@@ -5,10 +5,11 @@ import {resolve } from "path"
 
 import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import { OutputChecker } from "./OutputChecker"
+import { writeFileSync } from "../Utils";
 
 export class DirectoryBasedStubInterface extends AbstractLanguageModel{
 
-    private responsePath:string="stuff/response.txt"
+    private responsePath:string="response.txt"
     private  allPaths:string[]=[];
     private index=0;
     constructor(args:any){
@@ -32,8 +33,7 @@ export class DirectoryBasedStubInterface extends AbstractLanguageModel{
         if(this.index>=this.allPaths.length){
             Promise.resolve({messageType:"output",messages:["No more responses"]})
         }
-        const chatPath="stuff/chat.txt"
-        fs.writeFileSync("stuff/request.txt",this.messages.join("\n"))
+        writeFileSync("request.txt",this.messages.join("\n"))
         let output=fs.readFileSync(resolve(this.responsePath,this.allPaths[this.index++]),{encoding:"utf-8"})
         return {messageType:"output",messages:[
             output

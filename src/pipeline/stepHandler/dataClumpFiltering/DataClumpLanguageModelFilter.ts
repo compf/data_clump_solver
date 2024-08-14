@@ -9,6 +9,7 @@ import { PipeLineStepType } from "../../PipeLineStep";
 import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/LargeLanguageModelHandlers";
 import { DataClumpFilterArgs, DataClumpFilterStepHandler } from "./DataClumpFilterStepHandler";
 import fs from "fs";
+import { writeFileSync } from "../../../util/Utils";
 import readlineSync from "readline-sync"
 export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
     handlers:string[]
@@ -29,7 +30,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
       
        let parsed=await this.parseOutput(api,dcContext);
        console.log("parsed",parsed)
-       fs.writeFileSync("stuff/justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
+       writeFileSync("justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
 
        let relevantDc= dcContext.getDataClumpDetectionResult().data_clumps[parsed.key]
        console.log("relevantDc",relevantDc)

@@ -2,6 +2,7 @@ import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../conf
 import { DataClumpRefactoringContext, LargeLanguageModelContext, ValidationContext } from "../../../context/DataContext";
 import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
+import { setRelevantTime, writeFileSync } from "../../../util/Utils";
 import { PipeLine } from "../../PipeLine";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
@@ -42,6 +43,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
         let templateResolver=resolveFromInterfaceName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;
 
         do {
+            setRelevantTime()
             result = await this.validator.handle(PipeLineStep.Validation, context, {}) as ValidationContext;
             context = context.buildNewContext(result);
             if (result.success) {
@@ -55,7 +57,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
             }
             let reply = chat[chat.length - 1];
             parseChat(chat, PipeLineStep.Refactoring, context, new StubOutputHandler())
-            fs.writeFileSync("stuff/error_proposal" + new Date().getTime() + "_" + errors.length + ".json", JSON.stringify(JSON.parse(reply.messages[0])))
+            writeFileSync("error_proposal_" + errors.length + ".json", JSON.stringify(JSON.parse(reply.messages[0])))
 
             console.log("Refactoring", result)
 

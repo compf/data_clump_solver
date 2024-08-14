@@ -12,6 +12,10 @@ export class LanguageModelTemplateResolver {
     constructor(replaceMap: {[key:string]:string}) {
         this.replaceMap = replaceMap;
     }
+
+    set(key:string,value:string){
+        this.replaceMap[key]=value;
+    }
     resolveFromTemplateType(templateType:LanguageModelTemplateType,additionalReplacements?:{[key:string]:string}|undefined):string{
         const template = fs.readFileSync(`chatGPT_templates/${templateType}.template`, 'utf-8');
         return this.resolveTemplate(template,additionalReplacements);

@@ -2,6 +2,8 @@ import { Minimatch } from "minimatch";
 import { FileFilteringContext } from "../context/DataContext";
 import fs from "fs"
 import path from "path";
+import { resolveFromInterfaceName } from "../config/Configuration";
+import { FileIO } from "./FileIO";
 export const MiniMatchConf = { dot: true, matchBase: true,debug:false };
   /** 
 * Recursively traverse through the directory and find all relavant files
@@ -178,7 +180,7 @@ export function makeUnique<T>(array:T[], keyFunction?:{(o:T):string}):T[]{
 
 export function prettyInvalidJson(obj:any){
     let  result=prettyInvalidJsonRec(obj,0)
-    fs.writeFileSync("stuff/last_request_pretty.txt",result)
+    writeFileSync("last_request_pretty.txt",result)
     return result;
 
 }
@@ -224,4 +226,22 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
         }
     }
     return text;
+}
+
+export function writeFileSync(key:string,content:string){
+    let fileIO=resolveFromInterfaceName("FileIO") as FileIO;
+    fileIO.writeFileSync(key,content)
+}
+
+export function readFileSync(key:string):string{
+    let fileIO=resolveFromInterfaceName("FileIO") as FileIO;
+    return fileIO.readFileSync(key)
+}
+let lastRelevantTime=0;
+export function getRelevantTime():number{
+    return lastRelevantTime;
+}
+
+export function setRelevantTime(){
+    lastRelevantTime=Date.now();
 }

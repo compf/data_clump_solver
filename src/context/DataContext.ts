@@ -37,6 +37,9 @@ export  class DataClumpRefactoringContext {
         return this.previousContext
     }
     buildNewContext(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
+        if(context==this){
+            return this;
+        }
         context.previousContext = this
         context.sharedData = this.sharedData
         return context
@@ -321,11 +324,7 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
     getRelatedDataClumpKeys(dc:DataClumpTypeContext):DataClumpTypeContext[]{
         let key=this.createDataTypeNameClumpKey(dc)
         let related=this.byNameTypeKeys[key]
-        if(related.length>1000){
-            let unique=(related.map((it)=>it.key))
-            fs.writeFileSync("stuff/out",unique.join("\n"))
-            nop();
-        }
+
         return this.byNameTypeKeys[key];
     }
     getFirstDataClumpByTypeNameKey(key:string):DataClumpTypeContext{

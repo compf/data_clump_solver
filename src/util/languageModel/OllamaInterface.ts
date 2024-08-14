@@ -14,6 +14,7 @@ import ChildProcessWithoutNullStreams = require("child_process");
 import { OutputChecker } from "./OutputChecker"
 import { resolveFromConcreteName } from "../../config/Configuration"
 import { coerceBoolean } from "openai/core.mjs"
+import { writeFileSync } from "../Utils"
 export class OllamaInterface extends AbstractLanguageModel {
     private static staticClient: net.Socket | null = null;
     private shallClear = false;
@@ -73,7 +74,7 @@ export class OllamaInterface extends AbstractLanguageModel {
         let response: ChatResponse = {} as any
 
         console.log("SENDING", this.messages)
-        fs.writeFileSync("stuff/request.json", JSON.stringify(this.messages,null,2))
+        writeFileSync("request.json", JSON.stringify(this.messages,null,2))
         response = await ollama.chat({
             model: this.model,
             options: {
@@ -90,7 +91,7 @@ export class OllamaInterface extends AbstractLanguageModel {
         }
         console.log(response)
         this.messages.push({ content: response.message.content, role: "assistant" })
-        fs.writeFileSync("stuff/phindra_output.txt", response.message.content)
+        writeFileSync("phindra_output.txt", response.message.content)
 
         if (clear) {
             this.clear();

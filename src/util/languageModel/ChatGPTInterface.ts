@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { ChatMessage, AbstractLanguageModel, MessageType, TokenStats } from "./AbstractLanguageModel";
 type Formats="json_object"|"text"
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import { writeFileSync } from "../Utils";
 export class ChatGPTInterface extends AbstractLanguageModel{
 
     resetParameters(parameters: { temperature: number; model: string; }) {
@@ -59,13 +60,13 @@ export class ChatGPTInterface extends AbstractLanguageModel{
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
         if(this.completions.messages.length==0)return {messages:[],messageType:"output"}
         console.log("SENDING",this.completions.messages)
-        fs.writeFileSync("stuff/request.json",JSON.stringify(this.completions,undefined,4))
+        writeFileSync("request.json",JSON.stringify(this.completions,undefined,4))
         //throw this.format
         let response= await this.api.chat.completions.create(this.completions);
         if(clear){
             this.clear()
         }
-        fs.writeFileSync("stuff/response.json",JSON.stringify(response,undefined,4))
+        writeFileSync("response.json",JSON.stringify(response,undefined,4))
         //throw this.format
         this.lastUsage=response.usage!
         console.log(JSON.stringify(response,undefined,4))

@@ -5,15 +5,40 @@ import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringCon
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
 import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
-import { registerFromName } from "../config/Configuration";
+import { registerFromName, resolveFromInterfaceName } from "../config/Configuration";
 import { ProjectListRetriever } from "./project_list_retriever";
+import { FileIO } from "../util/FileIO";
+import path from "path"
+import { getRelevantTime, setRelevantTime } from "../util/Utils";
+import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
+const constantScores={
+    "instanceType":-1000,
+    "projectName":-999,
+    "iteration":1000
+}
+function instanceKeyComparator(a:string, b:string){
+    let aScore=constantScores[a]||-a.length;
+    let bScore=constantScores[b]||-b.length;
+    return aScore-bScore;
+  
+}
+export type Instance={
+    instanceType:string,
+    model:string,
+    temperature:number,
+    iteration:number,
+}
+export type Arrayified<T> = {
+    [K in keyof T]: T[K][];
+  };
+
+ export  type InstanceCombination = Arrayified<Instance>;
 export abstract class BaseEvaluator {
 
-    abstract getOutputPath(): string
-    abstract isProjectFullyAnaylzed(): boolean;
+    abstract isProjectFullyAnalyzed(): boolean;
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
-        if (this.isProjectFullyAnaylzed()) {
+        if (this.isProjectFullyAnalyzed()) {
             return Promise.resolve(null);
         }
 
@@ -41,7 +66,7 @@ export abstract class BaseEvaluator {
         return Promise.resolve(originalDcContext);
     }
 
-    abstract  analyze(context:DataClumpRefactoringContext): Promise<void>;
+    abstract  analyzeInstance(instance:Instance,context:DataClumpRefactoringContext): Promise<void>;
     async analyzeProjects(retriever:ProjectListRetriever){
         let projects=await retriever.getProjectList();
         for(let p of projects){
@@ -49,21 +74,83 @@ export abstract class BaseEvaluator {
             if(ctx==null){
                 continue;
             }
-            await this.analyze(ctx);
+            let instanceCombination=this.createInstanceCombination();
+            let allInstances=createInstanceCombination(instanceCombination);
+            let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
+            let fileIO=resolveFromInterfaceName("FileIO") as FileIO as InstanceBasedFileIO
+            for(let instance of allInstances){
+                instance["projectName"]=path.basename(ctx.getProjectPath())
+                fileIO.instance=instance;
+                console.log(instance)
+                if(fs.existsSync(fileIO.getInstancePath())){
+                    continue;
+                }
+                api.clear();
+                api.resetParameters(instance)
+                setRelevantTime()
+                await this.analyzeInstance(instance,ctx);
+            }
+          
 
         }
             
     }
-    createModelTemperaturesArray(models: string[], temperatures: number[], repeat: number): { model: string, temperature: number }[] {
-        let result: { model: string, temperature: number }[] = []
-        for (let m of models) {
-            for (let t of temperatures) {
-                for (let i = 0; i < repeat; i++) {
-                    result.push({ model: m, temperature: t })
-                }
-            }
-           
+    abstract createInstanceCombination(): InstanceCombination;
+        
+}
+
+export function createInstanceCombination<T>(tupleOfArrays:Arrayified<T>) :T[] {
+    let targetObject:T={} as any
+    let objectList:T[]=[]
+
+    createInstanceCombinationRecursive(tupleOfArrays,targetObject,0,objectList);
+    return objectList
+}
+
+function createInstanceCombinationRecursive<T>(tupleOfArrays:Arrayified<T>, targetObject:T, currKeyIndex:number, objectList:T[]){
+    let keys=Object.keys(tupleOfArrays);
+    
+    let currKey=keys[currKeyIndex];
+    for(let value of tupleOfArrays[currKey]){
+       targetObject[currKey]=value
+       if(currKeyIndex+1<keys.length){
+        createInstanceCombinationRecursive(tupleOfArrays,targetObject,currKeyIndex+1,objectList)
+       }
+       else{
+        objectList.push(JSON.parse(JSON.stringify(targetObject)))
+       }
+    }
+    
+}
+
+
+export class InstanceBasedFileIO extends FileIO{
+    public instance:Instance={} as any
+    private baseDir="evalData"
+    resolvePath(key: string): string {
+     
+        let dir=this.getInstancePath()
+        if(!fs.existsSync(dir)){
+            fs.mkdirSync(dir,{recursive:true})
         }
-        return result;
+        fs.writeFileSync(resolve(dir,"instance.json"),JSON.stringify(this.instance,null,2))
+        dir=resolve(dir,getRelevantTime().toString())
+        dir=resolve(dir,key)
+        
+        dir=path.dirname(dir)
+ 
+        if(!fs.existsSync(dir)){
+            fs.mkdirSync(dir,{recursive:true})
+        }
+        let resultingPath=resolve(dir,path.basename(key))
+        return resultingPath;
+    }
+    getInstancePath():string{
+        let sortedKeys=[this.baseDir]
+        sortedKeys.push(...Object.keys(this.instance).sort(instanceKeyComparator).map((it)=>this.instance[it]));
+      
+     
+        let  dir=sortedKeys.join("/")
+        return dir;
     }
 }
