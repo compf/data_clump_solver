@@ -79,6 +79,7 @@ export abstract class BaseEvaluator {
             let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
             let fileIO=resolveFromInterfaceName("FileIO") as FileIO as InstanceBasedFileIO
             for(let instance of allInstances){
+                instance= this.simplifyInstance(instance)
                 instance["projectName"]=path.basename(ctx.getProjectPath())
                 fileIO.instance=instance;
                 console.log(instance)
@@ -96,6 +97,10 @@ export abstract class BaseEvaluator {
             
     }
     abstract createInstanceCombination(): InstanceCombination;
+
+    simplifyInstance(instance:Instance):Instance{
+        return instance;
+    }
         
 }
 

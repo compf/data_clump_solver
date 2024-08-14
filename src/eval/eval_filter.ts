@@ -5,7 +5,7 @@ import { DataClumpOccurenceMetric } from "../pipeline/stepHandler/dataClumpFilte
 import { AffectedFileSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/AffectedFileSizeMetric";
 import { RankSampler } from "../util/filterUtils/Ranker";
 import { DataClumpLanguageModelFilter } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilter";
-import { DataClumpCodeSnippetHandler, SimpleInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { DataClumpCodeSnippetHandler, SimpleInstructionHandler, SimplifiedDataClumpContextHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { JavaTestRetriever } from "./project_list_retriever";
@@ -18,6 +18,7 @@ const MAX_ATTEMPTS = 5;
 const model = "codegemma"
 type FilterEvalInstance = Instance & {
     inputType: string,
+    margin: number
 }
 
 type FilterEvalInstanceCombination = Arrayified<FilterEvalInstance>
@@ -32,6 +33,12 @@ export class FilterEval extends BaseEvaluator {
         let result={"llm":[]} as any;
         api.resetParameters(instance)
         let llmFilter=context.sharedData.llmFilter;
+        (llmFilter as any).handlers = [
+            new SimpleInstructionHandler({ instructionPath: `chatGPT_templates/dataClumpFiltering/${instance.inputType}.template` }),
+            instance.inputType== "filter_code_snippet"
+             ?new DataClumpCodeSnippetHandler({ additionalMargin: 0 }):
+             new SimplifiedDataClumpContextHandler()
+        ];
         let llmFilteredContext = await (await llmFilter.handle(PipeLineStep.DataClumpFiltering, context, {})).getByType(DataClumpDetectorContext)!;
 
         let typeNameKey = llmFilteredContext.createDataTypeNameClumpKey(llmFilteredContext.getDataClumpTypeContext(llmFilteredContext.getDataClumpKeys()[0]));
@@ -39,12 +46,14 @@ export class FilterEval extends BaseEvaluator {
             typeNameKey
         )
     }
-    createInstanceCombination(): InstanceCombination {
+    createInstanceCombination(): FilterEvalInstanceCombination {
         return {
             instanceType: ["filter"],
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
-            iteration: [0, 1, 2, 3, 4]
+            iteration: [0, 1, 2, 3, 4],
+            inputType: ["filter","filter_code_snippet"],
+            margin: [0, 1, 2, 5, 10]
         }
     }
     private all_result={}
@@ -83,15 +92,17 @@ export class FilterEval extends BaseEvaluator {
             rankThreshold: 20
         });
         (llmFilter as any).ranker = new MetricCombiner(metricCombinerArgs);
-        (llmFilter as any).handlers = [
-            new SimpleInstructionHandler({ instructionPath: "chatGPT_templates/dataClumpFiltering/filter_code_snippet.template" }),
-            new DataClumpCodeSnippetHandler({ additionalMargin: 0 }),
-        ];
+     
         originalDcContext.sharedData.llmFilter = llmFilter;
         return originalDcContext;
     }
 
-    
+    simplifyInstance(instance: FilterEvalInstance): Instance {
+        if(instance.inputType=="filter"){
+           delete instance["margin" as any];
+        }
+        return instance;
+    }
 }
     
 
