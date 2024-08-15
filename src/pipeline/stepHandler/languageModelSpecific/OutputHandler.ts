@@ -96,6 +96,25 @@ export function parseMarkdown(context: DataClumpRefactoringContext, message: str
     ]), context);
 
 }
+function findBestFittingLine(lines:string[], startLine:number, compareLine:string){
+    let deltas=[0,1,-1,2,-2,3,-3]
+    for(let s of deltas){
+        let line=lines[startLine+s]
+        if(line){
+            if(line.trim()==compareLine.trim()){
+                return startLine+s
+            }
+        }
+       
+    }
+}
+function concatenateNewContentArrayLength(array:string[],start:number){
+    for(let i=start+1;i<array.length;i++){
+       array[start]=array[start]+"\n"+array[i]
+    }
+    return array.slice(0,start+1)
+
+}
 export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], context: DataClumpRefactoringContext, outputHandler:OutputHandler): string | null {
     let changes = {};
 
@@ -114,7 +133,7 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
                 continue;
             }
             let fileContent = fs.readFileSync(path, { encoding: "utf-8" })
-
+            let fileContentSplitted = fileContent.split("\n")
 
             console.log(content.refactorings[refactoredPath])
             for (let change of content.refactorings[refactoredPath]) {
@@ -126,33 +145,31 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
                 let oldContent = change.oldContent
                 let index = fileContent.indexOf(oldContent)
                 console.log("change", change)
-                const MAX_OFFSET = 100
-                if (false) {
-                    let splitted = fileContent.split("\n")
-                    for (let i = Math.max(0, start - MAX_OFFSET); i < Math.min(end + MAX_OFFSET, splitted.length); i++) {
-                        console.log("CHECK", splitted[i])
-                        let s = splitted[i]
-                        if (s != "" && oldContent.trim().startsWith(s.trim())) {
-                            let newContentSplitted = newContent.split("\n")
-                            let oldContentSplitted = oldContent.split("\n")
-                            for (let j = 0; j < newContentSplitted.length; j++) {
-                                s = splitted[i + j]
-                                console.log("REPLACE", s, "by", newContentSplitted[j])
-                                if (j < oldContentSplitted.length) {
-                                    splitted[i + j] = newContentSplitted[j]
-                                }
-                                else {
-                                    splitted.splice(i + j, 0, newContentSplitted[j])
-                                }
-
-
-                            }
-                        }
+                const MAX_OFFSET = 5
+                if(index==-1) {
+                    let newContentSplitted = newContent.split("\n")
+                    let oldContentSplitted = oldContent.split("\n")
+                    if(newContentSplitted.length>oldContentSplitted.length){
+                        newContentSplitted=concatenateNewContentArrayLength(newContentSplitted,oldContentSplitted.length)
                     }
-                    fileContent = splitted.join("\n")
+                    for(let i=0;i<oldContentSplitted.length;i++){
+                        let otherIndex=findBestFittingLine(fileContentSplitted,start+i,oldContentSplitted[i])
+                        if(otherIndex){
+                        fileContentSplitted[otherIndex]=newContentSplitted[i]
+
+                        }
+
+                    }
+                    if(oldContentSplitted.length>newContentSplitted.length){
+                        fileContentSplitted=fileContentSplitted.filter((it=>it!=undefined))
+                    }
+                    
+                    
+                    fileContent = fileContentSplitted.join("\n")
 
 
                 }
+                else{
                 if (oldContent != "") {
                     fileContent = fileContent.replaceAll(oldContent, newContent)
 
@@ -170,6 +187,7 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
 
 
             }
+        }
             console.log(path)
             changes[path] = fileContent;
             if ("extractedClasses" in content) {
@@ -256,6 +274,9 @@ export class ModifiedFilesProposal implements Proposal{
     getFullOutput():ChatMessage[] {
         return this.fullOutput;
     }
+    getModifiedFiles(){
+        return this.modifiedFiles;
+    }
     apply(context:DataClumpRefactoringContext): DataClumpRefactoringContext {
         let modifiedFiles=this.modifiedFiles;
         for(let p of Object.keys(modifiedFiles)){
@@ -299,9 +320,11 @@ export abstract class OutputHandler{
     abstract chooseProposal(context:DataClumpRefactoringContext):Promise<DataClumpRefactoringContext>;
 }
 export class StubOutputHandler extends OutputHandler{
-    private proposal:Proposal|null=null
+    public proposal:Proposal|null=null
+    public apply:boolean=true
     handleProposal(proposal: Proposal, context: DataClumpRefactoringContext): void {
-       proposal.apply(context)
+       if(this.apply)
+        proposal.apply(context)
        this.proposal=proposal
         
     }
