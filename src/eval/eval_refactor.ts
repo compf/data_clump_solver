@@ -97,7 +97,7 @@ class RefactorEval extends BaseEvaluator {
 }
 
 if (require.main === module) {
-    registerFromName("InstanceBasedFileIO","FileIO",{})
+    FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new RefactorEval();
     refactorEval.analyzeProjects(new JavaTestRetriever());
 

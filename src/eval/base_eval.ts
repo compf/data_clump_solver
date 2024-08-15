@@ -75,7 +75,7 @@ export abstract class BaseEvaluator {
             let instanceCombination=this.createInstanceCombination();
             let allInstances=createInstanceCombination(instanceCombination);
             let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
-            let fileIO=resolveFromInterfaceName("FileIO") as FileIO as InstanceBasedFileIO
+            let fileIO=FileIO.instance as InstanceBasedFileIO
             for(let instance of allInstances){
                 instance= this.simplifyInstance(instance)
                 instance["projectName"]=path.basename(ctx.getProjectPath())

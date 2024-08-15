@@ -10,9 +10,10 @@ import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection
 import { sys } from "typescript";
 
 import { loadConfiguration } from "./config/Configuration";
+import { FileIO, StubPathIO } from "./util/FileIO"
 
 async function main(){
-    
+    FileIO.instance=new StubPathIO()
     let args=handleArguments(process.argv.slice(2))
     let context=loadConfiguration(args.config_path)
     context.sharedData.path=args.project_path

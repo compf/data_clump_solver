@@ -2,7 +2,6 @@ import { Minimatch } from "minimatch";
 import { FileFilteringContext } from "../context/DataContext";
 import fs from "fs"
 import path from "path";
-import { resolveFromInterfaceName } from "../config/Configuration";
 import { FileIO } from "./FileIO";
 export const MiniMatchConf = { dot: true, matchBase: true,debug:false };
   /** 
@@ -229,12 +228,12 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
 }
 
 export function writeFileSync(key:string,content:string){
-    let fileIO=resolveFromInterfaceName("FileIO") as FileIO;
+    let fileIO=FileIO.instance;
     fileIO.writeFileSync(key,content)
 }
 
 export function readFileSync(key:string):string{
-    let fileIO=resolveFromInterfaceName("FileIO") as FileIO;
+    let fileIO=FileIO.instance;
     return fileIO.readFileSync(key)
 }
 let lastRelevantTime=0;

@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 export abstract class FileIO{
+    public static instance:FileIO;
     readFileSync(path:string):string{
         path=this.resolvePath(path)
        return  fs.readFileSync (path,{encoding:"utf-8"})
@@ -17,4 +18,10 @@ export abstract class FileIO{
     }
 
     abstract resolvePath(path:string):string
+}
+
+export class StubPathIO extends FileIO{
+    resolvePath(path: string): string {
+        return "stuff/"+path;
+    }
 }

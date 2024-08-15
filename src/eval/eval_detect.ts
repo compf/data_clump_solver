@@ -4,12 +4,13 @@ import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { AllAST_FilesHandler, AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SystemInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { OutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { FileIO } from "../util/FileIO";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { RankSampler } from "../util/filterUtils/Ranker";
 import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { writeFileSync } from "../util/Utils";
-import { Arrayified, BaseEvaluator, Instance, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
 import { JavaTestRetriever } from "./project_list_retriever";
 
 type DetectEvalInstance = Instance & {
@@ -113,7 +114,7 @@ export class DetectEval extends BaseEvaluator{
 
 
 async function main() {
-    registerFromName("InstanceBasedFileIO","FileIO",{})
+    FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new DetectEval();
    await  refactorEval.analyzeProjects(new JavaTestRetriever());
 }
