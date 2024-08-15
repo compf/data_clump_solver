@@ -1,4 +1,4 @@
-import { DataClumpRefactoringContext, FileFilteringContext, UsageFindingContext, RelevantLocationsContext, DataClumpDetectorContext, ValidationContext } from "../../../context/DataContext";
+import { DataClumpRefactoringContext, FileFilteringContext, UsageFindingContext, RelevantLocationsContext, DataClumpDetectorContext, ValidationContext, ASTBuildingContext } from "../../../context/DataContext";
 import fs from "fs"
 import { Minimatch } from "minimatch";
 import path from "path";
@@ -62,7 +62,7 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
             file = resolve(context.getProjectPath(), file)
             let name = path.relative(context.getProjectPath(), file)
             let content = fs.readFileSync(file, { encoding: "utf-8" })
-            messages.push("//" + name + "\n" + content)
+            messages.push(this.getMessage(name, context))
 
         }
         let chatMessages: ChatMessage[] = []
@@ -71,12 +71,25 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
         }
         return Promise.resolve(chatMessages)
     }
+    getMessage(filePath:string, context:DataClumpRefactoringContext): string {
+        let name = path.relative(context.getProjectPath(), filePath)
+        let content = fs.readFileSync( path.resolve(context.getProjectPath(), filePath), { encoding: "utf-8" })
+        return "//" + name + "\n" + content
+    }
 
     getNextFiles(): { files: string[], done: boolean } {
         return { files: this.allFiles!, done: true };
     }
 
 
+}
+
+export class AllAST_FilesHandler extends AllFilesHandler {
+    getMessage(filePath: string, context: DataClumpRefactoringContext): string {
+        let astContext = context.getByType(ASTBuildingContext)! as ASTBuildingContext;
+        let content= astContext.getByPath(filePath);
+        return  "//"+content.file_path +"\n"+ JSON.stringify(content)
+    }
 }
 
 export interface ReExecutePreviousHandlers {

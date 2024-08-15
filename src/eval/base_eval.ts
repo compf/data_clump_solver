@@ -35,19 +35,15 @@ export type Arrayified<T> = {
  export  type InstanceCombination = Arrayified<Instance>;
 export abstract class BaseEvaluator {
 
-    abstract isProjectFullyAnalyzed(): boolean;
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
-        if (this.isProjectFullyAnalyzed()) {
-            return Promise.resolve(null);
-        }
-
+   
         let gitHelper = new GitHubService()
-        if (fs.existsSync("cloned_projects")) {
+        /*if (fs.existsSync("cloned_projects")) {
             fs.rmSync("cloned_projects", { recursive: true })
             fs.mkdirSync("cloned_projects")
         }
-        gitHelper.clone(url)
+        gitHelper.clone(url)*/
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDetectorStep({});
         registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});
@@ -60,6 +56,8 @@ export abstract class BaseEvaluator {
             "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
             "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
             "%{output_format_refactor}": "chatGPT_templates/json_format_refactor_piecewise.json",
+            "%{output_format}": "chatGPT_templates/json_format_refactor_piecewise.json",
+
             "%{llm_output_format}": "chatGPT_templates/use_markdown.template"
         })
         let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext
