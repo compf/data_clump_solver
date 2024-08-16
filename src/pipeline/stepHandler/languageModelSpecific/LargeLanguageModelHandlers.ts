@@ -60,7 +60,7 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
         let messages: string[] = []
         for (let file of Object.keys(pathLinesMap)) {
             file = resolve(context.getProjectPath(), file)
-            let name = path.relative(context.getProjectPath(), file)
+            let name = file
             let content = fs.readFileSync(file, { encoding: "utf-8" })
             messages.push(this.getMessage(name, context))
 

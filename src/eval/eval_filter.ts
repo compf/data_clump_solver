@@ -5,7 +5,7 @@ import { DataClumpOccurenceMetric } from "../pipeline/stepHandler/dataClumpFilte
 import { AffectedFileSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/AffectedFileSizeMetric";
 import { RankSampler } from "../util/filterUtils/Ranker";
 import { DataClumpLanguageModelFilter } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilter";
-import { DataClumpCodeSnippetHandler, SimpleInstructionHandler, SimplifiedDataClumpContextHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { AllFilesHandler, DataClumpCodeSnippetHandler, LargeLanguageModelHandler, SimpleInstructionHandler, SimplifiedDataClumpContextHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { JavaTestRetriever } from "./project_list_retriever";
@@ -34,12 +34,23 @@ export class FilterEval extends BaseEvaluator {
         let result={"llm":[]} as any;
         api.resetParameters(instance)
         let llmFilter=context.sharedData.llmFilter;
-        (llmFilter as any).handlers = [
+        let llmHandlers:LargeLanguageModelHandler[]=[
             new SimpleInstructionHandler({ instructionPath: `chatGPT_templates/dataClumpFiltering/${instance.inputType}.template` }),
-            instance.inputType== "filter_code_snippet"
-             ?new DataClumpCodeSnippetHandler({ additionalMargin: 0 }):
-             new SimplifiedDataClumpContextHandler()
+
         ];
+
+        if(instance.inputType=="filter_code_snippet"){
+            llmHandlers.push(new DataClumpCodeSnippetHandler({additionalMargin:instance.margin}));
+        }
+        else if(instance.inputType=="fullCode"){
+            llmHandlers.push(new AllFilesHandler())
+        }
+        else{
+            llmHandlers.push(new SimplifiedDataClumpContextHandler())
+        }
+
+
+        (llmFilter as any).handlers = llmHandlers;
         let llmFilteredContext = await (await llmFilter.handle(PipeLineStep.DataClumpFiltering, context, {})).getByType(DataClumpDetectorContext)!;
 
         let typeNameKey = llmFilteredContext.createDataTypeNameClumpKey(llmFilteredContext.getDataClumpTypeContext(llmFilteredContext.getDataClumpKeys()[0]));
@@ -53,7 +64,7 @@ export class FilterEval extends BaseEvaluator {
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
             iteration: [0, 1, 2, 3, 4],
-            inputType: ["filter","filter_code_snippet"],
+            inputType: ["filter","filter_code_snippet","fullCode"],
             margin: [0, 1, 2, 5, 10]
         }
     }
@@ -89,7 +100,7 @@ export class FilterEval extends BaseEvaluator {
     }
 
     simplifyInstance(instance: FilterEvalInstance): Instance {
-        if(instance.inputType=="filter"){
+        if(instance.inputType!="filter_code_snippet"){
            delete instance["margin" as any];
         }
         return instance;
