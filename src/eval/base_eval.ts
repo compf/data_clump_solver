@@ -55,7 +55,7 @@ export abstract class BaseEvaluator {
             metrics: [
                 { name: "DataClumpSizeMetric", weight: 1 },
                 { name: "DataClumpOccurenceMetric", weight: 1 },
-                { name: "AffectedFilesMetric", weight: -1 },
+                { name: "AffectedFileSizeMetric", weight: -1000 },
     
     
             ]
