@@ -37,6 +37,7 @@ export abstract class BaseEvaluator {
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
+        registerFromName("SingleUseStubInterface", "AbstractLanguageModel", { "model": "codegemma", "temperature": 0.1 });
    
         let gitHelper = new GitHubService()
         /*if (fs.existsSync("cloned_projects")) {
@@ -50,6 +51,17 @@ export abstract class BaseEvaluator {
         registerFromName("DataClumpOccurenceMetric", "DataClumpOccurenceMetric", {});
         registerFromName("AffectedFilesMetric", "AffectedFilesMetric", {});
         registerFromName("AffectedFileSizeMetric", "AffectedFileSizeMetric", {});
+        let metricCombinerArgs = {
+            metrics: [
+                { name: "DataClumpSizeMetric", weight: 1 },
+                { name: "DataClumpOccurenceMetric", weight: 1 },
+                { name: "AffectedFilesMetric", weight: -1 },
+    
+    
+            ]
+        };
+        registerFromName("MetricCombiner", "MetricCombiner", metricCombinerArgs);
+     
         registerFromName("LanguageModelTemplateResolver", "LanguageModelTemplateResolver", {
             "${programming_language}": "Java",
             "%{examples}": "chatGPT_templates/DataClumpExamples.java",
@@ -95,7 +107,9 @@ export abstract class BaseEvaluator {
             
     }
     abstract createInstanceCombination(): InstanceCombination;
-
+    getRankerThreshold():number{
+        return 10;
+    }
     simplifyInstance(instance:Instance):Instance{
         return instance;
     }

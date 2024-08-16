@@ -5,7 +5,7 @@ import net from "net"
 
 import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import { OutputChecker } from "./OutputChecker"
-import { readFileSync, writeFileSync } from "../Utils";
+import { prettyInvalidJson, readFileSync, writeFileSync } from "../Utils";
 
 export class StubInterface extends AbstractLanguageModel{
 
@@ -20,7 +20,7 @@ export class StubInterface extends AbstractLanguageModel{
     clear(): void {
         this.messages=[]
     }
-    private  messages:string[]=[]
+    protected  messages:string[]=[]
     private lastUsage={
         prompt_tokens: 0,
         completion_tokens: 0,
@@ -57,4 +57,16 @@ export class StubInterface extends AbstractLanguageModel{
         
     }
  
+}
+
+export class SingleUseStubInterface extends StubInterface{
+    constructor(args:any){
+        super(args)
+    }
+    async  sendMessages(clear:boolean): Promise<ChatMessage> {
+        writeFileSync("request.txt",this.messages.join("\n"))
+        let requestpretty=prettyInvalidJson(this.messages)
+        writeFileSync("requestPretty.txt",requestpretty)
+        throw "single use"
+    }
 }

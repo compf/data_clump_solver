@@ -37,8 +37,8 @@ class RefactorEval extends BaseEvaluator {
             instanceType: ["refactor"],
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
-            instructionType: ["definitionBased"],
-            inputFormat:["instructionSnippet"],
+            instructionType: ["definitionBased", "exampleBased", "noDefinitionBased"],
+            inputFormat:["instruction","instructionSnippet"],
             iteration: [0, 1, 2, 3, 4]
         }
     }
@@ -48,10 +48,10 @@ class RefactorEval extends BaseEvaluator {
             return null;
         }
         let filter = new DataClumpFilterStepHandler({
-            rankThreshold: 10
+            rankThreshold: this.getRankerThreshold(),
+            rankerName: "MetricCombiner",
         });
         context = await filter.handle(PipeLineStep.DataClumpFiltering, context, {});
-        registerFromName(ChatGPTInterface.name, AbstractLanguageModel.name, {format:"json_object"});
 
         return context;
 
@@ -61,12 +61,25 @@ class RefactorEval extends BaseEvaluator {
 
         let refactorHandlers = [
             new SystemInstructionHandler({
-                instructionPath: `chatGPT_templates/refactor/${instance.instructionType}/givenContext/${instance.inputFormat}.template`
+                instructionPath: `chatGPT_templates/refactor/${instance.inputFormat}.template`
             }),
             new CodeSnippetHandler({ additionalMargin: 5 }),
             new SendHandler()
         ];
-
+        let resolver=resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;
+        resolver.set("%{output_format}", "chatGPT_templates/use_json.template")
+        resolver.set("%{output_format_refactor}", "chatGPT_templates/json_format_refactor_piecewise.json")
+        let defPath="";
+        if(instance.instructionType=="definitionBased"){
+            defPath="chatGPT_templates/data_clump_def.template"
+        }
+        else if(instance.instructionType=="exampleBased"){
+            defPath="chatGPT_templates/data_clump_examples.template"
+        }
+        else{
+            defPath="chatGPT_templates/empty_file.template"
+        }
+        resolver.set("%{data_clump_def}", defPath);
         let multiValidationHandler=new MultipleAttemptsValidationHandler({
             innerValidator: new GradleBuildValidationStepHandler({skipTests:true}),
             handlers: [
@@ -80,7 +93,6 @@ class RefactorEval extends BaseEvaluator {
         let api=resolveFromConcreteName(AbstractLanguageModel.name) as AbstractLanguageModel;
         let chat:ChatMessage[]=[]
       
-        let resolver=resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;
         for (let h of refactorHandlers) {
             chat.push(... (await h.handle(context, api,resolver)));
         }

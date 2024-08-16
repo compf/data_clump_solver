@@ -96,12 +96,16 @@ export function tryParseJSON(jsonString:string){
         return null
     }
 }
-export function tryParseJSONWithSlice(jsonString:string){
+export function tryParseJSONWithSlice(jsonString:string, remainaing?:{remaining:string}){
+    let original=jsonString;
     let parsed=tryParseJSON(jsonString);
     if(parsed==null){
         let start=jsonString.indexOf("{")
         let end=jsonString.lastIndexOf("}")+1
         jsonString=jsonString.slice(start,end);
+        if(remainaing){
+            remainaing.remaining=original.replace(jsonString,"")
+        }
         return tryParseJSON(jsonString);
     }
     return parsed;
@@ -179,7 +183,6 @@ export function makeUnique<T>(array:T[], keyFunction?:{(o:T):string}):T[]{
 
 export function prettyInvalidJson(obj:any){
     let  result=prettyInvalidJsonRec(obj,0)
-    writeFileSync("last_request_pretty.txt",result)
     return result;
 
 }
@@ -187,11 +190,16 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
     let text=""
     let indent="\t".repeat(depth)
     if(obj==null || obj==undefined)return ""
+    if(typeof(obj)=="string"){
+        return "\""+obj+"\"";
+    }
     for(let key of Object.keys(obj)){
-     
+        if(key=="modifiers"){
+            nop();
+        }
         text+=indent+key+":"
         let value=obj[key];
-         if(Array.isArray(value)){
+         if( typeof(value)!="string"  && Array.isArray(value)){
             text+="\n"+indent+"[\n"
             for(let v of value){
         
@@ -210,9 +218,10 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
         }
       
         else if(typeof(value)=="string"){
-            let parsed=tryParseJSON(value);
+            let r={remaining:""}
+            let parsed=tryParseJSONWithSlice(value,r);
             if(parsed){
-                text+="\n{\n"+indent+prettyInvalidJsonRec(parsed,depth+1)+indent+"\n}\n";
+                text+="\n{\n"+r.remaining+indent+prettyInvalidJsonRec(parsed,depth+1)+indent+"\n}\n";
 
             }
             else{

@@ -84,29 +84,17 @@ export class DetectEval extends BaseEvaluator{
     }
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
-        registerFromName("ChatGPTInterface", "AbstractLanguageModel", { "model": "codegemma", "temperature": 0.1 });
         registerFromName("RankSampler", "RankSampler", { "rankThreshold": 100, "differentDataClumps": true })
          let ranker = resolveFromInterfaceName("RankSampler") as RankSampler; 
          let originalDcContext = await super.initProject(url) as DataClumpDetectorContext;
          
         let resolver= resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver;
         resolver.set("%{output_format}", "chatGPT_templates/data_clump_type_context_output_format.json");
-  
-         let metricCombinerArgs = {
-             metrics: [
-                 { name: "DataClumpSizeMetric", weight: 1 },
-                 { name: "DataClumpOccurenceMetric", weight: 1 },
-                 { name: "AffectedFilesMetric", weight: 1 },
-     
-     
-             ]
-         };
-         
      
          let filterer = new DataClumpFilterStepHandler({
-             rankThreshold: 20
+             rankThreshold: this.getRankerThreshold(),
+             rankerName: "MetricCombiner",
          });
-         (filterer as any).ranker = new MetricCombiner(metricCombinerArgs);
       
         return await filterer.handle(PipeLineStep.DataClumpFiltering,originalDcContext,{})
     }

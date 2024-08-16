@@ -59,7 +59,6 @@ export class FilterEval extends BaseEvaluator {
     }
     private all_result={}
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
-        registerFromName("ChatGPTInterface", "AbstractLanguageModel", { "model": "codegemma", "temperature": 0.1 });
         registerFromName("RankSampler", "RankSampler", { "rankThreshold": 100, "differentDataClumps": true })
          let ranker = resolveFromInterfaceName("RankSampler") as RankSampler;
         let originalDcContext = await super.initProject(url) as DataClumpDetectorContext;
@@ -76,23 +75,14 @@ export class FilterEval extends BaseEvaluator {
             console.log(result)
 
         }
-        let metricCombinerArgs = {
-            metrics: [
-                { name: "DataClumpSizeMetric", weight: 1 },
-                { name: "DataClumpOccurenceMetric", weight: 1 },
-                { name: "AffectedFilesMetric", weight: 1 },
-    
-    
-            ]
-        };
         
     
     
         let llmFilter = new DataClumpLanguageModelFilter({
             handlers: [],
-            rankThreshold: 20
+            rankThreshold: this.getRankerThreshold(),
+            rankerName: "MetricCombiner",
         });
-        (llmFilter as any).ranker = new MetricCombiner(metricCombinerArgs);
      
         originalDcContext.sharedData.llmFilter = llmFilter;
         return originalDcContext;
