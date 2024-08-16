@@ -3,7 +3,7 @@ import { DataClumpRefactoringContext, LargeLanguageModelContext } from "../conte
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { LanguageModelDetectOrRefactorHandler } from "../pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
-import { CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SendHandler, SimpleInstructionHandler, SystemInstructionHandler, ValidationResultHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SendHandler, SimpleInstructionHandler, SystemInstructionHandler, ValidationResultHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { parseChat, StubOutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { GradleBuildValidationStepHandler } from "../pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
 import { MultipleAttemptsValidationHandler } from "../pipeline/stepHandler/validation/MultipleAttemptsValidationHandler";
@@ -18,6 +18,7 @@ import { JavaTestRetriever, ProjectListByPullRequest } from "./project_list_retr
 
     instructionType:string,
     inputFormat:string,
+    margin:number
     
  }
 
@@ -31,7 +32,12 @@ class RefactorEval extends BaseEvaluator {
     isProjectFullyAnalyzed(): boolean {
         return false;
     }
-
+    simplifyInstance(instance: RefactorInstance): RefactorInstance {
+        if(instance.inputFormat!="instructionSnippet"){
+            delete instance["margin" as any];
+         }
+         return instance
+    }
     createInstanceCombination(): RefactorInstanceCombination {
         return {
             instanceType: ["refactor"],
@@ -39,7 +45,8 @@ class RefactorEval extends BaseEvaluator {
             temperature: [0.1, 0.5, 0.9],
             instructionType: ["definitionBased", "exampleBased", "noDefinitionBased"],
             inputFormat:["instruction","instructionSnippet"],
-            iteration: [0, 1, 2, 3, 4]
+            iteration: [0, 1, 2, 3, 4],
+            margin:[0,1,2,5,10]
         }
     }
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
@@ -59,13 +66,19 @@ class RefactorEval extends BaseEvaluator {
 
     async analyzeInstance(instance: RefactorInstance, context:DataClumpRefactoringContext): Promise<void> {
 
-        let refactorHandlers = [
+        let refactorHandlers : LargeLanguageModelHandler[]= [
             new SystemInstructionHandler({
                 instructionPath: `chatGPT_templates/refactor/${instance.inputFormat}.template`
             }),
-            new CodeSnippetHandler({ additionalMargin: 5 }),
-            new SendHandler()
+           
         ];
+        if(instance.inputFormat=="instructionSnippet"){
+            refactorHandlers.push(new CodeSnippetHandler({additionalMargin:instance.margin}));
+        }
+        else{
+            refactorHandlers.push(new AllFilesHandler());
+        }
+        refactorHandlers.push(new SendHandler());
         let resolver=resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;
         resolver.set("%{output_format}", "chatGPT_templates/use_json.template")
         resolver.set("%{output_format_refactor}", "chatGPT_templates/json_format_refactor_piecewise.json")

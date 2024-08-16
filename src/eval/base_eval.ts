@@ -40,11 +40,11 @@ export abstract class BaseEvaluator {
         registerFromName("SingleUseStubInterface", "AbstractLanguageModel", { "model": "codegemma", "temperature": 0.1 });
    
         let gitHelper = new GitHubService()
-        /*if (fs.existsSync("cloned_projects")) {
+        if (fs.existsSync("cloned_projects")) {
             fs.rmSync("cloned_projects", { recursive: true })
             fs.mkdirSync("cloned_projects")
         }
-        gitHelper.clone(url)*/
+        gitHelper.clone(url)
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDetectorStep({});
         registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});

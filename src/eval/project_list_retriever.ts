@@ -15,7 +15,7 @@ export class ProjectListByPullRequest implements ProjectListRetriever{
 }
 export class JavaTestRetriever implements ProjectListRetriever{
     async getProjectList(): Promise<string[]> {
-        return Promise.resolve(["https://github.com/compf/javaTestSimple"])
+        return Promise.resolve(["https://github.com/compf/argoUML"])
     }
 
 }
