@@ -1,5 +1,5 @@
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
+import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { AllAST_FilesHandler, AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SystemInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
@@ -52,8 +52,9 @@ export class DetectEval extends BaseEvaluator{
             handlers.push(new AllAST_FilesHandler())
         }
         let chat: ChatMessage[] = []
+        let astContext=context.getByType(ASTBuildingContext)!
         for(let handler of handlers){
-            chat.push(...await handler.handle(context,api,resolver))
+            chat.push(...await handler.handle(astContext,api,resolver))
         }
          let reply=await api.sendMessages(true)
          writeFileSync("detectResult.json", JSON.stringify(reply, null, 2));
