@@ -12,7 +12,7 @@ import { JavaTestRetriever } from "./project_list_retriever";
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
 import {  writeFileSync } from "../util/Utils";
 import { DataClumpTypeContext } from "data-clumps-type-context";
-import { Arrayified, BaseEvaluator, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { FileIO } from "../util/FileIO";
 const MAX_ATTEMPTS = 5;
@@ -207,7 +207,7 @@ export class FilterEval extends BaseEvaluator {
 async function main() {
    FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new FilterEval();
-    refactorEval.analyzeProjects(new JavaTestRetriever());
+    refactorEval.analyzeProjects(init());
 }
 
 if (require.main === module) {

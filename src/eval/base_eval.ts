@@ -5,7 +5,7 @@ import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringCon
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
 import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
-import { registerFromName, resolveFromInterfaceName } from "../config/Configuration";
+import { loadConfiguration, registerFromName, resolveFromInterfaceName } from "../config/Configuration";
 import { ProjectListRetriever } from "./project_list_retriever";
 import { FileIO } from "../util/FileIO";
 import path from "path"
@@ -37,7 +37,6 @@ export abstract class BaseEvaluator {
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
-        registerFromName("SingleUseStubInterface", "AbstractLanguageModel", { "model": "codegemma", "temperature": 0.1 });
    
         let gitHelper = new GitHubService()
         if (fs.existsSync("cloned_projects")) {
@@ -47,38 +46,14 @@ export abstract class BaseEvaluator {
         gitHelper.clone(url)
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDetectorStep({});
-        registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});
-        registerFromName("DataClumpOccurenceMetric", "DataClumpOccurenceMetric", {});
-        registerFromName("AffectedFilesMetric", "AffectedFilesMetric", {});
-        registerFromName("AffectedFileSizeMetric", "AffectedFileSizeMetric", {});
-        let metricCombinerArgs = {
-            metrics: [
-                { name: "DataClumpSizeMetric", weight: 1 },
-                { name: "DataClumpOccurenceMetric", weight: 1 },
-                { name: "AffectedFileSizeMetric", weight: -1000 },
-    
-    
-            ]
-        };
-        registerFromName("MetricCombiner", "MetricCombiner", metricCombinerArgs);
+      
      
-        registerFromName("LanguageModelTemplateResolver", "LanguageModelTemplateResolver", {
-            "${programming_language}": "Java",
-            "%{examples}": "chatGPT_templates/DataClumpExamples.java",
-            "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
-            "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
-            "%{output_format_refactor}": "chatGPT_templates/json_format_refactor_piecewise.json",
-            "%{output_format}": "chatGPT_templates/json_format_refactor_piecewise.json",
-
-            "%{llm_output_format}": "chatGPT_templates/use_markdown.template"
-        })
         let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext
         return Promise.resolve(originalDcContext);
     }
 
     abstract  analyzeInstance(instance:Instance,context:DataClumpRefactoringContext): Promise<void>;
-    async analyzeProjects(retriever:ProjectListRetriever){
-        let projects=await retriever.getProjectList();
+    async analyzeProjects(projects:string[]){
         for(let p of projects){
             let ctx=await this.initProject(p);
             if(ctx==null){
@@ -170,4 +145,24 @@ export class InstanceBasedFileIO extends FileIO{
         let  dir=sortedKeys.join("/")
         return dir;
     }
+}
+
+export function init(){
+    let args=process.argv.slice(2)
+    if(args.length<2){
+        console.log("Usage: node eval.js <configPath> <urlPath>")
+        throw "Invalid arguments";
+    }
+    let configPath=""
+    let urlPath=""
+    if(args[0].endsWith(".json") && args[1].endsWith(".txt")){
+        configPath=args[0]
+        urlPath=args[1]
+    }
+    else if(args[0].endsWith(".txt") && args[1].endsWith(".json")){
+        configPath=args[1]
+        urlPath=args[0]
+    }
+    loadConfiguration(configPath)
+    return fs.readFileSync(urlPath,{encoding:"utf-8"}).split("\n")
 }

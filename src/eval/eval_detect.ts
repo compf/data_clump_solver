@@ -10,7 +10,7 @@ import { RankSampler } from "../util/filterUtils/Ranker";
 import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { writeFileSync } from "../util/Utils";
-import { Arrayified, BaseEvaluator, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
 import { JavaTestRetriever } from "./project_list_retriever";
 
 type DetectEvalInstance = Instance & {
@@ -105,7 +105,7 @@ export class DetectEval extends BaseEvaluator{
 async function main() {
     FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new DetectEval();
-   await  refactorEval.analyzeProjects(new JavaTestRetriever());
+   await  refactorEval.analyzeProjects(init());
 }
 
 if (require.main === module) {

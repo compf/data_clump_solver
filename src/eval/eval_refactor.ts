@@ -12,7 +12,7 @@ import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/Abstra
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
-import { Arrayified, BaseEvaluator, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
 import { JavaTestRetriever, ProjectListByPullRequest } from "./project_list_retriever";
   type RefactorInstance=Instance &{
 
@@ -124,6 +124,6 @@ class RefactorEval extends BaseEvaluator {
 if (require.main === module) {
     FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new RefactorEval();
-    refactorEval.analyzeProjects(new JavaTestRetriever());
+    refactorEval.analyzeProjects(init());
 
 }
