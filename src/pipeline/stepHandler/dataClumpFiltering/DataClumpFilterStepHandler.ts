@@ -40,11 +40,11 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
             }
         }
        values=Object.values(detectionContext!.getDataClumpDetectionResult().data_clumps);
-        if (this.ranker) {
-            if(!this.ranker.isCompatibleWithDataClump()){
+       for(let m of this.metrics){
+            if(!m.isCompatibleWithDataClump()){
                 throw new Error("ranker is not compatible with data clump")
             }
-            values = await this.rankSampler.rank(this.ranker!, values, detectionContext) as DataClumpTypeContext[]
+            values = await this.rankSampler.rank(m, values, detectionContext) as DataClumpTypeContext[]
             let result=createDataClumpsTypeContext({})
             for(let v of values){
                result.data_clumps[v.key]=v
@@ -58,7 +58,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
         return detectionContext
     }
     private filter: SingleItemFilter | null = null
-    private ranker: Metric | null = null
+    public metrics: Metric[] = []
     private doNothingIfFiltered:boolean=false;
     private rankSampler: RankSampler;
     getExecutableSteps(): PipeLineStepType[] {
@@ -68,7 +68,7 @@ export  class DataClumpFilterStepHandler extends AbstractStepHandler {
         super()
         this.rankSampler = new RankSampler(args)
         if (args.rankerName) {
-            this.ranker = resolveFromConcreteName(args.rankerName)
+            this.metrics.push(resolveFromConcreteName(args.rankerName))
         }
 
         if (args.filterName) {

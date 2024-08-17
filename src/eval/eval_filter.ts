@@ -8,13 +8,13 @@ import { DataClumpLanguageModelFilter } from "../pipeline/stepHandler/dataClumpF
 import { AllFilesHandler, DataClumpCodeSnippetHandler, LargeLanguageModelHandler, SimpleInstructionHandler, SimplifiedDataClumpContextHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { JavaTestRetriever } from "./project_list_retriever";
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
 import {  writeFileSync } from "../util/Utils";
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { FileIO } from "../util/FileIO";
+import { RandomRanker } from "../util/filterUtils/RandomRanker";
 const MAX_ATTEMPTS = 5;
 const model = "codegemma"
 type FilterEvalInstance = Instance & {
@@ -94,7 +94,7 @@ export class FilterEval extends BaseEvaluator {
             rankThreshold: this.getRankerThreshold(),
             rankerName: "MetricCombiner",
         });
-     
+        llmFilter.metrics.push(new RandomRanker())
         originalDcContext.sharedData.llmFilter = llmFilter;
         return originalDcContext;
     }

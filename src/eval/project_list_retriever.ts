@@ -1,21 +1,29 @@
 import * as fs from 'fs';
+import { GitHubService } from '../util/vcs/GitHubService';
 
-export interface ProjectListRetriever{
-    getProjectList():Promise<string[]>
+export interface ProjectRetriever{
+    init();
 }
 
-export class ProjectListByPullRequest implements ProjectListRetriever{
-   
+export class CloneBasedProjectRetriever implements ProjectRetriever{
+   private url:string;
+   private deletePrevious:boolean=false;
     async getProjectList(): Promise<string[]> {
         let file=fs.readFileSync("stuff/github_pulls", { encoding: "utf-8" });
         let parsed=JSON.parse(file)
         let urls=Object.keys(parsed).map((x)=>x.replace(".com",".com/compf/"));
         return Promise.resolve(Object.keys(parsed))
     }
-}
-export class JavaTestRetriever implements ProjectListRetriever{
-    async getProjectList(): Promise<string[]> {
-        return Promise.resolve(["https://github.com/compf/argoUML"])
+    constructor(url:string,deletePrevious:boolean){
+        this.url=url;
+        this.deletePrevious=deletePrevious;
     }
-
+    init() {
+        let gitHelper = new GitHubService()
+        if (this.deletePrevious && fs.existsSync("cloned_projects")) {
+            fs.rmSync("cloned_projects", { recursive: true })
+            fs.mkdirSync("cloned_projects")
+        }
+        gitHelper.clone(this.url)
+    }
 }

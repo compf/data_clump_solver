@@ -13,7 +13,6 @@ import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
 import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
-import { JavaTestRetriever, ProjectListByPullRequest } from "./project_list_retriever";
   type RefactorInstance=Instance &{
 
     instructionType:string,

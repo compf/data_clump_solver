@@ -11,7 +11,6 @@ import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/Abstra
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { writeFileSync } from "../util/Utils";
 import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
-import { JavaTestRetriever } from "./project_list_retriever";
 
 type DetectEvalInstance = Instance & {
     inputType: string,

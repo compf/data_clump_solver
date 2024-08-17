@@ -4,9 +4,7 @@ import { Metric } from "./Metric";
 
 export class RandomRanker implements Metric{
     evaluate(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
-        return new Promise((resolve, reject) => {
-            resolve(Math.random())
-        })
+        return  Promise.resolve(Math.random())
     }
     isCompatibleWithDataClump(): boolean {
         return true;

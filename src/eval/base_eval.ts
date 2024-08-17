@@ -6,7 +6,7 @@ import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
 import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { loadConfiguration, registerFromName, resolveFromInterfaceName } from "../config/Configuration";
-import { ProjectListRetriever } from "./project_list_retriever";
+import { CloneBasedProjectRetriever } from "./project_list_retriever";
 import { FileIO } from "../util/FileIO";
 import path from "path"
 import { getRelevantTime, setRelevantTime } from "../util/Utils";
@@ -38,12 +38,7 @@ export abstract class BaseEvaluator {
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
    
-        let gitHelper = new GitHubService()
-        if (fs.existsSync("cloned_projects")) {
-            fs.rmSync("cloned_projects", { recursive: true })
-            fs.mkdirSync("cloned_projects")
-        }
-        gitHelper.clone(url)
+        let retriever=new CloneBasedProjectRetriever(url,true)
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDetectorStep({});
       
@@ -60,7 +55,8 @@ export abstract class BaseEvaluator {
                 continue;
             }
             let instanceCombination=this.createInstanceCombination();
-            let allInstances=createInstanceCombination(instanceCombination);
+            let keys=Object.keys(instanceCombination).sort(instanceKeyComparator)
+            let allInstances=createInstanceCombination(instanceCombination, keys);
             let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel
             let fileIO=FileIO.instance as InstanceBasedFileIO
             for(let instance of allInstances){
@@ -91,22 +87,20 @@ export abstract class BaseEvaluator {
         
 }
 
-export function createInstanceCombination<T>(tupleOfArrays:Arrayified<T>) :T[] {
+export function createInstanceCombination<T>(tupleOfArrays:Arrayified<T>, keys:string[]=Object.keys(tupleOfArrays)) :T[] {
     let targetObject:T={} as any
     let objectList:T[]=[]
 
-    createInstanceCombinationRecursive(tupleOfArrays,targetObject,0,objectList);
+    createInstanceCombinationRecursive(tupleOfArrays,targetObject,0,objectList, keys);
     return objectList
 }
 
-function createInstanceCombinationRecursive<T>(tupleOfArrays:Arrayified<T>, targetObject:T, currKeyIndex:number, objectList:T[]){
-    let keys=Object.keys(tupleOfArrays);
-    
+function createInstanceCombinationRecursive<T>(tupleOfArrays:Arrayified<T>, targetObject:T, currKeyIndex:number, objectList:T[], keys:string[]){    
     let currKey=keys[currKeyIndex];
     for(let value of tupleOfArrays[currKey]){
        targetObject[currKey]=value
        if(currKeyIndex+1<keys.length){
-        createInstanceCombinationRecursive(tupleOfArrays,targetObject,currKeyIndex+1,objectList)
+        createInstanceCombinationRecursive(tupleOfArrays,targetObject,currKeyIndex+1,objectList, keys)
        }
        else{
         objectList.push(JSON.parse(JSON.stringify(targetObject)))
