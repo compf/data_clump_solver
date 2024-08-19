@@ -42,7 +42,7 @@ export class FilterEval extends BaseEvaluator {
         if(instance.inputType=="filter_code_snippet"){
             llmHandlers.push(new DataClumpCodeSnippetHandler({additionalMargin:instance.margin}));
         }
-        else if(instance.inputType=="fullCode"){
+        else if(instance.inputType=="filter_full_code"){
             llmHandlers.push(new AllFilesHandler())
         }
         else{
@@ -64,7 +64,7 @@ export class FilterEval extends BaseEvaluator {
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
             iteration: [0, 1, 2, 3, 4],
-            inputType: ["filter","filter_code_snippet","fullCode"],
+            inputType: ["filter","filter_code_snippet","filter_full_code"],
             margin: [0, 1, 2, 5, 10]
         }
     }
