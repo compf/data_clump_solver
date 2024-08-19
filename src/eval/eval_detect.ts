@@ -1,5 +1,5 @@
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, GitRepositoryContext } from "../context/DataContext";
+import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, GitRepositoryContext, RelevantLocationsContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
@@ -55,9 +55,8 @@ export class DetectEval extends BaseEvaluator{
             handlers.push(new AllAST_FilesHandler())
         }
         let chat: ChatMessage[] = []
-        let astContext=context.getByType(ASTBuildingContext)!
         for(let handler of handlers){
-            chat.push(...await handler.handle(astContext,api,resolver))
+            chat.push(...await handler.handle(context,api,resolver))
         }
          let reply=await api.sendMessages(true)
          writeFileSync("detectResult.json", JSON.stringify(reply, null, 2));
@@ -93,25 +92,70 @@ export class DetectEval extends BaseEvaluator{
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url);
-   
-        let context: DataClumpRefactoringContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
-        context=context.buildNewContext(new GitRepositoryContext())
-        let fileFilter= new RecentlyChangedFilesStephandler({});
-        context=await fileFilter.handle(PipeLineStep.FileFiltering,context,{})
-        let dcHandler = new DataClumpDetectorStep({});
-      
-     
-        context= await dcHandler.handle(PipeLineStep.DataClumpDetection, context, {}) as DataClumpDetectorContext         
-        let resolver= resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver;
-        resolver.set("%{output_format}", "chatGPT_templates/data_clump_type_context_output_format.json");
-     
-        return context;
+        if(this.combineDetectorAST){
+            let context=await super.initProject(url);
+            if(context==null){
+                return null;
+            }
+            let filter = new DataClumpFilterStepHandler({
+                rankThreshold: this.getRankerThreshold(),
+                rankerName: "MetricCombiner",
+            });
+            context = await filter.handle(PipeLineStep.DataClumpFiltering, context, {});
+
+            context=context.buildNewContext(new RelevantLocationCombiner(context.getByType(ASTBuildingContext)!,(context as DataClumpDetectorContext)!))
+            return context;
+        }
+        else{
+            let context: DataClumpRefactoringContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
+            context=context.buildNewContext(new GitRepositoryContext())
+            let fileFilter= new RecentlyChangedFilesStephandler({});
+            context=await fileFilter.handle(PipeLineStep.FileFiltering,context,{})
+            let dcHandler = new DataClumpDetectorStep({});
+          
+         
+            context= await dcHandler.handle(PipeLineStep.DataClumpDetection, context, {}) as DataClumpDetectorContext         
+            let resolver= resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver;
+            resolver.set("%{output_format}", "chatGPT_templates/data_clump_type_context_output_format.json");
+         
+            return context;
+        }
+       
       
        
     }
+    private combineDetectorAST=true;
     
 }
 
+class RelevantLocationCombiner extends DataClumpRefactoringContext implements RelevantLocationsContext{
+    private ast:RelevantLocationsContext
+    private dataClumps:RelevantLocationsContext
+    constructor(ast:RelevantLocationsContext,dataClumps:RelevantLocationsContext){
+        super();
+        this.ast=ast;
+        this.dataClumps=dataClumps;
+    }
+    getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
+    let astResult: {[path: string]: Set<number> }={}
+    let dataClumpResult: {[path: string]: Set<number> }={}
+    this.ast.getRelevantLocations(astResult)
+    this.dataClumps.getRelevantLocations(dataClumpResult)
+
+       for(let key of Object.keys(dataClumpResult)){
+        if(!lines[key]){
+            lines[key]=new Set();
+        }
+        for(let l of dataClumpResult[key]){
+            lines[key].add(l)
+        }
+        for(let l of astResult[key]){
+            lines[key].add(l)
+        }
+       }
+    }
+    
+}
 
 async function main() {
     FileIO.instance=new InstanceBasedFileIO()
