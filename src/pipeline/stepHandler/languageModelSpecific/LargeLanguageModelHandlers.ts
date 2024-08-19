@@ -86,6 +86,7 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
 
 export class AllAST_FilesHandler extends AllFilesHandler {
     getMessage(filePath: string, context: DataClumpRefactoringContext): string {
+        filePath=path.relative(context.getProjectPath(), filePath)
         let astContext = context.getByType(ASTBuildingContext)! as ASTBuildingContext;
         let content= astContext.getByPath(filePath);
         return  "//"+content.file_path +"\n"+ JSON.stringify(content)

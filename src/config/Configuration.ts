@@ -43,7 +43,7 @@ export function getDataClumpThreshold(dataClumpTyo:string):number{
 function loadAllClasses(){
     let paths:string[]=[]
     let startTime=Date.now()
-    getRelevantFilesRec("./dist/src",paths,new FileFilteringContext(["*.js"],["dist/src/data-clumps-doctor/**"]))
+    getRelevantFilesRec("./dist/src",paths,new FileFilteringContext([".*\.js"],[".*dist/src/data-clumps-doctor/.*",".*js\.ma"]))
     for(let path of paths){
         if (path.endsWith("Configuration.js")){
             continue;

@@ -33,6 +33,7 @@ export type Arrayified<T> = {
   };
 
  export  type InstanceCombination = Arrayified<Instance>;
+ export const DEBUG=true;
 export abstract class BaseEvaluator {
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
@@ -70,7 +71,17 @@ export abstract class BaseEvaluator {
                 api.clear();
                 api.resetParameters(instance)
                 setRelevantTime()
-                await this.analyzeInstance(instance,ctx);
+                if(DEBUG){
+                    try{
+                        await this.analyzeInstance(instance,ctx);
+                    }
+                    catch(e){
+                        console.log("Error",e)
+                    }
+                }
+                else{
+                    await this.analyzeInstance(instance,ctx);
+                }
             }
           
 

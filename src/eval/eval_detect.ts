@@ -1,9 +1,10 @@
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
+import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, GitRepositoryContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { FileFilterHandler } from "../pipeline/stepHandler/fileFiltering/FileFilterHandler";
+import { RecentlyChangedFilesStephandler } from "../pipeline/stepHandler/fileFiltering/RecentlyChangedFilesStephandler";
 import { AllAST_FilesHandler, AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SystemInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { OutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { FileIO } from "../util/FileIO";
@@ -13,7 +14,7 @@ import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/Abstra
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { writeFileSync } from "../util/Utils";
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
-import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
 import {resolve} from "path"
 type DetectEvalInstance = Instance & {
     inputType: string,
@@ -62,7 +63,7 @@ export class DetectEval extends BaseEvaluator{
          writeFileSync("detectResult.json", JSON.stringify(reply, null, 2));
     }
     createInstanceCombination(): DetectEvalInstanceCombination {
-        return {
+        let result= {
             instanceType: ["detect"],
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
@@ -77,6 +78,11 @@ export class DetectEval extends BaseEvaluator{
                 "exampleBased", 
                 "noDefinitionBased"]
         } 
+        if(DEBUG){
+            result.iteration=[0]
+            result.temperature=[0.1]
+        }
+        return result
     }
     simplifyInstance(instance: DetectEvalInstance): DetectEvalInstance {
         if(instance.inputType!="snippet"){
@@ -87,11 +93,10 @@ export class DetectEval extends BaseEvaluator{
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url);
-        registerFromName("FileUpdateMaxMetric", "FileUpdateMaxMetric", { })
    
         let context: DataClumpRefactoringContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
-        
-        let fileFilter= new FileFilterHandler({metricName:"FileUpdateMaxMetric",rankThreshold:50})
+        context=context.buildNewContext(new GitRepositoryContext())
+        let fileFilter= new RecentlyChangedFilesStephandler({});
         context=await fileFilter.handle(PipeLineStep.FileFiltering,context,{})
         let dcHandler = new DataClumpDetectorStep({});
       

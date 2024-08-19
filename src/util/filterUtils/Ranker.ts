@@ -70,10 +70,13 @@ export  class   RankSampler{
   
               }
             }
+            let keyCounter=0
             for(let key of keys){
                 let item=this.getItemByKey(key,context)
                   let value=await metric.evaluate(item,context)
                   evaluateMap[key]=value
+                  console.log(keyCounter,keys.length, keyCounter/keys.length*100,"%")
+                    keyCounter++
 
             }
             fs.writeFileSync("data/evaluateMap.json",JSON.stringify(evaluateMap))

@@ -50,6 +50,9 @@ export function applyIncludeExclude(context: DataClumpRefactoringContext, jarPat
         filtering_context = new FileFilteringContext([], [//".*/*MathStuff*.*"
     ]);
     }
+    else if( filtering_context.customFilters && ( !filtering_context.excludeGlobs.includes(".*") || !filtering_context.excludeGlobs.includes("*"))){
+        filtering_context.excludeGlobs.push(".*")
+    }
     let xml = buildXml(filtering_context.includeGlobs, filtering_context.excludeGlobs)
     let zip = new AdmZip(jarPath)
     zip.updateFile("custom-java-ruleset.xml", Buffer.from(xml));

@@ -27,9 +27,7 @@ function parse_chat_file(path: string) {
 
 
 }
-const groundTruthPath = "llm_results/ground_truth_refactor"
 let groundTruthPaths: string[] = []
-getRelevantFilesRec(groundTruthPath, groundTruthPaths, new FileFilteringContext(["*.json"], []))
 let groundTtruthContext = new ASTBuildingContext()
 console.log(groundTruthPaths.length)
 for (let path of groundTruthPaths) {

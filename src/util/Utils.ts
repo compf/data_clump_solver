@@ -19,11 +19,12 @@ export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileF
             if (shallIgnore(fullname,fileFilteringContext)) {
                 continue;
             }
+            shallIgnore(fullname,fileFilteringContext)
             resultArray.push(fullname);
         }
     }
 }
-function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext|null): boolean {
+export function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext|null): boolean {
 
     if (fileFilteringContext == null) {
         return false
@@ -38,13 +39,13 @@ function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext
         
        
 
-        if (new Minimatch(includeGlob,MiniMatchConf).match(filePath,true)) {
+        if (filePath.match(includeGlob)) {
             isIncluded = true
             break
         }
     }
     for (let excludeGlob of excludeGlobs) {
-        if (new Minimatch(excludeGlob,MiniMatchConf).match(filePath)) {
+        if (filePath.match(excludeGlob)) {
             isExcluded = true
             break
         }

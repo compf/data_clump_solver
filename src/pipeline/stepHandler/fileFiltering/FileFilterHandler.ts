@@ -16,7 +16,9 @@ export class FileFilterHandler extends AbstractStepHandler {
     private exclude: string[] = []
     private useGitIgnore=true
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-        this.exclude.push(".data_clump_solver_data")
+        this.exclude.push(".*/.data_clump_solver_data/.*")
+        this.exclude.push("-*.git/.*")
+        this.include.push(".*\\.java")
         if ( this.metric!=undefined && !this.metric?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
         }
@@ -35,14 +37,14 @@ export class FileFilterHandler extends AbstractStepHandler {
                     this.include.push(line.substring(1))
                 }
                 else{
-                    this.exclude.push(line)
+                    this.exclude.push(".*"+line+".*")
                 }
             }
         }
         let originalPaths: string[] = []
 
 
-        let filterContext=new FileFilteringContext(this.include??[],this.exclude??[])
+        let filterContext=new FileFilteringContext(this.include,this.exclude)
         getRelevantFilesRec(context.getProjectPath(), originalPaths, filterContext)
         if (this.filter) {
             getRelevantFilesRec(context.getProjectPath(), originalPaths, filterContext)
@@ -56,11 +58,19 @@ export class FileFilterHandler extends AbstractStepHandler {
                 }
 
             }
+            filterContext=new FileFilteringContext(this.include,this.exclude)
+            getRelevantFilesRec(context.getProjectPath(), originalPaths, filterContext)
         }
+        else{
+            this.include.push(...originalPaths)
+        }
+        filterContext=new FileFilteringContext(this.include,this.exclude)
+        originalPaths=[]
+        getRelevantFilesRec(context.getProjectPath(), originalPaths, filterContext)
         
         if (this.metric) {
            
-           let tmpInclude=new Set( await this.rankSampler.rank(this.metric!!,this.include, context) as string[])
+           let tmpInclude=new Set( await this.rankSampler.rank(this.metric!!,originalPaths, context) as string[])
            let tmpExclude=this.include.filter((it)=>!tmpInclude.has(it))
            this.include=Array.from(tmpInclude)
             this.exclude.push(...tmpExclude)

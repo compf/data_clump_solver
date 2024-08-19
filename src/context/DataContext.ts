@@ -6,7 +6,7 @@ import fs from "fs"
 import path from "path"
 import { resolve } from "path";
 import { AST_Class, AST_Type } from "./AST_Type";
-import { getRelevantFilesRec, nop, waitSync } from "../util/Utils";
+import { getRelevantFilesRec, makeUnique, nop, shallIgnore, waitSync } from "../util/Utils";
 import { Configuration } from "../config/Configuration";
 import simpleGit from "simple-git";
 import { ValidationInfo } from "../pipeline/stepHandler/validation/ValidationStepHandler";
@@ -158,6 +158,31 @@ export class GitRepositoryContext extends DataClumpRefactoringContext {
         })
        
     }
+
+    async getRecentlyChangedFiles(upTo:number, context:FileFilteringContext):Promise<string[]>{
+        let gitHelper=simpleGit(this.getProjectPath())
+        let files:Set<string>=new Set<string>()
+        let log=await gitHelper.log(["--stat"]);
+        for(let entry of log.all){
+            let currFiles=entry.diff?.files.map((it)=>it.file.replace(".../"  ,""))||[]
+            for(let file of currFiles){
+                if(!shallIgnore(file,context)){
+                    shallIgnore(file,context)
+                    files.add(file)
+                    //console.log(file)
+
+                }
+                if(files.size>=upTo){
+                    break;
+                }
+            }
+            if(files.size>=upTo){
+                break;
+            }
+        }
+        console.log("processed",Array.from(files))
+        return Array.from(files)        
+    }
     
 
 }
@@ -165,6 +190,7 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
     includeGlobs: string[];
     excludeGlobs: string[];
     includePrevails: boolean=true;
+    customFilters:boolean=false;
     constructor(includeGlobs: string[], excludeGlobs: string[]) {
         super()
         this.includeGlobs = includeGlobs

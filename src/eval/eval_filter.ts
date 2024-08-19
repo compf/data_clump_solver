@@ -11,7 +11,7 @@ import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } f
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
 import {  writeFileSync } from "../util/Utils";
 import { DataClumpTypeContext } from "data-clumps-type-context";
-import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { FileIO } from "../util/FileIO";
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
@@ -59,7 +59,7 @@ export class FilterEval extends BaseEvaluator {
         )
     }
     createInstanceCombination(): FilterEvalInstanceCombination {
-        return {
+        let result= {
             instanceType: ["filter"],
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
@@ -67,6 +67,11 @@ export class FilterEval extends BaseEvaluator {
             inputType: ["filter","filter_code_snippet","filter_full_code"],
             margin: [0, 1, 2, 5, 10]
         }
+        if(DEBUG){
+            result.iteration=[0]
+            result.temperature=[0.1]
+        }
+        return result
     }
     private all_result={}
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {

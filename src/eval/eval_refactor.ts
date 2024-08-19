@@ -12,7 +12,7 @@ import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/Abstra
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
-import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
   type RefactorInstance=Instance &{
 
     instructionType:string,
@@ -38,7 +38,7 @@ class RefactorEval extends BaseEvaluator {
          return instance
     }
     createInstanceCombination(): RefactorInstanceCombination {
-        return {
+        let result= {
             instanceType: ["refactor"],
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
@@ -47,6 +47,11 @@ class RefactorEval extends BaseEvaluator {
             iteration: [0, 1, 2, 3, 4],
             margin:[0,1,2,5,10]
         }
+        if(DEBUG){
+            result.iteration=[0]
+            result.temperature=[0.1]
+        }
+        return result
     }
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         let context=await super.initProject(url);
