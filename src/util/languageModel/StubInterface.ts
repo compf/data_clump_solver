@@ -6,7 +6,7 @@ import net from "net"
 import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import { OutputChecker } from "./OutputChecker"
 import { prettyInvalidJson, readFileSync, writeFileSync } from "../Utils";
-
+import {GPT4Tokenizer} from "gpt4-tokenizer"
 export class StubInterface extends AbstractLanguageModel{
 
     private responsePath:string="response.json"
@@ -64,7 +64,9 @@ export class SingleUseStubInterface extends StubInterface{
         super(args)
     }
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
-        writeFileSync("request.txt",this.messages.join("\n"))
+        let message=this.messages.join("\n")
+        let tokenCount=new GPT4Tokenizer({type:"gpt4"}).estimateTokenCount(message)
+        writeFileSync("request.txt",this.messages.join("\n")+"\n\n TokenCount:\t\t"+tokenCount)
         let requestpretty=prettyInvalidJson(this.messages)
         writeFileSync("requestPretty.txt",requestpretty)
         throw "single use"
