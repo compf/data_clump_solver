@@ -1,7 +1,9 @@
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { ASTBuildingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
+import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
+import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
+import { FileFilterHandler } from "../pipeline/stepHandler/fileFiltering/FileFilterHandler";
 import { AllAST_FilesHandler, AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SystemInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { OutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { FileIO } from "../util/FileIO";
@@ -10,8 +12,9 @@ import { RankSampler } from "../util/filterUtils/Ranker";
 import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { writeFileSync } from "../util/Utils";
+import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
 import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
-
+import {resolve} from "path"
 type DetectEvalInstance = Instance & {
     inputType: string,
     margin: number,
@@ -83,19 +86,23 @@ export class DetectEval extends BaseEvaluator{
     }
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
-        registerFromName("RankSampler", "RankSampler", { "rankThreshold": 100, "differentDataClumps": true })
-         let ranker = resolveFromInterfaceName("RankSampler") as RankSampler; 
-         let originalDcContext = await super.initProject(url) as DataClumpDetectorContext;
-         
+        console.log(url);
+        registerFromName("FileUpdateMaxMetric", "FileUpdateMaxMetric", { })
+   
+        let context: DataClumpRefactoringContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
+        
+        let fileFilter= new FileFilterHandler({metricName:"FileUpdateMaxMetric",rankThreshold:50})
+        context=await fileFilter.handle(PipeLineStep.FileFiltering,context,{})
+        let dcHandler = new DataClumpDetectorStep({});
+      
+     
+        context= await dcHandler.handle(PipeLineStep.DataClumpDetection, context, {}) as DataClumpDetectorContext         
         let resolver= resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver;
         resolver.set("%{output_format}", "chatGPT_templates/data_clump_type_context_output_format.json");
      
-         let filterer = new DataClumpFilterStepHandler({
-             rankThreshold: this.getRankerThreshold(),
-             rankerName: "MetricCombiner",
-         });
+        return context;
       
-        return await filterer.handle(PipeLineStep.DataClumpFiltering,originalDcContext,{})
+       
     }
     
 }
