@@ -13,60 +13,12 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
            return Promise.resolve({success:true,validationInfos:[]})
        }
        else {
-              return Promise.resolve( {success:false, validationInfos: this.parseGradle(runResult.stderr.toString())})
+              return Promise.resolve( {success:false, validationInfos: parseGradle(runResult.stderr.toString())})
                
             }
        }
     
-  private parseGradle(output:string){
-      let foundError=false;
-      let path=""
-      let lineNr=0
-      let colNr:number|undefined=undefined;
-      let errorMesssages:string[]=[]
-      let errors:ValidationInfo[]=[]
-      let splitted=output.split("\n");
-      for(let line of splitted){
-          if(line.includes(": error:")){
-              let lineSplitted=line.split(":")
-              if(fs.existsSync(lineSplitted[0])){
-                  if(foundError){
-                      errors.push(
-                          {
-                              lineNumber:lineNr,
-                              filePath:path,
-                              colNumber:colNr,
-                              errorMessage:errorMesssages.join("\n"),
-                              type:"error"
-                          }
-                      );
-                      foundError=false;
-                  }
-                  
-                  foundError=true;
-                  path=lineSplitted[0];
-                  lineNr=parseInt(lineSplitted[1])
-                  console.log(path,lineNr)
-                 
-              }
-             
-          }
-          else if (foundError){
-              errorMesssages.push(line)
-  
-          }
-      }
-      errors.push(
-          {
-              lineNumber:lineNr,
-              filePath:path,
-              colNumber:colNr,
-              errorMessage:errorMesssages.join("\n"),
-              type:"error"
-          }
-      );
-      return errors;
-  }
+
     
     protected isCompatibleWithSystem(): boolean {
        let runResult= spawnSync("gradle",["--version"])
@@ -76,4 +28,59 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
        return true
         
     }
+}
+
+export function parseGradle(output:string){
+    let foundError=false;
+    let path=""
+    let lineNr=0
+    let colNr:number|undefined=undefined;
+    let errorMesssages:string[]=[]
+    let errors:ValidationInfo[]=[]
+    let splitted=output.split("\n");
+    for(let line of splitted){
+        if(line.includes(": error:")){
+            let lineSpaceSplitted=line.split(": ")
+            let pathWithLine=lineSpaceSplitted[0]
+            let pathTemp=pathWithLine.substring(0,pathWithLine.lastIndexOf(":"))
+            if(fs.existsSync(pathTemp)){
+                if(foundError){
+                    errors.push(
+                        {
+                            lineNumber:lineNr,
+                            filePath:path,
+                            colNumber:colNr,
+                            errorMessage:errorMesssages.join("\n"),
+                            type:"error"
+                        }
+                    );
+                    foundError=false;
+                    errorMesssages=[]
+                }
+                
+                foundError=true;
+                path=pathTemp;
+                errorMesssages.push(lineSpaceSplitted[1]+" " +lineSpaceSplitted[2])
+
+                lineNr=parseInt(pathWithLine.substring(pathWithLine.lastIndexOf(":")+1))
+                console.log(path,lineNr)
+               
+            }
+           
+        }
+        else if (foundError){
+            errorMesssages.push(line)
+
+        }
+    }
+    errors.push(
+        {
+            lineNumber:lineNr,
+            filePath:path,
+            colNumber:colNr,
+            errorMessage:errorMesssages.join("\n"),
+            type:"error"
+        }
+    );
+    return errors;
 }
