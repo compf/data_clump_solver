@@ -139,7 +139,9 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
             for (let change of content.refactorings[refactoredPath]) {
                 let lines = [change.fromLine, change.toLine]
                 let start = lines[0]
-                let end = lines[1]
+                if(typeof(start)=="string"){
+                    start=parseInt(start)
+                }
 
                 let newContent = change.newContent
                 let oldContent = change.oldContent
@@ -156,12 +158,15 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
                         let otherIndex=findBestFittingLine(fileContentSplitted,start+i,oldContentSplitted[i])
                         if(otherIndex){
                         fileContentSplitted[otherIndex]=newContentSplitted[i]
+                        fileContent=fileContentSplitted.join("\n")
+
 
                         }
 
                     }
                     if(oldContentSplitted.length>newContentSplitted.length){
                         fileContentSplitted=fileContentSplitted.filter((it=>it!=undefined))
+                        fileContent=fileContentSplitted.join("\n")
                     }
                     
                     
@@ -172,6 +177,8 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
                 else{
                 if (oldContent != "") {
                     fileContent = fileContent.replaceAll(oldContent, newContent)
+                    fileContentSplitted = fileContent.split("\n")
+
 
                 }
                 console.log()
@@ -281,7 +288,6 @@ export class ModifiedFilesProposal implements Proposal{
         let modifiedFiles=this.modifiedFiles;
         for(let p of Object.keys(modifiedFiles)){
             let content=modifiedFiles[p]
-
             writeFileSync( path.relative(context.getProjectPath(),p),content)
 
             p=resolve(context.getProjectPath(),p);

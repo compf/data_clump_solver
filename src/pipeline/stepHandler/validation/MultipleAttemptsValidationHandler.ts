@@ -96,7 +96,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
                 compilingResults: compilingResults
             });
         }
-        return Promise.resolve(null);
+        return Promise.resolve({attempts:null as any,compilingResults:compilingResults});
     }
     async handle(step: PipeLineStepType, context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
 

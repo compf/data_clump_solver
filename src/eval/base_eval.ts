@@ -40,6 +40,7 @@ export abstract class BaseEvaluator {
         console.log(url)
    
         let retriever=new CloneBasedProjectRetriever(url,true)
+        retriever.init()
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDetectorStep({});
       

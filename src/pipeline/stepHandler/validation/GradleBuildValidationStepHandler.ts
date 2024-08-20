@@ -2,6 +2,7 @@ import { DataClumpRefactoringContext } from  "../../../context/DataContext";
 import { ValidationInfo, ValidationStepHandler } from "./ValidationStepHandler";
 import { spawnSync } from "child_process"
 import fs from "fs";
+import { relative } from "path";
 export class GradleBuildValidationStepHandler extends ValidationStepHandler {
   validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; validationInfos:ValidationInfo[] }>  {
     let args=["build"]
@@ -19,12 +20,12 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
            return Promise.resolve({success:true,validationInfos:[]})
        }
        else {
-              return Promise.resolve( {success:false, validationInfos: this.parseGradle(runResult.stderr.toString())})
+              return Promise.resolve( {success:false, validationInfos: this.parseGradle(runResult.stderr.toString(),context)})
                
             }
        }
     
-  private parseGradle(output:string){
+  private parseGradle(output:string, context: DataClumpRefactoringContext){
       let foundError=false;
       let path=""
       let lineNr=0
@@ -40,7 +41,7 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
                       errors.push(
                           {
                               lineNumber:lineNr,
-                              filePath:path,
+                              filePath:relative(context.getProjectPath(),path),
                               colNumber:colNr,
                               errorMessage:errorMesssages.join("\n"),
                               type:"error"

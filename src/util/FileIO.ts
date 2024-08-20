@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 export abstract class FileIO{
     public static instance:FileIO;
     readFileSync(path:string):string{
@@ -21,7 +22,8 @@ export abstract class FileIO{
 }
 
 export class StubPathIO extends FileIO{
-    resolvePath(path: string): string {
-        return "stuff/"+path;
+    resolvePath(p: string): string {
+        fs.mkdirSync("stuff/"+path.dirname(p),{recursive:true})
+        return "stuff/"+p;
     }
 }

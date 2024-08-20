@@ -7,7 +7,7 @@ export interface ProjectRetriever{
 
 export class CloneBasedProjectRetriever implements ProjectRetriever{
    private url:string;
-   private deletePrevious:boolean=false;
+   private deletePrevious:boolean=true;
     async getProjectList(): Promise<string[]> {
         let file=fs.readFileSync("stuff/github_pulls", { encoding: "utf-8" });
         let parsed=JSON.parse(file)
