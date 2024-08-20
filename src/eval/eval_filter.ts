@@ -15,10 +15,12 @@ import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, 
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { FileIO } from "../util/FileIO";
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
+import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 const MAX_ATTEMPTS = 5;
 const model = "codegemma"
 type FilterEvalInstance = Instance & {
     inputType: string,
+    instructionType:string,
     margin: number
 }
 
@@ -38,7 +40,18 @@ export class FilterEval extends BaseEvaluator {
             new SimpleInstructionHandler({ instructionPath: `chatGPT_templates/dataClumpFiltering/${instance.inputType}.template` }),
 
         ];
-
+        let resolver= resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver;
+        let defPath="";
+        if(instance.instructionType=="definitionBased"){
+            defPath="chatGPT_templates/data_clump_def.template"
+        }
+        else if(instance.instructionType=="exampleBased"){
+            defPath="chatGPT_templates/data_clump_examples.template"
+        }
+        else{
+            defPath="chatGPT_templates/empty_file.template"
+        }
+        resolver.set("%{data_clump_def}", defPath);
         if(instance.inputType=="filter_code_snippet"){
             llmHandlers.push(new DataClumpCodeSnippetHandler({additionalMargin:instance.margin}));
         }
@@ -65,6 +78,10 @@ export class FilterEval extends BaseEvaluator {
             temperature: [0.1, 0.5, 0.9],
             iteration: [0, 1, 2, 3, 4],
             inputType: ["filter","filter_code_snippet","filter_full_code"],
+            instructionType: [
+                "definitionBased",
+                "exampleBased", 
+                "noDefinitionBased"],
             margin: [0, 1, 2, 5, 10]
         }
         if(DEBUG){

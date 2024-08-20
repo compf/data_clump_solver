@@ -40,7 +40,6 @@ export class DetectEval extends BaseEvaluator{
             defPath="chatGPT_templates/empty_file.template"
         }
         resolver.set("%{data_clump_def}", defPath);
-        resolver.set(" %{data_clump_def}", instance.inputType=="ast" ?  "chatGPT_templates/detect/represented_as_ast.template":"chatGPT_templates/empty_file.template");
         let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel;
         let handlers:LargeLanguageModelHandler[]=[
             new SystemInstructionHandler({instructionPath:"chatGPT_templates/detect/instruction.template"})
