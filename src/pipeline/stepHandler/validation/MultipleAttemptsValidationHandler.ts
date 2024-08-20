@@ -19,7 +19,7 @@ export type MultipleAttemptsValidationArgs = {
     innerValidator?: ValidationStepHandler,
     handlers: (string|LargeLanguageModelHandler)[]
 }
-
+export enum CompilingResult{Success,NotCompile, CompileButTestFail}
 export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.Validation];
@@ -29,7 +29,11 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
     }
     private validator: ValidationStepHandler;
     private handlers: LargeLanguageModelHandler[]
-    async getValidationCount(context: DataClumpRefactoringContext): Promise<number | null> {
+    public doTestRun=false;
+    async getValidationCount(context: DataClumpRefactoringContext): Promise<{
+        attempts: number,
+        compilingResults:CompilingResult[]
+    }|null> {
         let api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
         console.log(api)
         let chat = context.getByType(LargeLanguageModelContext)!.getChat();
@@ -40,14 +44,38 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
         let result: ValidationContext = null as any;
         const maxAttempts = 10;
         let attempts = 0;
+        let compilingResults:CompilingResult[]=[];
         let templateResolver=resolveFromInterfaceName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;
 
         do {
             setRelevantTime()
+            if(this.doTestRun){
+                this.validator.enableTests()
+            }
             result = await this.validator.handle(PipeLineStep.Validation, context, {}) as ValidationContext;
+            
+            if(this.doTestRun && !result.success){
+                this.validator.disableTests()
+                result = await this.validator.handle(PipeLineStep.Validation, context, {}) as ValidationContext;
+                if(result.success){
+                    compilingResults.push(CompilingResult.CompileButTestFail)
+                }
+                else{
+                    compilingResults.push(CompilingResult.NotCompile)
+                }
+            }
+            else if(result.success){
+                compilingResults.push(CompilingResult.Success)
+            }
+            else if(!this.doTestRun){
+                compilingResults.push(CompilingResult.NotCompile)
+            }
             context = context.buildNewContext(result);
             if (result.success) {
-                return Promise.resolve(attempts);
+                return Promise.resolve({
+                    attempts: attempts,
+                    compilingResults: compilingResults
+                });
             }
             attempts++;
             let errors: any[] = []
@@ -63,7 +91,10 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
 
         } while (attempts < maxAttempts && !result.success)
         if (result.success) {
-            return Promise.resolve(attempts);
+            return Promise.resolve({
+                attempts: attempts,
+                compilingResults: compilingResults
+            });
         }
         return Promise.resolve(null);
     }

@@ -37,5 +37,11 @@ export abstract class ValidationStepHandler extends AbstractStepHandler {
         super();
         this.args = args;
     }
-    getPathsOfFilesWithErrors(errors: string[]): string[] {return []}
+
+    enableTests(){
+        this.args.skipTests=false
+    }
+    disableTests(){
+        this.args.skipTests=true
+    }
 }

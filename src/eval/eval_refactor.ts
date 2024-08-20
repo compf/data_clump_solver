@@ -4,7 +4,7 @@ import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { LanguageModelDetectOrRefactorHandler } from "../pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
 import { AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SendHandler, SimpleInstructionHandler, SystemInstructionHandler, ValidationResultHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
-import { parseChat, StubOutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { ModifiedFilesProposal, parseChat, SimpleProposalHandler, StubOutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { GradleBuildValidationStepHandler } from "../pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
 import { MultipleAttemptsValidationHandler } from "../pipeline/stepHandler/validation/MultipleAttemptsValidationHandler";
 import { FileIO } from "../util/FileIO";
@@ -12,6 +12,7 @@ import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/Abstra
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
+import { writeFileSync } from "../util/Utils";
 import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
   type RefactorInstance=Instance &{
 
@@ -115,12 +116,16 @@ class RefactorEval extends BaseEvaluator {
         }
 
         let reply = chat[chat.length - 1];
-        let outputHandler = new StubOutputHandler();
-        context=context.buildNewContext(await parseChat(chat,PipeLineStep.Refactoring,context,outputHandler));
-        context=context.buildNewContext(await outputHandler.chooseProposal(context));
+        let stubOutputHandler = new StubOutputHandler();
+        stubOutputHandler.apply=true;
+        context=context.buildNewContext(await parseChat(chat,PipeLineStep.Refactoring,context,stubOutputHandler));
+        context=context.buildNewContext(await stubOutputHandler.chooseProposal(context));
+        
         let count=await multiValidationHandler.getValidationCount(context);
+        stubOutputHandler.proposal?.delete(context);
+
+        writeFileSync("validation_count.json",JSON.stringify(count,null,2))
         console.log("Validation count",count);
-        throw "cool"
     }
    
 }
