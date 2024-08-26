@@ -77,12 +77,21 @@ export class FilterEval extends BaseEvaluator {
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
             iteration: [0, 1, 2, 3, 4],
-            inputType: ["filter","filter_code_snippet","filter_full_code"],
+            inputType: ["filter",
+                "filter_code_snippet",
+                "filter_full_code"],
             instructionType: [
                 "definitionBased",
-                "exampleBased", 
-                "noDefinitionBased"],
-            margin: [0, 1, 2, 5, 10]
+                //"exampleBased", 
+                //"noDefinitionBased"
+            ],
+            margin: [
+                0,
+               //  1,
+                  2,
+                  5, 
+                 // 10
+                ]
         }
         if(DEBUG){
             result.iteration=[0]

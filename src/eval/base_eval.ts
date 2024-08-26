@@ -33,7 +33,7 @@ export type Arrayified<T> = {
   };
 
  export  type InstanceCombination = Arrayified<Instance>;
- export const DEBUG=true;
+ export const DEBUG=false;
 export abstract class BaseEvaluator {
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {

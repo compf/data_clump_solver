@@ -6,6 +6,7 @@ import { LanguageModelDetectOrRefactorHandler } from "../pipeline/stepHandler/la
 import { AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SendHandler, SimpleInstructionHandler, SystemInstructionHandler, ValidationResultHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
 import { ModifiedFilesProposal, parseChat, SimpleProposalHandler, StubOutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { GradleBuildValidationStepHandler } from "../pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
+import { MavenBuildValidationStepHandler } from "../pipeline/stepHandler/validation/MavenBuildValidationStepHandler";
 import { MultipleAttemptsValidationHandler } from "../pipeline/stepHandler/validation/MultipleAttemptsValidationHandler";
 import { FileIO } from "../util/FileIO";
 import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/AbstractLanguageModel";
@@ -43,7 +44,11 @@ class RefactorEval extends BaseEvaluator {
             instanceType: ["refactor"],
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
-            instructionType: ["definitionBased", "exampleBased", "noDefinitionBased"],
+            instructionType: [
+                "definitionBased", 
+                "exampleBased",
+                 "noDefinitionBased"
+                ],
             inputFormat:["instruction","instructionSnippet"],
             iteration: [0, 1, 2, 3, 4],
             margin:[0,1,2,5,10]
@@ -99,7 +104,7 @@ class RefactorEval extends BaseEvaluator {
         }
         resolver.set("%{data_clump_def}", defPath);
         let multiValidationHandler=new MultipleAttemptsValidationHandler({
-            innerValidator: new GradleBuildValidationStepHandler({skipTests:true}),
+            innerValidator: new MavenBuildValidationStepHandler({skipTests:true}),
             handlers: [
                 new SimpleInstructionHandler({instructionPath:"chatGPT_templates/validation/fix_errors.template"}),
                 new ValidationResultHandler(),

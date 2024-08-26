@@ -211,7 +211,7 @@ enum ExtractionDirection { Up, Down, UpAndDown }
 
 export class CodeSnippetHandler extends LargeLanguageModelHandler {
     private additionalMargin = 0
-    private headerMargin = 15;
+    private includeHeader=true;
     generateLines(centerLine: number, margin: number, extractionDirection: ExtractionDirection, lines: Set<number>) {
         let start = extractionDirection == ExtractionDirection.Up || extractionDirection == ExtractionDirection.UpAndDown ? centerLine - margin : centerLine;
         let end = extractionDirection == ExtractionDirection.Down || extractionDirection == ExtractionDirection.UpAndDown ? centerLine + margin : centerLine;
@@ -252,6 +252,27 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
         blocks.push( block)
         return blocks;
     }
+    getImportBlock(path:string, context:DataClumpRefactoringContext):{start,margin:number}{
+        let content=fs.readFileSync(resolve(context.getProjectPath(),path),{encoding:"utf-8"}).split("\n");
+
+        let start:number|null=null;
+        let margin=0;
+        for(let i=0;i<content.length;i++ ){
+            if(content[i].trim().startsWith("package") || content[i].trim().startsWith("import")){
+                if(start==null){
+                    start=i;
+                }
+            }
+            else if (content[i].trim()!=""){
+                if(start!=null){
+                    margin=i-start;
+                    return {start,margin}
+                }
+            }
+        }
+        return{start:0,margin:0}
+
+    }
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let usageContext = context.getRelevantLocation();
         if (usageContext == null) {
@@ -262,7 +283,11 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
         let pathLinesMapCopy: { [key: string]: Set<number> } = {}
         for (let path of Object.keys(pathLinesMap)) {
             pathLinesMapCopy[path] = new Set<number>();
-            this.generateLines(0, this.headerMargin, ExtractionDirection.Down, pathLinesMapCopy[path])
+            if(this.includeHeader){
+                let headerData=this.getImportBlock(path,context)
+                this.generateLines(headerData.start,headerData.margin, ExtractionDirection.Down, pathLinesMapCopy[path])
+            }
+            
 
             for (let line of pathLinesMap[path]) {
 
@@ -291,13 +316,10 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
         }
         return Promise.resolve([api.prepareMessage(JSON.stringify(resultingMessages), "input")])
     }
-    constructor(args: { additionalMargin?: number }) {
+    constructor(args: { additionalMargin?: number, includeHeader?:boolean }) {
         super()
-        if (args) {
-            if (args.additionalMargin != null) {
-                this.additionalMargin = args.additionalMargin
-            }
-        }
+        Object.assign(this,args)
+        
     }
 }
 export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {

@@ -4,7 +4,7 @@ import {spawnSync} from 'child_process';
 import fs from "fs";
 export class MavenBuildValidationStepHandler extends ValidationStepHandler {
     validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; validationInfos:ValidationInfo[] }>  {
-        let args=["package"]
+        let args=["clean","package"]
         if(this.args.skipTests){
             args.push("-DskipTests")
         }
@@ -13,7 +13,7 @@ export class MavenBuildValidationStepHandler extends ValidationStepHandler {
               return Promise.resolve({success:true,validationInfos:[]});
          }
          else {
-             return Promise.resolve({success:false,validationInfos:this.parseMaven(result.stderr.toString())});
+             return Promise.resolve({success:false,validationInfos:this.parseMaven(result.stdout.toString())});
          }
     }
     private parseMaven(output:string){
@@ -24,7 +24,7 @@ export class MavenBuildValidationStepHandler extends ValidationStepHandler {
         let colNr:number|undefined=undefined;
         let errorMesssages:string[]=[]
         let errors:ValidationInfo[]=[]
-    
+        let initial=true;
         for(let line of splitted){
             if(line.startsWith("[ERROR]")){
                
@@ -39,17 +39,25 @@ export class MavenBuildValidationStepHandler extends ValidationStepHandler {
                                 errorMessage:errorMesssages.join("\n"),
                                 type:lineSplitted[0]
                             }
+                            
                         );
+                        errorMesssages=[]
                         foundError=false;
+                        initial=false;
+                      
                     }
                     
                     foundError=true;
                     path=lineSplitted[1];
                     lineNr=parseInt(lineSplitted[2].replace("[","").replace("]",""))
+                    let lineError=line.split("error:")
+                    if(lineError.length>1){
+                        errorMesssages.push("error: "+lineError[1]);
+                    }
                     console.log(path,lineNr)
                    
                 }
-                else if (foundError){
+                else if (foundError || initial){
                     line=line.replace("[ERROR]","");
                     errorMesssages.push(line)
     

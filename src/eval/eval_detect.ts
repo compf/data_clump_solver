@@ -64,17 +64,28 @@ export class DetectEval extends BaseEvaluator{
         let result= {
             instanceType: ["detect"],
             model: ["gpt-4-1106-preview"],
-            temperature: [0.1, 0.5, 0.9],
+            temperature: [
+                0.1, 
+                0.5, 
+                0.9
+            ],
             iteration: [0, 1, 2, 3, 4],
             inputType: [
                 "ast",
                 "fullFile",
                 "snippet"],
-            margin: [0, 1, 2, 5, 10],
+            margin: [
+                0,
+                // 1, 
+                 2,
+                  5, 
+                  //10
+                ],
             instructionType: [
                 "definitionBased",
-                "exampleBased", 
-                "noDefinitionBased"]
+                //"exampleBased", 
+                //"noDefinitionBased"
+                ]
         } 
         if(DEBUG){
             result.iteration=[0]
