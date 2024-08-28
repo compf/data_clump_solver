@@ -34,18 +34,23 @@ export type Arrayified<T> = {
 
  export  type InstanceCombination = Arrayified<Instance>;
  export const DEBUG=false;
+  let CLONE_AGAIN=true
+  export function disableCloning(){
+      CLONE_AGAIN=false
+  }
 export abstract class BaseEvaluator {
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
    
-        let retriever=new CloneBasedProjectRetriever(url,true)
+        let retriever=new CloneBasedProjectRetriever(url,CLONE_AGAIN)
         retriever.init()
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDetectorStep({});
       
      
         let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext
+        originalDcContext.serialize()
         return Promise.resolve(originalDcContext);
     }
 
@@ -124,7 +129,7 @@ function createInstanceCombinationRecursive<T>(tupleOfArrays:Arrayified<T>, targ
 
 export class InstanceBasedFileIO extends FileIO{
     public instance:Instance={} as any
-    private baseDir="evalData"
+    public baseDir="evalData"
     resolvePath(key: string): string {
      
         let dir=this.getInstancePath()

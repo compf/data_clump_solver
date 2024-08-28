@@ -10,7 +10,8 @@ import {GPT4Tokenizer} from "gpt4-tokenizer"
 export class StubInterface extends AbstractLanguageModel{
 
     private responsePath:string="response.json"
-
+    public writeRequest=true
+    public useFullPath=false
     constructor(args:any){
         super();
         Object.assign(this,args)
@@ -28,8 +29,16 @@ export class StubInterface extends AbstractLanguageModel{
     }
 
     async  sendMessages(clear:boolean): Promise<ChatMessage> {
+        if(this.writeRequest){
         writeFileSync("request.txt",this.messages.join("\n"))
-        let output=readFileSync(this.responsePath)
+        }
+        let output=""
+        if(this.useFullPath){
+            output=fs.readFileSync(this.responsePath,{encoding:"utf-8"})
+        }
+        else{      
+            output=readFileSync(this.responsePath)
+        }
         let parsed=JSON.parse(output)
 
         return {messageType:"output",messages:[

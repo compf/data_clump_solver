@@ -137,7 +137,6 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
         }
 
 
-        console.log("fullTarget", fullTarget)
         return { data_clumps: fullTarget }
     }
     counter = 0
