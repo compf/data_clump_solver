@@ -11,7 +11,7 @@ import * as url from "url";
 import { waitSync } from "../util/Utils";
 import https from "https"
 import { SimpleCodeObtainingStepHandler } from "../pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
-import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
+import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { spawnSync } from "child_process";
@@ -50,7 +50,7 @@ async function getDataClumpData() {
     let context = new DataClumpRefactoringContext();
     let codeObtainingContext= await  new SimpleCodeObtainingStepHandler({ path: "/home/compf/data/uni/master/sem4/data_clump_solver/cloned_projects", useArgPath: false }).handle(PipeLineStep.CodeObtaining, context, null);
     context = codeObtainingContext
-    let detector = new DataClumpDetectorStep({});
+    let detector = new DataClumpDoctorStepHandler({});
     context = context.buildNewContext(await detector.handle(PipeLineStep.DataClumpDetection, context, null));
     let obj = Object.assign(dataClumpStats, context.getByType(DataClumpDetectorContext)?.getDataClumpDetectionResult().report_summary);
     console.log("finished", obj)

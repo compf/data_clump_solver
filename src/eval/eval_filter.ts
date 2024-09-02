@@ -158,7 +158,7 @@ export class FilterEval extends BaseEvaluator {
     gitHelper.clone(url)
     let attempt = 0;
     let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"))
-    let dcHandler = new DataClumpDetectorStep({});
+    let dcHandler = new dataClumpDoctorStepHandler({});
 
     let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext
 

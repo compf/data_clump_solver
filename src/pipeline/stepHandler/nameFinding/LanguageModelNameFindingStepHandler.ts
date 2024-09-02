@@ -4,12 +4,12 @@ import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLangu
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
-import { AbstractNameFindingStepHandler } from "./AbstractNameFindingStep";
+import { AbstractNameFindingStepHandler } from "./AbstractNameFindingStepHandler";
 type LanguageModelArgs = {
     languageModelName: string,
 }
 const FIELD_NAMES="${field_names}"
-export class LanguageModelNameFindingsStep extends AbstractNameFindingStepHandler {
+export class LanguageModelNameFindingsStepHandler extends AbstractNameFindingStepHandler {
     async getSuggestedName(variableInfos: {name:string,type:string}[],context:DataClumpRefactoringContext,counter:number): Promise<string | null> {
         if (!this.languageModel) {
             if( this.args==undefined || !this.args.languageModelName){

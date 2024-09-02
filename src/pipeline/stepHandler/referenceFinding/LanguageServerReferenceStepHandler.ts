@@ -18,7 +18,7 @@ type LanguageServerReferenceAPIParams = {
     apiName: string,
     apiArgs: any
 }
-export class LanguageServerReferenceAPI extends AbstractStepHandler {
+export class LanguageServerReferenceStepHandler extends AbstractStepHandler {
     api: LanguageServerAPI | null = null;
     apiArgs: LanguageServerReferenceAPIParams
     globalCounter = 3

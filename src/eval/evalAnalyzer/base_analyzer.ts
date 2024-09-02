@@ -1,5 +1,5 @@
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../context/DataContext";
-import { DataClumpDetectorStep } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
+import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { getRelevantFilesRec } from "../../util/Utils";
 import { BaseEvaluator, disableCloning, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
 import { DetectEval } from "../eval_detect";

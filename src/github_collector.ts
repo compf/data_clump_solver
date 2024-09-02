@@ -8,7 +8,7 @@ import { MavenBuildValidationStepHandler } from './pipeline/stepHandler/validati
 import { GradleBuildValidationStepHandler } from './pipeline/stepHandler/validation/GradleBuildValidationStepHandler';
 import { CodeObtainingContext, DataClumpDetectorContext } from './context/DataContext';
 import { DataClumpsTypeContext } from 'data-clumps-type-context/ignoreCoverage/DataClumpsTypeContext';
-import { DataClumpDetectorStep } from './pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep';
+import { DataClumpDoctorStepHandler } from './pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler';
 import { PipeLineStep } from './pipeline/PipeLineStep';
 let projects = JSON.parse(fs.readFileSync("github_projects_structured.json", "utf-8"));
 type DataClumpReportStats = {
@@ -58,7 +58,7 @@ async function main() {
             let lines = countLines();
             let buildSystem = getBuildSystem();
             let compileResult = await doesCompile(buildSystem);
-            let detector = new DataClumpDetectorStep({});
+            let detector = new DataClumpDoctorStepHandler({});
             let dataClumps = await detector.handle(PipeLineStep.Validation, obtainingContext, null) as DataClumpDetectorContext
             dataClumps.getDataClumpDetectionResult().report_summary
             result[project] = {

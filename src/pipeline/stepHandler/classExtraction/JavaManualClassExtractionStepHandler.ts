@@ -1,10 +1,10 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
-import {  ManualClassExtractor } from "./ManualClassExtractor";
+import {  ManualClassExtractionStepHandler } from "./ManualClassExtractionStepHandler";
 import capitalize from "capitalize";
 import path from "path";
 import fs from "fs";
 import { ASTBuildingContext, DataClumpRefactoringContext } from "../../../context/DataContext";
-export class JavaManualClassExtractor extends ManualClassExtractor{
+export class JavaManualClassExtractionStepHandler extends ManualClassExtractionStepHandler{
     createField(fieldName: string, type: string): string {
          return "\tprivate "+ type+" " + fieldName+";\n"
     }

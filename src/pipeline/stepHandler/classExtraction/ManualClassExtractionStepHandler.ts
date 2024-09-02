@@ -7,7 +7,7 @@ import fs from "fs"
 import { resolveFromInterfaceName } from "../../../config/Configuration";
 import { ValidationStepHandler } from "../validation/ValidationStepHandler";
 
-export abstract class ManualClassExtractor extends AbstractStepHandler{
+export abstract class ManualClassExtractionStepHandler extends AbstractStepHandler{
     abstract createField(fieldName:string, type:string):string;
     abstract createGetter(fieldName:string, type:string):string;
     abstract createSetter(fieldName:string, type:string):string;

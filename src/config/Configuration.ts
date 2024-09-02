@@ -92,17 +92,16 @@ export function processConfiguration(config:Configuration){
             registerFromName(type,key,args)
         }
     }
-    for(let step of Object.keys(PipeLineStep)){
-        if(PipeLineStep[step].isRequired && !Object.keys(config.PipeLine).some((x)=>x.includes(step))){
-            throw new Error("Missing configuration for step "+step)
-        }
-    }
-    
-    // register in the pipeline
-    for(let steps of Object.keys(config.PipeLine)){
+       // register in the pipeline
+       for(let steps of Object.keys(config.PipeLine)){
         let splitted=steps.split(",").map((x)=>x.trim())
         PipeLine.Instance.registerHandler(splitted.map((x)=>PipeLineStep[x]),resolveFromConcreteName(splitted[0]) as AbstractStepHandler)
     }
+    if(!PipeLine.Instance.checkPipeLine()){
+        throw new Error("Pipeline is not correct")
+    }
+    
+ 
 }
 export function loadConfiguration(path:string):DataClumpRefactoringContext{
     let config=JSON.parse(fs.readFileSync(path).toString()) as Configuration

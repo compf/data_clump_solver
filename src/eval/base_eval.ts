@@ -4,7 +4,7 @@ import { getRepoDataFromUrl } from "../util/vcs/VCS_Service"
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
-import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
+import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { loadConfiguration, registerFromName, resolveFromInterfaceName } from "../config/Configuration";
 import { CloneBasedProjectRetriever } from "./project_list_retriever";
 import { FileIO } from "../util/FileIO";
@@ -46,7 +46,7 @@ export abstract class BaseEvaluator {
         let retriever=new CloneBasedProjectRetriever(url,CLONE_AGAIN)
         retriever.init()
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
-        let dcHandler = new DataClumpDetectorStep({});
+        let dcHandler = new DataClumpDoctorStepHandler({});
       
      
         let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext

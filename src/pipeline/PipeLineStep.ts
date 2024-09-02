@@ -1,5 +1,6 @@
 import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, FileFilteringContext, NameFindingContext, RefactoredContext, UsageFindingContext, ValidationContext } from "../context/DataContext";
 import { AbstractStepHandler } from "./stepHandler/AbstractStepHandler"
+import { SimpleCodeObtainingStepHandler } from "./stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
 export type PipeLineStepName = "CodeObtaining" | "FileFiltering" | "ASTGeneration" | "SimilarityDetection" | "DataClumpDetection" | "DataClumpFiltering" | "NameFinding" | "ClassExtraction" | "ReferenceFinding" | "Refactoring" | "Validation"
 export type PipeLineStepType = {
     position: number,
@@ -13,7 +14,7 @@ export namespace PipeLineStep {
         position: 0,
         name: "CodeObtaining",
         isRequired: true,
-        defaultHandler: undefined,
+        defaultHandler: new SimpleCodeObtainingStepHandler({useArgPath:true,path:null}),
         associatedContext: "CodeObtainingContext"
     };
     export const FileFiltering: PipeLineStepType = {

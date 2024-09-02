@@ -6,7 +6,7 @@ import { resolve } from "path";
 import { spawnSync } from "child_process"
 
 
-export class RedcliffReferenceStep extends AbstractStepHandler{
+export class RedcliffManualRefactoringStepHandler extends AbstractStepHandler{
     handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const projectPath=context.getProjectPath()
         /*
@@ -23,7 +23,7 @@ export class RedcliffReferenceStep extends AbstractStepHandler{
 
         */
         let contextData={
-            refactorMode:"FindUsages"
+            refactorMode:"Manual"
         }
         let currContext:DataClumpRefactoringContext|null=context.getByType(DataClumpDetectorContext)
         if(currContext!=null){
@@ -43,10 +43,14 @@ export class RedcliffReferenceStep extends AbstractStepHandler{
             }
             contextData["dataClumpContextPath"]=lastPath
         }
-
-        let usageContext=context.buildNewContext(new UsageFindingContext({}))
-        contextData["referenceFindingContextePath"]=getContextSerializationPath(usageContext,usageContext)
-        
+        currContext=context.getByType(NameFindingContext)
+        if(currContext!=null){
+            contextData["classNamesContextPath"]=getContextSerializationPath(currContext,currContext)
+        }
+        currContext=context.getByType(UsageFindingContext)
+        if(currContext!=null){
+            contextData["referenceFindingContextePath"]=getContextSerializationPath(currContext,currContext)
+        }
         fs.writeFileSync(dataPath+"/contextPaths.json",JSON.stringify(contextData))
         
         let args=[
@@ -63,10 +67,10 @@ export class RedcliffReferenceStep extends AbstractStepHandler{
         return Promise.resolve(context);
     }
     getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.ReferenceFinding]
+        return [PipeLineStep.Refactoring]
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
-        createdContexts.add(UsageFindingContext.name)
+        createdContexts.add(RefactoredContext.name)
     }
    
 

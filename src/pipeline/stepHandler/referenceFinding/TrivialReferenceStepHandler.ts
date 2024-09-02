@@ -3,7 +3,7 @@ import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMet
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 
-export class TrivialReferenceFinder extends AbstractStepHandler{
+export class TrivialReferenceStepHandler extends AbstractStepHandler{
     handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let dcContext=context.getByType(DataClumpDetectorContext)!;
         let allUsages:{ [key: string]: VariableOrMethodUsage[] }={}

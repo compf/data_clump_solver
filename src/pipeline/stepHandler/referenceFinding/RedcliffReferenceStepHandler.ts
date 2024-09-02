@@ -6,7 +6,7 @@ import { resolve } from "path";
 import { spawnSync } from "child_process"
 
 
-export class RedcliffManualRefactoringStep extends AbstractStepHandler{
+export class RedcliffReferenceStepHandler extends AbstractStepHandler{
     handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const projectPath=context.getProjectPath()
         /*
@@ -23,7 +23,7 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
 
         */
         let contextData={
-            refactorMode:"Manual"
+            refactorMode:"FindUsages"
         }
         let currContext:DataClumpRefactoringContext|null=context.getByType(DataClumpDetectorContext)
         if(currContext!=null){
@@ -43,14 +43,10 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
             }
             contextData["dataClumpContextPath"]=lastPath
         }
-        currContext=context.getByType(NameFindingContext)
-        if(currContext!=null){
-            contextData["classNamesContextPath"]=getContextSerializationPath(currContext,currContext)
-        }
-        currContext=context.getByType(UsageFindingContext)
-        if(currContext!=null){
-            contextData["referenceFindingContextePath"]=getContextSerializationPath(currContext,currContext)
-        }
+
+        let usageContext=context.buildNewContext(new UsageFindingContext({}))
+        contextData["referenceFindingContextePath"]=getContextSerializationPath(usageContext,usageContext)
+        
         fs.writeFileSync(dataPath+"/contextPaths.json",JSON.stringify(contextData))
         
         let args=[
@@ -67,10 +63,10 @@ export class RedcliffManualRefactoringStep extends AbstractStepHandler{
         return Promise.resolve(context);
     }
     getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.Refactoring]
+        return [PipeLineStep.ReferenceFinding]
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
-        createdContexts.add(RefactoredContext.name)
+        createdContexts.add(UsageFindingContext.name)
     }
    
 

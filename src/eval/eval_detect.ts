@@ -1,7 +1,7 @@
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, GitRepositoryContext, RelevantLocationsContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
-import { DataClumpDetectorStep } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
+import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { FileFilterHandler } from "../pipeline/stepHandler/fileFiltering/FileFilterHandler";
 import { RecentlyChangedFilesStephandler } from "../pipeline/stepHandler/fileFiltering/RecentlyChangedFilesStephandler";
@@ -121,7 +121,7 @@ export class DetectEval extends BaseEvaluator{
             context=context.buildNewContext(new GitRepositoryContext())
             let fileFilter= new RecentlyChangedFilesStephandler({});
             context=await fileFilter.handle(PipeLineStep.FileFiltering,context,{})
-            let dcHandler = new DataClumpDetectorStep({});
+            let dcHandler = new DataClumpDoctorStepHandler({});
           
          
             context= await dcHandler.handle(PipeLineStep.DataClumpDetection, context, {}) as DataClumpDetectorContext         

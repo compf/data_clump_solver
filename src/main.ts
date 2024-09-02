@@ -6,7 +6,6 @@ import {resolve} from "path"
 import { CodeObtainingContext, DataClumpRefactoringContext } from "./context/DataContext";
 import { PipeLineStep,PipeLineStepType } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
-import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { sys } from "typescript";
 
 import { loadConfiguration } from "./config/Configuration";
@@ -18,7 +17,7 @@ async function main(){
     let context=loadConfiguration(args.config_path)
     context.sharedData.path=args.project_path
     /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler(project_path));
-    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new DataClumpDetectorStep());
+    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new dataClumpDoctorStepHandler());
     PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
     PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
     PipeLine.Instance.registerHandler([PipeLineStep.ReferenceFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));

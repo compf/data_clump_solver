@@ -7,8 +7,8 @@ import { DataClumpTypeContext, DataClumpsTypeContext } from "data-clumps-type-co
 import fs from "fs";
 import AdmZip from "adm-zip";
 import { AST } from "minimatch";
-import { applyIncludeExclude } from "../astGeneration/DataClumpDoctorASTGeneratorStep";
-export class DataClumpDetectorStep extends AbstractStepHandler {
+import { applyIncludeExclude } from "../astGeneration/DataClumpDoctorASTGeneratorStepHandler";
+export class DataClumpDoctorStepHandler extends AbstractStepHandler {
     private detectorArgs: any;
     async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let project_path = context.getProjectPath();

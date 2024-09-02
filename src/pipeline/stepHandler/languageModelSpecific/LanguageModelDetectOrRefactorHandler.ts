@@ -14,7 +14,6 @@ import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLan
 import { ChatMessage, AbstractLanguageModel, AbstractLanguageModelCategory } from "../../../util/languageModel/AbstractLanguageModel";
 import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
-import { DataClumpDetectorStep } from "../dataClumpDetection/DataClumpDetectorStep";
 import {  OutputChecker } from "../../../util/languageModel/OutputChecker";
 import { InteractiveProposalHandler, MetricBasedProposalHandler, ModifiedFilesProposal, MultipleBrancheHandler, OutputHandler, parse_piecewise_output, parseChat, parseMarkdown, StubOutputHandler } from "./OutputHandler";
 
@@ -47,7 +46,7 @@ export class ProposalsNumberAttemptsProvider implements NumberAttemptsProvider{
     }
 
 }
-export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
+export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: AbstractLanguageModel | null = null
     private temperatures: number[] = [0.1,0.5]
@@ -56,29 +55,7 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private numberAttempts: NumberAttemptsProvider;;
     private outputHandler: OutputHandler = new  InteractiveProposalHandler();
 
-    async createDataClumpLocationAndUsageFilterContext(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
-        let detectionContext = context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext
-        let usageFindingContext = context.getByType(UsageFindingContext) as UsageFindingContext
-        if (detectionContext == null) {
-            return context
-        }
-        let relevantFiles = new Set<string>()
-        //throw " "+Object.values(detectionContext.getDataClumpDetectionResult().data_clumps).length
-        for (let dc of Object.values(detectionContext.getDataClumpDetectionResult().data_clumps)) {
-            relevantFiles.add(dc.from_file_path)
-            relevantFiles.add(dc.to_file_path)
-            if (usageFindingContext != null && dc.key in usageFindingContext.getUsages()) {
-                for (let usage of usageFindingContext.getUsages()[dc.key]!) {
-                    //throw  usage.filePath
-                    relevantFiles.add(usage.filePath)
-                }
-            }
-
-        }
-        let includes: string[] = Array.from(relevantFiles)
-        return Promise.resolve(context.buildNewContext(new FileFilteringContext(includes, [])))
-    }
-    relevantFiles: string[] = []
+   
     async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let api: AbstractLanguageModel;
         if (this.providedApi != null) {
@@ -90,7 +67,6 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
         let templateResolver = resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
         this.providedApi = api
         let handlerIndex = 0
-        getRelevantFilesRec(context.getProjectPath(), this.relevantFiles, context.getByType(FileFilteringContext));
         let numberAttempts=this.numberAttempts.getNumberAttempts(context);
 
         for (let i = 0; i < numberAttempts; i++) {
@@ -101,7 +77,6 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             api.resetParameters({ model, temperature })
             let chat: ChatMessage[] = []
 
-            context = await this.createDataClumpLocationAndUsageFilterContext(context)
             for (handlerIndex = 0; handlerIndex < this.handlers.length; handlerIndex++) {
                 let handler = this.handlers[handlerIndex]
                 console.log("Running attempt "+i+" with handler "+handler.constructor.name )
@@ -117,30 +92,21 @@ export class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
             let reply = chat[chat.length - 1];
             await parseChat(chat, step, context,this.outputHandler)
         }
-        let proposal=this.outputHandler.chooseProposal(context)
-        return context.buildNewContext(new RefactoredContext())
+        let proposal=await this.outputHandler.chooseProposal(context)
+        return proposal
 
 
 
     }
    
-    
 
 
-    parse_key(key: string, context: DataClumpRefactoringContext): string {
-        return key
-    }
-    async parse_full_content(content: any, context: DataClumpRefactoringContext): Promise<string | null> {
-        return Promise.resolve(null)
-    }
-  
     static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: AbstractLanguageModel): LanguageModelDetectOrRefactorHandler {
         let step = new LanguageModelDetectOrRefactorHandler({ handlers: [],numberAttempts:1 })
         step.handlers = handlers
         step.providedApi = api
         return step
     }
-    private doWrite: boolean = false;
     constructor(args: { handlers: string[], numberAttempts:string | number }) {
         super();
         Object.assign(this, args)

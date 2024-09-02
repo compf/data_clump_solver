@@ -2,7 +2,7 @@ import { registerFromName } from "./config/Configuration";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "./context/DataContext";
 import { PipeLineStep } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
-import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
+import { DataClumpDoctorStepHandler} from "./pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { DataClumpFilterStepHandler } from "./pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { MetricCombiner } from "./util/filterUtils/MetricCombiner";
 
@@ -10,7 +10,7 @@ async function main() {
     console.log("Hello World")
     let context = new DataClumpRefactoringContext();
     context = await new SimpleCodeObtainingStepHandler({ path: null, useArgPath: true }).handle(PipeLineStep.CodeObtaining, context, null);
-    let detector = new DataClumpDetectorStep({});
+    let detector = new DataClumpDoctorStepHandler({});
     context = await detector.handle(PipeLineStep.DataClumpDetection, context, null);
     const metricWeights = [
         1,

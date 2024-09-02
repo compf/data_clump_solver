@@ -6,7 +6,6 @@ import {resolve} from "path"
 import { CodeObtainingContext, DataClumpRefactoringContext } from "./context/DataContext";
 import { PipeLineStep,PipeLineStepType } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
-import { DataClumpDetectorStep } from "./pipeline/stepHandler/dataClumpDetection/DataClumpDetectorStep";
 import { sys } from "typescript";
 
 import { loadConfiguration, resolveFromInterfaceName } from "./config/Configuration";
