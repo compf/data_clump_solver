@@ -16,6 +16,7 @@ import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../contex
 import { FileIO } from "../util/FileIO";
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
+import { Metric } from "../util/filterUtils/Metric";
 const MAX_ATTEMPTS = 5;
 const model = "codegemma"
 type FilterEvalInstance = Instance & {
@@ -32,7 +33,7 @@ export class FilterEval extends BaseEvaluator {
     }
     async analyzeInstance(instance: FilterEvalInstance, context: DataClumpRefactoringContext): Promise<void> {
         let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel;
-        writeFileSync("filterResult", JSON.stringify(this.all_result, null, 2));
+        writeFileSync("filterResult.json", JSON.stringify(this.all_result, null, 2));
         let result={"llm":[]} as any;
         api.resetParameters(instance)
         let llmFilter=context.sharedData.llmFilter;
@@ -83,14 +84,14 @@ export class FilterEval extends BaseEvaluator {
             instructionType: [
                 "definitionBased",
                 //"exampleBased", 
-                //"noDefinitionBased"
+                "noDefinitionBased"
             ],
             margin: [
                 0,
-               //  1,
+                 1,
                   2,
                   5, 
-                 // 10
+                  10
                 ]
         }
         if(DEBUG){
@@ -109,11 +110,14 @@ export class FilterEval extends BaseEvaluator {
             resolveFromConcreteName("DataClumpSizeMetric"),
             resolveFromConcreteName("DataClumpOccurenceMetric"),
             resolveFromConcreteName("AffectedFilesMetric")
-            ];
+            ] as Metric[];
 
         for (let m of metrics) {
             let result = await ranker.rank(m, Object.values(originalDcContext.getDataClumpDetectionResult().data_clumps), originalDcContext)
-            this.all_result[m.constructor.name] = result.map((it) => originalDcContext.createDataTypeNameClumpKey(it as DataClumpTypeContext))
+            this.all_result[m.constructor.name] =[]
+            for(let r of result){
+                this.all_result[m.constructor.name].push({name:originalDcContext.createDataTypeNameClumpKey(r as DataClumpTypeContext), value:await m.evaluate(r,originalDcContext)})
+            }
             console.log(result)
 
         }

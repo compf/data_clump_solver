@@ -33,6 +33,9 @@ class RefactorEval extends BaseEvaluator {
     isProjectFullyAnalyzed(): boolean {
         return false;
     }
+    getRankerThreshold(): number {
+        return 5;
+    }
     simplifyInstance(instance: RefactorInstance): RefactorInstance {
         if(instance.inputFormat!="instructionSnippet"){
             delete instance["margin" as any];
@@ -49,7 +52,10 @@ class RefactorEval extends BaseEvaluator {
                 "exampleBased",
                  "noDefinitionBased"
                 ],
-            inputFormat:["instruction","instructionSnippet"],
+            inputFormat:[
+                "instruction",
+                "instructionSnippet"
+            ],
             iteration: [0, 1, 2, 3, 4],
             margin:[0,1,2,5,10]
         }

@@ -432,9 +432,12 @@ export class SimplifiedDataClumpContextHandler extends LargeLanguageModelHandler
 export class ValidationResultHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let validationContext=context.getByType(ValidationContext)! as ValidationContext;
-        let errors: { path: string, line: number, errorMessage: string }[] = []
+        let errors: { path: string, line: number, errorMessage: string, content:string }[] = []
         for (let v of validationContext.validationResult) {
-            errors.push({ path: v.filePath, line: v.lineNumber, errorMessage: v.errorMessage })
+            let content=fs.readFileSync(resolve(context.getProjectPath(),v.filePath),{encoding:"utf-8"}).split("\n")
+
+            errors.push({ path: v.filePath, line: v.lineNumber, errorMessage: v.errorMessage, content:content[v.lineNumber-1] })
+        console.log(errors)
         }
         let msg:ChatMessage=api.prepareMessage(JSON.stringify(errors), "input")
         api.prepareMessage(msg.messages[0],msg.messageType)
