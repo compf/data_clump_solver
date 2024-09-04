@@ -1,3 +1,4 @@
+import simpleGit from "simple-git";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { DataClumpRefactoringContext, LargeLanguageModelContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
@@ -14,7 +15,7 @@ import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
 import { writeFileSync } from "../util/Utils";
-import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, DEBUG, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
   type RefactorInstance=Instance &{
 
     instructionType:string,
@@ -48,13 +49,13 @@ class RefactorEval extends BaseEvaluator {
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
             instructionType: [
-                "definitionBased", 
-                "exampleBased",
-                 "noDefinitionBased"
+                "definitionBased" 
+               // "exampleBased",
+                // "noDefinitionBased"
                 ],
             inputFormat:[
                 "instruction",
-                "instructionSnippet"
+                //"instructionSnippet"
             ],
             iteration: [0, 1, 2, 3, 4],
             margin:[0,1,2,5,10]
@@ -81,6 +82,8 @@ class RefactorEval extends BaseEvaluator {
     }
 
     async analyzeInstance(instance: RefactorInstance, context:DataClumpRefactoringContext): Promise<void> {
+        let git= simpleGit(context.getProjectPath())
+        let g=await git.checkout("-b" +getInstancePath([],"-",instance))
 
         let refactorHandlers : LargeLanguageModelHandler[]= [
             new SystemInstructionHandler({
@@ -118,6 +121,11 @@ class RefactorEval extends BaseEvaluator {
             ]
             
         })
+        multiValidationHandler.afterValidationStep=async (attempt:number)=>{
+            git.add("-A")
+            git.commit("validation "+attempt)
+
+        }
 
         let api=resolveFromConcreteName(AbstractLanguageModel.name) as AbstractLanguageModel;
         let chat:ChatMessage[]=[]
@@ -133,8 +141,7 @@ class RefactorEval extends BaseEvaluator {
         context=context.buildNewContext(await stubOutputHandler.chooseProposal(context));
         
         let count=await multiValidationHandler.getValidationCount(context);
-        stubOutputHandler.proposal?.delete(context);
-
+        await git.checkout("master" )
         writeFileSync("validation_count.json",JSON.stringify(count,null,2))
         console.log("Validation count",count);
     }

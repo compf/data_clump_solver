@@ -1,3 +1,4 @@
+import simpleGit from "simple-git";
 import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { DataClumpRefactoringContext, LargeLanguageModelContext, ValidationContext } from "../../../context/DataContext";
 import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLanguageModel";
@@ -30,6 +31,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
     private validator: ValidationStepHandler;
     private handlers: LargeLanguageModelHandler[]
     public doTestRun=false;
+    public afterValidationStep?:{(nr:number):Promise<void>}
     async getValidationCount(context: DataClumpRefactoringContext): Promise<{
         attempts: number,
         compilingResults:CompilingResult[]
@@ -38,6 +40,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
         console.log(api)
         let chat = context.getByType(LargeLanguageModelContext)!.getChat();
         console.log(chat)
+        api.clear()
         for (let c of chat) {
             api.prepareMessage(c.messages[0], c.messageType)
         }
@@ -85,6 +88,10 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
             }
             let reply = chat[chat.length - 1];
             parseChat(chat, PipeLineStep.Refactoring, context, new StubOutputHandler())
+            if(this.afterValidationStep){
+                await this.afterValidationStep(attempts)
+            }
+            let git=simpleGit(context.getProjectPath())
             writeFileSync("error_proposal_" + errors.length + ".json", JSON.stringify(JSON.parse(reply.messages[0])))
 
             console.log("Refactoring", result)
