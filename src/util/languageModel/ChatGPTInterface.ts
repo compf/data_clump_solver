@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import { ChatMessage, AbstractLanguageModel, MessageType, TokenStats } from "./AbstractLanguageModel";
 type Formats="json_object"|"text"
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import { writeFileSync } from "../Utils";
+import { prettyInvalidJson, writeFileSync } from "../Utils";
 export class ChatGPTInterface extends AbstractLanguageModel{
 
     resetParameters(parameters: { temperature: number; model: string; }) {
@@ -11,7 +11,7 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         this.completions.temperature=parameters.temperature
     }
     private api:OpenAI;
-    private format?:string="text"
+    private format?:string="json_object"
     private proxy=fs.existsSync("tokens/use_proxy")
     constructor(args:{model:string,temperature:number,format?:Formats}|undefined){
         super();
@@ -61,25 +61,36 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         if(this.completions.messages.length==0)return {messages:[],messageType:"output"}
         console.log("SENDING",this.completions.messages)
         writeFileSync("request.json",JSON.stringify(this.completions,undefined,4))
+        let requestpretty=prettyInvalidJson(this.completions)
+        writeFileSync("requestPretty.txt",requestpretty)
+        let messages:string[]=[]
+        let shallContinue=false;
+        do{
+            let response= await this.api.chat.completions.create(this.completions);
+            this.completions.messages.push({content:response.choices[0].message.content,role:"assistant"})
+            this.lastUsage=response.usage!;
+            messages.push(response.choices[0].message.content!)
+            if(response.choices[0].finish_reason=="length"){
+            this.completions.messages.push({content:"continue",role:"user"})
+
+                shallContinue=true;
+            }
+            else{
+                shallContinue=false;;
+            }
+            
+        }while(shallContinue);
         //throw this.format
-        let response= await this.api.chat.completions.create(this.completions);
+        
         if(clear){
             this.clear()
         }
-        writeFileSync("response.json",JSON.stringify(response,undefined,4))
+        writeFileSync("response.json",(messages.join("\n")))
+        let responsePretty=prettyInvalidJson(messages.join("\n"))
+        writeFileSync("responsePretty.txt",responsePretty)
         //throw this.format
-        this.lastUsage=response.usage!
-        console.log(JSON.stringify(response,undefined,4))
-        if(response.choices.length>0){
-            let allMessages=response.choices.map((x)=>x.message.content!!)
-            for(let choice of response.choices){
-                console.log(choice.message.content)
-                this.completions.messages.push({role:"assistant",content:choice.message.content})
-                console.log("####")
-            }
-            return {messages:allMessages,messageType:"output"}
-        }
-        return {messages:["No response"],messageType:"output"}
+        
+        return {messages:messages,messageType:"output"}
     }
     getTokenStats(): TokenStats {
         return this.lastUsage

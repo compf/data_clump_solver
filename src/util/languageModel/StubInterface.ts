@@ -5,7 +5,7 @@ import net from "net"
 
 import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLanguageModel";
 import { OutputChecker } from "./OutputChecker"
-import { prettyInvalidJson, readFileSync, writeFileSync } from "../Utils";
+import { prettyInvalidJson, readFileSync, tryParseJSON, tryParseJSONWithSlice, writeFileSync } from "../Utils";
 import {GPT4Tokenizer} from "gpt4-tokenizer"
 export class StubInterface extends AbstractLanguageModel{
 
@@ -39,7 +39,10 @@ export class StubInterface extends AbstractLanguageModel{
         else{      
             output=readFileSync(this.responsePath)
         }
-        let parsed=JSON.parse(output)
+        let parsed=tryParseJSONWithSlice(output)
+        if(parsed==null){
+            return {messageType:"output",messages:[output]}
+        }
 
         return {messageType:"output",messages:[
             parsed.choices[0].message.content

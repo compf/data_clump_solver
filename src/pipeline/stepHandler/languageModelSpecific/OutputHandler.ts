@@ -6,7 +6,7 @@ import path from "path"
 import readlineSync from "readline-sync"
 import { resolveFromConcreteName } from "../../../config/Configuration";
 import { ChatMessage } from "../../../util/languageModel/AbstractLanguageModel";
-import { getRelevantFilesRec, tryParseJSON, writeFileSync } from "../../../util/Utils";
+import { getRelevantFilesRec, parseInvalidJSON, tryParseJSON, tryParseJSONWithSlice, writeFileSync } from "../../../util/Utils";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 
 export function parsePath(filePath: string, context: DataClumpRefactoringContext) {
@@ -137,14 +137,16 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
 
             console.log(content.refactorings[refactoredPath])
             for (let change of content.refactorings[refactoredPath]) {
-                let lines = [change.fromLine, change.toLine]
-                let start = lines[0]
+                let start = change.fromLine
                 if(typeof(start)=="string"){
                     start=parseInt(start)
                 }
 
                 let newContent = change.newContent
                 let oldContent = change.oldContent
+                if(oldContent==undefined || newContent==undefined || change.fromLine==undefined || change.toLine==undefined){
+                    continue;
+                }
                 let index = fileContent.indexOf(oldContent)
                 console.log("change", change)
                 const MAX_OFFSET = 5
@@ -224,10 +226,14 @@ export async   function parseChat(fullChat: ChatMessage[], step: PipeLineStepTyp
     {
         if (c.messageType == "output") {
             for (let m of c.messages) {
-                let json = tryParseJSON(m)
+                let json = tryParseJSONWithSlice(m)
+                
 
 
                 if (step == PipeLineStep.Refactoring) {
+                    if(json==null){
+                        json=parseInvalidJSON(m," }]}}")
+                    }
                     if (json == null) {
 
 

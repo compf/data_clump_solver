@@ -254,3 +254,58 @@ export function getRelevantTime():number{
 export function setRelevantTime(){
     lastRelevantTime=Date.now();
 }
+
+export function mergeObjects(objects:any[]){
+    let target={}
+
+    for(let o of objects){
+        mergeObject(target,o)
+    }
+    return target
+}
+
+function mergeObject(target:any, obj:any){
+    for(let key of Object.keys(obj)){
+        if(!(key in target)){
+           target[key]=obj[key]
+        }
+        else{
+            if(Array.isArray(obj[key])){
+                for(let o of obj[key]){
+                    target[key].push(o)
+                }
+                
+            }
+            else if(typeof(obj[key])=="object"){
+                mergeObject(target[key],obj[key])
+            }
+            else{
+                target[key]=obj[key]
+            }
+            
+        }
+    }
+}
+
+export function parseInvalidJSON(jsonString:string, closingBrackets:string){
+    let result=tryParseJSON(jsonString);
+    let counter=0
+    while(result==null && jsonString.length>0){
+        let lengthBefore=jsonString.length
+        jsonString=jsonString.slice(0,jsonString.length-1)
+        console.log()
+        let lengthAfter=jsonString.length;
+        if(counter==86){
+            nop()
+        }
+        console.log(counter++,jsonString)
+        for(let i=0;i<closingBrackets.length;i++){
+            let temp=jsonString+closingBrackets.slice(undefined,i+1);
+            result=tryParseJSON(temp)
+            if(result!=null)return result;
+        }
+        
+    }
+    return result;
+    
+}
