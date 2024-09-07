@@ -1,7 +1,7 @@
 
 import fs from "fs";
 import ts from "typescript";
-import { ModifiedFilesProposal, parse_piecewise_output, StubOutputHandler } from "../src/pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { ModifiedFilesProposal, parse_piecewise_output, parse_piecewise_output_from_file, StubOutputHandler } from "../src/pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { ChatMessage } from "../src/util/languageModel/AbstractLanguageModel";
 import { CodeObtainingContext } from "../src/context/DataContext";
 import { resolve } from "path";
@@ -15,7 +15,7 @@ const correctRefactoring={
             {
                 fromLine:3,
                 toLine:5,
-               oldContent:`     private boolean sign;
+               oldContent:`    private boolean sign;
     private double mantissa;
     private int exponent;`,
     newContent:"   FloatingPointData floatingPointData;"
@@ -131,12 +131,12 @@ test("Test piecewise refactor", async () => {
             index:6
         },
         {
-            modifyFunction:(o)=>{incrementFromLineNUmber(o,4)},
+            modifyFunction:(o)=>{incrementFromLineNUmber(o,4);addWhiteSpaceToOldContent(o)},
             doesfail:true,
             index:7
         },
         {
-            modifyFunction:(o)=>{incrementFromLineNUmber(o,-4)},
+            modifyFunction:(o)=>{incrementFromLineNUmber(o,-4);addWhiteSpaceToOldContent(o)},
             doesfail:true,
             index:8
         }
@@ -144,6 +144,7 @@ test("Test piecewise refactor", async () => {
     let counter=0
     let mathStuffRefactored=fs.readFileSync(resolve("testData/MathStuffRefactored.java")).toString();
     mathStuffRefactored=mathStuffRefactored.split("\n").map((x)=>x.trim()).join("\n");
+    const expected=mathStuffRefactored.split("\n").filter((x)=>x.trim()!="");
     for(let testCase of testCases){
         let refactoring=JSON.parse(correctRefactoringSerialized);
         testCase.modifyFunction(refactoring);
@@ -156,7 +157,8 @@ test("Test piecewise refactor", async () => {
             expect(refactoringOutput).not.toBe(mathStuffRefactored)
         }
         else{
-            expect(refactoringOutput).toBe(mathStuffRefactored)
+            let outputSplitted=refactoringOutput.split("\n").filter((x)=>x.trim()!="");
+            expect(outputSplitted).toEqual(expected)
 
         }
         counter++;
@@ -166,4 +168,87 @@ test("Test piecewise refactor", async () => {
     
 });
 
+test("Test piecewise refactor, edge cases", async () => {
+
+    const threeLines="int x=0;\nint y=0;\nint z=0;\n";
+    const oneLine="int x=1;";
+    let refactorInstruction={
+        refactorings:{
+            "":[
+                {
+                    fromLine:1,
+                    toLine:3,
+                    oldContent:" "+threeLines,
+                    newContent:oneLine
+                }
+            ]
+        }
+    }
+    let result=parse_piecewise_output_from_file("",threeLines,refactorInstruction);
+    expect(result.trim()).toBe(oneLine);
+
+
+    refactorInstruction.refactorings[""][0].oldContent=threeLines;
+    result=parse_piecewise_output_from_file("",threeLines,refactorInstruction);
+    expect(result.trim()).toBe(oneLine);
+
+
+
+    refactorInstruction={
+        refactorings:{
+            "":[
+                {
+                    fromLine:1,
+                    toLine:1,
+                    oldContent:" "+oneLine,
+                    newContent:threeLines
+                }
+            ]
+        }
+    }
+
+    result=parse_piecewise_output_from_file("",oneLine,refactorInstruction);
+    expect(result).toBe(threeLines);
+
+    refactorInstruction.refactorings[""][0].oldContent=oneLine;
+    result=parse_piecewise_output_from_file("",oneLine,refactorInstruction);
+    expect(result).toBe(threeLines);
+
+
+
+
+    const empty="";
+    refactorInstruction={
+        refactorings:{
+            "":[
+                {
+                    fromLine:1,
+                    toLine:1,
+                    oldContent:empty,
+                    newContent:threeLines
+                }
+            ]
+        }
+    }
+    result=parse_piecewise_output_from_file("",empty,refactorInstruction);
+    expect(result.trim()).toBe(threeLines.trim());
+
+
+
+
+    refactorInstruction={
+        refactorings:{
+            "":[
+                {
+                    fromLine:1,
+                    toLine:1,
+                    oldContent:threeLines,
+                    newContent:empty
+                }
+            ]
+        }
+    }
+    result=parse_piecewise_output_from_file("",threeLines,refactorInstruction);
+    expect(result.trim()).toBe(empty.trim());
+});
 

@@ -45,6 +45,7 @@ function loadAllClasses(){
     let startTime=Date.now()
     getRelevantFilesRec("./dist/src",paths,new FileFilteringContext([".*\.js"],[".*dist/src/data-clumps-doctor/.*",".*js\.ma"]))
     for(let path of paths){
+        console.log("Loading "+path)
         if (path.endsWith("Configuration.js")){
             continue;
         }
@@ -111,6 +112,7 @@ export function loadConfiguration(path:string):DataClumpRefactoringContext{
     return initialContext
     
 }
-if(process.env.JEST_WORKER_ID == undefined){
-loadAllClasses()
+export function activateLoader(){
+    loadAllClasses()
 }
+

@@ -5,7 +5,7 @@ import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringCon
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
 import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
-import { loadConfiguration, registerFromName, resolveFromInterfaceName } from "../config/Configuration";
+import { activateLoader, loadConfiguration, registerFromName, resolveFromInterfaceName } from "../config/Configuration";
 import { CloneBasedProjectRetriever } from "./project_list_retriever";
 import { FileIO } from "../util/FileIO";
 import path from "path"
@@ -198,6 +198,7 @@ export function getInstancePath(array:string[],joinChar:string, instance:Instanc
     return dir;
 }
 export function init() {
+    activateLoader()
     let args = process.argv.slice(2)
     if (args.length < 2) {
         console.log("Usage: node eval.js <configPath> <urlPath>")

@@ -30,8 +30,8 @@ export const Invalid = counter++;
 
 export const parameters_to_parameters_data_clump="parameters_to_parameters_data_clump";
 export const fields_to_fields_data_clump="fields_to_fields_data_clump";
-export type PR_Data={
-   [key:string]:{
+export type PR_Data_Entry={
+
     url:string,
     merged:boolean,
     state:string,
@@ -49,6 +49,10 @@ export type PR_Data={
     generalCommentsRaw:string[][],
     reviewCommentsRaw:string[][]
    }
+
+
+export type PR_Data={
+    [key:string]:PR_Data_Entry
 }
 
 

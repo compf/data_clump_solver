@@ -8,11 +8,12 @@ import { PipeLineStep,PipeLineStepType } from "./pipeline/PipeLineStep";
 import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtaining/SimpleCodeObtainingStepHandler";
 import { sys } from "typescript";
 
-import { loadConfiguration } from "./config/Configuration";
+import { loadConfiguration, activateLoader } from "./config/Configuration";
 import { FileIO, StubPathIO } from "./util/FileIO"
 
 async function main(){
     FileIO.instance=new StubPathIO()
+    activateLoader()
     let args=handleArguments(process.argv.slice(2))
     let context=loadConfiguration(args.config_path)
     context.sharedData.path=args.project_path

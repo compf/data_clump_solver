@@ -9,6 +9,7 @@ import {
     fields_to_fields_data_clump,
     LongLines,
     NotEnough,
+    Performance,
     SmallerDataClump,
     DocumentationIssues,
     JavaRecord,
@@ -373,7 +374,7 @@ import {
       type: fields_to_fields_data_clump,
       category: "nameSuggestion",
       generalComments: [],
-      reviewComments: [NotEnough],
+      reviewComments: [-StyleAdaption],
       generalCommentsRaw: [
         [
           "@compf, thank you for your submission",
