@@ -154,13 +154,14 @@ export function   parse_piecewise_output(content: any,fullChat:ChatMessage[], co
                     let newContentSplitted = newContent.split("\n")
                     let oldContentSplitted = oldContent.split("\n")
                     if(newContentSplitted.length>oldContentSplitted.length){
-                        newContentSplitted=concatenateNewContentArrayLength(newContentSplitted,oldContentSplitted.length)
+                        newContentSplitted=concatenateNewContentArrayLength(newContentSplitted,oldContentSplitted.length-1)
                     }
                     for(let i=0;i<oldContentSplitted.length;i++){
                         let otherIndex=findBestFittingLine(fileContentSplitted,start+i,oldContentSplitted[i])
                         if(otherIndex){
                         fileContentSplitted[otherIndex]=newContentSplitted[i]
                         fileContent=fileContentSplitted.join("\n")
+                        fileContentSplitted=fileContent.split("\n")
 
 
                         }

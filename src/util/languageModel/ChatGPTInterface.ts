@@ -48,7 +48,7 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         this.completions.messages=[]
     }
     private completions:OpenAI.ChatCompletionCreateParamsNonStreaming
-    private lastUsage:OpenAI.CompletionUsage={
+    private lastUsage:TokenStats={
         prompt_tokens: 0,
         completion_tokens: 0,
         total_tokens: 0
@@ -65,10 +65,19 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         writeFileSync("requestPretty.txt",requestpretty)
         let messages:string[]=[]
         let shallContinue=false;
+        let responseTimes:number[]=[]
         do{
+            let startTime=Date.now()
             let response= await this.api.chat.completions.create(this.completions);
+            let elapsed=Date.now()-startTime;
             this.completions.messages.push({content:response.choices[0].message.content,role:"assistant"})
-            this.lastUsage=response.usage!;
+            this.lastUsage={
+                completion_tokens:this.lastUsage.completion_tokens!+response.usage?.completion_tokens!,
+                prompt_tokens:this.lastUsage.prompt_tokens!+response.usage?.prompt_tokens!,
+                total_tokens:this.lastUsage.total_tokens!+response.usage?.total_tokens!,
+
+            }
+            responseTimes.push(elapsed)
             messages.push(response.choices[0].message.content!)
             if(response.choices[0].finish_reason=="length"){
             this.completions.messages.push({content:"continue",role:"user"})
@@ -80,6 +89,7 @@ export class ChatGPTInterface extends AbstractLanguageModel{
             }
             
         }while(shallContinue);
+        this.lastUsage.elapsedTime=responseTimes.reduce((partialSum, a) => partialSum + a, 0)/responseTimes.length;
         //throw this.format
         
         if(clear){
@@ -88,6 +98,7 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         writeFileSync("response.json",(messages.join("\n")))
         let responsePretty=prettyInvalidJson(messages.join("\n"))
         writeFileSync("responsePretty.txt",responsePretty)
+        writeFileSync("stats.json",JSON.stringify(this.lastUsage,undefined,4))
         //throw this.format
         
         return {messages:messages,messageType:"output"}

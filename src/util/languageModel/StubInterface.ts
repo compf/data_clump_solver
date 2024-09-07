@@ -43,10 +43,16 @@ export class StubInterface extends AbstractLanguageModel{
         if(parsed==null){
             return {messageType:"output",messages:[output]}
         }
+        if("choices" in parsed){
+            return {messageType:"output",messages:[
+                parsed.choices[0].message.content
+            ]}
+        }
+        else{
+            return {messageType:"output",messages:[output]}
+        }
 
-        return {messageType:"output",messages:[
-            parsed.choices[0].message.content
-        ]}
+       
         
         
         }

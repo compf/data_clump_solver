@@ -68,6 +68,7 @@ class RefactorEval extends BaseEvaluator {
     }
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         let context=await super.initProject(url);
+        let git=simpleGit(context?.getProjectPath())
         if(context==null){
             return null;
         }
@@ -76,6 +77,9 @@ class RefactorEval extends BaseEvaluator {
             rankerName: "MetricCombiner",
         });
         context = await filter.handle(PipeLineStep.DataClumpFiltering, context, {});
+        await git.checkout("-bcontext" )
+        await git.add("-A")
+        await git.commit("context")
 
         return context;
 
@@ -91,12 +95,8 @@ class RefactorEval extends BaseEvaluator {
             }),
            
         ];
-        if(instance.inputFormat=="instructionSnippet"){
-            refactorHandlers.push(new CodeSnippetHandler({additionalMargin:instance.margin}));
-        }
-        else{
-            refactorHandlers.push(new AllFilesHandler());
-        }
+        let sourceHandler =instance.inputFormat=="instructionSnippet" ?new CodeSnippetHandler({additionalMargin:instance.margin}) : new AllFilesHandler()
+        refactorHandlers.push(sourceHandler)
         refactorHandlers.push(new SendHandler());
         let resolver=resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;
         resolver.set("%{output_format}", "chatGPT_templates/use_json.template")
@@ -113,17 +113,19 @@ class RefactorEval extends BaseEvaluator {
         }
         resolver.set("%{data_clump_def}", defPath);
         let multiValidationHandler=new MultipleAttemptsValidationHandler({
-            innerValidator: new MavenBuildValidationStepHandler({skipTests:true}),
+            innerValidator: new GradleBuildValidationStepHandler({skipTests:true}),
             handlers: [
                 new SimpleInstructionHandler({instructionPath:"chatGPT_templates/validation/fix_errors.template"}),
                 new ValidationResultHandler(),
+                new SimpleInstructionHandler({instructionPath:"chatGPT_templates/validation/current_state.template"}),
+                sourceHandler,
                 new SendHandler()
             ]
             
         })
         multiValidationHandler.afterValidationStep=async (attempt:number)=>{
-            git.add("-A")
-            git.commit("validation "+attempt)
+            await git.add("-A")
+            await git.commit("validation "+attempt)
 
         }
 
@@ -133,17 +135,20 @@ class RefactorEval extends BaseEvaluator {
         for (let h of refactorHandlers) {
             chat.push(... (await h.handle(context, api,resolver)));
         }
-
+        
         let reply = chat[chat.length - 1];
         let stubOutputHandler = new StubOutputHandler();
         stubOutputHandler.apply=true;
         context=context.buildNewContext(await parseChat(chat,PipeLineStep.Refactoring,context,stubOutputHandler));
+        await git.add("-A")
+        await git.commit("refactoring ")
         context=context.buildNewContext(await stubOutputHandler.chooseProposal(context));
         
         let count=await multiValidationHandler.getValidationCount(context);
-        await git.checkout("master" )
+        await git.checkout("context" )
         writeFileSync("validation_count.json",JSON.stringify(count,null,2))
         console.log("Validation count",count);
+        process.exit(-1)
     }
    
 }

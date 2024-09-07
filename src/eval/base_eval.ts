@@ -11,7 +11,7 @@ import { FileIO } from "../util/FileIO";
 import path from "path"
 import { getRelevantTime, setRelevantTime } from "../util/Utils";
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
-import { SingleUseStubInterface } from "../util/languageModel/StubInterface";
+import { SingleUseStubInterface, StubInterface } from "../util/languageModel/StubInterface";
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
@@ -41,7 +41,7 @@ export type Arrayified<T> = {
 
 export type InstanceCombination = Arrayified<Instance>;
 export const DEBUG = true;
-let CLONE_AGAIN = !DEBUG
+let CLONE_AGAIN = true
 export function disableCloning() {
     CLONE_AGAIN = false
 }
@@ -97,28 +97,28 @@ export abstract class BaseEvaluator {
             let instanceCombination = this.createInstanceCombination();
             let keys = Object.keys(instanceCombination).sort(instanceKeyComparator)
             let allInstances = createInstanceCombination(instanceCombination, keys);
-            let apiName: string = DEBUG ? SingleUseStubInterface.name : ChatGPTInterface.name
+            let apiName: string = ChatGPTInterface.name
             registerFromName(apiName, AbstractLanguageModel.name, {})
             let api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
            
 
 
-
+            let projectPath=ctx.getProjectPath()
             let fileIO = FileIO.instance as InstanceBasedFileIO
             for (let instance of allInstances) {
                 instance = this.simplifyInstance(instance)
                 instance["projectName"] = path.basename(ctx.getProjectPath())
                 fileIO.instance = instance;
                 console.log(instance)
-                if (fs.existsSync(fileIO.getInstancePath())) {
+                if (fs.existsSync(getInstancePath([projectPath],"/",instance))) {
                     continue;
                 }
                 api.clear();
                 api.resetParameters(instance)
                 setRelevantTime()
-                if (DEBUG) {
+                if (false) {
                     try {
-                        await this.analyzeInstance(instance, ctx);
+                       // await this.analyzeInstance(instance, ctx);
                     }
                     catch (e) {
                         console.log("Error", e)
@@ -171,7 +171,7 @@ export class InstanceBasedFileIO extends FileIO {
     public baseDir = "evalData"
     resolvePath(key: string): string {
 
-        let dir = this.getInstancePath()
+        let dir = getInstancePath([this.baseDir],"/",this.instance)
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true })
         }
@@ -187,16 +187,16 @@ export class InstanceBasedFileIO extends FileIO {
         let resultingPath = resolve(dir, path.basename(key))
         return resultingPath;
     }
-    getInstancePath(): string {
-        let sortedKeys = [this.baseDir]
-        sortedKeys.push(...Object.keys(this.instance).sort(instanceKeyComparator).map((it) => this.instance[it]));
-
-
-        let dir = sortedKeys.join("/")
-        return dir;
-    }
+ 
 }
+export function getInstancePath(array:string[],joinChar:string, instance:Instance): string {
+    let sortedKeys = array
+    sortedKeys.push(...Object.keys(instance).sort(instanceKeyComparator).map((it) => instance[it]));
 
+
+    let dir = sortedKeys.join(joinChar)
+    return dir;
+}
 export function init() {
     let args = process.argv.slice(2)
     if (args.length < 2) {

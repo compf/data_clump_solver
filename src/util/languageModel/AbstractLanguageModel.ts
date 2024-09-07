@@ -4,7 +4,8 @@ export const AbstractLanguageModelCategory = "AbstractLanguageModel"
 export type TokenStats={
      prompt_tokens?: number,
      completion_tokens?: number,
-     total_tokens?: number
+     total_tokens?: number,
+     elapsedTime?:number
 
 }
 export abstract class AbstractLanguageModel {
