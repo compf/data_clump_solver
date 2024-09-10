@@ -115,8 +115,9 @@ function concatenateNewContentArrayLength(array: string[], start: number) {
     return array.slice(0, start + 1)
 
 }
-function returnIndentation(line: string) {
-    let result = ""
+function getIndentation(line: string) {
+    let result = "";
+    if(line==undefined)return ""
     for (let c of line) {
         if (c == " " || c == "\t") {
             result += c
@@ -154,7 +155,15 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
             for (let i = 0; i < oldContentSplitted.length; i++) {
                 let otherIndex = findBestFittingLine(fileContentSplitted, start + i, oldContentSplitted[i])
                 if (otherIndex!=undefined) {
-                    fileContentSplitted[otherIndex] = newContentSplitted[i]
+                    let indentOld=getIndentation(fileContentSplitted[otherIndex])
+                    let indentNew=getIndentation(newContentSplitted[i])
+                    let indent=indentOld.length>indentNew.length?indentOld:indentNew;
+                    if(newContentSplitted[i]!=undefined){
+                        fileContentSplitted[otherIndex] = indent+newContentSplitted[i].trim()
+                    }
+                    else{
+                        fileContentSplitted[otherIndex] = newContentSplitted[i]   
+                    }
                     fileContent = fileContentSplitted.join("\n")
                     
 

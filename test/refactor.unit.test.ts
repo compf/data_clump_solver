@@ -228,7 +228,7 @@ test("Test piecewise refactor, edge cases", async () => {
     testRefactoring(threeLines,oneLine,false)
     testRefactoring(threeLines,oneLine,true)
 
-    testRefactoring(indent(threeLines,["  ",""," \t"]),oneLine,true,indent(threeLines,["  ","\t\ŧ", "       "  ]))
+    testRefactoring(indent(threeLines,["  ",""," \t"]),oneLine,false,indent(threeLines,["  ","\t\t", "       "  ]))
 
     
 
