@@ -167,10 +167,72 @@ test("Test piecewise refactor", async () => {
 
     
 });
+function testRefactoring(oldLines:string[], newLines:string[], checkIndent:boolean,oldLinesReal?:string[], fail?:boolean){
+    let refactorInstruction={
+        refactorings:{
+            "":[
+                {
+                    fromLine:1,
+                    toLine:3,
+                    oldContent:oldLines.join("\n"),
+                    newContent:newLines.join("\n")
+                }
+            ]
+        }
+        
+    }
+    let result=parse_piecewise_output_from_file("",(oldLinesReal??oldLines).join("\n"),refactorInstruction);
+    if(checkIndent){
+        let r=expect(result);
+        if(fail){
+            expect(result).not.toBe(newLines.join("\n"))
+        }
+        else{
+            expect(result).toBe(newLines.join("\n"))
 
+        }
+    }
+    else{
+        if(fail){
+            expect(result.trim()).not.toBe(newLines.map((it)=>it.trim()).join("\n"));
+
+        }
+        else{
+        expect(result.trim()).toBe(newLines.map((it)=>it.trim()).join("\n"));
+
+        }
+    }
+}
+function indent(lines:string[], indentsBefore:string[], indentsAfter?:string[]):string[]{
+    let result:string[]=[]
+    for(let i=0;i<lines.length;i++){
+        let r=indentsBefore[i]+lines[i];
+        if(indentsAfter){
+            r+=indentsAfter[i]
+        }
+        result.push(r)
+
+    }
+    return result;
+}
 test("Test piecewise refactor, edge cases", async () => {
 
-    const threeLines="int x=0;\nint y=0;\nint z=0;\n";
+    const threeLines=[
+        "int x1;",
+        "int x2;",
+        "int x3; 4"
+    ];
+    const oneLine=["int x0;"]
+    testRefactoring(oneLine,threeLines,false);
+    testRefactoring(oneLine,threeLines,false,["","int a","int b","int c"],true)
+    testRefactoring(threeLines,oneLine,false)
+    testRefactoring(threeLines,oneLine,true)
+
+    testRefactoring(indent(threeLines,["  ",""," \t"]),oneLine,true,indent(threeLines,["  ","\t\ŧ", "       "  ]))
+
+    
+
+    /*const threeLines="int x=0;\nint y=0;\nint z=0;\n";
     const oneLine="int x=1;";
     let refactorInstruction={
         refactorings:{
@@ -249,6 +311,6 @@ test("Test piecewise refactor, edge cases", async () => {
         }
     }
     result=parse_piecewise_output_from_file("",threeLines,refactorInstruction);
-    expect(result.trim()).toBe(empty.trim());
+    expect(result.trim()).toBe(empty.trim());*/
 });
 
