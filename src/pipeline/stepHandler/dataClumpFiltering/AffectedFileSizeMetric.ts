@@ -17,7 +17,7 @@ export class AffectedFileSizeMetric extends AffectedFilesMetric {
     }
     
     evaluate(data:string|DataClumpTypeContext,context:DataClumpRefactoringContext): Promise<number> {
-        if(data instanceof String){
+        if(typeof(data)=="string"){
             throw "Cannot compare string"
         }
         else  {

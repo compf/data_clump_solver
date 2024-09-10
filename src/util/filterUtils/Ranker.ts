@@ -75,13 +75,12 @@ export  class   RankSampler{
                 let item=this.getItemByKey(key,context)
                   let value=await metric.evaluate(item,context)
                   evaluateMap[key]=value
-                  console.log(keyCounter,keys.length, keyCounter/keys.length*100,"%")
                     keyCounter++
 
             }
             fs.writeFileSync("data/evaluateMap.json",JSON.stringify(evaluateMap))
           let result=keys.sort(  (a,b) =>this.rankSign!* (evaluateMap[a]-evaluateMap[b])).map((it)=>dcContext.getFirstDataClumpByTypeNameKey(it))
-            console.log("result",result)
+            //console.log("result",result)
           let slicedResult:DataClumpTypeContext[]=[]
           let counter=0;
           let previousKey=""
