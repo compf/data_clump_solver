@@ -14,7 +14,7 @@ import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/Abstra
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { writeFileSync } from "../util/Utils";
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
-import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import {resolve} from "path"
 type DetectEvalInstance = Instance & {
     inputType: string,
@@ -87,7 +87,7 @@ export class DetectEval extends BaseEvaluator{
                 //"noDefinitionBased"
                 ]
         } 
-        if(DEBUG){
+        if(isDebug()){
             result.iteration=[0]
             result.temperature=[0.1]
         }
@@ -170,7 +170,7 @@ class RelevantLocationCombiner extends DataClumpRefactoringContext implements Re
 async function main() {
     FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new DetectEval();
-   await  refactorEval.analyzeProjects(init());
+   await  refactorEval.analyzeProject(init());
 }
 
 if (require.main === module) {

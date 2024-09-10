@@ -15,7 +15,7 @@ import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
 import { writeFileSync } from "../util/Utils";
-import { Arrayified, BaseEvaluator, DEBUG, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
   type RefactorInstance=Instance &{
 
     instructionType:string,
@@ -54,13 +54,14 @@ class RefactorEval extends BaseEvaluator {
                 // "noDefinitionBased"
                 ],
             inputFormat:[
-                "instruction",
-                //"instructionSnippet"
+                "instruction"
+                ,
+                "instructionSnippet"
             ],
             iteration: [0, 1, 2, 3, 4],
             margin:[0,1,2,5,10]
         }
-        if(DEBUG){
+        if(isDebug()){
             result.iteration=[0]
             result.temperature=[0.1]
         }
@@ -156,6 +157,6 @@ class RefactorEval extends BaseEvaluator {
 if (require.main === module) {
     FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new RefactorEval();
-    refactorEval.analyzeProjects(init());
+    refactorEval.analyzeProject(init());
 
 }

@@ -9,7 +9,7 @@ import { activateLoader, loadConfiguration, registerFromName, resolveFromInterfa
 import { CloneBasedProjectRetriever } from "./project_list_retriever";
 import { FileIO } from "../util/FileIO";
 import path from "path"
-import { getRelevantTime, setRelevantTime } from "../util/Utils";
+import { getRelevantTime, makeUnique, setRelevantTime } from "../util/Utils";
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
 import { SingleUseStubInterface, StubInterface } from "../util/languageModel/StubInterface";
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
@@ -40,7 +40,11 @@ export type Arrayified<T> = {
 };
 
 export type InstanceCombination = Arrayified<Instance>;
-export const DEBUG = true;
+ let DEBUG = true;
+ export function isDebug(){
+    return DEBUG;
+ }
+const DEBUG_API_NAME="SingleUseStubInterface"
 let CLONE_AGAIN = true
 export function disableCloning() {
     CLONE_AGAIN = false
@@ -53,30 +57,30 @@ export abstract class BaseEvaluator {
         let retriever = new CloneBasedProjectRetriever(url, CLONE_AGAIN)
         retriever.init()
 
-        registerFromName(LanguageModelTemplateResolver.name,LanguageModelTemplateResolver.name,{
+        registerFromName(LanguageModelTemplateResolver.name, LanguageModelTemplateResolver.name, {
 
-                "${programming_language}": "Java",
-                "%{examples}": "chatGPT_templates/DataClumpExamples.java",
-                "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
-                "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
-                "%{output_format_refactor}": "chatGPT_templates/json_format_refactor_piecewise.json",
-                "%{output_format}": "chatGPT_templates/data_clump_type_context_output_format.json",
+            "${programming_language}": "Java",
+            "%{examples}": "chatGPT_templates/DataClumpExamples.java",
+            "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
+            "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
+            "%{output_format_refactor}": "chatGPT_templates/json_format_refactor_piecewise.json",
+            "%{output_format}": "chatGPT_templates/data_clump_type_context_output_format.json",
 
-                "%{llm_output_format}": "chatGPT_templates/use_markdown.template"
-        
+            "%{llm_output_format}": "chatGPT_templates/use_markdown.template"
+
         })
 
-        registerFromName(MetricCombiner.name,MetricCombiner.name,{
-            "metrics":[
-                {"name":"DataClumpSizeMetric","weight":1},
-                {"name":"DataClumpOccurenceMetric","weight":1},
-                {"name":"AffectedFileSizeMetric","weight":-1000}
+        registerFromName(MetricCombiner.name, MetricCombiner.name, {
+            "metrics": [
+                { "name": "DataClumpSizeMetric", "weight": 1 },
+                { "name": "DataClumpOccurenceMetric", "weight": 1 },
+                { "name": "AffectedFileSizeMetric", "weight": -1000 }
             ]
         })
 
-        registerFromName(DataClumpSizeMetric.name,DataClumpSizeMetric.name,{})
-        registerFromName(DataClumpOccurenceMetric.name,DataClumpOccurenceMetric.name,{})
-        registerFromName(AffectedFileSizeMetric.name,AffectedFileSizeMetric.name,{})
+        registerFromName(DataClumpSizeMetric.name, DataClumpSizeMetric.name, {})
+        registerFromName(DataClumpOccurenceMetric.name, DataClumpOccurenceMetric.name, {})
+        registerFromName(AffectedFileSizeMetric.name, AffectedFileSizeMetric.name, {})
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects" + "/" + getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDoctorStepHandler({});
 
@@ -87,50 +91,54 @@ export abstract class BaseEvaluator {
     }
 
     abstract analyzeInstance(instance: Instance, context: DataClumpRefactoringContext): Promise<void>;
-    async analyzeProjects(projects: string[]) {
-        for (let p of projects) {
-            let ctx = await this.initProject(p);
-            if (ctx == null) {
+    async analyzeProject(project: string) {
+
+        let ctx = await this.initProject(project);
+        if (ctx == null) {
+            return;
+        }
+
+        let instanceCombination = this.createInstanceCombination();
+        let keys = Object.keys(instanceCombination).sort(instanceKeyComparator)
+        let allInstances = createInstanceCombination(instanceCombination, keys).map((it)=>this.simplifyInstance(it)).map((it)=>JSON.stringify(it));
+        allInstances=makeUnique(allInstances)
+        let apiName: string = ChatGPTInterface.name
+        if(DEBUG){
+            apiName=DEBUG_API_NAME;
+        }
+        registerFromName(apiName, AbstractLanguageModel.name, {})
+        let api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
+
+
+
+        let projectPath = ctx.getProjectPath()
+        let fileIO = FileIO.instance as InstanceBasedFileIO
+        for (let instanceStr of allInstances) {
+            let instance=JSON.parse(instanceStr) as Instance
+            instance["projectName"] = path.basename(ctx.getProjectPath())
+            fileIO.instance = instance;
+            console.log(instance)
+            if ( fs.existsSync(getInstancePath([projectPath], "/", instance))) {
                 continue;
             }
-         
-            let instanceCombination = this.createInstanceCombination();
-            let keys = Object.keys(instanceCombination).sort(instanceKeyComparator)
-            let allInstances = createInstanceCombination(instanceCombination, keys);
-            let apiName: string = ChatGPTInterface.name
-            registerFromName(apiName, AbstractLanguageModel.name, {})
-            let api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
-           
-
-
-            let projectPath=ctx.getProjectPath()
-            let fileIO = FileIO.instance as InstanceBasedFileIO
-            for (let instance of allInstances) {
-                instance = this.simplifyInstance(instance)
-                instance["projectName"] = path.basename(ctx.getProjectPath())
-                fileIO.instance = instance;
-                console.log(instance)
-                if (fs.existsSync(getInstancePath([projectPath],"/",instance))) {
-                    continue;
+            api.clear();
+            api.resetParameters(instance)
+            setRelevantTime()
+            if (DEBUG) {
+                try {
+                     await this.analyzeInstance(instance, ctx!);
                 }
-                api.clear();
-                api.resetParameters(instance)
-                setRelevantTime()
-                if (false) {
-                    try {
-                       // await this.analyzeInstance(instance, ctx);
-                    }
-                    catch (e) {
-                        console.log("Error", e)
-                    }
-                }
-                else {
-                    await this.analyzeInstance(instance, ctx);
+                catch (e) {
+                    console.log("Error", e)
                 }
             }
-
-
+            else {
+                await this.analyzeInstance(instance, ctx);
+            }
         }
+
+
+
 
     }
     abstract createInstanceCombination(): InstanceCombination;
@@ -171,7 +179,7 @@ export class InstanceBasedFileIO extends FileIO {
     public baseDir = "evalData"
     resolvePath(key: string): string {
 
-        let dir = getInstancePath([this.baseDir],"/",this.instance)
+        let dir = getInstancePath([this.baseDir], "/", this.instance)
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true })
         }
@@ -187,9 +195,9 @@ export class InstanceBasedFileIO extends FileIO {
         let resultingPath = resolve(dir, path.basename(key))
         return resultingPath;
     }
- 
+
 }
-export function getInstancePath(array:string[],joinChar:string, instance:Instance): string {
+export function getInstancePath(array: string[], joinChar: string, instance: Instance): string {
     let sortedKeys = array
     sortedKeys.push(...Object.keys(instance).sort(instanceKeyComparator).map((it) => instance[it]));
 
@@ -197,23 +205,17 @@ export function getInstancePath(array:string[],joinChar:string, instance:Instanc
     let dir = sortedKeys.join(joinChar)
     return dir;
 }
-export function init() {
+export function init(): string {
     activateLoader()
     let args = process.argv.slice(2)
-    if (args.length < 2) {
-        console.log("Usage: node eval.js <configPath> <urlPath>")
+    if (args.length < 1) {
+        console.log("Usage: node eval.js <url>")
         throw "Invalid arguments";
     }
-    let configPath = ""
-    let urlPath = ""
-    if (args[0].endsWith(".json") && args[1].endsWith(".txt")) {
-        configPath = args[0]
-        urlPath = args[1]
-    }
-    else if (args[0].endsWith(".txt") && args[1].endsWith(".json")) {
-        configPath = args[1]
-        urlPath = args[0]
-    }
-    //loadConfiguration(configPath)
-    return fs.readFileSync(urlPath, { encoding: "utf-8" }).split("\n")
+    else if(args.length>=2){
+        DEBUG=true
+    } 
+    let url = args[0]
+
+    return url;
 }

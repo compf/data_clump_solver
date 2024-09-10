@@ -11,7 +11,7 @@ import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } f
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
 import {  writeFileSync } from "../util/Utils";
 import { DataClumpTypeContext } from "data-clumps-type-context";
-import { Arrayified, BaseEvaluator, DEBUG, init, Instance, InstanceBasedFileIO, InstanceCombination } from "./base_eval";
+import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { FileIO } from "../util/FileIO";
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
@@ -94,7 +94,7 @@ export class FilterEval extends BaseEvaluator {
                   10
                 ]
         }
-        if(DEBUG){
+        if(isDebug()){
             result.iteration=[0]
             result.temperature=[0.1]
         }
@@ -143,106 +143,12 @@ export class FilterEval extends BaseEvaluator {
 }
     
 
-/*async function analyzeProject(url: string) {
-    console.log(url)
-    let gitHelper = new GitHubService()
-    if (fs.existsSync("cloned_projects")) {
-        fs.rmSync("cloned_projects", { recursive: true })
-        fs.mkdirSync("cloned_projects")
-    }
-    let repo = getRepoDataFromUrl(url).repo
-    let path = "stuff/results_" + repo + "_" + model + ".json"
-    if (fs.existsSync(path)) {
-        let loaded = JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }))
-        if (loaded["llm"].length >= MAX_ATTEMPTS) {
-            return;
 
-        }
-    }
-    gitHelper.clone(url)
-    let attempt = 0;
-    let obtainingContext = new CodeObtainingContext(resolve("cloned_projects"))
-    let dcHandler = new dataClumpDoctorStepHandler({});
-
-    let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext
-
-
-
-    const uniqueTemperatures = [0.1, 0.5, 0.9];
-    let temperatures: number[] = []
-    for (let temp of uniqueTemperatures) {
-        for (let i = 0; i < MAX_ATTEMPTS; i++) {
-            temperatures.push(temp)
-        }
-    }
-    registerFromName("DataClumpSizeMetric", "DataClumpSizeMetric", {});
-    registerFromName("DataClumpOccurenceMetric", "DataClumpOccurenceMetric", {});
-    registerFromName("AffectedFilesMetric", "AffectedFilesMetric", {});
-    registerFromName("AffectedFileSizeMetric", "AffectedFileSizeMetric", {});
-    registerFromName("LanguageModelTemplateResolver", "LanguageModelTemplateResolver", {
-        "${programming_language}": "Java",
-        "%{examples}": "chatGPT_templates/DataClumpExamples.java",
-        "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
-        "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
-        "%{output_format_refactor}": "chatGPT_templates/json_format_refactor_piecewise.json",
-        "%{llm_output_format}": "chatGPT_templates/use_markdown.template"
-    })
-    registerFromName("OllamaInterface", "AbstractLanguageModel", { "model": "codegemma", "temperature": 0.1, "responsePath": "stuff/phindra_output.txt" })
-    let api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel;
-
-
-    console.log("registered")
-
-
-
-
-
-    let lastElapsed: number | null = null;
-    while (all_result["llm"].length < MAX_ATTEMPTS * uniqueTemperatures.length) {
-        let temp = temperatures[index];
-        index++;
-        api.resetParameters({ temperature: temp, model: model })
-        let startTime = new Date().getTime();
-        prettyInvalidJson((api as any).messages)
-        let projectInformation = {
-            startTime: startTime,
-            lastElapsed: lastElapsed,
-            url: url,
-
-        };
-        fs.writeFileSync("stuff/project_info.json", JSON.stringify(projectInformation, null, 2))
-        api.clear()
-        let llmFilteredContext = await (await llmFilter.handle(PipeLineStep.DataClumpFiltering, originalDcContext, {})).getByType(DataClumpDetectorContext)!;
-        let elapsed = new Date().getTime() - startTime;
-        elapsed = elapsed / 1000 / 60
-        lastElapsed = elapsed;
-        console.log(elapsed / 1000 / 60)
-        let typeNameKey = llmFilteredContext.createDataTypeNameClumpKey(llmFilteredContext.getDataClumpTypeContext(llmFilteredContext.getDataClumpKeys()[0]));
-        (all_result["llm"] as any).push(
-
-            {
-                temperature: temp,
-                model: model,
-                key: typeNameKey
-            }
-
-
-        )
-
-        fs.writeFileSync(path, JSON.stringify(all_result, null, 2));
-    }
-
-
-    fs.writeFileSync(path, JSON.stringify(all_result, null, 2))
-
-
-
-}*/
 
 async function main() {
    FileIO.instance=new InstanceBasedFileIO()
     let refactorEval = new FilterEval();
-    refactorEval.analyzeProjects(init());
+    refactorEval.analyzeProject(init());
 }
 
 if (require.main === module) {
