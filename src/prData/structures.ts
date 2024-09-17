@@ -39,6 +39,7 @@ export type PR_Data_Entry = {
     url: string,
     merged: boolean,
     state: string,
+    key?: string,
     type: string,
     size: number,
     noResponse?: boolean,
