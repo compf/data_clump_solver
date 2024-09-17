@@ -246,13 +246,13 @@ export function readFileSync(key:string):string{
     let fileIO=FileIO.instance;
     return fileIO.readFileSync(key)
 }
-let lastRelevantTime=0;
-export function getRelevantTime():number{
-    return lastRelevantTime;
+let currLabel="";
+export function getCurrLabel():string{
+    return currLabel;
 }
 
-export function setRelevantTime(){
-    lastRelevantTime=Date.now();
+export function setCurrLabel(label:string){
+    currLabel=label;
 }
 
 export function mergeObjects(objects:any[]){
@@ -293,12 +293,12 @@ export function parseInvalidJSON(jsonString:string, closingBrackets:string){
     while(result==null && jsonString.length>0){
         let lengthBefore=jsonString.length
         jsonString=jsonString.slice(0,jsonString.length-1)
-        console.log()
+       // console.log()
         let lengthAfter=jsonString.length;
         if(counter==86){
             nop()
         }
-        console.log(counter++,jsonString)
+        //console.log(counter++,jsonString)
         for(let i=0;i<closingBrackets.length;i++){
             let temp=jsonString+closingBrackets.slice(undefined,i+1);
             result=tryParseJSON(temp)

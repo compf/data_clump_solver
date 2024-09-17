@@ -1,11 +1,11 @@
-import { CodeObtainingContext, DataClumpRefactoringContext, ValidationContext } from "../../../context/DataContext";
+import { CodeObtainingContext, DataClumpRefactoringContext, ValidationContext, ValidationResult } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../../stepHandler/AbstractStepHandler";
 export type ValidationInfo={
     type:string,
     filePath:string,
     lineNumber:number,
-    colNumber?:number,
+    columnNumber?:number,
     errorMessage:string
 }
 
@@ -20,15 +20,15 @@ export abstract class ValidationStepHandler extends AbstractStepHandler {
         let result1 =  this.validate(context)
         let result=await result1
         if (!result.success && this.throwIfInvalid) {
-            context.fail(JSON.stringify(result.validationInfos))
+            context.fail(JSON.stringify(result))
         }
-        return context.buildNewContext(new ValidationContext(result.validationInfos))
+        return context.buildNewContext(new ValidationContext(result))
     }
     public throwIfInvalid: boolean = false;
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.Validation]
     }
-    abstract  validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; validationInfos:ValidationInfo[] }>;
+    abstract  validate(context: DataClumpRefactoringContext): Promise<ValidationResult>;
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(ValidationContext.name)
     }

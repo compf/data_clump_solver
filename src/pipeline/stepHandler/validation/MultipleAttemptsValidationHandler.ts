@@ -3,7 +3,7 @@ import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../conf
 import { DataClumpRefactoringContext, LargeLanguageModelContext, ValidationContext } from "../../../context/DataContext";
 import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
-import { setRelevantTime, writeFileSync } from "../../../util/Utils";
+import { setCurrLabel, writeFileSync } from "../../../util/Utils";
 import { PipeLine } from "../../PipeLine";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
@@ -51,7 +51,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
         let templateResolver=resolveFromInterfaceName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;
 
         do {
-            setRelevantTime()
+            setCurrLabel("validation-"+attempts)
             if(this.doTestRun){
                 this.validator.enableTests()
             }
@@ -92,7 +92,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
                 await this.afterValidationStep(attempts)
             }
             let git=simpleGit(context.getProjectPath())
-            writeFileSync("error_proposal_" + errors.length + ".json", JSON.stringify(JSON.parse(reply.messages[0])))
+            writeFileSync("errors.txt", result.raw!)
 
             console.log("Refactoring", result)
 

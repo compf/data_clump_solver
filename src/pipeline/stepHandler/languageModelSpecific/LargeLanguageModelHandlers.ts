@@ -234,7 +234,7 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
                 continue;
             }
             else if (line - lastLine > 1) {
-                let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") }
+                let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine-1,lastLine).join("\n") }
                 Object.assign(block,additionalData)
                 blocks.push(block)
                 fromLine = line
@@ -245,7 +245,7 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
 
             }
         }
-        let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine,lastLine).join("\n") }
+        let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine-1,lastLine).join("\n") }
         Object.assign(block,additionalData)
         blocks.push( block)
         return blocks;
@@ -432,16 +432,25 @@ export class SimplifiedDataClumpContextHandler extends LargeLanguageModelHandler
 export class ValidationResultHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let validationContext=context.getByType(ValidationContext)! as ValidationContext;
-        let errors: { path: string, line: number, errorMessage: string}[] = []
+        /*let errors: { path: string, line: number, errorMessage: string,content?:string}[] = []
         for (let v of validationContext.validationResult) {
+            let content:string|undefined=undefined
 
-            errors.push({ path: v.filePath, line: v.lineNumber, errorMessage: v.errorMessage })
+            if(this.includeContent){
+                content=fs.readFileSync(resolve(context.getProjectPath(),v.filePath),{encoding:"utf-8"}).split("\n")[v.lineNumber-1]
+
+            }
+
+            errors.push({ path: v.filePath, line: v.lineNumber, errorMessage: v.errorMessage, content:content })
         console.log(errors)
-        }
+        }*
         let msg:ChatMessage=api.prepareMessage(JSON.stringify(errors), "input")
-        api.prepareMessage(msg.messages[0],msg.messageType)
+        api.prepareMessage(msg.messages[0],msg.messageType)*/
+
+        let msg=api.prepareMessage(validationContext.raw!,"input")
         return Promise.resolve([msg])
 }
+private includeContent=true;
 }
 export class SendAndClearHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {

@@ -144,6 +144,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
             continue;
         }
         let index = fileContent.indexOf(oldContent)
+        index=-1
         console.log("change", change)
         const MAX_OFFSET = 5
         if (index == -1 || oldContent == "") {

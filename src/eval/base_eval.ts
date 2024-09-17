@@ -9,7 +9,7 @@ import { activateLoader, loadConfiguration, registerFromName, resolveFromInterfa
 import { CloneBasedProjectRetriever } from "./project_list_retriever";
 import { FileIO } from "../util/FileIO";
 import path from "path"
-import { getRelevantTime, makeUnique, setRelevantTime } from "../util/Utils";
+import {  getCurrLabel, makeUnique, setCurrLabel } from "../util/Utils";
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
 import { SingleUseStubInterface, StubInterface } from "../util/languageModel/StubInterface";
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
@@ -40,7 +40,7 @@ export type Arrayified<T> = {
 };
 
 export type InstanceCombination = Arrayified<Instance>;
- let DEBUG = true;
+ let DEBUG = false;
  export function isDebug(){
     return DEBUG;
  }
@@ -123,7 +123,7 @@ export abstract class BaseEvaluator {
             }
             api.clear();
             api.resetParameters(instance)
-            setRelevantTime()
+            setCurrLabel(Date.now().toString())
             if (DEBUG) {
                 try {
                      await this.analyzeInstance(instance, ctx!);
@@ -136,6 +136,8 @@ export abstract class BaseEvaluator {
                 await this.analyzeInstance(instance, ctx);
             }
         }
+        console.log("finish")
+        fs.writeFileSync("stuff/finish",Date.now().toString())
 
 
 
@@ -184,7 +186,7 @@ export class InstanceBasedFileIO extends FileIO {
             fs.mkdirSync(dir, { recursive: true })
         }
         fs.writeFileSync(resolve(dir, "instance.json"), JSON.stringify(this.instance, null, 2))
-        dir = resolve(dir, getRelevantTime().toString())
+        dir = resolve(dir, getCurrLabel().toString())
         dir = resolve(dir, key)
 
         dir = path.dirname(dir)

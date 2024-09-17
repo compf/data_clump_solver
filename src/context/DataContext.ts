@@ -579,18 +579,25 @@ export class RefactoredContext extends DataClumpRefactoringContext {
   
 
 }
-export class ValidationContext extends DataClumpRefactoringContext  implements RelevantLocationsContext {
-    validationResult: ValidationInfo[]
+export type ValidationResult={
+    errors: ValidationInfo[]
     success: boolean;
-    constructor(validationResult: ValidationInfo[]) {
+    raw?:string
+}
+export class ValidationContext extends DataClumpRefactoringContext  implements RelevantLocationsContext {
+    errors: ValidationInfo[]
+    success: boolean;
+    raw?:string
+    constructor(res: ValidationResult) {
 
         super()
-        this.validationResult = validationResult;
-        this.success=validationResult.length==0
+        this.errors = res.errors;
+        this.success=res.success
+        this.raw=res.raw
     }
     getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
        
-        for(let v of this.validationResult){
+        for(let v of this.errors){
             if(!(v.filePath in lines)){
                 lines[v.filePath]=new Set<number>();
             }

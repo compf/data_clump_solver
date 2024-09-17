@@ -1,10 +1,10 @@
-import { DataClumpRefactoringContext } from  "../../../context/DataContext";
+import { DataClumpRefactoringContext, ValidationResult } from  "../../../context/DataContext";
 import { ValidationInfo, ValidationStepHandler } from "./ValidationStepHandler";
 import { spawnSync } from "child_process"
 import fs from "fs";
 import { relative } from "path";
 export class GradleBuildValidationStepHandler extends ValidationStepHandler {
-  validate(context: DataClumpRefactoringContext): Promise<{ success: boolean; validationInfos:ValidationInfo[] }>  {
+  validate(context: DataClumpRefactoringContext): Promise<ValidationResult>  {
     let args=["build"]
     if(this.args.skipTests){
         args.push("-x")
@@ -17,10 +17,10 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
 
        console.log("Status code",status,status==null)
        if(status===0){
-           return Promise.resolve({success:true,validationInfos:[]})
+           return Promise.resolve({success:true,errors:[]})
        }
        else {
-              return Promise.resolve( {success:false, validationInfos: parseGradle(runResult.stderr.toString())})
+              return Promise.resolve( {success:false, errors: parseGradle(runResult.stderr.toString())})
                
             }
        }
@@ -55,7 +55,7 @@ export function parseGradle(output:string){
                         {
                             lineNumber:lineNr,
                             filePath:path,
-                            colNumber:colNr,
+                            columnNumber:colNr,
                             errorMessage:errorMesssages.join("\n"),
                             type:"error"
                         }
@@ -83,7 +83,7 @@ export function parseGradle(output:string){
         {
             lineNumber:lineNr,
             filePath:path,
-            colNumber:colNr,
+            columnNumber:colNr,
             errorMessage:errorMesssages.join("\n"),
             type:"error"
         }
