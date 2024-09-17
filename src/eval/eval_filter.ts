@@ -11,12 +11,15 @@ import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } f
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
 import {  writeFileSync } from "../util/Utils";
 import { DataClumpTypeContext } from "data-clumps-type-context";
-import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
+import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { FileIO } from "../util/FileIO";
+import {resolve} from "path"
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { Metric } from "../util/filterUtils/Metric";
+import fs from "fs"
+import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
 const MAX_ATTEMPTS = 5;
 const model = "codegemma"
 type FilterEvalInstance = Instance & {
@@ -33,7 +36,6 @@ export class FilterEval extends BaseEvaluator {
     }
     async analyzeInstance(instance: FilterEvalInstance, context: DataClumpRefactoringContext): Promise<void> {
         let api=resolveFromInterfaceName("AbstractLanguageModel") as AbstractLanguageModel;
-        writeFileSync("filterResult.json", JSON.stringify(this.all_result, null, 2));
         let result={"llm":[]} as any;
         api.resetParameters(instance)
         let llmFilter=context.sharedData.llmFilter;
@@ -53,6 +55,7 @@ export class FilterEval extends BaseEvaluator {
             defPath="chatGPT_templates/empty_file.template"
         }
         resolver.set("%{data_clump_def}", defPath);
+        resolver.set("%{filter_output_format}","chatGPT_templates/dataClumpFiltering/outputFormat.template")
         if(instance.inputType=="filter_code_snippet"){
             llmHandlers.push(new DataClumpCodeSnippetHandler({additionalMargin:instance.margin}));
         }
@@ -83,7 +86,7 @@ export class FilterEval extends BaseEvaluator {
                 "filter_full_code"],
             instructionType: [
                 "definitionBased",
-                //"exampleBased", 
+                "exampleBased", 
                 "noDefinitionBased"
             ],
             margin: [
@@ -121,15 +124,12 @@ export class FilterEval extends BaseEvaluator {
             console.log(result)
 
         }
+        fs.writeFileSync(resolve(this.getProjectDataFolder(url),"basicMetrics.json"), JSON.stringify(this.all_result, null, 2));
+
         
     
     
-        let llmFilter = new DataClumpLanguageModelFilter({
-            handlers: [],
-            rankThreshold: this.getRankerThreshold(),
-            rankerName: "MetricCombiner",
-        });
-        llmFilter.metrics.push(new RandomRanker())
+        let llmFilter = new DataClumpLanguageModelFilter({handlers:[]});
         originalDcContext.sharedData.llmFilter = llmFilter;
         return originalDcContext;
     }
@@ -154,3 +154,4 @@ async function main() {
 if (require.main === module) {
     main();
 }
+

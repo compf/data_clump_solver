@@ -1,7 +1,7 @@
 import fs from "fs"
 import { GitHubService } from "../util/vcs/GitHubService"
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service"
-import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
+import { CodeObtainingContext, createDataClumpsTypeContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
 import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
@@ -18,6 +18,14 @@ import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { DataClumpSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpSizeMetric";
 import { DataClumpOccurenceMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 import { AffectedFileSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/AffectedFileSizeMetric";
+import { DataClumpTypeContext } from "data-clumps-type-context";
+import GPT4Tokenizer from "gpt4-tokenizer";
+import { FilterOrMetric, SingleItemFilter } from "../util/filterUtils/SingleItemFilter";
+import { RandomRanker } from "../util/filterUtils/RandomRanker";
+import { RankSampler } from "../util/filterUtils/Ranker";
+import { MetricNegator } from "../util/filterUtils/MetricNegator";
+import { AffectedFilesMetric } from "../pipeline/stepHandler/dataClumpFiltering/AffectedFilesMetric";
+import { Metric } from "../util/filterUtils/Metric";
 const constantScores = {
     "instanceType": -1000,
     "projectName": -999,
@@ -81,15 +89,28 @@ export abstract class BaseEvaluator {
         registerFromName(DataClumpSizeMetric.name, DataClumpSizeMetric.name, {})
         registerFromName(DataClumpOccurenceMetric.name, DataClumpOccurenceMetric.name, {})
         registerFromName(AffectedFileSizeMetric.name, AffectedFileSizeMetric.name, {})
+        registerFromName(AffectedFilesMetric.name, AffectedFilesMetric.name, {})
+
         let obtainingContext = new CodeObtainingContext(resolve("cloned_projects" + "/" + getRepoDataFromUrl(url).repo))
         let dcHandler = new DataClumpDoctorStepHandler({});
 
 
         let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext
         originalDcContext.serialize()
-        return Promise.resolve(originalDcContext);
-    }
+        let builder= new InterestingDataClumpContextBuilder(this.getCriteria(),this.getNumDataClumpsPerBlock(),this.getNumberIterations())
+        let filtered=await builder.run(originalDcContext);
+        fs.writeFileSync(resolve(this.getProjectDataFolder(url),"submittedDataClumps.json"), JSON.stringify(filtered.getDataClumpDetectionResult(), null, 2));
+        let typeNameKeys=Object.values(filtered.getDataClumpDetectionResult().data_clumps).map((it)=>filtered.createDataTypeNameClumpKey(it)).sort()
+        fs.writeFileSync(resolve(this.getProjectDataFolder(url),"typeNameKeys.json"), JSON.stringify(typeNameKeys, null, 2));
 
+
+        return Promise.resolve(filtered);
+    }
+    getProjectDataFolder(url:string):string{
+        let path="evalData/"+this.createInstanceCombination().instanceType[0]+"/"+getRepoDataFromUrl(url).repo
+        fs.mkdirSync(path,{recursive:true})
+        return path
+    }
     abstract analyzeInstance(instance: Instance, context: DataClumpRefactoringContext): Promise<void>;
     async analyzeProject(project: string) {
 
@@ -144,12 +165,24 @@ export abstract class BaseEvaluator {
 
     }
     abstract createInstanceCombination(): InstanceCombination;
-    getRankerThreshold(): number {
-        return 10;
+    getNumDataClumpsPerBlock(): number {
+        return 5;
+    }
+    getNumberIterations():number{
+        return 100;
+    }
+    getCriteria():FilterOrMetric[]{
+        return [
+            new DataClumpSizeMetric({normalize:false}),
+            new DataClumpOccurenceMetric(),
+            new MetricNegator(new AffectedFilesMetric())
+        ]
     }
     simplifyInstance(instance: Instance): Instance {
         return instance;
     }
+    
+
 
 }
 
@@ -175,7 +208,103 @@ function createInstanceCombinationRecursive<T>(tupleOfArrays: Arrayified<T>, tar
 
 }
 
+export class InterestingDataClumpContextBuilder{
+    private numDataClumpContextPerBlock=5;
+    private criteria:FilterOrMetric[]=[];
+    private numIterations=100;
+    constructor(criteria:FilterOrMetric[],numDataClumpContextPerBlock=3,numIterations=10){
+        this.criteria=criteria;
+        this.numDataClumpContextPerBlock=numDataClumpContextPerBlock;
+        this.numIterations=numIterations;
+    }
+   async run(initialContext:DataClumpDetectorContext):Promise<DataClumpDetectorContext>{
+        let currMin=Number.MAX_VALUE;
+        let currMinContext:DataClumpDetectorContext|undefined=undefined;
+        let allDataClumps=Object.values(initialContext.getDataClumpDetectionResult().data_clumps);
+        let ranker=new RankSampler({differentDataClumps:true,strictSize:true,rankThreshold:this.numDataClumpContextPerBlock});
+        let shuffleRanker=new RankSampler({differentDataClumps:true,strictSize:true,rankThreshold:allDataClumps.length});
+        let iterationsNoImprovement=0
+        while(iterationsNoImprovement<this.numIterations){
+            allDataClumps=await shuffleRanker.rank(new RandomRanker(),allDataClumps,initialContext) as DataClumpTypeContext[]
+            let currDataClumps:DataClumpTypeContext[]=[];
+            for(let filterOrMetric of this.criteria){
+                if("evaluate" in filterOrMetric){
+                    currDataClumps.push(...(await ranker.rank(filterOrMetric as Metric,allDataClumps,initialContext ) as DataClumpTypeContext[]))
+                }
+                else{
+                    let filter=filterOrMetric as SingleItemFilter;
+                    let filtered=allDataClumps.filter((it)=>filter.shallRemain(it,initialContext))
+                    filtered=await ranker.rank(new RandomRanker(),filtered,initialContext) as DataClumpTypeContext[]
+                }
+            }
+            let size=await this.calcSize(currDataClumps,initialContext);
+            if(size<currMin){
+                iterationsNoImprovement=0;
+                console.log("new min",size)
+               
+                currMin=size;
+                let withKeys:{[key:string]:DataClumpTypeContext}={}
+                for(let d of currDataClumps){
+                    withKeys[d.key]=d;
+                }
+                currMinContext=initialContext.buildNewContext(new DataClumpDetectorContext(createDataClumpsTypeContext(withKeys))) as DataClumpDetectorContext;
+                for(let dc of Object.values(currMinContext.getDataClumpDetectionResult().data_clumps)){
+                    console.log(initialContext.createDataTypeNameClumpKey(dc).split(";"))
+                    for(let m of this.criteria){
+                        if("evaluate" in m){
+                            console.log(m.constructor.name,await (m.evaluate as any)(dc,initialContext))
+                        }
+                    }
+                }
+                let tokenSize=this.guessTokenSize(currMinContext);
+                console.log("Estimated token size",tokenSize)
+                console.log("################")
+            }
+            else{
+                iterationsNoImprovement++;
+            }
+        }
+        return currMinContext!;
+       
+    }
+    guessTokenSize(context:DataClumpDetectorContext){
 
+        let tokenizer=new GPT4Tokenizer({type:"gpt4"});
+
+        let files=this.getFiles(Object.values(context.getDataClumpDetectionResult().data_clumps));
+        let tokens=0;
+        let allContent="";
+        for(let file of files){
+            let content=fs.readFileSync(resolve(context.getProjectPath(),file)).toString();
+            tokens+=tokenizer.estimateTokenCount(content);
+            allContent+="\n"+content;
+        }
+        fs.writeFileSync("stuff/allContent.txt",allContent)
+        return tokens;
+
+        
+        //fileNumberFilter.getAffectedFiles(context)
+    }
+    getFiles(dataClumps:DataClumpTypeContext[]):Set<string>{
+        let files:Set<string>=new Set();
+        let sum=0;
+        for(let dataClump of dataClumps){
+            files.add(dataClump.from_file_path);
+            files.add(dataClump.to_file_path);
+        }
+        return files;
+    }
+    async  calcSize(dataClumps:DataClumpTypeContext[], context:DataClumpRefactoringContext):Promise<number>{
+        
+        let files=this.getFiles(dataClumps);
+        let sum=0;
+        for(let file of files){
+            sum+=fs.statSync(resolve(context.getProjectPath(),file)).size;
+        }
+      
+        return sum;
+    }
+}
 export class InstanceBasedFileIO extends FileIO {
     public instance: Instance = {} as any
     public baseDir = "evalData"

@@ -107,12 +107,7 @@ export class DetectEval extends BaseEvaluator{
             if(context==null){
                 return null;
             }
-            let filter = new DataClumpFilterStepHandler({
-                rankThreshold: this.getRankerThreshold(),
-                rankerName: "MetricCombiner",
-            });
-            context = await filter.handle(PipeLineStep.DataClumpFiltering, context, {});
-            context.serialize();
+
             context=context.buildNewContext(new RelevantLocationCombiner(context.getByType(ASTBuildingContext)!,(context as DataClumpDetectorContext)!))
             return context;
         }
