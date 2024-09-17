@@ -27,7 +27,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
         await h.handle(dcContext,api,resolver)
        }
        console.log("dcContext",dcContext.getDataClumpDetectionResult())
-      
+      try{
        let parsed=await this.parseOutput(api,dcContext);
        console.log("parsed",parsed)
        writeFileSync("justification" + new Date().getTime()+".json",(JSON.stringify(parsed,null,2)))
@@ -45,6 +45,10 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
 
        }
        return dcContext.buildNewContext(new DataClumpDetectorContext(filtered))
+    }
+    catch(e){
+        return dcContext
+    }
        
 
     }

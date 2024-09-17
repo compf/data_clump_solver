@@ -20,6 +20,7 @@ import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageMod
 import { Metric } from "../util/filterUtils/Metric";
 import fs from "fs"
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
+import { FilterOrMetric } from "../util/filterUtils/SingleItemFilter";
 const MAX_ATTEMPTS = 5;
 const model = "codegemma"
 type FilterEvalInstance = Instance & {
@@ -56,11 +57,13 @@ export class FilterEval extends BaseEvaluator {
         }
         resolver.set("%{data_clump_def}", defPath);
         resolver.set("%{filter_output_format}","chatGPT_templates/dataClumpFiltering/outputFormat.template")
+        resolver.set("%{identification_key}","chatGPT_templates/dataClumpFiltering/key.template")
         if(instance.inputType=="filter_code_snippet"){
             llmHandlers.push(new DataClumpCodeSnippetHandler({additionalMargin:instance.margin}));
         }
         else if(instance.inputType=="filter_full_code"){
             llmHandlers.push(new AllFilesHandler())
+            resolver.set("%{identification_key}","chatGPT_templates/dataClumpFiltering/key_full_code.template")
         }
         else{
             llmHandlers.push(new SimplifiedDataClumpContextHandler())
@@ -81,7 +84,8 @@ export class FilterEval extends BaseEvaluator {
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
             iteration: [0, 1, 2, 3, 4],
-            inputType: ["filter",
+            inputType: [
+                "filter",
                 "filter_code_snippet",
                 "filter_full_code"],
             instructionType: [
@@ -139,6 +143,11 @@ export class FilterEval extends BaseEvaluator {
            delete instance["margin" as any];
         }
         return instance;
+    }
+    getCriteria(): FilterOrMetric[] {
+        return [new DataClumpSizeMetric({normalize:false}),
+        new DataClumpOccurenceMetric(),
+        new RandomRanker()]
     }
 }
     
