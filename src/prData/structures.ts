@@ -31,6 +31,7 @@ export const IsolatedComponents = counter++;
 export const LLM_DeveloperOversight = counter++;
 export const Good_Idea = counter++;
 
+export const MAX_COUNTER_VALUE=counter; // maximum value for counter
 
 export const parameters_to_parameters_data_clump = "parameters_to_parameters_data_clump";
 export const fields_to_fields_data_clump = "fields_to_fields_data_clump";

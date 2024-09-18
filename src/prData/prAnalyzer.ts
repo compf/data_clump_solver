@@ -1,116 +1,83 @@
 import * as fs from "fs";
 import { data } from "./data"
-import { fields_to_fields_data_clump, parameters_to_parameters_data_clump, PR_Data, PR_Data_Entry } from "./structures";
-import { makeUnique } from "../util/Utils";
+import { fields_to_fields_data_clump, MAX_COUNTER_VALUE, parameters_to_parameters_data_clump, PR_Data, PR_Data_Entry } from "./structures";
+import { makeUnique, nop } from "../util/Utils";
 import { loadData } from "./dataClumpDataLoader";
-let fullResult:any={}
-function analyze(name:string,relevantData: PR_Data_Entry[]) {
-    let reviewCounter: { [key: string]: number } = {}
-    let variable = Object.keys(require("./structures"))
-    let positive = 0
-    let merged = 0
-    let closed = 0
-    let noComments=0
-    let bySize:{[size:number]:number}={}
-    let commentCounter = 0;
-    let projectCounter=0
-    let param_to_param = 0
-    for (let d of Object.values(relevantData)) {
-        if(d.merged){
-            merged++
+function analyze(fullResult:any,relevantData: PR_Data_Entry[], depth:number, relevantFilters:any, parentResult:any) {
+    for(let filterName in relevantFilters){
+        let filter=relevantFilters[filterName]
+        if(typeof(filter)=="object"){
+            fullResult[filterName]={}
+            analyze(fullResult[filterName],relevantData,depth,relevantFilters[filterName],fullResult)
         }
-        if(d.type==parameters_to_parameters_data_clump){
-            param_to_param++
-        }
-        if(d.state=="closed"){
-            closed++
-        }
-        if(d.reviewComments.length==0 && d.generalComments.length==0){
-            noComments++
-        }
-        if(!bySize[d.size]){
-            bySize[d.size]=0
-        }
-        bySize[d.size]++
-        for (let c of d.generalComments) {
-            let key = c > 0 ? "+" : "-"
-            key = key + "" + variable[Math.abs(c) - 1]
-            if (!reviewCounter[key]) {
-                reviewCounter[key] = 0
+        else{
+            let result=relevantData.filter(d=>filter(d))
+            if(result.length==1 && result[0].url==        "https://github.com/spring-io/initializr"){
+               // console.log("here",result,fullResult,filterName)
+                nop()
             }
-            reviewCounter[key]++
-
-            if (c > 0) {
-                positive++
+            
+            if(result.length==0){
+                continue;
             }
-            commentCounter++
+            fullResult[filterName]={}
+            fullResult[filterName]["all"]=[result.length,relevantData.length,result.length/relevantData.length*100,
+                result.map((it)=>it.url)
+            ]
+            if(depth>0){
+                analyze(fullResult[filterName],result,depth-1,relevantFilters,fullResult[filterName])
+            }
         }
-
-        for (let c of d.reviewComments) {
-            let key = c > 0 ? "+" : "-"
-
-            key = key + "" + variable[Math.abs(c) - 1]
-            if (!reviewCounter[key]) {
-                reviewCounter[key] = 0
-            }
-            reviewCounter[key]++
-
-            if (c > 0) {
-                positive++
-            }
-            commentCounter++
-        }
-        projectCounter++
+  
+        
     }
-    for(let s in bySize){
-        bySize[s]=bySize[s]/projectCounter*100
-    }
-    fullResult[name]={
-        merged:merged/projectCounter*100,
-        param_to_param:param_to_param/projectCounter*100,
-        closed:closed/projectCounter*100,
-        bySize:bySize,
-        projects:relevantData.map(d=>d.url),
-        reviews:reviewCounter,
-    }
-    fs.writeFileSync("stuff/fullResult.json",JSON.stringify(fullResult,null,2))
-    console.log("###",name,"###")
-   console.log()
-    console.log("Merged", merged/projectCounter*100, "%")
-    console.log("Parameters to parameters",param_to_param/projectCounter*100, "%")
-    console.log("Closed", closed/projectCounter*100, "%")
-    console.log("Sizes",bySize)
-    console.log()
-    console.log(relevantData.map(d=>d.url))
-    console.log("### end",name,"  ###")
-    console.log()
+    let path=Object.keys(parentResult).join("_")+".json"
+    console.log("writing",path)
+    console.log("fullResult",fullResult)
+    //console.log(fullResult)
+    fs.mkdirSync("src/prData/results",{recursive:true})
+    fs.writeFileSync ("src/prData/results/"+path,JSON.stringify(fullResult,undefined,2))
+   
+   
+   
 }
 
+let filters={
+    "merged":(d:PR_Data_Entry)=>d.merged,
+    "parameters_to_parameters":(d:PR_Data_Entry)=>d.type==parameters_to_parameters_data_clump,
+    "fields_to_fields":(d:PR_Data_Entry)=>d.type==fields_to_fields_data_clump,
+    "noComments":(d:PR_Data_Entry)=>d.reviewComments.length==0 && d.generalComments.length==0 || d.noResponse,
+    "closed":(d:PR_Data_Entry)=>d.state=="closed",
+    "sizes":{},
+    "project":(d:PR_Data_Entry,project:string)=>d.url.includes(project),
+    "positive":(d:PR_Data_Entry)=>d.generalComments.concat(d.reviewComments).filter(c=>c>0).length>0,
+    "negative":(d:PR_Data_Entry)=>d.generalComments.concat(d.reviewComments).filter(c=>c<0).length>0,
+    "neutral":(d:PR_Data_Entry)=>d.generalComments.concat(d.reviewComments).filter(c=>c==0).length>0,
+    commentCategory:{},
+    "all":(d:PR_Data_Entry)=>true
 
-function main() {
-    let all=Object.values(data)
-    let manual = Object.values(data).filter(d => d.category == "filterManual" || d.category == "nameSuggestion")
-    let llm = Object.values(data).filter(d => d.category == "detectAndRefactor" || d.category == "filterSnippet")
-    let merged=Object.values(data).filter(d=>d.merged)
-    let parameters_to_parameters = Object.values(data).filter(d=>d.type==parameters_to_parameters_data_clump)
-    let fields_to_fields = Object.values(data).filter(d=>d.type==fields_to_fields_data_clump)
+}
+function initFiltersAdditionally(){
+    for(let i=1;i<MAX_COUNTER_VALUE;i++){
+    let variables=Object.keys(require("./structures"))
 
-    let sizes=makeUnique(Object.values(data).map(d=>d.size))
-    
-
-    analyze("All",all)
-    analyze("Manual",manual)
-    analyze("LLM",llm)
-    analyze("Merged",merged)
-    analyze("Parameters to parameters",parameters_to_parameters)
-    analyze("Fields to fields",fields_to_fields);
-
-    for(let s of sizes){
-        analyze("Size "+s,Object.values(data).filter(d=>d.size==s))
+        filters.commentCategory[variables[i]]=(d:PR_Data_Entry)=>d.generalComments.includes(i) || d.reviewComments.includes(i) || d.generalComments.includes(-i) || d.reviewComments.includes(-i)
     }
+    let sizes=makeUnique(Object.values(data).map(d=>d.size))
+    for(let s of sizes){
+        filters["sizes"]["size"+s]=(d:PR_Data_Entry)=>d.size==s
+    }
+}
+function main() {
+    let fullResult={}
+   initFiltersAdditionally()
+   let all=Object.values(data)
+   analyze(fullResult,all,2,filters,fullResult)
+    fs.writeFileSync("stuff/results.json",JSON.stringify(fullResult,undefined,2)) 
+
 }
 
 if (require.main === module) {
-    //main()
-    loadData()
+    main()
+    //loadData()
 }
