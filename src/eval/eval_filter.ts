@@ -144,11 +144,7 @@ export class FilterEval extends BaseEvaluator {
         }
         return instance;
     }
-    getCriteria(): FilterOrMetric[] {
-        return [new DataClumpSizeMetric({normalize:false}),
-        new DataClumpOccurenceMetric(),
-        new RandomRanker()]
-    }
+
 }
     
 

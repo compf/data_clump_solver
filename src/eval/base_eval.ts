@@ -98,7 +98,8 @@ export abstract class BaseEvaluator {
         let originalDcContext = await dcHandler.handle(PipeLineStep.DataClumpDetection, obtainingContext, {}) as DataClumpDetectorContext
         originalDcContext.serialize()
         let builder= new InterestingDataClumpContextBuilder(this.getCriteria(),this.getNumDataClumpsPerBlock(),this.getNumberIterations())
-        let filtered=await builder.run(originalDcContext);
+        //let filtered=await builder.run(originalDcContext);
+        let filtered=originalDcContext.buildNewContext(new DataClumpDetectorContext(JSON.parse(fs.readFileSync("evalData/refactor/argoumlrefactor/submittedDataClumps.json").toString()))) as DataClumpDetectorContext
         fs.writeFileSync(resolve(this.getProjectDataFolder(url),"submittedDataClumps.json"), JSON.stringify(filtered.getDataClumpDetectionResult(), null, 2));
         let typeNameKeys=Object.values(filtered.getDataClumpDetectionResult().data_clumps).map((it)=>filtered.createDataTypeNameClumpKey(it)).sort()
         fs.writeFileSync(resolve(this.getProjectDataFolder(url),"typeNameKeys.json"), JSON.stringify(typeNameKeys, null, 2));
@@ -139,7 +140,7 @@ export abstract class BaseEvaluator {
             instance["projectName"] = path.basename(ctx.getProjectPath())
             fileIO.instance = instance;
             console.log(instance)
-            if ( fs.existsSync(getInstancePath([projectPath], "/", instance))) {
+            if ( fs.existsSync(getInstancePath(["evalData"], "/", instance))) {
                 continue;
             }
             api.clear();
@@ -169,13 +170,14 @@ export abstract class BaseEvaluator {
         return 5;
     }
     getNumberIterations():number{
-        return 100;
+        return 1000;
     }
     getCriteria():FilterOrMetric[]{
         return [
             new DataClumpSizeMetric({normalize:false}),
             new DataClumpOccurenceMetric(),
-            new MetricNegator(new AffectedFilesMetric())
+            new RandomRanker()
+
         ]
     }
     simplifyInstance(instance: Instance): Instance {
@@ -315,6 +317,7 @@ export class InstanceBasedFileIO extends FileIO {
             fs.mkdirSync(dir, { recursive: true })
         }
         fs.writeFileSync(resolve(dir, "instance.json"), JSON.stringify(this.instance, null, 2))
+        fs.writeFileSync("stuff/currInstance.json",JSON.stringify(this.instance, null, 2))
         dir = resolve(dir, getCurrLabel().toString())
         dir = resolve(dir, key)
 

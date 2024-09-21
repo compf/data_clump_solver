@@ -224,7 +224,11 @@ export function parse_piecewise_output(content: any, fullChat: ChatMessage[], co
 
                 for (let extractedClassPath of Object.keys(content.extractedClasses)) {
                     let outPath = resolve(context.getProjectPath(), extractedClassPath)
-                    changes[outPath] = content.extractedClasses[extractedClassPath]
+                    let classContent=content.extractedClasses[extractedClassPath]
+                    if(Array.isArray(classContent)){
+                        classContent=classContent[0]
+                    }
+                    changes[outPath] = classContent
                 }
             }
 

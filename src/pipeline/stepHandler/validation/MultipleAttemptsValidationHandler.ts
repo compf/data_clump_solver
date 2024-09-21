@@ -45,7 +45,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
             api.prepareMessage(c.messages[0], c.messageType)
         }
         let result: ValidationContext = null as any;
-        const maxAttempts = 10;
+        const maxAttempts = 5;
         let attempts = 0;
         let compilingResults:CompilingResult[]=[];
         let templateResolver=resolveFromInterfaceName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver;

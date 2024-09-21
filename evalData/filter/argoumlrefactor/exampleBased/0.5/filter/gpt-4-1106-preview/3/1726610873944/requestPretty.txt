@@ -1,0 +1,2174 @@
+messages:
+[
+	content:"
+	
+	I will provide you information of data clumps that have been detected by another tool. 
+	Choose one data clump that you think is most important and should be refactored.
+	
+	
+	 Examples of data clump are provided below.
+	## Examples
+	/* 
+	    These examples show data clumps and how they might be refactored
+	    Imports are missing so these examples would not compile
+	*/
+	// ### example 5#########################
+	//'method parameters to method parameters' data clump
+	class Example1A {
+	
+	    // both methods share at least 3 parameters, so we can extract those 3
+	    // parameters into a class
+	
+	    public static String buildServiceKey(String path, String group, String version) {
+	        int length = path == null ? 0 : path.length();
+	        length += group == null ? 0 : group.length();
+	        length += version == null ? 0 : version.length();
+	        length += 2;
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(group)) {
+	            buf.append(group).append('/');
+	        }
+	        buf.append(path);
+	        if (StringUtils.isNotEmpty(version)) {
+	            buf.append(':').append(version);
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(String path, String group, String version, String prefix) {
+	        return prefix + buildServiceKey(path, group, version);
+	    }
+	
+	}
+	
+	// ## refactored ##################################
+	class KeyData {
+	    private String path;
+	    private String group;
+	    private String version;
+	
+	    KeyData(String path, String group, String version) {
+	        this.path = path;
+	        this.group = group;
+	        this.version = version;
+	    }
+	
+	    public String getPath() {
+	        return path;
+	    }
+	
+	    public String getGroup() {
+	        return group;
+	    }
+	
+	    public String getVersion() {
+	        return version;
+	    }
+	
+	    public int getLength() {
+	        return path == null ? 0
+	                : path.length() + group == null ? 0 : group.length() + version == null ? 0 : version.length() + 2;
+	    }
+	
+	}
+	
+	class Example1A {
+	
+	    public static String buildServiceKey(KeyData keyData) {
+	        int length = keyData.getLength();
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(keyData.getGroup())) {
+	            buf.append(keyData.getGroup()).append('/');
+	        }
+	        buf.append(keyData.getPath());
+	        if (StringUtils.isNotEmpty(keyData.getVersion())) {
+	            buf.append(':').append(keyData.getVersion());
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(KeyData keyData, String prefix) {
+	        return prefix + buildServiceKey(keyData);
+	    }
+	}
+	// #### example 5 end ##################################
+	
+	//
+	
+	// ## example 2 ##################################
+	// 'fields to fields' data clump
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a class
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+				
+				int state = node.getId();
+				states.add(state);
+				successors.put(state, new ArrayList<Integer>());
+				labels.put(state, new ArrayList<Label>())
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + successors.get(state) + ", Labels: "
+	                    + labels.get(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## refactored ##################################
+	
+	class StateGraphData {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	
+	    StateGraphData() {
+	        this.states = new ArrayList<Integer>();
+	        this.successors = new HashMap<Integer, List<Integer>>();
+	        this.labels = new HashMap<Integer, List<Label>>();
+	    }
+	
+	    public List<Integer> getStates() {
+	        return states;
+	    }
+	
+	    public Map<Integer, List<Integer>> getSuccessors(int state) {
+	        return successors.get(state);
+	    }
+	
+	    public Map<Integer, List<Label>> getLabels(int state) {
+	        return labels.get(state);
+	    }
+	
+	    public void addState(int state) {
+	        states.add(state);
+	        successors.put(state, new ArrayList<Integer>());
+	        labels.put(state, new ArrayList<Label>());
+	    }
+	
+	}
+	
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a
+	    // class
+	    private StateGraphData stateGraphData;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+	
+	            stateGraphData.addState(node.getId());
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private StateGraphData stateGraphData;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + stateGraphData.getSuccessor(state) + ", Labels: "
+	                    + stateGraphData.getLabel(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## example 2 end ##################################
+	
+	// ## example 3 ##################################
+	// 'parameters to fields' data clump
+	class Example3A {
+	    boolean validate(String methodName, Class<?>[] parameterTypes, Object[] arguments) {
+	        return parameterTypes.length == arguments.length;
+	    }
+	}
+	
+	// Example3B.java
+	class Example3B {
+	
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private String methodName;
+	
+	    private Class<?>[] parameterTypes;
+	
+	    private Object[] arguments;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	
+	}
+	
+	// ## refactored ##################################
+	class MethodCallData {
+	    public String methodName;
+	    public Class<?>[] parameterTypes;
+	    public Object[] arguments;
+	
+	    public boolean isValid() {
+	        return parameterTypes.length == arguments.length;
+	    }
+	
+	}
+	
+	class Example3A {
+	    boolean validate(MethodCallData methodCallData) {
+	        return methodCallData.isValid();
+	    }
+	}
+	
+	class Example3B {
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private MethodCallData methodCallData;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	}
+	// ## example 3 end ##################################
+	
+	// ## example 4 ##################################
+	class Example4A {
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        writer.incrementNumberReturned();
+	        writer.setAxisOrder(CRS.getAxisOrder(featureCrs));
+	    }
+	}
+	
+	// Example4B.java
+	class Example4B extends Example4A {
+	     // This pair of methods do not constitute a data clump even if signature is copied because
+	    // the method is overridden and therefore must have the same paremeters
+	    @Override
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        root.reset();
+	        super.beforeEvaluation(writer, root, feature);
+	    }
+	   
+	}
+	// ## example 4 end ##################################
+	
+	## Examples end
+	
+	Return the key of that data clump.
+	Justify your response. 
+	Use the following  output format in JSON:
+	
+	The "reason" attribute should be equal to as follows:
+	        "size" -> if you choose the data clump because of its large number of parameters/fields
+	        "occurrence" -> if you choose the data clump because it occurs very often and leads to much duplication
+	        "affected_files" -> if you choose this data clump because many files are affected by this data clump
+	        "domain" -> if you choose this data clump because the variables share a common domain so that extracting a class is a good idea
+	        "other" -> if none of the options above fits
+	
+	### JSON
+	{
+	    "key":"<key>",
+	    "reason":"<as explained above>
+	    "justification":"<Your justification which explains the 'reason' in more details>"
+	
+	}
+	
+	### END JSON
+		
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			data_clumps:
+{
+					0:
+{
+							key:"				0",
+				data_clump_type:"
+				fields_to_fields_data_clump				
+",
+				from_file_path:"
+				src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java				
+",
+				from_class_or_interface_name:"
+				JasonsBigTheme				
+",
+				from_method_name:
+{
+								
+}
+				to_file_path:"
+				src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java				
+",
+				to_class_or_interface_name:"
+				JasonsHugeTheme				
+",
+				to_method_name:
+{
+								
+}
+				data_clump_data:
+{
+									0:
+{
+											name:"
+						controlFont						
+",
+						type:"
+						javax.swing.plaf.FontUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-1:
+{
+											name:"
+						userFont						
+",
+						type:"
+						javax.swing.plaf.FontUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-2:
+{
+											name:"
+						windowTitleFont						
+",
+						type:"
+						javax.swing.plaf.FontUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-3:
+{
+											name:"
+						smallFont						
+",
+						type:"
+						javax.swing.plaf.FontUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-4:
+{
+											name:"
+						primary3						
+",
+						type:"
+						javax.swing.plaf.ColorUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-5:
+{
+											name:"
+						primary2						
+",
+						type:"
+						javax.swing.plaf.ColorUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-6:
+{
+											name:"
+						systemFont						
+",
+						type:"
+						javax.swing.plaf.FontUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-7:
+{
+											name:"
+						primary1						
+",
+						type:"
+						javax.swing.plaf.ColorUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-8:
+{
+											name:"
+						secondary3						
+",
+						type:"
+						javax.swing.plaf.ColorUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-9:
+{
+											name:"
+						secondary2						
+",
+						type:"
+						javax.swing.plaf.ColorUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+					-10:
+{
+											name:"
+						secondary1						
+",
+						type:"
+						javax.swing.plaf.ColorUIResource						
+",
+						modifiers:
+						[
+"PRIVATE",
+"FINAL",
+
+						],
+					
+}
+				
+}
+			
+}
+			12:
+{
+							key:"				12",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CoreFactory.java				
+",
+				from_class_or_interface_name:"
+				CoreFactory				
+",
+				from_method_name:"
+				buildAssociationEnd				
+",
+				to_file_path:"
+				src/argouml-core-model-mdr/src/org/argouml/model/mdr/CoreFactoryMDRImpl.java				
+",
+				to_class_or_interface_name:"
+				CoreFactoryMDRImpl				
+",
+				to_method_name:"
+				buildAssociationEnd				
+",
+				data_clump_data:
+{
+									-12:
+{
+											name:"
+						assoc						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-13:
+{
+											name:"
+						name						
+",
+						type:"
+						java.lang.String						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-14:
+{
+											name:"
+						type						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-15:
+{
+											name:"
+						multiplicity						
+",
+						type:"
+						java.lang.Integer[]						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-16:
+{
+											name:"
+						stereo						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-17:
+{
+											name:"
+						navigable						
+",
+						type:"
+						boolean						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-18:
+{
+											name:"
+						order						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-19:
+{
+											name:"
+						aggregation						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-20:
+{
+											name:"
+						scope						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-21:
+{
+											name:"
+						changeable						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-22:
+{
+											name:"
+						visibility						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			24:
+{
+							key:"				24",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CoreFactory.java				
+",
+				from_class_or_interface_name:"
+				CoreFactory				
+",
+				from_method_name:"
+				buildAssociationEnd				
+",
+				to_file_path:"
+				src/argouml-core-model-euml/src/org/argouml/model/euml/CoreFactoryEUMLImpl.java				
+",
+				to_class_or_interface_name:"
+				CoreFactoryEUMLImpl				
+",
+				to_method_name:"
+				buildAssociationEnd				
+",
+				data_clump_data:
+{
+									-24:
+{
+											name:"
+						assoc						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-25:
+{
+											name:"
+						name						
+",
+						type:"
+						java.lang.String						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-26:
+{
+											name:"
+						type						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-27:
+{
+											name:"
+						multi						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-28:
+{
+											name:"
+						stereo						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-29:
+{
+											name:"
+						navigable						
+",
+						type:"
+						boolean						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-30:
+{
+											name:"
+						order						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-31:
+{
+											name:"
+						aggregation						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-32:
+{
+											name:"
+						scope						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-33:
+{
+											name:"
+						changeable						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-34:
+{
+											name:"
+						visibility						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			36:
+{
+							key:"				36",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CoreFactory.java				
+",
+				from_class_or_interface_name:"
+				CoreFactory				
+",
+				from_method_name:"
+				buildAssociationEnd				
+",
+				to_file_path:"
+				src/argouml-core-model-euml/src/org/argouml/model/euml/CoreFactoryEUMLImpl.java				
+",
+				to_class_or_interface_name:"
+				CoreFactoryEUMLImpl				
+",
+				to_method_name:"
+				buildAssociationEnd				
+",
+				data_clump_data:
+{
+									-36:
+{
+											name:"
+						assoc						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-37:
+{
+											name:"
+						name						
+",
+						type:"
+						java.lang.String						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-38:
+{
+											name:"
+						type						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-39:
+{
+											name:"
+						multi						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-40:
+{
+											name:"
+						stereo						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-41:
+{
+											name:"
+						order						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-42:
+{
+											name:"
+						aggregation						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-43:
+{
+											name:"
+						scope						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-44:
+{
+											name:"
+						changeable						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-45:
+{
+											name:"
+						visibility						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			47:
+{
+							key:"				47",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CoreFactory.java				
+",
+				from_class_or_interface_name:"
+				CoreFactory				
+",
+				from_method_name:"
+				buildAssociationEnd				
+",
+				to_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CoreFactory.java				
+",
+				to_class_or_interface_name:"
+				CoreFactory				
+",
+				to_method_name:"
+				buildAssociationEnd				
+",
+				data_clump_data:
+{
+									-47:
+{
+											name:"
+						assoc						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-48:
+{
+											name:"
+						name						
+",
+						type:"
+						java.lang.String						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-49:
+{
+											name:"
+						type						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-50:
+{
+											name:"
+						stereo						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-51:
+{
+											name:"
+						navigable						
+",
+						type:"
+						boolean						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-52:
+{
+											name:"
+						order						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-53:
+{
+											name:"
+						aggregation						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-54:
+{
+											name:"
+						scope						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-55:
+{
+											name:"
+						changeable						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-56:
+{
+											name:"
+						visibility						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			58:
+{
+							key:"				58",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java				
+",
+				from_class_or_interface_name:"
+				FigLifeLine				
+",
+				from_method_name:"
+				createActivationFig				
+",
+				to_file_path:"
+				src/argouml-core-diagrams-activity2/src/org/argouml/activity2/diagram/FigBaseNode.java				
+",
+				to_class_or_interface_name:"
+				FigBaseNode				
+",
+				to_method_name:"
+				setBoundsImpl				
+",
+				data_clump_data:
+{
+									-58:
+{
+											name:"
+						x						
+",
+						type:"
+						int						
+",
+						modifiers:
+						[
+"FINAL",
+"PRIVATE",
+
+						],
+					
+}
+					-59:
+{
+											name:"
+						y						
+",
+						type:"
+						int						
+",
+						modifiers:
+						[
+"FINAL",
+"PRIVATE",
+
+						],
+					
+}
+					-60:
+{
+											name:"
+						w						
+",
+						type:"
+						int						
+",
+						modifiers:
+						[
+"FINAL",
+"PRIVATE",
+
+						],
+					
+}
+					-61:
+{
+											name:"
+						h						
+",
+						type:"
+						int						
+",
+						modifiers:
+						[
+"FINAL",
+"PRIVATE",
+
+						],
+					
+}
+				
+}
+			
+}
+			63:
+{
+							key:"				63",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CoreHelper.java				
+",
+				from_class_or_interface_name:"
+				CoreHelper				
+",
+				from_method_name:"
+				addParameter				
+",
+				to_file_path:"
+				src/argouml-core-model/src/org/argouml/model/AbstractCoreHelperDecorator.java				
+",
+				to_class_or_interface_name:"
+				AbstractCoreHelperDecorator				
+",
+				to_method_name:"
+				addTemplateParameter				
+",
+				data_clump_data:
+{
+									-63:
+{
+											name:"
+						handle						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-64:
+{
+											name:"
+						index						
+",
+						type:"
+						int						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-65:
+{
+											name:"
+						parameter						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			67:
+{
+							key:"				67",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-umlpropertypanels/src/org/argouml/core/propertypanels/ui/SwingUIFactory.java				
+",
+				from_class_or_interface_name:"
+				SwingUIFactory				
+",
+				from_method_name:"
+				buildTextboxPanel				
+",
+				to_file_path:"
+				src/argouml-core-umlpropertypanels/src/org/argouml/core/propertypanels/ui/SwingUIFactory.java				
+",
+				to_class_or_interface_name:"
+				SwingUIFactory				
+",
+				to_method_name:"
+				createControl				
+",
+				data_clump_data:
+{
+									-67:
+{
+											name:"
+						panel						
+",
+						type:"
+						javax.swing.JPanel						
+",
+						modifiers:
+						[
+"PRIVATE",
+
+						],
+					
+}
+					-68:
+{
+											name:"
+						target						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PRIVATE",
+
+						],
+					
+}
+					-69:
+{
+											name:"
+						prop						
+",
+						type:"
+						org.argouml.core.propertypanels.ui.org.argouml.core.propertypanels.model.ControlData						
+",
+						modifiers:
+						[
+"PRIVATE",
+
+						],
+					
+}
+				
+}
+			
+}
+			71:
+{
+							key:"				71",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/ModelEventPump.java				
+",
+				from_class_or_interface_name:"
+				ModelEventPump				
+",
+				from_method_name:"
+				removeClassModelEventListener				
+",
+				to_file_path:"
+				src/argouml-core-model/src/org/argouml/model/ModelEventPump.java				
+",
+				to_class_or_interface_name:"
+				ModelEventPump				
+",
+				to_method_name:"
+				addClassModelEventListener				
+",
+				data_clump_data:
+{
+									-71:
+{
+											name:"
+						listener						
+",
+						type:"
+						java.beans.PropertyChangeListener						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-72:
+{
+											name:"
+						modelClass						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-73:
+{
+											name:"
+						propertyNames						
+",
+						type:"
+						java.lang.String[]						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			75:
+{
+							key:"				75",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/ExtensionMechanismsHelper.java				
+",
+				from_class_or_interface_name:"
+				ExtensionMechanismsHelper				
+",
+				from_method_name:"
+				isStereotype				
+",
+				to_file_path:"
+				src/argouml-core-model/src/org/argouml/model/AbstractExtensionMechanismsHelperDecorator.java				
+",
+				to_class_or_interface_name:"
+				AbstractExtensionMechanismsHelperDecorator				
+",
+				to_method_name:"
+				isStereotypeInh				
+",
+				data_clump_data:
+{
+									-75:
+{
+											name:"
+						object						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-76:
+{
+											name:"
+						name						
+",
+						type:"
+						java.lang.String						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-77:
+{
+											name:"
+						base						
+",
+						type:"
+						java.lang.String						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			79:
+{
+							key:"				79",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-app/src/org/argouml/uml/diagram/collaboration/ui/CollabDiagramRenderer.java				
+",
+				from_class_or_interface_name:"
+				CollabDiagramRenderer				
+",
+				from_method_name:"
+				getFigNodeFor				
+",
+				to_file_path:"
+				src/argouml-app/src/org/argouml/uml/diagram/collaboration/ui/CollabDiagramRenderer.java				
+",
+				to_class_or_interface_name:"
+				CollabDiagramRenderer				
+",
+				to_method_name:"
+				getFigEdgeFor				
+",
+				data_clump_data:
+{
+									-79:
+{
+											name:"
+						gm						
+",
+						type:"
+						org.argouml.uml.diagram.collaboration.ui.org.tigris.gef.graph.GraphModel						
+",
+						modifiers:
+						[
+"PUBLIC",
+
+						],
+					
+}
+					-80:
+{
+											name:"
+						lay						
+",
+						type:"
+						org.argouml.uml.diagram.collaboration.ui.org.tigris.gef.base.Layer						
+",
+						modifiers:
+						[
+"PUBLIC",
+
+						],
+					
+}
+					-81:
+{
+											name:"
+						styleAttributes						
+",
+						type:"
+						java.util.Map						
+",
+						modifiers:
+						[
+"PUBLIC",
+
+						],
+					
+}
+				
+}
+			
+}
+			83:
+{
+							key:"				83",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CollaborationsFactory.java				
+",
+				from_class_or_interface_name:"
+				CollaborationsFactory				
+",
+				from_method_name:"
+				buildAssociationRole				
+",
+				to_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CollaborationsFactory.java				
+",
+				to_class_or_interface_name:"
+				CollaborationsFactory				
+",
+				to_method_name:"
+				buildAssociationRole				
+",
+				data_clump_data:
+{
+									-83:
+{
+											name:"
+						from						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-84:
+{
+											name:"
+						agg1						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-85:
+{
+											name:"
+						to						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-86:
+{
+											name:"
+						agg2						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+			88:
+{
+							key:"				88",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-app/src/org/argouml/ui/TreeModelSupport.java				
+",
+				from_class_or_interface_name:"
+				TreeModelSupport				
+",
+				from_method_name:"
+				fireTreeNodesChanged				
+",
+				to_file_path:"
+				src/argouml-app/src/org/argouml/ui/TreeModelSupport.java				
+",
+				to_class_or_interface_name:"
+				TreeModelSupport				
+",
+				to_method_name:"
+				fireTreeNodesRemoved				
+",
+				data_clump_data:
+{
+									-88:
+{
+											name:"
+						source						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"FINAL",
+"PROTECTED",
+
+						],
+					
+}
+					-89:
+{
+											name:"
+						path						
+",
+						type:"
+						java.lang.Object[]						
+",
+						modifiers:
+						[
+"FINAL",
+"PROTECTED",
+
+						],
+					
+}
+					-90:
+{
+											name:"
+						childIndices						
+",
+						type:"
+						int[]						
+",
+						modifiers:
+						[
+"FINAL",
+"PROTECTED",
+
+						],
+					
+}
+					-91:
+{
+											name:"
+						children						
+",
+						type:"
+						java.lang.Object[]						
+",
+						modifiers:
+						[
+"FINAL",
+"PROTECTED",
+
+						],
+					
+}
+				
+}
+			
+}
+			93:
+{
+							key:"				93",
+				data_clump_type:"
+				parameters_to_parameters_data_clump				
+",
+				from_file_path:"
+				src/argouml-core-model/src/org/argouml/model/CoreFactory.java				
+",
+				from_class_or_interface_name:"
+				CoreFactory				
+",
+				from_method_name:"
+				buildAssociationEnd				
+",
+				to_file_path:"
+				src/argouml-core-model-euml/src/org/argouml/model/euml/CoreFactoryEUMLImpl.java				
+",
+				to_class_or_interface_name:"
+				CoreFactoryEUMLImpl				
+",
+				to_method_name:"
+				buildAssociationEnd				
+",
+				data_clump_data:
+{
+									-93:
+{
+											name:"
+						assoc						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-94:
+{
+											name:"
+						name						
+",
+						type:"
+						java.lang.String						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-95:
+{
+											name:"
+						type						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-96:
+{
+											name:"
+						stereo						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-97:
+{
+											name:"
+						order						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-98:
+{
+											name:"
+						aggregation						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-99:
+{
+											name:"
+						scope						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-100:
+{
+											name:"
+						changeable						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+					-101:
+{
+											name:"
+						visibility						
+",
+						type:"
+						java.lang.Object						
+",
+						modifiers:
+						[
+"PUBLIC",
+"ABSTRACT",
+
+						],
+					
+}
+				
+}
+			
+}
+		
+}
+	
+}
+	role:"
+	user	
+",
+,
+
+],
+model:"
+gpt-4-1106-preview
+",
+response_format:
+{
+	type:"
+	json_object	
+",
+
+}
+temperature:"0.5",

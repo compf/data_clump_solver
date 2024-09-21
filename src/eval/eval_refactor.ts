@@ -34,8 +34,8 @@ class RefactorEval extends BaseEvaluator {
     isProjectFullyAnalyzed(): boolean {
         return false;
     }
-    getRankerThreshold(): number {
-        return 5;
+    getNumDataClumpsPerBlock(): number {
+        return 1;
     }
     simplifyInstance(instance: RefactorInstance): RefactorInstance {
         if (instance.inputFormat != "instructionSnippet") {
@@ -59,9 +59,10 @@ class RefactorEval extends BaseEvaluator {
                 "noDefinitionBased"
             ],
             inputFormat: [
-                "instruction"
-                ,
-                "instructionSnippet"
+            
+                
+                "instructionSnippet",
+                    "instruction"
             ],
             iteration: [0
                 ,
@@ -86,11 +87,7 @@ class RefactorEval extends BaseEvaluator {
         if (context == null) {
             return null;
         }
-        let filter = new DataClumpFilterStepHandler({
-            rankThreshold: this.getRankerThreshold(),
-            rankerName: "MetricCombiner",
-        });
-        context = await filter.handle(PipeLineStep.DataClumpFiltering, context, {});
+
         await git.checkout("-bcontext")
         await git.add("-A")
         await git.commit("context")
