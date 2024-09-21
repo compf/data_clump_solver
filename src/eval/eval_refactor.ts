@@ -208,6 +208,7 @@ export class InstanceBasedLanguageModelAPI extends AbstractLanguageModel{
     }
     resetParameters(instance:Instance) {
         let path=getInstancePath(["evalData"], "/", instance)
+        this.relevantFiles=[]
         getRelevantFilesRec(path,this.relevantFiles,new FileFilteringContext([".*response.json"],[]))
         this.counter=0;
     }

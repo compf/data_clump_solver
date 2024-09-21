@@ -8,6 +8,7 @@ import { resolveFromConcreteName } from "../../../config/Configuration";
 import { ChatMessage } from "../../../util/languageModel/AbstractLanguageModel";
 import { getRelevantFilesRec, nop, parseInvalidJSON, tryParseJSON, tryParseJSONWithSlice, writeFileSync } from "../../../util/Utils";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
+import { FileIO } from "../../../util/FileIO";
 
 export function parsePath(filePath: string, context: DataClumpRefactoringContext) {
 
@@ -131,6 +132,10 @@ function getIndentation(line: string) {
 
 export function parse_piecewise_output_from_file(refactoredPath: string, fileContent: string, content: any): string {
     let fileContentSplitted = fileContent.split("\n")
+    let oldFileContent=fileContent
+    let foundOriginal=false;
+    let faultyInstance=false;
+    let oldContentNewContentDiff:string[]=[];
 
     for (let change of content.refactorings[refactoredPath]) {
         let start = change.fromLine
@@ -140,14 +145,24 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         let newContent = change.newContent
         let oldContent = change.oldContent
+        let index = fileContent.indexOf(oldContent)
+        let oldIndex=index;
+        if(oldContent!="" && newContent!=oldContent && index!=-1){
+            oldContentNewContentDiff=[oldContent,newContent,start,fileContentSplitted.slice(start-6,start+6),
+                index,
+                fileContent.slice(index,index+oldContent.length)
+            ]
+        }
         if (oldContent == undefined || newContent == undefined || change.fromLine == undefined || change.toLine == undefined) {
             continue;
         }
-        let index = fileContent.indexOf(oldContent)
-        index=-1
+        
+    
+        //index=-1
+        const MIN_LENGTH=10
         console.log("change", change)
         const MAX_OFFSET = 5
-        if (index == -1 || oldContent == "") {
+        if (index == -1 || oldContent.length<=MIN_LENGTH) {
             let newContentSplitted = newContent.split("\n")
             let oldContentSplitted = oldContent.split("\n")
             if (newContentSplitted.length > oldContentSplitted.length) {
@@ -170,6 +185,11 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
 
                 }
+                else if(oldIndex!=-1 && oldContent!=""){
+                    faultyInstance=true;
+                }
+
+                
 
             }
             if (oldContentSplitted.length > newContentSplitted.length) {
@@ -195,9 +215,30 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         }
     }
+    if(faultyInstance){
+        trueCounter++;
+        let c=fs.readFileSync("stuff/interesting.txt").toString()
+        let instance=(FileIO.instance as any).instance
+        let s=JSON.stringify(instance,undefined,2)
+        if(!c.includes(s)){
+            instance.diff=oldContentNewContentDiff
+            s=JSON.stringify(instance,undefined,2)
+            c+=",\n"+(s)
+            fs.writeFileSync("stuff/interesting.txt",c)
+        }
+     
+        
+    }
+    allCounter++;
+    fs.writeFileSync("stuff/interesting_counter.txt", 
+
+        JSON.stringify([trueCounter,allCounter,(trueCounter/allCounter*100)+"%"],undefined,2)
+    )
     return fileContent;
 
 }
+let allCounter=0;
+let trueCounter=0;
 export function parse_piecewise_output(content: any, fullChat: ChatMessage[], context: DataClumpRefactoringContext, outputHandler: OutputHandler): string | null {
     let changes = {};
 
