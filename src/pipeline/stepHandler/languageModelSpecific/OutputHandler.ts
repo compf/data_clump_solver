@@ -361,11 +361,15 @@ export class StubOutputHandler extends OutputHandler {
     handleProposal(proposal: Proposal, context: DataClumpRefactoringContext): void {
         if (this.apply)
             proposal.apply(context)
-        this.proposal = proposal
+        this.proposal = proposal 
 
     }
     chooseProposal(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
-        return Promise.resolve(new LargeLanguageModelContext(this.proposal!.getFullOutput()));
+        let output:ChatMessage[]=[]
+        if(this.proposal!=null){
+            output=this.proposal.getFullOutput()
+        }
+        return Promise.resolve(new LargeLanguageModelContext(output));
     }
 }
 export class MultipleBrancheHandler extends OutputHandler {

@@ -1,22 +1,25 @@
 import simpleGit from "simple-git";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { DataClumpRefactoringContext, LargeLanguageModelContext } from "../context/DataContext";
+import { DataClumpRefactoringContext, FileFilteringContext, LargeLanguageModelContext, ValidationResult } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { LanguageModelDetectOrRefactorHandler } from "../pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
 import { AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SendHandler, SimpleInstructionHandler, SystemInstructionHandler, ValidationResultHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
-import { ModifiedFilesProposal, parseChat, SimpleProposalHandler, StubOutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { ModifiedFilesProposal, OutputHandler, parseChat, SimpleProposalHandler, StubOutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { GradleBuildValidationStepHandler } from "../pipeline/stepHandler/validation/GradleBuildValidationStepHandler";
 import { MavenBuildValidationStepHandler } from "../pipeline/stepHandler/validation/MavenBuildValidationStepHandler";
-import { MultipleAttemptsValidationHandler } from "../pipeline/stepHandler/validation/MultipleAttemptsValidationHandler";
+import { CompilingResult, MultipleAttemptsValidationHandler } from "../pipeline/stepHandler/validation/MultipleAttemptsValidationHandler";
 import { FileIO } from "../util/FileIO";
-import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/AbstractLanguageModel";
+import { AbstractLanguageModel, ChatMessage, MessageType, TokenStats } from "../util/languageModel/AbstractLanguageModel";
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
-import { getCurrLabel, writeFileSync } from "../util/Utils";
+import { getCurrLabel, getRelevantFilesRec, waitSync, writeFileSync } from "../util/Utils";
+import {resolve} from "path";
+import fs from "fs"
 import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
-type RefactorInstance = Instance & {
+import { ValidationStepHandler } from "../pipeline/stepHandler/validation/ValidationStepHandler";
+export type RefactorInstance = Instance & {
 
     instructionType: string,
     inputFormat: string,
@@ -27,7 +30,7 @@ type RefactorInstance = Instance & {
 type RefactorInstanceCombination = Arrayified<RefactorInstance>
 const refactorHandlersName = "refactorHandlers"
 const multiValidationHandlerName = "multiValidationHandler"
-class RefactorEval extends BaseEvaluator {
+export class RefactorEval extends BaseEvaluator {
     getOutputPath(): string {
         return "stuff/eval/refactor_eval.json";
     }
@@ -95,7 +98,9 @@ class RefactorEval extends BaseEvaluator {
         return context;
 
     }
-
+    getValidationInstance():ValidationStepHandler{
+        return new MavenBuildValidationStepHandler({skipTests:true})
+    }
     async analyzeInstance(instance: RefactorInstance, context: DataClumpRefactoringContext): Promise<void> {
         let git = simpleGit(context.getProjectPath())
         let g = await git.checkout("-b" + getInstancePath([], "-", instance))
@@ -124,7 +129,7 @@ class RefactorEval extends BaseEvaluator {
         }
         resolver.set("%{data_clump_def}", defPath);
         let multiValidationHandler = new MultipleAttemptsValidationHandler({
-            innerValidator: new MavenBuildValidationStepHandler({ skipTests: true }),
+            innerValidator: this.getValidationInstance(),
             handlers: [
                 new SimpleInstructionHandler({ instructionPath: "chatGPT_templates/validation/fix_errors.template" }),
                 new ValidationResultHandler(),
@@ -159,14 +164,95 @@ class RefactorEval extends BaseEvaluator {
         await git.checkout("context")
         writeFileSync("validation_count.json", JSON.stringify(count, null, 2))
         console.log("Validation count", count);
-        //process.exit(-1)
+        //waitSync(1000)
     }
 
 }
 
+
+
+
+
+
+
+
+
+//###########################################################################
+
+
+export class InstanceBasedLanguageModelAPI extends AbstractLanguageModel{
+    public  fileIO:InstanceBasedFileIO;
+    private relevantFiles:string[]=[]
+    private counter=0
+    prepareMessage(message: string, messageType?: MessageType): ChatMessage {
+        return {messages:[message],messageType:messageType!}
+    }
+    
+    sendMessages(clear: boolean): Promise<ChatMessage> {
+        let resp="{}"
+
+        if(this.counter<this.relevantFiles.length){
+            resp= fs.readFileSync(this.relevantFiles[this.counter]).toString()
+        }
+        this.counter++;
+    
+        return Promise.resolve({
+            messageType:"output",
+            messages:[resp]
+        })
+    }
+    clear(): void {
+    }
+    getTokenStats(): TokenStats {
+        return {}
+    }
+    resetParameters(instance:Instance) {
+        let path=getInstancePath(["evalData"], "/", instance)
+        getRelevantFilesRec(path,this.relevantFiles,new FileFilteringContext([".*response.json"],[]))
+        this.counter=0;
+    }
+
+    constructor(fileIo:InstanceBasedFileIO){
+        super()
+        this.fileIO=fileIo;
+    }
+    
+}
+
+
+class DummyInstanceBasedIO extends InstanceBasedFileIO{
+    readFileSync(path: string): string {
+       return "{}"
+    }
+    writeFileSync(path: string, data: string): void {
+        
+    }
+}
+
+export class ReplayRefactorEvaluator extends RefactorEval{
+
+    shallIgnore(instance: Instance): boolean {
+        return !super.shallIgnore(instance)
+    }
+
+    prepareLargeLanguageModelAPI(): void {
+        registerFromName(InstanceBasedLanguageModelAPI.name,AbstractLanguageModel.name,FileIO.instance)
+    }
+    getValidationInstance(): ValidationStepHandler {
+        return new DummyValidationStep({skipTests:true});
+    }
+
+}
+class DummyValidationStep extends ValidationStepHandler{
+    validate(context: DataClumpRefactoringContext): Promise<ValidationResult> {
+        return Promise.resolve({errors:[],success:false})
+    }
+    
+}
+
 if (require.main === module) {
-    FileIO.instance = new InstanceBasedFileIO()
-    let refactorEval = new RefactorEval();
+    FileIO.instance = new DummyInstanceBasedIO()
+    let refactorEval = new ReplayRefactorEvaluator();
     refactorEval.analyzeProject(init());
 
 }

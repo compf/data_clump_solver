@@ -29,7 +29,8 @@ import { Metric } from "../util/filterUtils/Metric";
 const constantScores = {
     "instanceType": -1000,
     "projectName": -999,
-    "iteration": 1000
+    "iteration": 1000,
+    "validation":1001
 }
 function instanceKeyComparator(a: string, b: string) {
     let aScore = constantScores[a] || -a.length;
@@ -112,6 +113,16 @@ export abstract class BaseEvaluator {
         fs.mkdirSync(path,{recursive:true})
         return path
     }
+    shallIgnore(instance:Instance):boolean{
+        return fs.existsSync(getInstancePath(["evalData"], "/", instance))
+    }
+    prepareLargeLanguageModelAPI(){
+        let apiName: string = ChatGPTInterface.name
+        if(DEBUG){
+            apiName=DEBUG_API_NAME;
+        }
+        registerFromName(apiName, AbstractLanguageModel.name, {})
+    }
     abstract analyzeInstance(instance: Instance, context: DataClumpRefactoringContext): Promise<void>;
     async analyzeProject(project: string) {
 
@@ -124,11 +135,7 @@ export abstract class BaseEvaluator {
         let keys = Object.keys(instanceCombination).sort(instanceKeyComparator)
         let allInstances = createInstanceCombination(instanceCombination, keys).map((it)=>this.simplifyInstance(it)).map((it)=>JSON.stringify(it));
         allInstances=makeUnique(allInstances)
-        let apiName: string = ChatGPTInterface.name
-        if(DEBUG){
-            apiName=DEBUG_API_NAME;
-        }
-        registerFromName(apiName, AbstractLanguageModel.name, {})
+        this.prepareLargeLanguageModelAPI();
         let api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
 
 
@@ -140,7 +147,7 @@ export abstract class BaseEvaluator {
             instance["projectName"] = path.basename(ctx.getProjectPath())
             fileIO.instance = instance;
             console.log(instance)
-            if ( fs.existsSync(getInstancePath(["evalData"], "/", instance))) {
+            if ( this.shallIgnore(instance)) {
                 continue;
             }
             api.clear();
