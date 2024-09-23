@@ -5,15 +5,20 @@ import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { ValidationStepHandler } from "../validation/ValidationStepHandler";
 import shlex from "shlex";
+import fs from "fs";
 import { resolve } from "path";
 import {spawnSync} from "child_process"
 import { resolveFromConcreteName } from "../../../config/Configuration";
 export class CloneObtainingStepHandler extends AbstractStepHandler {
-    constructor(args:any) {
+    constructor(args:{
+        url:string,
+        alwaysClone?:boolean
+    }) {
         super();
-        this.args=args;
+        this.url=args.url;
     }
-    private args:any;
+    private url:string;
+    private alwaysClone:boolean=false;
     private initialize(commands:string[]){
         for(let cmd of commands){
             let splitted=shlex.split(cmd);
@@ -22,26 +27,17 @@ export class CloneObtainingStepHandler extends AbstractStepHandler {
     }
     async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         let vcsService=new GitHubService();
-        let url=context.sharedData.url;
-        let initializeCommands=context.sharedData.initializeCommands;
-        if(initializeCommands!=undefined){
-            this.initialize(initializeCommands)
-        }
-        if(this.args.doFork){
-            try{
-                await vcsService.forkAndClone(undefined,url);
-
-            }
-            catch(e){
-                console.log("Forking failed, cloning directly")
-            }
-        }
-        else{
-            vcsService.clone(url);
-        }
-        
-        let outPath="cloned_projects/"+getRepoDataFromUrl(url).repo.replace(".git","");
+        let outPath="cloned_projects/"+getRepoDataFromUrl(this.url).repo.replace(".git","");
         outPath=resolve(outPath)
+        if(this.alwaysClone && fs.existsSync(outPath)){
+            fs.rmdirSync(outPath,{recursive:true});
+        }
+        else if(!this.alwaysClone && fs.existsSync(outPath)){
+            return context.buildNewContext(new CodeObtainingContext(outPath))
+        }
+        vcsService.clone(this.url);
+        
+
         context=context.buildNewContext(new CodeObtainingContext(outPath))
         //context=context.buildNewContext(await this.validate(context));
         return context
