@@ -145,6 +145,9 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         let newContent = change.newContent
         let oldContent = change.oldContent
+        if(typeof(newContent)!="string"){
+            continue;
+        }
         let index = fileContent.indexOf(oldContent)
         let oldIndex=index;
         if(oldContent!="" && newContent!=oldContent && index!=-1){
