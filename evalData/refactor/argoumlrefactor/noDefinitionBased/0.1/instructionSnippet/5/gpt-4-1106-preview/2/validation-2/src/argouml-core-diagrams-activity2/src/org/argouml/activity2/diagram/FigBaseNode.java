@@ -12,13 +12,12 @@
  */
 
 package org.argouml.activity2.diagram;
-import org.tigris.gef.presentation.FigNode;
+
 import java.awt.Dimension;
 import java.awt.Rectangle;
-
-
 import org.argouml.uml.diagram.DiagramSettings;
 import org.tigris.gef.presentation.FigGroup;
+import org.tigris.gef.presentation.FigNode;
 
 /**
  * The Fig for all node diagram elements. All specialist diagram elements
@@ -74,14 +73,16 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    @Override
     protected void setBoundsImpl(
-            final Rectangle bounds) {
-            _w = bounds.width;
-            _x = bounds.x;
-            _y = bounds.y;
+            final int x,
+            final int y,
+            final int w,
+            final int h) {
 
-        _h = bounds.height;
+        _x = x;
+        _y = y;
+        _w = w;
+        _h = h;
         
         positionChildren();
     }

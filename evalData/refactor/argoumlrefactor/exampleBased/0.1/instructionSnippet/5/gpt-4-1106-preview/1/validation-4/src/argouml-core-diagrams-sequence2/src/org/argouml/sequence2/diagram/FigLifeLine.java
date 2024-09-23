@@ -71,6 +71,7 @@ class FigLifeLine extends ArgoFigGroup {
     FigLifeLine(Object owner, Rectangle bounds, DiagramSettings settings) {
         super(owner, settings);
         initialize(bounds.x, bounds.y);
+        setBounds(bounds);
     }
     
     private void initialize(int x, int y) {
@@ -129,7 +130,10 @@ class FigLifeLine extends ArgoFigGroup {
         if (!hasIncomingCallActionFirst(figMessages)) {
             currentActivation = createActivationFig(
                     getOwner(),
-                    new Rectangle(lineFig.getX(), lineFig.getY(), lineFig.getWidth(), lineFig.getHeight()),
+                    new Rectangle(lineFig.getX(),
+                                  lineFig.getY(), 
+                                  lineFig.getWidth(), 
+                                  lineFig.getHeight()),
                     getSettings(),
                     null);
         }
@@ -148,21 +152,27 @@ class FigLifeLine extends ArgoFigGroup {
                 if (isIncoming(figMessage)) {
                     if (currentActivation == null) {
                         if (figMessage.isSynchCallMessage()) {
-                            // if we are the dest and is a call action, create the
+                            // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
                             currentActivation = createActivationFig(
-                                    getOwner(),
-                                    new Rectangle(lineFig.getX(), ySender, 0, 0),
+                                    getOwner(), 
+                                    new Rectangle(lineFig.getX(), 
+                                                  ySender, 
+                                                  0, 
+                                                  0),
                                     getSettings(),
                                     figMessage);
-                                    activationsCount++;
-                                    } else if (figMessage.isCreateMessage()) {
+                            activationsCount++;
+                        } else if (figMessage.isCreateMessage()) {
                             // if we are the destination of a create action,
                             // create the entire activation
                             currentActivation = createActivationFig(
                                     getOwner(),
-                                    new Rectangle(lineFig.getX(), lineFig.getY(), 0, 0),
+                                    new Rectangle(lineFig.getX(),
+                                                  lineFig.getY(),
+                                                  0,
+                                                  0),
                                     getSettings(),
                                     figMessage);
                             activationsCount++;
@@ -241,13 +251,15 @@ class FigLifeLine extends ArgoFigGroup {
     }
     
     private FigActivation createActivationFig(
-            final Object owner,
+            final Object owner, 
             final Rectangle bounds,
             final DiagramSettings settings,
             final FigMessage messageFig) {
-            return new FigActivation(
+        FigActivation figActivation = new FigActivation(
                 owner,
-                bounds,
+                settings);
+        figActivation.setBounds(bounds);
+        return figActivation;
                 settings,
                 messageFig);
     }
@@ -268,9 +280,10 @@ class FigLifeLine extends ArgoFigGroup {
                 if (figMessage.isSynchCallMessage()) {
                     ySender = figMessage.getFinalY();
                     currentAct = new FigActivation(figMessage.getOwner(),
-                            new Rectangle(lineFig.getX()
+                            getSettings(), figMessage, false);
+                    currentAct.setBounds(new Rectangle(lineFig.getX()
                                     + FigActivation.DEFAULT_WIDTH / 2, ySender,
-                                    0, 0), getSettings(), figMessage, false);
+                                    0, 0));
                 } else if (currentAct != null
                         && figMessage.isReplyMessage()) {
                     ySender = figMessage.getStartY();
@@ -322,12 +335,12 @@ class FigLifeLine extends ArgoFigGroup {
     // having that automatically draw the reply. Maybe fixing the TODO
     // below will resolve this and the synch can go.
     protected synchronized void setBoundsImpl(int x, int y, int w, int h) {
-        final Rectangle oldBounds = getBounds();
+        Rectangle oldBounds = getBounds();
         
         rectFig.setBounds(x, y, w, h);
         lineFig.setBounds(x + w / 2, y, w, h);
         
-        final int yDiff = oldBounds.y - y;
+        int yDiff = oldBounds.y - y;
     
         // we don't recalculate activations, just move them
         for (FigActivation act : activations) {

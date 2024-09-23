@@ -41,7 +41,7 @@ class FigBaseNode extends FigNode implements DiagramNode {
     FigBaseNode(final Object owner, final Rectangle bounds,
             final DiagramSettings settings) {
         super(owner);
-        setBounds(bounds);
+        setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
         this.settings = settings;
     }
     
@@ -68,19 +68,19 @@ class FigBaseNode extends FigNode implements DiagramNode {
     protected void positionChildren() {
         Rectangle myBounds = getBounds();
         if (displayState != null) {
-            displayState.setBounds(myBounds);
+            displayState.setBounds(myBounds.x, myBounds.y, myBounds.width, myBounds.height);
         }
 //      calcBounds();
         updateEdges();
     }
     
     @Override
-    protected void setBoundsImpl(final Rectangle bounds) {
-            _h = bounds.height;
-            _x = bounds.x;
-            _y = bounds.y;
-            _w = bounds.width;
+    protected void setBoundsImpl(int x, int y, int w, int h) {
 
+        _x = x;
+        _y = y;
+        _w = w;
+        _h = h;
         
         positionChildren();
     }

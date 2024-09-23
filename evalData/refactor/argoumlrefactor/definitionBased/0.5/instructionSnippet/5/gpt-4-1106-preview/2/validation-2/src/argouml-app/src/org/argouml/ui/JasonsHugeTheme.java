@@ -35,18 +35,21 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-import javax.swing.plaf.ColorUIResource;
+
 package org.argouml.ui;
 
+import java.awt.Font;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalTheme;
 
 /**
  * This class defines a variation on the default Metal Theme.
  */
- public class JasonsHugeTheme extends MetalTheme {
- 
-    private final FontSet fontSet = new FontSet(16, 14);
+public class JasonsHugeTheme extends MetalTheme {
+
+    private final ThemeColors themeColors = new ThemeColors(102, 153, 204);
+    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getName()

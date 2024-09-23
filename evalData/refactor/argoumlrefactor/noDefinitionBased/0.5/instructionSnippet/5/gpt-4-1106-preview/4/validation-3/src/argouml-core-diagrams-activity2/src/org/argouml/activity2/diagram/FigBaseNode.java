@@ -73,22 +73,24 @@ class FigBaseNode extends FigNode implements DiagramNode {
 //      calcBounds();
         updateEdges();
     }
-    protected void updateBounds(int x, int y, int w, int h) {
+    
+    protected void setBoundsImpl(int x, int y, int w, int h) {
+
         _x = x;
         _y = y;
         _w = w;
         _h = h;
-        // additional logic if necessary
+        
         positionChildren();
+    }
 
-        }
-        /**
-     * This is called to rearrange the contents of the Fig when a child's
+    /**
+     * This is called to rearrange the contents of the Fig when a childs
      * minimum size means it will no longer fit. If this group also has
      * a parent and it will no longer fit that parent then control is
      * delegated to that parent.
      */
-     public void calcBounds() {
+    public void calcBounds() {
         if (getGroup() != null) {
             ((FigGroup) getGroup()).calcBounds();
         } else {
@@ -96,7 +98,6 @@ class FigBaseNode extends FigNode implements DiagramNode {
             int maxw = Math.max(getWidth(), min.width);
             int maxh = Math.max(getHeight(), min.height);
             setBounds(_x, _y, maxw, maxh);
-            }
-            }
-            }
-    
+        }
+    }
+}

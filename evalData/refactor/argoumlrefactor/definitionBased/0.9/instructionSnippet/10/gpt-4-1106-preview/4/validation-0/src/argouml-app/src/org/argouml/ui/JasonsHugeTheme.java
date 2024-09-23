@@ -35,41 +35,18 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+import org.argouml.ui.theme.ColorTheme;
 
-package org.argouml.ui;
+public class JasonsHugeTheme extends MetalTheme {
 
-import javax.swing.plaf.ColorUIResource;
-import javax.swing.plaf.FontUIResource;
-import javax.swing.plaf.metal.MetalTheme;
+    private final ColorTheme colorTheme = new ColorTheme(16);
 
-/**
- * This class defines a variation on the default Metal Theme.
- */
- public class JasonsHugeTheme extends MetalTheme {
+    protected ColorUIResource getPrimary1() { return colorTheme.getPrimary1(); }
 
-    private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
-    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);
-    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
-    
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getName()
-     */
-    public String getName() { return "Very Large Fonts"; }
-	
-    // these are blue in Metal Default Theme
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
-     */
-    protected ColorUIResource getPrimary1() { return primary1; }
+    protected ColorUIResource getPrimary2() { return colorTheme.getPrimary2(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
-     */
-    protected ColorUIResource getPrimary2() { return primary2; }
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
-     */
-    protected ColorUIResource getPrimary3() { return primary3; }
+    protected ColorUIResource getPrimary3() { return colorTheme.getPrimary3(); }
+}
 
     // these are gray in Metal Default Theme
     /*

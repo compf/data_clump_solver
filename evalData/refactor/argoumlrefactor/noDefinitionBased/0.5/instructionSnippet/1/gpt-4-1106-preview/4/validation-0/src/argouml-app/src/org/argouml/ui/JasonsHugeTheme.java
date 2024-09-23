@@ -61,32 +61,32 @@ public class JasonsHugeTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
      */
-    protected ColorUIResource getPrimary1() { return primaryColors.getPrimary1(); }
+    protected ColorUIResource getPrimary1() { return primaryColors.getColor1(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
-    protected ColorUIResource getPrimary2() { return primaryColors.getPrimary2(); }
+    protected ColorUIResource getPrimary2() { return primaryColors.getColor2(); }
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
-    protected ColorUIResource getPrimary3() { return primaryColors.getPrimary3(); }
+    protected ColorUIResource getPrimary3() { return primaryColors.getColor3(); }
 
     // these are gray in Metal Default Theme
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
      */
-    protected ColorUIResource getSecondary1() { return secondaryColors.getPrimary1(); }
+    protected ColorUIResource getSecondary1() { return secondaryColors.getColor1(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
      */
-    protected ColorUIResource getSecondary2() { return secondaryColors.getPrimary2(); }
+    protected ColorUIResource getSecondary2() { return secondaryColors.getColor2(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
      */
-    protected ColorUIResource getSecondary3() { return secondaryColors.getPrimary3(); }
+    protected ColorUIResource getSecondary3() { return secondaryColors.getColor3(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()

@@ -74,13 +74,16 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    @Override
-    protected void setBoundsImpl(NodeDimensions dimensions) {
-            _h = dimensions.getHeight();
-            _x = dimensions.getX();
-            _y = dimensions.getY();
-            _w = dimensions.getWidth();
+    protected void setBoundsImpl(
+            final int x,
+            final int y,
+            final int w,
+            final int h) {
 
+        _x = x;
+        _y = y;
+        _w = bounds.width;
+        _h = bounds.height;
         
         positionChildren();
     }

@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalTheme;
  */
 public class JasonsHugeTheme extends MetalTheme {
 
-    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
+    private ThemeColors primaryColors;
 
     private final ColorUIResource secondary1 =
 	new ColorUIResource(102, 102, 102);

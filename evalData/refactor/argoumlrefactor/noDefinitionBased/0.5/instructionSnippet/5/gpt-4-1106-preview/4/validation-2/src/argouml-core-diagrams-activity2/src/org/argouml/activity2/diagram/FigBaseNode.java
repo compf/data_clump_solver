@@ -73,14 +73,14 @@ class FigBaseNode extends FigNode implements DiagramNode {
 //      calcBounds();
         updateEdges();
     }
-    protected void updateBounds(int x, int y, int w, int h) {
-        // additional logic if necessary
-        }
+    
+    protected void setBoundsImpl(int x, int y, int w, int h) {
+
         _x = x;
         _y = y;
         _w = w;
         _h = h;
-
+        _h = bounds.height;
         
         positionChildren();
     }

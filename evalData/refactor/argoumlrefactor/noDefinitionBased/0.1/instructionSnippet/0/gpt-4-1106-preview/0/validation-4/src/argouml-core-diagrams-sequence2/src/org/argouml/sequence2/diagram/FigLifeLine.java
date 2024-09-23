@@ -128,7 +128,7 @@ class FigLifeLine extends ArgoFigGroup {
         FigActivation currentActivation = null;
         if (!hasIncomingCallActionFirst(figMessages)) {
             currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
-                    getOwner(), new Rectangle(lineFig.getX(), lineFig.getY(), lineFig.getWidth(), lineFig.getHeight()), getSettings(), null);
+
                     null);
         }
         
@@ -149,26 +149,18 @@ class FigLifeLine extends ArgoFigGroup {
                             // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
-                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
-                                    getOwner(), 
-                                    lineFig.getX(), 
-                                    ySender, 
+                            currentActivation = createActivationFig(owner, new Rectangle(lineFig.getX(), ySender, lineFig.getWidth(), lineFig.getHeight()), settings, figMessage);
                                     0, 
                                     0,
-                                    getSettings(),
-                                    figMessage);
+
                             activationsCount++;
                         } else if (figMessage.isCreateMessage()) {
                             // if we are the destination of a create action,
                             // create the entire activation
-                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
-                                    getOwner(),
-                                    lineFig.getX(),
-                                    lineFig.getY(),
+                            currentActivation = createActivationFig(owner, new Rectangle(lineFig.getX(), lineFig.getY(), lineFig.getWidth(), lineFig.getHeight()), settings, figMessage);
                                     0,
                                     0,
-                                    getSettings(),
-                                    figMessage);
+
                             activationsCount++;
                         }
                     } else {
@@ -251,7 +243,7 @@ class FigLifeLine extends ArgoFigGroup {
             final FigMessage messageFig) {
         return new FigActivation(
                 owner,
-                bounds,
+                new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height),
                 settings,
                 messageFig);
     }

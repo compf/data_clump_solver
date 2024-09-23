@@ -1,23 +1,23 @@
 package org.argouml.ui;
 
-import java.awt.Font;
 import javax.swing.plaf.FontUIResource;
+import java.awt.Font;
 
 public class ThemeFonts {
-    private FontUIResource controlFont, systemFont, windowTitleFont, userFont, smallFont;
+    private FontUIResource controlFont, systemFont, userFont, smallFont, windowTitleFont;
 
-    public ThemeFonts(String controlFontFamily, String systemFontFamily, int regularSize, int smallSize) {
-        controlFont = new FontUIResource(controlFontFamily, Font.PLAIN, regularSize);
-        systemFont = new FontUIResource(systemFontFamily, Font.PLAIN, regularSize);
-        windowTitleFont = new FontUIResource(controlFontFamily, Font.BOLD, regularSize);
-        userFont = new FontUIResource(controlFontFamily, Font.PLAIN, regularSize);
-        smallFont = new FontUIResource(systemFontFamily, Font.PLAIN, smallSize);
+    public ThemeFonts(String fontName, int fontWeight, int fontSize) {
+        this.controlFont = new FontUIResource(fontName, fontWeight, fontSize);
+        this.systemFont = new FontUIResource("Dialog", Font.PLAIN, fontSize);
+        this.windowTitleFont = new FontUIResource(fontName, Font.BOLD, fontSize);
+        this.userFont = new FontUIResource(fontName, Font.PLAIN, fontSize);
+        this.smallFont = new FontUIResource("Dialog", Font.PLAIN, fontSize - 2);
     }
 
-    // Getters for the font resources
-    public FontUIResource getControlFont() { return controlFont; }
-    public FontUIResource getSystemFont() { return systemFont; }
+    public FontUIResource getControlTextFont() { return controlFont; }
+    public FontUIResource getSystemTextFont() { return systemFont; }
+    public FontUIResource getUserTextFont() { return userFont; }
+    public FontUIResource getMenuTextFont() { return getControlTextFont(); }
+    public FontUIResource getSubTextFont() { return smallFont; }
     public FontUIResource getWindowTitleFont() { return windowTitleFont; }
-    public FontUIResource getUserFont() { return userFont; }
-    public FontUIResource getSmallFont() { return smallFont; }
 }

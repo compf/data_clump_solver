@@ -38,44 +38,87 @@
 
 package org.argouml.ui;
 
-import javax.swing.plaf.metal.MetalTheme;
+import java.awt.Font;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.metal.MetalTheme;
+
 /**
-* This class defines a variation on the default Metal Theme.
-*/
+ * This class defines a variation on the default Metal Theme.
+ */
 public class JasonsHugeTheme extends MetalTheme {
- 
-    // Fields and methods are now replaced by the ThemeColors class
-    private final ThemeColors themeColors = new ThemeColors();
+
+    private ThemeColors themeColors;
+    private ThemeFonts themeFonts;
+
+    public JasonsHugeTheme() {
+        themeColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
+        themeFonts = new ThemeFonts("SansSerif", "Dialog", Font.PLAIN, Font.BOLD, 16, 14);
+    }
 
     /*
-    * @see javax.swing.plaf.metal.MetalTheme#getName()
-    */
+     * @see javax.swing.plaf.metal.MetalTheme#getName()
+     */
     public String getName() { return "Very Large Fonts"; }
-    // Method implementations need to address the themeColors reference
-    protected ColorUIResource getPrimary1() { return themeColors.getPrimary1(); }
-    
-     protected ColorUIResource getPrimary2() { return themeColors.getPrimary2(); }
-     
-    protected ColorUIResource getPrimary3() { return themeColors.getPrimary3(); }
 
-    protected ColorUIResource getSecondary1() { return themeColors.getSecondary1(); }
-     
-     protected ColorUIResource getSecondary2() { return themeColors.getSecondary2(); }
-    
-    protected ColorUIResource getSecondary3() { return themeColors.getSecondary3(); }
-     
-     public FontUIResource getControlTextFont() { return themeColors.getControlTextFont(); }
-    
-    public FontUIResource getSystemTextFont() { return themeColors.getSystemTextFont(); }
-    
-    public FontUIResource getUserTextFont() { return themeColors.getUserTextFont(); }
-     
-     public FontUIResource getMenuTextFont() { return themeColors.getControlTextFont(); }
-    
-    public FontUIResource getSubTextFont() { return themeColors.getSmallFont(); }
-    
-     public FontUIResource getWindowTitleFont() { return themeColors.getWindowTitleFont(); }
-     
+    // these are blue in Metal Default Theme
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
+     */
+    protected ColorUIResource getPrimary1() { return primary1; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
+     */
+    protected ColorUIResource getPrimary2() { return primary2; }
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
+     */
+    protected ColorUIResource getPrimary3() { return primary3; }
+
+    // these are gray in Metal Default Theme
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
+     */
+    protected ColorUIResource getSecondary1() { return secondary1; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
+     */
+    protected ColorUIResource getSecondary2() { return secondary2; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
+     */
+    protected ColorUIResource getSecondary3() { return secondary3; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()
+     */
+    public FontUIResource getControlTextFont() { return controlFont; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getSystemTextFont()
+     */
+    public FontUIResource getSystemTextFont() { return systemFont; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getUserTextFont()
+     */
+    public FontUIResource getUserTextFont() { return userFont; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
+     */
+    public FontUIResource getMenuTextFont() { return controlFont; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()
+     */
+    public FontUIResource getSubTextFont() { return smallFont; }
+
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
+     */
+    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
 }

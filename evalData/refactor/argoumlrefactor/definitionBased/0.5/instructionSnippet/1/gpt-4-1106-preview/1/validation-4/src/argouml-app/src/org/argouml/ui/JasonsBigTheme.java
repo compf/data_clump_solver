@@ -38,10 +38,9 @@
 
 package org.argouml.ui;
 
-import java.awt.Font;
+import javax.swing.plaf.metal.MetalTheme;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
-import javax.swing.plaf.metal.MetalTheme;
 
 /**
  * This class defines a variation on the default Metal Theme.
@@ -101,20 +100,20 @@ public class JasonsBigTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getUserTextFont()
      */
-    public FontUIResource getUserTextFont() { return themeFonts.getUserFont(); }
+    public FontUIResource getUserTextFont() { return userFont; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
      */
-    public FontUIResource getMenuTextFont() { return themeFonts.getControlFont(); }
+    public FontUIResource getMenuTextFont() { return controlFont; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()
      */
-    public FontUIResource getSubTextFont() { return themeFonts.getSmallFont(); }
+    public FontUIResource getSubTextFont() { return smallFont; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
      */
-    public FontUIResource getWindowTitleFont() { return themeFonts.getWindowTitleFont(); }
+    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
 }

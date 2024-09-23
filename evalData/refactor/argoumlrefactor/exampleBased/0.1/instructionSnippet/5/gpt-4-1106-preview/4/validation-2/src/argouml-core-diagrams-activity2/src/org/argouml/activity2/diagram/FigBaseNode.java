@@ -74,13 +74,17 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    @Override
     protected void setBoundsImpl(
-            final Rectangle bounds) {
-            _w = bounds.width;
-            _x = bounds.x;
-            _y = bounds.y;
+            final int x,
+            final int y,
+            final int w,
+            final int h) {
 
+        _x = x;
+        _y = y;
+        _w = w;
+        _h = h;
+        _w = bounds.width;
         _h = bounds.height;
         
         positionChildren();

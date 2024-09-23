@@ -10,13 +10,14 @@ public class ThemeFonts {
     private final FontUIResource userFont;
     private final FontUIResource smallFont;
 
-    public ThemeFonts(String controlFontFamily, int controlFontStyle, int controlFontSize, String systemFontFamily, int systemFontStyle, int systemFontSize, String windowTitleFontFamily, int windowTitleFontStyle, int windowTitleFontSize) {
-        this.controlFont = new FontUIResource(controlFontFamily, controlFontStyle, controlFontSize);
-        this.systemFont = new FontUIResource(systemFontFamily, systemFontStyle, systemFontSize);
-        this.windowTitleFont = new FontUIResource(windowTitleFontFamily, windowTitleFontStyle, windowTitleFontSize);
-        this.userFont = new FontUIResource(controlFontFamily, controlFontStyle, controlFontSize);
-        this.smallFont = new FontUIResource(systemFontFamily, systemFontStyle, systemFontSize);
+    public ThemeFonts(String controlFontName, String otherFontName, int fontSize, int smallFontSize) {
+        this.controlFont = new FontUIResource(controlFontName, Font.BOLD, fontSize);
+        this.systemFont = new FontUIResource(otherFontName, Font.PLAIN, fontSize);
+        this.windowTitleFont = new FontUIResource(controlFontName, Font.BOLD, fontSize);
+        this.userFont = new FontUIResource(controlFontName, Font.PLAIN, fontSize);
+        this.smallFont = new FontUIResource(otherFontName, Font.PLAIN, smallFontSize);
     }
 
-    // Getters for all fonts
+    // Getters for each font
+
 }

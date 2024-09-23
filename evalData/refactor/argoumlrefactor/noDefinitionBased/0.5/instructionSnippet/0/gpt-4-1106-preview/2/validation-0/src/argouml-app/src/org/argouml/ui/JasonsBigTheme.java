@@ -77,17 +77,17 @@ public class JasonsBigTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
      */
-    protected ColorUIResource getPrimary1() { return primaryColors.getColor1(); }
+    protected ColorUIResource getPrimary1() { return primaryColors.getPrimary1(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
-    protected ColorUIResource getPrimary2() { return primaryColors.getColor2(); }
+    protected ColorUIResource getPrimary2() { return primaryColors.getPrimary2(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
-    protected ColorUIResource getPrimary3() { return primaryColors.getColor3(); }
+    protected ColorUIResource getPrimary3() { return primaryColors.getPrimary3(); }
 
     // these are gray in Metal Default Theme
     /*

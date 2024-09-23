@@ -1,21 +1,22 @@
 {
     "refactorings": {
-        "src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java": [
+        "src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java": [
             {
-                "fromLine": 65,
-                "toLine": 65,
-                "oldContent": "new FontUIResource(\"SansSerif\", Font.BOLD, 16);",
-                "newContent": "private final FontUIResource windowTitleFont = new FontUIResource(\"SansSerif\", Font.BOLD, 16);"
-            }
-        ],
-        "src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java": [
+                "fromLine": 41,
+                "toLine": 60,
+                "oldContent": "private FigBoundary boundaryFigures;\n\n    private List<FigActivation> activations;\n    private List<FigActivation> stackedActivations;\n    \n    static final int WIDTH = 150;\n    static final int HEIGHT = 500;\n\n    FigLifeLine(Object owner, Rectangle bounds, DiagramSettings settings) {\n        super(owner, settings);\n        initialize(bounds.x, bounds.y);\n    }\n    \n    private void initialize(int x, int y) {\n        activations = new LinkedList<FigActivation>();\n        stackedActivations = new LinkedList<FigActivation>();\n        \n        rectFig = new FigRect(x, y, WIDTH, HEIGHT); \n        rectFig.setFilled(false);\n        rectFig.setLineWidth(0);\n        lineFig = new FigLine(x + WIDTH / 2, y, \n                x + WIDTH / 2, y + HEIGHT, LINE_COLOR);\n        lineFig.setDashed(true);\n        lineFig.setLineWidth(LINE_WIDTH);",
+                "newContent": "private FigBoundary boundaryFigures;\n\n    private List<FigActivation> activations;\n    private List<FigActivation> stackedActivations;\n    \n    static final int WIDTH = 150;\n    static final int HEIGHT = 500;\n\n    FigLifeLine(Object owner, Rectangle bounds, DiagramSettings settings) {\n        super(owner, settings);\n        initialize(bounds.x, bounds.y);\n    }\n    \n    private void initialize(int x, int y) {\n        activations = new LinkedList<FigActivation>();\n        stackedActivations = new LinkedList<FigActivation>();\n        \n        FigRect rectFig = new FigRect(x, y, WIDTH, HEIGHT);\n        rectFig.setFilled(false);\n        rectFig.setLineWidth(0);\n        FigLine lineFig = new FigLine(x + WIDTH / 2, y,\n                x + WIDTH / 2, y + HEIGHT, LINE_COLOR);\n        lineFig.setDashed(true);\n        lineFig.setLineWidth(LINE_WIDTH);\n        boundaryFigures = new FigBoundary(rectFig, lineFig);"
+            },
             {
-                "fromLine": 66,
-                "toLine": 66,
-                "oldContent": "new FontUIResource(\"SansSerif\", Font.BOLD, 14);",
-                "newContent": "private final FontUIResource userFont = new FontUIResource(\"SansSerif\", Font.PLAIN, 14);"
+                "fromLine": 338,
+                "toLine": 365,
+                "oldContent": "    protected synchronized void setBoundsImpl(int x, int y, int w, int h) {\n        final Rectangle oldBounds = getBounds();\n        \n        rectFig.setBounds(x, y, w, h);\n        lineFig.setBounds(x + w / 2, y, w, h);\n        \n        final int yDiff = oldBounds.y - y;\n    \n        // we don't recalculate activations, just move them\n        for (FigActivation act : activations) {\n            // TODO: why do we need to remove then add the Fig?\n            removeFig(act);\n            act.setLocation(\n                    lineFig.getX() - FigActivation.DEFAULT_WIDTH / 2,\n                    act.getY() - yDiff);\n            if (activations.size() == 1 \n                    && act.getHeight() == oldBounds.height) {\n                act.setHeight(getHeight());\n            }\n            addFig(act);\n        }\n        damage();\n        _x = x;\n        _y = y;\n        _w = w;\n        _h = h;\n        firePropChange(\"bounds\", oldBounds, getBounds());\n    }\n    \n    public void setLineWidth(int w) {\n        lineFig.setLineWidth(w);\n    }\n}",
+                "newContent": "    protected synchronized void setBoundsImpl(int x, int y, int w, int h) {\n        final Rectangle oldBounds = getBounds();\n        \n        boundaryFigures.getRectFig().setBounds(x, y, w, h);\n        boundaryFigures.getLineFig().setBounds(x + w / 2, y, w, h);\n        \n        final int yDiff = oldBounds.y - y;\n    \n        // we don't recalculate activations, just move them\n        for (FigActivation act : activations) {\n            // TODO: why do we need to remove then add the Fig?\n            removeFig(act);\n            act.setLocation(\n                    boundaryFigures.getLineFig().getX() - FigActivation.DEFAULT_WIDTH / 2,\n                    act.getY() - yDiff);\n            if (activations.size() == 1 \n                    && act.getHeight() == oldBounds.height) {\n                act.setHeight(getHeight());\n            }\n            addFig(act);\n        }\n        damage();\n        _x = x;\n        _y = y;\n        _w = w;\n        _h = h;\n        firePropChange(\"bounds\", oldBounds, getBounds());\n    }\n    \n    public void setLineWidth(int w) {\n        boundaryFigures.getLineFig().setLineWidth(w);\n    }\n}"
             }
         ]
     },
-    "extractedClasses": {}
+    "extractedClasses": {
+        "FigBoundary.java": "class FigBoundary {\n    private FigLine lineFig;\n    private FigRect rectFig;\n    \n    public FigBoundary(FigRect rect, FigLine line) {\n        this.rectFig = rect;\n        this.lineFig = line;\n    }\n    \n    public FigLine getLineFig() { return lineFig; }\n    public FigRect getRectFig() { return rectFig; }\n}\n",
+        "ThemeColor.java": "class ThemeColor {\n    private final ColorUIResource color1;\n    private final ColorUIResource color2;\n    private final ColorUIResource color3;\n\n    public ThemeColor(int r1, int g1, int b1, int r2, int g2, int b2, int r3, int g3, int b3) {\n        color1 = new ColorUIResource(r1, g1, b1);\n        color2 = new ColorUIResource(r2, g2, b2);\n        color3 = new ColorUIResource(r3, g3, b3);\n    }\n\n    public ColorUIResource getColor1() { return color1; }\n    public ColorUIResource getColor2() { return color2; }\n    public ColorUIResource getColor3() { return color3; }\n}\n"
+    }
 }

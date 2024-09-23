@@ -19,7 +19,6 @@ import java.awt.Rectangle;
 import org.argouml.uml.diagram.DiagramSettings;
 import org.tigris.gef.presentation.FigGroup;
 import org.tigris.gef.presentation.FigNode;
-import org.argouml.activity2.diagram.FigDimensions;
 
 /**
  * The Fig for all node diagram elements. All specialist diagram elements
@@ -42,7 +41,7 @@ class FigBaseNode extends FigNode implements DiagramNode {
     FigBaseNode(final Object owner, final Rectangle bounds,
             final DiagramSettings settings) {
         super(owner);
-        setBounds(bounds);
+        setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
         this.settings = settings;
     }
     
@@ -69,20 +68,19 @@ class FigBaseNode extends FigNode implements DiagramNode {
     protected void positionChildren() {
         Rectangle myBounds = getBounds();
         if (displayState != null) {
-            displayState.setBounds(myBounds);
+            displayState.setBounds(myBounds.x, myBounds.y, myBounds.width, myBounds.height);
         }
 //      calcBounds();
         updateEdges();
     }
-        _y = y;
+    
     @Override
-    protected void setBoundsImpl(
-            final FigDimensions dimensions) {
-            _w = dimensions.getWidth();
-            _x = dimensions.getX();
-            _y = dimensions.getY();
+    protected void setBoundsImpl(int x, int y, int w, int h) {
+
+        _x = x;
+        _y = y;
+        _w = w;
         _h = h;
-        _h = dimensions.getHeight();
         
         positionChildren();
     }

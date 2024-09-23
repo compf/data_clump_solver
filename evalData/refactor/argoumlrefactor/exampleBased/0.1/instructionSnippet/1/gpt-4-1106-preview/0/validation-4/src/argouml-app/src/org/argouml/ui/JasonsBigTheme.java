@@ -48,8 +48,8 @@ import javax.swing.plaf.metal.MetalTheme;
  */
 public class JasonsBigTheme extends MetalTheme {
 
-    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
-    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
+    private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
+    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);
     private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);
 
     /*
@@ -107,7 +107,7 @@ public class JasonsBigTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
      */
-    public FontUIResource getMenuTextFont() { return themeFonts.getControlFont(); }
+    public FontUIResource getMenuTextFont() { return themeFonts.getMenuTextFont(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()

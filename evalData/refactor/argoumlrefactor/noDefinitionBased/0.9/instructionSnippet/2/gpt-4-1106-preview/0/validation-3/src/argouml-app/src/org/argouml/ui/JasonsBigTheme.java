@@ -38,6 +38,9 @@
 
 package org.argouml.ui;
 
+import java.awt.Font;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.metal.MetalTheme;
 
 /**
@@ -48,28 +51,20 @@ public class JasonsBigTheme extends MetalTheme {
     private final ColorUIResource primary1 = new ColorUIResource(102, 102, 153);
     private final ColorUIResource primary2 = new ColorUIResource(153, 153, 204);
     private final ColorUIResource primary3 = new ColorUIResource(204, 204, 255);
+    private final ColorUIResource secondary1 = new ColorUIResource(102, 102, 102);
+    private final ColorUIResource secondary2 = new ColorUIResource(153, 153, 153);
+    private final ColorUIResource secondary3 = new ColorUIResource(204, 204, 204);
+    private final FontUIResource controlFont = new FontUIResource("SansSerif", Font.PLAIN, 14);
+    private final FontUIResource systemFont = new FontUIResource("Dialog", Font.PLAIN, 14);
+    private final FontUIResource userFont = new FontUIResource("SansSerif", Font.PLAIN, 14);
+    private final FontUIResource smallFont = new FontUIResource("Dialog", Font.PLAIN, 12);
+    private final FontUIResource windowTitleFont = new FontUIResource("SansSerif", Font.BOLD, 14);
 
-    private final ColorUIResource secondary1 =
-	new ColorUIResource(102, 102, 102);
-    private final ColorUIResource secondary2 =
-	new ColorUIResource(153, 153, 153);
-    private final ColorUIResource secondary3 =
-	new ColorUIResource(204, 204, 204);
-    private final FontUIResource controlFont =
-    private final FontUIResource systemFont =
-    new FontUIResource("SansSerif", Font.PLAIN, 14);
-    new FontUIResource("Dialog", Font.PLAIN, 14);
-    private final FontUIResource windowTitleFont =
-    new FontUIResource("SansSerif", Font.PLAIN, 14);
-    new FontUIResource("SansSerif", Font.BOLD, 14);
-    private final FontUIResource userFont =
-    private final FontUIResource windowTitleFont =
-    private final FontUIResource smallFont =
-    new FontUIResource("Dialog", Font.PLAIN, 12);
-     /**
+    /*
      * @see javax.swing.plaf.metal.MetalTheme#getName()
      */
     public String getName() { return "Large Fonts"; }
+
     // these are blue in Metal Default Theme
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
@@ -80,7 +75,6 @@ public class JasonsBigTheme extends MetalTheme {
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
     protected ColorUIResource getPrimary2() { return primary2; }
-
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
@@ -128,6 +122,8 @@ public class JasonsBigTheme extends MetalTheme {
     public FontUIResource getSubTextFont() { return smallFont; }
 
     /*
+     * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
+    /**
      * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
      */
     public FontUIResource getWindowTitleFont() { return windowTitleFont; }

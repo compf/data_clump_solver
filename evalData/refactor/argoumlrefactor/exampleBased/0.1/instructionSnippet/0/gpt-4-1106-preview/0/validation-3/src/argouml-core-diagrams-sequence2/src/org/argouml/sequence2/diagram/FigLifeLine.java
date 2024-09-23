@@ -48,8 +48,9 @@ import java.util.List;
 import org.argouml.uml.diagram.DiagramSettings;
 import org.argouml.uml.diagram.ui.ArgoFigGroup;
 import org.tigris.gef.presentation.FigLine;
-
 import org.tigris.gef.presentation.FigRect;
+
+
 /**
  * This fig is the LifeLine of a ClassifierRole.
  * @author penyaskito
@@ -126,7 +127,7 @@ class FigLifeLine extends ArgoFigGroup {
         // if not then create an activation at the top of the lifeline
         FigActivation currentActivation = null;
         if (!hasIncomingCallActionFirst(figMessages)) {
-            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, null);
+            currentActivation = createActivationFig(bounds,
                     getOwner(),
                     lineFig.getX(),
                     lineFig.getY(), 
@@ -153,7 +154,7 @@ class FigLifeLine extends ArgoFigGroup {
                             // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
-                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
+                            currentActivation = createActivationFig(bounds,bounds,bounds,
                                     getOwner(), 
                                     lineFig.getX(), 
                                     ySender, 
@@ -165,7 +166,7 @@ class FigLifeLine extends ArgoFigGroup {
                         } else if (figMessage.isCreateMessage()) {
                             // if we are the destination of a create action,
                             // create the entire activation
-                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
+                            currentActivation = createActivationFig(bounds,bounds,bounds,
                                     getOwner(),
                                     lineFig.getX(),
                                     lineFig.getY(),
@@ -250,12 +251,12 @@ class FigLifeLine extends ArgoFigGroup {
     
     private FigActivation createActivationFig(
             final Object owner, 
-            final int x, final int y, final int w, final int h,
+            final Rectangle bounds,
             final DiagramSettings settings,
             final FigMessage messageFig) {
         return new FigActivation(
                 owner,
-                x, y, w, h,
+                new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height),
                 settings,
                 messageFig);
     }
@@ -276,7 +277,7 @@ class FigLifeLine extends ArgoFigGroup {
                 if (figMessage.isSynchCallMessage()) {
                     ySender = figMessage.getFinalY();
                     currentAct = new FigActivation(figMessage.getOwner(),
-                            lineFig.getX(), lineFig.getY(), lineFig.getWidth(), lineFig.getHeight(),
+                            new Rectangle(lineFig.getX()
                                     + FigActivation.DEFAULT_WIDTH / 2, ySender,
                                     0, 0), getSettings(), figMessage, false);
                 } else if (currentAct != null
@@ -330,7 +331,7 @@ class FigLifeLine extends ArgoFigGroup {
     // having that automatically draw the reply. Maybe fixing the TODO
     // below will resolve this and the synch can go.
     protected synchronized void setBoundsImpl(int x, int y, int w, int h) {
-        final int oldX = getX(), oldY = getY(), oldW = getWidth(), oldH = getHeight();
+        final Rectangle oldBounds = getBounds();
         
         rectFig.setBounds(x, y, w, h);
         lineFig.setBounds(x + w / 2, y, w, h);

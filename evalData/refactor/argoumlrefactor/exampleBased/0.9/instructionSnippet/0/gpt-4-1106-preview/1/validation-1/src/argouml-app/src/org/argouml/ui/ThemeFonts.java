@@ -1,27 +1,16 @@
 package org.argouml.ui;
+package org.argouml.ui;
 
+import javax.swing.plaf.FontUIResource;
 import java.awt.Font;
 import javax.swing.plaf.FontUIResource;
 
 public class ThemeFonts {
+    private final FontUIResource controlFont = new FontUIResource("Dialog", Font.BOLD, 18);
+    private final FontUIResource systemFont = new FontUIResource("Dialog", Font.PLAIN, 18);
+    private final FontUIResource windowTitleFont = new FontUIResource("Dialog", Font.BOLD, 18);
+    private final FontUIResource userFont = new FontUIResource("Dialog", Font.PLAIN, 18);
+    private final FontUIResource smallFont = new FontUIResource("Dialog", Font.PLAIN, 14);
 
-    private final FontUIResource controlFont;
-    private final FontUIResource systemFont;
-    private final FontUIResource userFont;
-    private final FontUIResource smallFont;
-    private final FontUIResource windowTitleFont;
-
-    public ThemeFonts(String fontName, int fontStyle, int[] fontSizes) {
-        controlFont = new FontUIResource(fontName, fontStyle, fontSizes[0]);
-        systemFont = new FontUIResource(fontName, fontStyle, fontSizes[1]);
-        userFont = new FontUIResource(fontName, fontStyle, fontSizes[2]);
-        smallFont = new FontUIResource(fontName, fontStyle, fontSizes[3]);
-        windowTitleFont = new FontUIResource(fontName, fontStyle, fontSizes[4]);
-    }
-
-    public FontUIResource getControlFont() { return controlFont; }
-    public FontUIResource getSystemFont() { return systemFont; }
-    public FontUIResource getUserFont() { return userFont; }
-    public FontUIResource getSmallFont() { return smallFont; }
-    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
+    // additional methods related to fonts can be added here
 }

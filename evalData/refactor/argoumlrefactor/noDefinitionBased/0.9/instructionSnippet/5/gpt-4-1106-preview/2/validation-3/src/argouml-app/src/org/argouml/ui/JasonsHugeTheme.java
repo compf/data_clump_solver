@@ -41,38 +41,68 @@ package org.argouml.ui;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalTheme;
- 
- /**
+
+/**
  * This class defines a variation on the default Metal Theme.
  */
-    public class JasonsHugeTheme extends MetalTheme {
-    
-    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
-    
-    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
-    
-    public String getName() { return "Very Large Fonts"; }
-    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
-    protected ColorUIResource getPrimary1() { return primaryColors.getPrimary1(); }
-     
-     protected ColorUIResource getPrimary2() { return primaryColors.getPrimary2(); }
-    
-    protected ColorUIResource getPrimary3() { return primaryColors.getPrimary3(); }
-    
-     protected ColorUIResource getSecondary1() { return secondaryColors.getSecondary1(); }
-     
-    protected ColorUIResource getSecondary2() { return secondaryColors.getSecondary2(); }
-    
-     protected ColorUIResource getSecondary3() { return secondaryColors.getSecondary3(); }
-     
-    public FontUIResource getControlTextFont() { return themeFonts.getControlFont(); }
+public class JasonsHugeTheme extends MetalTheme {
 
-    public FontUIResource getSystemTextFont() { return themeFonts.getSystemFont(); }
-    
-     public FontUIResource getUserTextFont() { return themeFonts.getUserFont(); }
-     
-    public FontUIResource getMenuTextFont() { return themeFonts.getMenuTextFont(); }
-    
-    public FontUIResource getSubTextFont() { return themeFonts.getSmallFont(); }
-     public FontUIResource getWindowTitleFont() { return themeFonts.getWindowTitleFont(); }
+    private final ThemeColor primaryColor;
+    private final ThemeColor secondaryColor;
+    private final ThemeFont themeFont;
+
+    public JasonsHugeTheme() {
+        primaryColor = new ThemeColor(102, 102, 153);
+        secondaryColor = new ThemeColor(102, 102, 102);
+        themeFont = new ThemeFont("SansSerif", "Dialog", 16, 14);
+    }
+
+    public String getName() { return "Very Large Fonts"; }
+
+    protected ColorUIResource getPrimary1() { return primaryColor.getPrimary1(); }
+
+    protected ColorUIResource getPrimary2() { return primaryColor.getPrimary2(); }
+
+    protected ColorUIResource getPrimary3() { return primaryColor.getPrimary3(); }
+
+    protected ColorUIResource getSecondary1() { return secondaryColor.getSecondary1(); }
+
+    protected ColorUIResource getSecondary2() { return secondaryColor.getSecondary2(); }
+
+    protected ColorUIResource getSecondary3() { return secondaryColor.getSecondary3(); }
+
+    public FontUIResource getControlTextFont() { return themeFont.getControlFont(); }
+
+    public FontUIResource getSystemTextFont() { return themeFont.getSystemFont(); }
+
+    public FontUIResource getUserTextFont() { return themeFont.getUserFont(); }
+
+    public FontUIResource getMenuTextFont() { return themeFont.getControlFont(); }
+
+    public FontUIResource getSubTextFont() { return themeFont.getSmallFont(); }
+
+    public FontUIResource getWindowTitleFont() { return themeFont.getWindowTitleFont(); }
+}
+
+    protected ColorUIResource getPrimary2() { return primaryColor.getPrimary2(); }
+
+    protected ColorUIResource getPrimary3() { return primaryColor.getPrimary3(); }
+
+    protected ColorUIResource getSecondary1() { return secondaryColor.getSecondary1(); }
+
+    protected ColorUIResource getSecondary2() { return secondaryColor.getSecondary2(); }
+
+    protected ColorUIResource getSecondary3() { return secondaryColor.getSecondary3(); }
+
+    public FontUIResource getControlTextFont() { return themeFont.getControlFont(); }
+
+    public FontUIResource getSystemTextFont() { return themeFont.getSystemFont(); }
+
+    public FontUIResource getUserTextFont() { return themeFont.getUserFont(); }
+
+    public FontUIResource getMenuTextFont() { return themeFont.getControlFont(); }
+
+    public FontUIResource getSubTextFont() { return themeFont.getSmallFont(); }
+
+    public FontUIResource getWindowTitleFont() { return themeFont.getWindowTitleFont(); }
 }

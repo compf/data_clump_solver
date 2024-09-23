@@ -50,6 +50,7 @@ import org.argouml.uml.diagram.ui.ArgoFigGroup;
 import org.tigris.gef.presentation.FigLine;
 import org.tigris.gef.presentation.FigRect;
 
+
 /**
  * This fig is the LifeLine of a ClassifierRole.
  * @author penyaskito
@@ -57,8 +58,8 @@ import org.tigris.gef.presentation.FigRect;
 class FigLifeLine extends ArgoFigGroup {
 
     private static final long serialVersionUID = 466925040550356L;
-    private FigLine lineFig;
-    private FigRect rectFig;
+
+    private FigLineRect lineRect;
     
     private List<FigActivation> activations;
     private List<FigActivation> stackedActivations;
@@ -75,16 +76,10 @@ class FigLifeLine extends ArgoFigGroup {
         activations = new LinkedList<FigActivation>();
         stackedActivations = new LinkedList<FigActivation>();
         
-        rectFig = new FigRect(x, y, WIDTH, HEIGHT); 
-        rectFig.setFilled(false);
-        rectFig.setLineWidth(0);
-        lineFig = new FigLine(x + WIDTH / 2, y, 
-                x + WIDTH / 2, y + HEIGHT, LINE_COLOR);
-        lineFig.setDashed(true);
-        lineFig.setLineWidth(LINE_WIDTH);
+        lineRect = new FigLineRect(x, y, WIDTH, HEIGHT, LINE_COLOR, LINE_WIDTH);
+        lineRect.setDashed(true);
         
-        addFig(rectFig);
-        addFig(lineFig);
+        addFig(lineRect);
     }
     
     // TODO: Does this still need to be synchronized? If so then explain why.
@@ -100,7 +95,7 @@ class FigLifeLine extends ArgoFigGroup {
 
         // TODO: Do we need this?
         calcBounds();
-    
+    }
     
     /**
      * Add the given list of activation Figs to the lifeline. The fill colour
@@ -127,8 +122,8 @@ class FigLifeLine extends ArgoFigGroup {
         if (!hasIncomingCallActionFirst(figMessages)) {
             currentActivation = createActivationFig(
                     getOwner(),
-                    lineFig.getX(),
-                    lineFig.getY(), 
+                    lineRect.getX(),
+                    lineRect.getY(), 
                     lineFig.getWidth(), 
                     lineFig.getHeight(),
                     getSettings(),
@@ -154,7 +149,7 @@ class FigLifeLine extends ArgoFigGroup {
                             ySender = figMessage.getFinalY();
                             currentActivation = createActivationFig(
                                     getOwner(), 
-                                    lineFig.getX(), 
+                                    lineRect.getX(), 
                                     ySender, 
                                     0, 
                                     0,
@@ -166,7 +161,7 @@ class FigLifeLine extends ArgoFigGroup {
                             // create the entire activation
                             currentActivation = createActivationFig(
                                     getOwner(),
-                                    lineFig.getX(),
+                                    lineRect.getX(),
                                     lineFig.getY(),
                                     0,
                                     0,
@@ -187,7 +182,7 @@ class FigLifeLine extends ArgoFigGroup {
                             currentActivation.setHeight(
                                     ySender - currentActivation.getY());
                             currentActivation.setDestroy(true);
-                            lineFig.setHeight(ySender - getY());
+                            lineRect.setLineHeight(ySender - getY());
                             newActivations.add(currentActivation);
                             currentActivation = null;
                         }
@@ -278,7 +273,7 @@ class FigLifeLine extends ArgoFigGroup {
                 if (figMessage.isSynchCallMessage()) {
                     ySender = figMessage.getFinalY();
                     currentAct = new FigActivation(figMessage.getOwner(),
-                            new Rectangle(lineFig.getX()
+                            new Rectangle(lineRect.getX()
                                     + FigActivation.DEFAULT_WIDTH / 2, ySender,
                                     0, 0), getSettings(), figMessage, false);
                 } else if (currentAct != null
@@ -334,23 +329,22 @@ class FigLifeLine extends ArgoFigGroup {
     protected synchronized void setBoundsImpl(int x, int y, int w, int h) {
         final Rectangle oldBounds = getBounds();
         
-        rectFig.setBounds(x, y, w, h);
-        lineFig.setBounds(x + w / 2, y, w, h);
+        lineRect.setBounds(x, y, w, h);
         
         final int yDiff = oldBounds.y - y;
     
         // we don't recalculate activations, just move them
         for (FigActivation act : activations) {
             // TODO: why do we need to remove then add the Fig?
-            removeFig(act);
+            // removeFig(act);
             act.setLocation(
-                    lineFig.getX() - FigActivation.DEFAULT_WIDTH / 2,
+                    lineRect.getX() - FigActivation.DEFAULT_WIDTH / 2,
                     act.getY() - yDiff);
             if (activations.size() == 1 
                     && act.getHeight() == oldBounds.height) {
                 act.setHeight(getHeight());
             }
-            addFig(act);
+            // addFig(act);
         }
         damage();
         _x = x;
@@ -361,6 +355,6 @@ class FigLifeLine extends ArgoFigGroup {
     }
     
     public void setLineWidth(int w) {
-        lineFig.setLineWidth(w);
+        lineRect.setLineWidth(w);
     }
 }

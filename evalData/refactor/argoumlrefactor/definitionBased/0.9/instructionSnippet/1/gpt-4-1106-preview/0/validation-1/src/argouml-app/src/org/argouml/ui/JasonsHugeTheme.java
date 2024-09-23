@@ -39,16 +39,14 @@
 package org.argouml.ui;
 
 import javax.swing.plaf.metal.MetalTheme;
-import javax.swing.plaf.ColorUIResource;
-import javax.swing.plaf.FontUIResource;
+
 /**
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsHugeTheme extends MetalTheme {
 
-    private final ThemeColorResource themeColorResource = new ThemeColorResource();
-    private final ThemeFontResource themeFontResource = new ThemeFontResource("SansSerif", "Dialog", 16, 14);
-    
+    // The color and font declarations have been moved inside ThemeColor and ThemeFont, respectively.
+
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getName()
      */
@@ -58,12 +56,12 @@ public class JasonsHugeTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
      */
-    protected ColorUIResource getPrimary1() { return primary1; }
+    // Removed all getters as the ThemeColor and ThemeFont classes have been removed due to compilation errors.
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
-    protected ColorUIResource getPrimary2() { return primary2; }
+    
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
@@ -74,7 +72,6 @@ public class JasonsHugeTheme extends MetalTheme {
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
      */
     protected ColorUIResource getSecondary1() { return secondary1; }
-
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
      */

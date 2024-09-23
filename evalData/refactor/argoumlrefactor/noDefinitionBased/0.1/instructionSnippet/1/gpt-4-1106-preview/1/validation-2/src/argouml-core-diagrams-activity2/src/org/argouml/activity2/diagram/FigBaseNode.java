@@ -75,9 +75,8 @@ class FigBaseNode extends FigNode implements DiagramNode {
     }
     
     @Override
-    protected void setBoundsImpl(Rectangle bounds)
-            final Rectangle bounds) {
-            
+    protected void setBoundsImpl(final Rectangle bounds) {
+
         _x = bounds.x;
         _y = bounds.y;
         _w = bounds.width;

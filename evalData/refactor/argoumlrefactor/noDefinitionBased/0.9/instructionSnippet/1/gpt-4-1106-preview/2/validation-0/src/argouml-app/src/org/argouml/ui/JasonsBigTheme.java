@@ -38,16 +38,21 @@
 
 package org.argouml.ui;
 
-import org.argouml.ui.theme.ThemeColors;
-import org.argouml.ui.theme.ThemeFonts;
+import java.awt.Font;
+import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.metal.MetalTheme;
 
 /**
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsBigTheme extends MetalTheme {
 
-    private final ThemeColors colors = new ThemeColors();
-    private final ThemeFonts fonts = new ThemeFonts(Font.PLAIN, 14, Font.BOLD, 12);
+    // Refactoring: Correct import statements for ThemeColors and ThemeFonts
+    private final org.argouml.ui.ThemeColors primaryColors = new org.argouml.ui.ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
+    private final org.argouml.ui.ThemeColors secondaryColors = new org.argouml.ui.ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
+    private final org.argouml.ui.ThemeFonts themeFonts = new org.argouml.ui.ThemeFonts(14, 14, 14, 14, 12);
+
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getName()
      */

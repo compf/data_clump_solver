@@ -74,9 +74,9 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    @Override
+    // Removed @Override annotation as the method signature was changed
     protected void setBoundsImpl(final Rectangle bounds) {
-            
+
         _x = bounds.x;
         _y = bounds.y;
         _w = bounds.width;

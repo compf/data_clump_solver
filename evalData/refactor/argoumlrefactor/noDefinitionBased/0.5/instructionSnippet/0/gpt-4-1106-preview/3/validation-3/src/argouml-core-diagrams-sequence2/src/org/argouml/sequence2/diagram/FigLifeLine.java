@@ -127,7 +127,7 @@ class FigLifeLine extends ArgoFigGroup {
         // if not then create an activation at the top of the lifeline
         FigActivation currentActivation = null;
         if (!hasIncomingCallActionFirst(figMessages)) {
-            currentActivation = createActivationFig(owner, bounds, settings, message);
+            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
                     getOwner(),
                     lineFig.getX(),
                     lineFig.getY(), 
@@ -154,7 +154,7 @@ class FigLifeLine extends ArgoFigGroup {
                             // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
-                            currentActivation = createActivationFig(owner, bounds, settings, message);
+                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);bounds,bounds,
                                     getOwner(), 
                                     lineFig.getX(), 
                                     ySender, 
@@ -166,7 +166,7 @@ class FigLifeLine extends ArgoFigGroup {
                         } else if (figMessage.isCreateMessage()) {
                             // if we are the destination of a create action,
                             // create the entire activation
-                            currentActivation = createActivationFig(owner, bounds, settings, message);
+                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);bounds,bounds,
                                     getOwner(),
                                     lineFig.getX(),
                                     lineFig.getY(),
@@ -256,7 +256,7 @@ class FigLifeLine extends ArgoFigGroup {
             final FigMessage messageFig) {
         return new FigActivation(
                 owner,
-                new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height),
+                bounds,
                 settings,
                 messageFig);
     }

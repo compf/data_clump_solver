@@ -844,8 +844,8 @@ messages:
 {
 					src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:
 			[
-				fromLine:"				31",
-				toLine:"				69",
+				fromLine:"				38",
+				toLine:"				54",
 				oldContent:"
 				private final ColorUIResource primary1 = new ColorUIResource(102, 102, 153);
 				    private final ColorUIResource primary2 = new ColorUIResource(153, 153, 204);
@@ -861,14 +861,27 @@ messages:
 				newContent:"
 				private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
 				    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);				
+",
+,
+				fromLine:"				57",
+				toLine:"				61",
+				oldContent:"
+				private final FontUIResource controlFont =
+					new FontUIResource("SansSerif", Font.PLAIN, 14);
+				    private final FontUIResource systemFont =
+					new FontUIResource("Dialog", Font.PLAIN, 14);
+				    private final FontUIResource windowTitleFont =				
+",
+				newContent:"
+				private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);				
 ",
 ,
 
 			],
 			src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:
 			[
-				fromLine:"				31",
-				toLine:"				69",
+				fromLine:"				38",
+				toLine:"				54",
 				oldContent:"
 				private final ColorUIResource primary1 = new ColorUIResource(102, 102, 153);
 				    private final ColorUIResource primary2 = new ColorUIResource(153, 153, 204);
@@ -886,30 +899,59 @@ messages:
 				    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);				
 ",
 ,
+				fromLine:"				57",
+				toLine:"				61",
+				oldContent:"
+				private final FontUIResource controlFont =
+					new FontUIResource("SansSerif", Font.BOLD, 16);
+				    private final FontUIResource systemFont =
+					new FontUIResource("Dialog", Font.PLAIN, 16);
+				    private final FontUIResource windowTitleFont =				
+",
+				newContent:"
+				private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);				
+",
+,
 
 			],
 			src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java:
 			[
-				fromLine:"				34",
-				toLine:"				34",
-				oldContent:"
-				class FigLifeLine extends ArgoFigGroup {				
-",
-				newContent:"
-				class FigLifeLine extends ArgoFigGroup implements DiagramElement {				
-",
-,
-				fromLine:"				40",
-				toLine:"				44",
+				fromLine:"				37",
+				toLine:"				45",
 				oldContent:"
 				private FigLine lineFig;
 				    private FigRect rectFig;
 				    
 				    private List<FigActivation> activations;
-				    private List<FigActivation> stackedActivations;				
+				    private List<FigActivation> stackedActivations;
+				    
+				    static final int WIDTH = 150;
+				    static final int HEIGHT = 500;				
 ",
 				newContent:"
-				private DiagramElementLayout layout;				
+				private LifeLineFigures lifeLineFigures;
+				    private List<FigActivation> activations;
+				    private List<FigActivation> stackedActivations;				
+",
+,
+				fromLine:"				52",
+				toLine:"				62",
+				oldContent:"
+				rectFig = new FigRect(x, y, WIDTH, HEIGHT); 
+				        rectFig.setFilled(false);
+				        rectFig.setLineWidth(0);
+				        lineFig = new FigLine(x + WIDTH / 2, y, 
+				                x + WIDTH / 2, y + HEIGHT, LINE_COLOR);
+				        lineFig.setDashed(true);
+				        lineFig.setLineWidth(LINE_WIDTH);
+				        
+				        addFig(rectFig);
+				        addFig(lineFig);				
+",
+				newContent:"
+				lifeLineFigures = new LifeLineFigures(x, y, settings);
+				        addFig(lifeLineFigures.getRect());
+				        addFig(lifeLineFigures.getLine());				
 ",
 ,
 
@@ -945,32 +987,82 @@ messages:
 			    public ColorUIResource getColor3() {
 			        return color3;
 			    }
-			}
-						
+			}			
 ",
-			src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/DiagramElementLayout.java:"
+			src/argouml-app/src/org/argouml/ui/ThemeFonts.java:"
+			package org.argouml.ui;
+			
+			import java.awt.Font;
+			import javax.swing.plaf.FontUIResource;
+			
+			public class ThemeFonts {
+			    private final FontUIResource controlFont;
+			    private final FontUIResource systemFont;
+			    private final FontUIResource titleFont;
+			    private final FontUIResource userFont;
+			    private final FontUIResource smallFont;
+			
+			    public ThemeFonts(String controlFamily, String systemFamily, int fontSize, int smallFontSize) {
+			        controlFont = new FontUIResource(controlFamily, Font.PLAIN, fontSize);
+			        systemFont = new FontUIResource(systemFamily, Font.PLAIN, fontSize);
+			        titleFont = new FontUIResource(controlFamily, Font.BOLD, fontSize);
+			        userFont = new FontUIResource(controlFamily, Font.PLAIN, fontSize);
+			        smallFont = new FontUIResource(systemFamily, Font.PLAIN, smallFontSize);
+			    }
+			
+			    public FontUIResource getControlFont() {
+			        return controlFont;
+			    }
+			
+			    public FontUIResource getSystemFont() {
+			        return systemFont;
+			    }
+			
+			    public FontUIResource getTitleFont() {
+			        return titleFont;
+			    }
+			
+			    public FontUIResource getUserFont() {
+			        return userFont;
+			    }
+			
+			    public FontUIResource getSmallFont() {
+			        return smallFont;
+			    }
+			}			
+",
+			src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/LifeLineFigures.java:"
 			package org.argouml.sequence2.diagram;
 			
-			import java.util.List;
+			import org.argouml.uml.diagram.DiagramSettings;
 			import org.tigris.gef.presentation.FigLine;
 			import org.tigris.gef.presentation.FigRect;
 			
-			public class DiagramElementLayout {
-			    private FigLine lineFig;
-			    private FigRect rectFig;
-			    private List<FigActivation> activations;
-			    private List<FigActivation> stackedActivations;
+			public class LifeLineFigures {
 			
-			    public DiagramElementLayout(FigLine lineFig, FigRect rectFig) {
-			        this.lineFig = lineFig;
-			        this.rectFig = rectFig;
-			        this.activations = new LinkedList<>();
-			        this.stackedActivations = new LinkedList<>();
+			    private static final int WIDTH = 150;
+			    private static final int HEIGHT = 500;
+			
+			    private final FigLine lineFig;
+			    private final FigRect rectFig;
+			
+			    public LifeLineFigures(int x, int y, DiagramSettings settings) {
+			        rectFig = new FigRect(x, y, WIDTH, HEIGHT);
+			        rectFig.setFilled(false);
+			        rectFig.setLineWidth(0);
+			        lineFig = new FigLine(x + WIDTH / 2, y, x + WIDTH / 2, y + HEIGHT, settings.getLineColor());
+			        lineFig.setDashed(true);
+			        lineFig.setLineWidth(settings.getLineWidth());
 			    }
 			
-			    // Additional methods to manipulate activations and stackedActivations
-			}
-						
+			    public FigLine getLine() {
+			        return lineFig;
+			    }
+			
+			    public FigRect getRect() {
+			        return rectFig;
+			    }
+			}			
 ",
 		
 }
@@ -988,13 +1080,13 @@ messages:
 ",
 ,
 	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.1:compile (default-compile) on project argouml-diagrams-sequence: Compilation failure: Compilation failure: 
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/DiagramElementLayout.java:[16,32] cannot find symbol
-	[ERROR]   symbol:   class LinkedList
-	[ERROR]   location: class org.argouml.sequence2.diagram.DiagramElementLayout
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/DiagramElementLayout.java:[17,39] cannot find symbol
-	[ERROR]   symbol:   class LinkedList
-	[ERROR]   location: class org.argouml.sequence2.diagram.DiagramElementLayout
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.1:compile (default-compile) on project argouml: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[55,9] illegal start of type
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[55,13] invalid method declaration; return type required
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[55,28] illegal start of type
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[55,9] illegal start of type
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[55,13] invalid method declaration; return type required
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[55,28] illegal start of type
 	[ERROR] -> [Help 1]
 	[ERROR] 
 	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
@@ -1004,7 +1096,7 @@ messages:
 	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 	[ERROR] 
 	[ERROR] After correcting the problems, you can resume the build with the command
-	[ERROR]   mvn <args> -rf :argouml-diagrams-sequence
+	[ERROR]   mvn <args> -rf :argouml
 		
 ",
 	role:"
@@ -1019,27 +1111,267 @@ messages:
 ",
 ,
 	content:"
-	//src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/DiagramElementLayout.java
-	package org.argouml.sequence2.diagram;
+	//src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java
+	/* $Id$
+	 *****************************************************************************
+	 * Copyright (c) 2009 Contributors - see below
+	 * All rights reserved. This program and the accompanying materials
+	 * are made available under the terms of the Eclipse Public License v1.0
+	 * which accompanies this distribution, and is available at
+	 * http://www.eclipse.org/legal/epl-v10.html
+	 *
+	 * Contributors:
+	 *    tfmorris
+	 *****************************************************************************
+	 *
+	 * Some portions of this file was previously release using the BSD License:
+	 */
 	
-	import java.util.List;
-	import org.tigris.gef.presentation.FigLine;
-	import org.tigris.gef.presentation.FigRect;
+	// Copyright (c) 1996-2006 The Regents of the University of California. All
+	// Rights Reserved. Permission to use, copy, modify, and distribute this
+	// software and its documentation without fee, and without a written
+	// agreement is hereby granted, provided that the above copyright notice
+	// and this paragraph appear in all copies.  This software program and
+	// documentation are copyrighted by The Regents of the University of
+	// California. The software program and documentation are supplied "AS
+	// IS", without any accompanying services from The Regents. The Regents
+	// does not warrant that the operation of the program will be
+	// uninterrupted or error-free. The end-user understands that the program
+	// was developed for research purposes and is advised not to rely
+	// exclusively on the program for any reason.  IN NO EVENT SHALL THE
+	// UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+	// SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS,
+	// ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
+	// THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF
+	// SUCH DAMAGE. THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY
+	// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+	// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE
+	// PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
+	// CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
+	// UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 	
-	public class DiagramElementLayout {
-	    private FigLine lineFig;
-	    private FigRect rectFig;
-	    private List<FigActivation> activations;
-	    private List<FigActivation> stackedActivations;
+	package org.argouml.ui;
 	
-	    public DiagramElementLayout(FigLine lineFig, FigRect rectFig) {
-	        this.lineFig = lineFig;
-	        this.rectFig = rectFig;
-	        this.activations = new LinkedList<>();
-	        this.stackedActivations = new LinkedList<>();
-	    }
+	import java.awt.Font;
+	import javax.swing.plaf.ColorUIResource;
+	import javax.swing.plaf.FontUIResource;
+	import javax.swing.plaf.metal.MetalTheme;
 	
-	    // Additional methods to manipulate activations and stackedActivations
+	/**
+	 * This class defines a variation on the default Metal Theme.
+	 */
+	public class JasonsHugeTheme extends MetalTheme {
+	
+	    private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
+	    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);
+	
+	    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
+		new FontUIResource("SansSerif", Font.BOLD, 16);
+	    private final FontUIResource userFont =
+		new FontUIResource("SansSerif", Font.PLAIN, 16);
+	    private final FontUIResource smallFont =
+		new FontUIResource("Dialog", Font.PLAIN, 14);
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getName()
+	     */
+	    public String getName() { return "Very Large Fonts"; }
+	
+	    // these are blue in Metal Default Theme
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
+	     */
+	    protected ColorUIResource getPrimary1() { return primary1; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
+	     */
+	    protected ColorUIResource getPrimary2() { return primary2; }
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
+	     */
+	    protected ColorUIResource getPrimary3() { return primary3; }
+	
+	    // these are gray in Metal Default Theme
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
+	     */
+	    protected ColorUIResource getSecondary1() { return secondary1; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
+	     */
+	    protected ColorUIResource getSecondary2() { return secondary2; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
+	     */
+	    protected ColorUIResource getSecondary3() { return secondary3; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()
+	     */
+	    public FontUIResource getControlTextFont() { return controlFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSystemTextFont()
+	     */
+	    public FontUIResource getSystemTextFont() { return systemFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getUserTextFont()
+	     */
+	    public FontUIResource getUserTextFont() { return userFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
+	     */
+	    public FontUIResource getMenuTextFont() { return controlFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()
+	     */
+	    public FontUIResource getSubTextFont() { return smallFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
+	     */
+	    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
+	}
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	//src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java
+	/* $Id$
+	 *****************************************************************************
+	 * Copyright (c) 2009 Contributors - see below
+	 * All rights reserved. This program and the accompanying materials
+	 * are made available under the terms of the Eclipse Public License v1.0
+	 * which accompanies this distribution, and is available at
+	 * http://www.eclipse.org/legal/epl-v10.html
+	 *
+	 * Contributors:
+	 *    tfmorris
+	 *****************************************************************************
+	 *
+	 * Some portions of this file was previously release using the BSD License:
+	 */
+	
+	// Copyright (c) 1996-2006 The Regents of the University of California. All
+	// Rights Reserved. Permission to use, copy, modify, and distribute this
+	// software and its documentation without fee, and without a written
+	// agreement is hereby granted, provided that the above copyright notice
+	// and this paragraph appear in all copies.  This software program and
+	// documentation are copyrighted by The Regents of the University of
+	// California. The software program and documentation are supplied "AS
+	// IS", without any accompanying services from The Regents. The Regents
+	// does not warrant that the operation of the program will be
+	// uninterrupted or error-free. The end-user understands that the program
+	// was developed for research purposes and is advised not to rely
+	// exclusively on the program for any reason.  IN NO EVENT SHALL THE
+	// UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+	// SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS,
+	// ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
+	// THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF
+	// SUCH DAMAGE. THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY
+	// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+	// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE
+	// PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
+	// CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
+	// UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+	
+	package org.argouml.ui;
+	
+	import java.awt.Font;
+	import javax.swing.plaf.ColorUIResource;
+	import javax.swing.plaf.FontUIResource;
+	import javax.swing.plaf.metal.MetalTheme;
+	
+	/**
+	 * This class defines a variation on the default Metal Theme.
+	 */
+	public class JasonsBigTheme extends MetalTheme {
+	
+	    private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
+	    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);
+	
+	    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);
+		new FontUIResource("SansSerif", Font.BOLD, 14);
+	    private final FontUIResource userFont =
+		new FontUIResource("SansSerif", Font.PLAIN, 14);
+	    private final FontUIResource smallFont =
+		new FontUIResource("Dialog", Font.PLAIN, 12);
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getName()
+	     */
+	    public String getName() { return "Large Fonts"; }
+	
+	    // these are blue in Metal Default Theme
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
+	     */
+	    protected ColorUIResource getPrimary1() { return primary1; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
+	     */
+	    protected ColorUIResource getPrimary2() { return primary2; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
+	     */
+	    protected ColorUIResource getPrimary3() { return primary3; }
+	
+	    // these are gray in Metal Default Theme
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
+	     */
+	    protected ColorUIResource getSecondary1() { return secondary1; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
+	     */
+	    protected ColorUIResource getSecondary2() { return secondary2; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
+	     */
+	    protected ColorUIResource getSecondary3() { return secondary3; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()
+	     */
+	    public FontUIResource getControlTextFont() { return controlFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSystemTextFont()
+	     */
+	    public FontUIResource getSystemTextFont() { return systemFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getUserTextFont()
+	     */
+	    public FontUIResource getUserTextFont() { return userFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
+	     */
+	    public FontUIResource getMenuTextFont() { return controlFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()
+	     */
+	    public FontUIResource getSubTextFont() { return smallFont; }
+	
+	    /*
+	     * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
+	     */
+	    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
 	}
 		
 ",

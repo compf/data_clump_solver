@@ -127,14 +127,14 @@ class FigLifeLine extends ArgoFigGroup {
         // if not then create an activation at the top of the lifeline
         FigActivation currentActivation = null;
         if (!hasIncomingCallActionFirst(figMessages)) {
-            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
+            currentActivation = createActivationFig(new Rectangle(
                     getOwner(),
                     lineFig.getX(),
                     lineFig.getY(), 
                     lineFig.getWidth(), 
                     lineFig.getHeight(),
                     getSettings(),
-                    null);
+                    null)), settings, null);
         }
         
         // This counts the number of repeated call/returns that take place
@@ -154,26 +154,26 @@ class FigLifeLine extends ArgoFigGroup {
                             // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
-                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
+                            currentActivation = createActivationFig(new Rectangle(new Rectangle(new Rectangle(
                                     getOwner(), 
                                     lineFig.getX(), 
                                     ySender, 
                                     0, 
                                     0,
                                     getSettings(),
-                                    figMessage);
+                                    figMessage)), settings, figMessage);
                             activationsCount++;
                         } else if (figMessage.isCreateMessage()) {
                             // if we are the destination of a create action,
                             // create the entire activation
-                            currentActivation = createActivationFig(owner, new Rectangle(x, y, w, h), settings, message);
+                            currentActivation = createActivationFig(new Rectangle(new Rectangle(new Rectangle(
                                     getOwner(),
                                     lineFig.getX(),
                                     lineFig.getY(),
                                     0,
                                     0,
                                     getSettings(),
-                                    figMessage);
+                                    figMessage)), settings, figMessage);
                             activationsCount++;
                         }
                     } else {

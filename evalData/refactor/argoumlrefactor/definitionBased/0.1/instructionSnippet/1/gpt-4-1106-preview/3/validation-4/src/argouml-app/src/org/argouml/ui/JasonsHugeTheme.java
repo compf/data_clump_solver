@@ -42,14 +42,15 @@ import java.awt.Font;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalTheme;
+
 /**
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsHugeTheme extends MetalTheme {
 
-    private final org.argouml.ui.ThemeColors themeColors = new org.argouml.ui.ThemeColors(102, 153, 204);
-    private final org.argouml.ui.ThemeFonts themeFonts = new org.argouml.ui.ThemeFonts("SansSerif", "Dialog", 16, 14);
-    
+    private final ThemeColors themeColors = new ThemeColors(102, 153, 204);
+    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
+
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getName()
      */
@@ -65,7 +66,9 @@ public class JasonsHugeTheme extends MetalTheme {
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
     protected ColorUIResource getPrimary2() { return themeColors.getPrimary2(); }
-    
+    /*
+     * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
+     */
     protected ColorUIResource getPrimary3() { return themeColors.getPrimary3(); }
 
     // these are gray in Metal Default Theme

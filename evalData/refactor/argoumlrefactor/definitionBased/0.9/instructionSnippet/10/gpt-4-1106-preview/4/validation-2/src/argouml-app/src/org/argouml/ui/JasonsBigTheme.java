@@ -35,86 +35,37 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-
-package org.argouml.ui;
-
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalTheme;
+import org.argouml.ui.theme.ColorTheme;
 
-/**
- * This class defines a variation on the default Metal Theme.
- */
- public class JasonsBigTheme extends MetalTheme {
+public class JasonsBigTheme extends MetalTheme {
 
-    private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
-    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);
-    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);
-    
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getName()
-     */
-    public String getName() { return "Large Fonts"; }
-	
-    // these are blue in Metal Default Theme
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
-     */
-    protected ColorUIResource getPrimary1() { return primary1; }
+    private final ColorTheme colorTheme = new ColorTheme(14);
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
-     */
-    protected ColorUIResource getPrimary2() { return primary2; }
+    protected ColorUIResource getPrimary1() { return colorTheme.getPrimary1(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
-     */
-    protected ColorUIResource getPrimary3() { return primary3; }
+    protected ColorUIResource getPrimary2() { return colorTheme.getPrimary2(); }
+
+    protected ColorUIResource getPrimary3() { return colorTheme.getPrimary3(); }
 
     // these are gray in Metal Default Theme
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
-     */
-    protected ColorUIResource getSecondary1() { return secondary1; }
+    protected ColorUIResource getSecondary1() { return colorTheme.getSecondary1(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
-     */
-    protected ColorUIResource getSecondary2() { return secondary2; }
+    protected ColorUIResource getSecondary2() { return colorTheme.getSecondary2(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
-     */
-    protected ColorUIResource getSecondary3() { return secondary3; }
+    protected ColorUIResource getSecondary3() { return colorTheme.getSecondary3(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()
-     */
-    public FontUIResource getControlTextFont() { return controlFont; }
+    public FontUIResource getControlTextFont() { return colorTheme.getControlTextFont(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSystemTextFont()
-     */
-    public FontUIResource getSystemTextFont() { return systemFont; }
+    public FontUIResource getSystemTextFont() { return colorTheme.getSystemTextFont(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getUserTextFont()
-     */
-    public FontUIResource getUserTextFont() { return userFont; }
+    public FontUIResource getUserTextFont() { return colorTheme.getUserTextFont(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
-     */
-    public FontUIResource getMenuTextFont() { return controlFont; }
+    public FontUIResource getMenuTextFont() { return colorTheme.getMenuTextFont(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()
-     */
-    public FontUIResource getSubTextFont() { return smallFont; }
+    public FontUIResource getSubTextFont() { return colorTheme.getSubTextFont(); }
 
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
-     */
-    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
+    public FontUIResource getWindowTitleFont() { return colorTheme.getWindowTitleFont(); }
 }

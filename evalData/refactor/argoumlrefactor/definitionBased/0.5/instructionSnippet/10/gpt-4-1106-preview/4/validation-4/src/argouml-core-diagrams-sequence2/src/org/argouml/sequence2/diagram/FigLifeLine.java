@@ -118,7 +118,7 @@ class FigLifeLine extends ArgoFigGroup {
     }
     
     private List<FigActivation> createStandardActivations(
-                final List<FigMessage> figMessages) {
+                final List<FigMessage> figMessages) {        
         
         final List<FigActivation> newActivations =
             new LinkedList<FigActivation>();
@@ -128,13 +128,16 @@ class FigLifeLine extends ArgoFigGroup {
         FigActivation currentActivation = null;
         if (!hasIncomingCallActionFirst(figMessages)) {
             currentActivation = createActivationFig(
-                    getOwner(),
-                    new Rectangle(lineFig.getX(), lineFig.getY(), lineFig.getWidth(), lineFig.getHeight()),
-                    getSettings(),
-                    null);
-                    }
-                    
-                    // This counts the number of repeated call/returns that take place
+                    new ActivationParams(getOwner(),
+                                        lineFig.getX(),
+                                        lineFig.getY(), 
+                                        lineFig.getWidth(), 
+                                        lineFig.getHeight(),
+                                        getSettings(),
+                                        null));
+        }
+        
+        // This counts the number of repeated call/returns that take place
         // after the first activation. This shouldn't be required once
         // we handle stacked activations better and once issue 5692 and 5693
         // are sorted.
@@ -148,30 +151,37 @@ class FigLifeLine extends ArgoFigGroup {
                 if (isIncoming(figMessage)) {
                     if (currentActivation == null) {
                         if (figMessage.isSynchCallMessage()) {
-                            // if we are the dest and is a call action, create the
+                            // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
                             currentActivation = createActivationFig(
-                                    getOwner(),
-                                    new Rectangle(lineFig.getX(), ySender, 0, 0),
-                                    getSettings(),
-                                    figMessage);
-                                    // if we are the destination of a create action,
-                                    } else if (figMessage.isCreateMessage()) {
-                                    activationsCount++;
+                                    new ActivationParams(getOwner(), 
+                                                        lineFig.getX(), 
+                                                        ySender, 
+                                                        0, 
+                                                        0,
+                                                        getSettings(),
+                                                        figMessage));
+                            activationsCount++;
+                        } else if (figMessage.isCreateMessage()) {
+                            // if we are the destination of a create action,
                             // create the entire activation
                             currentActivation = createActivationFig(
-                                    getOwner(),
-                                    new Rectangle(lineFig.getX(), lineFig.getY(), 0, 0),
-                                    getSettings(),
-                                    figMessage);
-                                    activationsCount++;
-                                    }
-                                    } else {
-                                    if (figMessage.isSynchCallMessage()
-                                    && isSameClassifierRoles(
+                                    new ActivationParams(getOwner(),
+                                                        lineFig.getX(),
+                                                        lineFig.getY(),
+                                                        0,
+                                                        0,
+                                                        getSettings(),
+                                                        figMessage));
+                            activationsCount++;
+                        }
+                    } else {
+                        if (figMessage.isSynchCallMessage()
+                                && isSameClassifierRoles(
                                         currentActivation.getActivatingMessage(),
                                         figMessage)) {
+                            activationsCount++;
                         } else if (figMessage.isDeleteMessage()) {
                             // if we are the target of a destroy action
                             // the figlifeline ends here and we add the activation
@@ -239,19 +249,15 @@ class FigLifeLine extends ArgoFigGroup {
         return (messageFig.getSourceFigNode().getOwner() == getOwner());
     }
     
-    private FigActivation createActivationFig(
-            final Object owner,
-            final Rectangle bounds,
-            final DiagramSettings settings,
-            final FigMessage messageFig) {
-            return new FigActivation(
-                owner,
-                bounds,
-                settings,
-                messageFig);
-                }
-                
-                private List<FigActivation> createStackedActivations(
+    private FigActivation createActivationFig(ActivationParams params) {
+        return new FigActivation(
+                params.getOwner(),
+                new Rectangle(params.getXPosition(), params.getYPosition(), params.getWidthValue(), params.getHeightValue()),
+                params.getDiagramSettings(),
+                params.getFigMessage());
+    }
+    
+    private List<FigActivation> createStackedActivations(
             final List<FigMessage> figMessages) {
         
         final List<FigActivation> newActivations =

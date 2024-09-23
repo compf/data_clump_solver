@@ -288,10 +288,7 @@ messages:
 				
 				    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
 				    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
-				    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);
-				
-				    // Rest of the class
-				}				
+				    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);				
 ",
 ,
 
@@ -353,10 +350,7 @@ messages:
 				
 				    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
 				    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
-				    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
-				
-				    // Rest of the class
-				}				
+				    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);				
 ",
 ,
 
@@ -384,6 +378,10 @@ messages:
 				newContent:"
 				
 				package org.argouml.sequence2.diagram;
+				
+				import java.util.Collections;
+				import java.util.LinkedList;
+				import java.util.List;
 				
 				import org.argouml.uml.diagram.DiagramSettings;
 				import org.argouml.uml.diagram.ui.ArgoFigGroup;
@@ -417,12 +415,12 @@ messages:
 				    
 				    private FigActivation createActivationFig(
 				            final Object owner, 
-				            final ActivationDimensions dimensions,
+				            final DiagramRectangle diagramRectangle,
 				            final DiagramSettings settings,
 				            final FigMessage messageFig) {
 				        return new FigActivation(
 				                owner,
-				                dimensions.asRectangle(),				
+				                diagramRectangle.toRectangle(),				
 ",
 ,
 
@@ -446,6 +444,8 @@ messages:
 				newContent:"
 				
 				package org.argouml.activity2.diagram;
+				
+				import java.awt.Dimension;
 				
 				import org.argouml.uml.diagram.DiagramSettings;
 				import org.tigris.gef.presentation.FigGroup;
@@ -477,12 +477,12 @@ messages:
 				    
 				    @Override
 				    protected void setBoundsImpl(
-				            final NodeBounds bounds) {
+				            final DiagramRectangle diagramRectangle) {
 				
-				        _x = bounds.getX();
-				        _y = bounds.getY();
-				        _w = bounds.getWidth();
-				        _h = bounds.getHeight();				
+				        _x = diagramRectangle.getX();
+				        _y = diagramRectangle.getY();
+				        _w = diagramRectangle.getWidth();
+				        _h = diagramRectangle.getHeight();				
 ",
 ,
 
@@ -497,21 +497,18 @@ messages:
 			import javax.swing.plaf.ColorUIResource;
 			
 			public class ThemeColors {
+			    private final ColorUIResource primary1, primary2, primary3, secondary1, secondary2, secondary3;
 			
-			    private final ColorUIResource primary1, primary2, primary3;
-			    private final ColorUIResource secondary1, secondary2, secondary3;
-			
-			    public ThemeColors(int p1Red, int p1Green, int p1Blue,
-			                       int p2Red, int p2Green, int p2Blue,
-			                       int p3Red, int p3Green, int p3Blue) {
-			        primary1 = new ColorUIResource(p1Red, p1Green, p1Blue);
-			        primary2 = new ColorUIResource(p2Red, p2Green, p2Blue);
-			        primary3 = new ColorUIResource(p3Red, p3Green, p3Blue);
+			    public ThemeColors(int p1r, int p1g, int p1b, int p2r, int p2g, int p2b, int p3r, int p3g, int p3b) {
+			        this.primary1 = new ColorUIResource(p1r, p1g, p1b);
+			        this.primary2 = new ColorUIResource(p2r, p2g, p2b);
+			        this.primary3 = new ColorUIResource(p3r, p3g, p3b);
+			        this.secondary1 = new ColorUIResource(p1r, p1g, p1b);
+			        this.secondary2 = new ColorUIResource(p2r, p2g, p2b);
+			        this.secondary3 = new ColorUIResource(p3r, p3g, p3b);
 			    }
-			
-			    // Getters and potentially other methods...
-			}
-						
+			    // Getters and possibly other methods...
+			}			
 ",
 			src/org/argouml/ui/ThemeFonts.java:"
 			package org.argouml.ui;
@@ -520,57 +517,47 @@ messages:
 			import javax.swing.plaf.FontUIResource;
 			
 			public class ThemeFonts {
+			    private final FontUIResource controlFont, systemFont, windowTitleFont, userFont, smallFont;
 			
-			    private final FontUIResource controlFont;
-			    private final FontUIResource systemFont;
-			    private final FontUIResource windowTitleFont;
-			    private final FontUIResource userFont;
-			    private final FontUIResource smallFont;
-			
-			    public ThemeFonts(String controlFontName, String systemFontName, int largeSize, int smallSize) {
-			        controlFont = new FontUIResource(controlFontName, Font.PLAIN, largeSize);
-			        systemFont = new FontUIResource(systemFontName, Font.PLAIN, largeSize);
-			        windowTitleFont = new FontUIResource(controlFontName, Font.BOLD, largeSize);
-			        userFont = new FontUIResource(controlFontName, Font.PLAIN, largeSize);
-			        smallFont = new FontUIResource(systemFontName, Font.PLAIN, smallSize);
+			    public ThemeFonts(String controlFontName, String systemFontName, int fontSize, int smallFontSize) {
+			        this.controlFont = new FontUIResource(controlFontName, Font.PLAIN, fontSize);
+			        this.systemFont = new FontUIResource(systemFontName, Font.PLAIN, fontSize);
+			        this.windowTitleFont = new FontUIResource(controlFontName, Font.BOLD, fontSize);
+			        this.userFont = new FontUIResource(controlFontName, Font.PLAIN, fontSize);
+			        this.smallFont = new FontUIResource(systemFontName, Font.PLAIN, smallFontSize);
 			    }
-			
-			    // Getters and potentially other methods...
-			}
-						
+			    // Getters and possibly other methods...
+			}			
 ",
-			src/org/argouml/sequence2/diagram/ActivationDimensions.java:"
+			src/org/argouml/sequence2/diagram/DiagramRectangle.java:"
 			package org.argouml.sequence2.diagram;
 			
 			import java.awt.Rectangle;
 			
-			public class ActivationDimensions {
-			
+			public class DiagramRectangle {
 			    private final int x, y, width, height;
 			
-			    public ActivationDimensions(int x, int y, int width, int height) {
+			    public DiagramRectangle(int x, int y, int width, int height) {
 			        this.x = x;
 			        this.y = y;
 			        this.width = width;
 			        this.height = height;
 			    }
 			
-			    public Rectangle asRectangle() {
+			    public Rectangle toRectangle() {
 			        return new Rectangle(x, y, width, height);
 			    }
 			
-			    // Getters and potentially other methods...
-			}
-						
+			    // Getters and possibly other methods...
+			}			
 ",
-			src/org/argouml/activity2/diagram/NodeBounds.java:"
+			src/org/argouml/activity2/diagram/DiagramRectangle.java:"
 			package org.argouml.activity2.diagram;
 			
-			public class NodeBounds {
-			
+			public class DiagramRectangle {
 			    private final int x, y, width, height;
 			
-			    public NodeBounds(int x, int y, int width, int height) {
+			    public DiagramRectangle(int x, int y, int width, int height) {
 			        this.x = x;
 			        this.y = y;
 			        this.width = width;
@@ -581,10 +568,7 @@ messages:
 			    public int getY() { return y; }
 			    public int getWidth() { return width; }
 			    public int getHeight() { return height; }
-			
-			    // Potentially other methods...
-			}
-						
+			}			
 ",
 		
 }
@@ -603,46 +587,186 @@ messages:
 ,
 	content:"
 	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.1:compile (default-compile) on project argouml: Compilation failure: Compilation failure: 
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[54,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[54,58] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[60,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[65,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[69,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[75,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[80,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[85,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[90,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[90,70] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[95,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[95,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[100,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[100,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[105,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[105,67] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[110,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[110,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[115,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[115,74] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[54,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[54,53] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[60,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[65,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[70,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[76,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[81,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[86,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[91,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[91,70] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[96,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[96,68] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[101,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[101,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[106,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[106,67] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[111,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[111,64] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[116,12] class, interface, or enum expected
-	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[116,74] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[48,19] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[49,19] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[50,19] cannot find symbol
+	[ERROR]   symbol:   class ThemeFonts
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[57,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[62,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[66,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[72,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[77,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[82,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[87,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[92,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[97,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[102,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[107,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[112,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[48,19] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[49,19] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[50,19] cannot find symbol
+	[ERROR]   symbol:   class ThemeFonts
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[57,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[62,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[67,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[73,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[78,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[83,15] cannot find symbol
+	[ERROR]   symbol:   class ColorUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[88,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[93,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[98,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[103,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[108,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[113,12] cannot find symbol
+	[ERROR]   symbol:   class FontUIResource
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[48,51] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[49,53] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[50,47] cannot find symbol
+	[ERROR]   symbol:   class ThemeFonts
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[57,54] cannot find symbol
+	[ERROR]   symbol:   variable primary1
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[62,54] cannot find symbol
+	[ERROR]   symbol:   variable primary2
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[66,54] cannot find symbol
+	[ERROR]   symbol:   variable primary3
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[72,56] cannot find symbol
+	[ERROR]   symbol:   variable secondary1
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[77,56] cannot find symbol
+	[ERROR]   symbol:   variable secondary2
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[82,56] cannot find symbol
+	[ERROR]   symbol:   variable secondary3
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[87,57] cannot find symbol
+	[ERROR]   symbol:   variable controlFont
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[92,56] cannot find symbol
+	[ERROR]   symbol:   variable systemFont
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[97,54] cannot find symbol
+	[ERROR]   symbol:   variable userFont
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[102,54] cannot find symbol
+	[ERROR]   symbol:   variable controlFont
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[107,53] cannot find symbol
+	[ERROR]   symbol:   variable smallFont
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:[112,57] cannot find symbol
+	[ERROR]   symbol:   variable windowTitleFont
+	[ERROR]   location: class org.argouml.ui.JasonsHugeTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[48,51] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[49,53] cannot find symbol
+	[ERROR]   symbol:   class ThemeColors
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[50,47] cannot find symbol
+	[ERROR]   symbol:   class ThemeFonts
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[57,54] cannot find symbol
+	[ERROR]   symbol:   variable primary1
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[62,54] cannot find symbol
+	[ERROR]   symbol:   variable primary2
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[67,54] cannot find symbol
+	[ERROR]   symbol:   variable primary3
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[73,56] cannot find symbol
+	[ERROR]   symbol:   variable secondary1
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[78,56] cannot find symbol
+	[ERROR]   symbol:   variable secondary2
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[83,56] cannot find symbol
+	[ERROR]   symbol:   variable secondary3
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[88,57] cannot find symbol
+	[ERROR]   symbol:   variable controlFont
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[93,56] cannot find symbol
+	[ERROR]   symbol:   variable systemFont
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[98,54] cannot find symbol
+	[ERROR]   symbol:   variable userFont
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[103,54] cannot find symbol
+	[ERROR]   symbol:   variable controlFont
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[108,53] cannot find symbol
+	[ERROR]   symbol:   variable smallFont
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
+	[ERROR] /root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:[113,57] cannot find symbol
+	[ERROR]   symbol:   variable windowTitleFont
+	[ERROR]   location: class org.argouml.ui.JasonsBigTheme
 	[ERROR] -> [Help 1]
 	[ERROR] 
 	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
@@ -671,23 +795,21 @@ messages:
 			/root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsHugeTheme.java:
 		[
 			fromLine:"			38",
-			toLine:"			42",
+			toLine:"			117",
 			content:"
 			
 			package org.argouml.ui;
 			
 			import javax.swing.plaf.metal.MetalTheme;
-						
-",
-,
-			fromLine:"			49",
-			toLine:"			120",
-			content:"
+			
+			/**
+			 * This class defines a variation on the default Metal Theme.
+			 */
+			public class JasonsHugeTheme extends MetalTheme {
+			
+			    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
 			    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
 			    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
-			    
-			    // Rest of the class
-			    }
 			    public String getName() { return "Very Large Fonts"; }
 			
 			    // these are blue in Metal Default Theme
@@ -759,23 +881,21 @@ messages:
 		/root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-app/src/org/argouml/ui/JasonsBigTheme.java:
 		[
 			fromLine:"			38",
-			toLine:"			42",
+			toLine:"			118",
 			content:"
 			
 			package org.argouml.ui;
 			
 			import javax.swing.plaf.metal.MetalTheme;
-						
-",
-,
-			fromLine:"			49",
-			toLine:"			121",
-			content:"
+			
+			/**
+			 * This class defines a variation on the default Metal Theme.
+			 */
+			public class JasonsBigTheme extends MetalTheme {
+			
+			    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
 			    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
 			    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);
-			    
-			    // Rest of the class
-			    }
 			    public String getName() { return "Large Fonts"; }
 			
 			    // these are blue in Metal Default Theme

@@ -66,20 +66,19 @@ class FigBaseNode extends FigNode implements DiagramNode {
 
     // TODO: Move an empty implementation to FigGroup in GEF
     protected void positionChildren() {
-        Rectangle myBounds = getBounds();
         if (displayState != null) {
-            displayState.setBounds(myBounds);
-        
+            displayState.setBounds(getBounds());
+        }
 //      calcBounds();
         updateEdges();
-        _h = bounds.getHeight();
+    }
+    
     @Override
-    protected void setBoundsImpl(NodeBounds bounds) {
-            _x = bounds.getX();
-            _y = bounds.getY();
-            _w = bounds.getWidth();
-            _h = bounds.getHeight();
-        
+    protected void setBoundsImpl(int x, int y, int w, int h) {
+        _x = x;
+        _y = y;
+        _w = w;
+        _h = h;
         positionChildren();
     }
 

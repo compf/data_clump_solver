@@ -48,7 +48,9 @@ import javax.swing.plaf.metal.MetalTheme;
  */
 public class JasonsBigTheme extends MetalTheme {
 
-    private final ThemeColors primaryColors; // Correct constructor call to be added in the constructor of the class
+    private final ColorUIResource primary1 = new ColorUIResource(102, 102, 153);
+    private final ColorUIResource primary2 = new ColorUIResource(153, 153, 204);
+    private final ColorUIResource primary3 = new ColorUIResource(204, 204, 255);
 
     private final ColorUIResource secondary1 =
 	new ColorUIResource(102, 102, 102);
@@ -77,17 +79,17 @@ public class JasonsBigTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
      */
-    protected ColorUIResource getPrimary1() { return primaryColors.getColor1(); }
+    protected ColorUIResource getPrimary1() { return primary1; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
-    protected ColorUIResource getPrimary2() { return primaryColors.getColor2(); }
+    protected ColorUIResource getPrimary2() { return primary2; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
-    protected ColorUIResource getPrimary3() { return primaryColors.getColor3(); }
+    protected ColorUIResource getPrimary3() { return primary3; }
 
     // these are gray in Metal Default Theme
     /*

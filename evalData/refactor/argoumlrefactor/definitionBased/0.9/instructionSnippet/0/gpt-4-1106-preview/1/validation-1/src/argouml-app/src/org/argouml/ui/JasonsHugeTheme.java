@@ -38,26 +38,33 @@
 
 package org.argouml.ui;
 
+import java.awt.Font;
+import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalTheme;
-import org.argouml.ui.theme.ColorTheme;
-import org.argouml.ui.theme.FontTheme;
+
 
 /**
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsHugeTheme extends MetalTheme {
 
-    private final ColorTheme colorTheme = new ColorTheme(102, 153, 204);
-    private final FontTheme fontTheme = new FontTheme();
 
-    // secondary colors removed
+
+    private final ColorUIResource secondary1 =
+	new ColorUIResource(102, 102, 102);
+    private final ColorUIResource secondary2 =
+	new ColorUIResource(153, 153, 153);
+    private final ColorUIResource secondary3 =
+	new ColorUIResource(204, 204, 204);
 
     private final FontUIResource controlFont =
 	new FontUIResource("SansSerif", Font.BOLD, 16);
     private final FontUIResource systemFont =
 	new FontUIResource("Dialog", Font.PLAIN, 16);
     private final FontUIResource windowTitleFont =
-    // Removed unused FontUIResource userFont declaration
+	new FontUIResource("SansSerif", Font.BOLD, 16);
+    private final FontUIResource userFont =
 	new FontUIResource("SansSerif", Font.PLAIN, 16);
     private final FontUIResource smallFont =
 	new FontUIResource("Dialog", Font.PLAIN, 14);
@@ -71,16 +78,16 @@ public class JasonsHugeTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
      */
-    protected ColorUIResource getPrimary1() { return primary1; }
+    protected ColorUIResource getPrimary1() { return themeColors.getPrimary1(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
-    protected ColorUIResource getPrimary2() { return primary2; }
+    protected ColorUIResource getPrimary2() { return themeColors.getPrimary2(); }
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
-    protected ColorUIResource getPrimary3() { return primary3; }
+    protected ColorUIResource getPrimary3() { return themeColors.getPrimary3(); }
 
     // these are gray in Metal Default Theme
     /*
@@ -91,10 +98,12 @@ public class JasonsHugeTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
      */
+    protected ColorUIResource getSecondary2() { return secondary2; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
      */
+    protected ColorUIResource getSecondary3() { return secondary3; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()
@@ -109,12 +118,12 @@ public class JasonsHugeTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getUserTextFont()
      */
-    public FontUIResource getUserTextFont() { return fontTheme.getUserFont(); }
+    public FontUIResource getUserTextFont() { return userFont; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
      */
-    public FontUIResource getMenuTextFont() { return fontTheme.getControlFont(); }
+    public FontUIResource getMenuTextFont() { return controlFont; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()

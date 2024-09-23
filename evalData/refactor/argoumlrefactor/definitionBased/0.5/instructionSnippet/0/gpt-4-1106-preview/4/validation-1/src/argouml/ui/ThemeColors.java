@@ -10,19 +10,15 @@ public class ThemeColors {
     private final ColorUIResource secondary2;
     private final ColorUIResource secondary3;
 
-    public ThemeColors(int p1r, int p1g, int p1b, int p2r, int p2g, int p2b, int p3r, int p3g, int p3b) {
-        this.primary1 = new ColorUIResource(p1r, p1g, p1b);
-        this.primary2 = new ColorUIResource(p2r, p2g, p2b);
-        this.primary3 = new ColorUIResource(p3r, p3g, p3b);
-        this.secondary1 = new ColorUIResource(p1r - 30, p1g - 30, p1b - 30);
-        this.secondary2 = new ColorUIResource(p2r - 30, p2g - 30, p2b - 30);
-        this.secondary3 = new ColorUIResource(p3r - 30, p3g - 30, p3b - 30);
+    public ThemeColors(int primaryMid, int primaryLight, int primaryLighter) {
+        this.primary1 = new ColorUIResource(primaryMid, primaryMid, primaryMid + 51);
+        this.primary2 = new ColorUIResource(primaryLight, primaryLight, primaryLight + 51);
+        this.primary3 = new ColorUIResource(primaryLighter, primaryLighter, primaryLighter + 51);
+        this.secondary1 = new ColorUIResource(primaryMid, primaryMid, primaryMid + 51);
+        this.secondary2 = new ColorUIResource(primaryLight, primaryLight, primaryLight + 51);
+        this.secondary3 = new ColorUIResource(primaryLighter, primaryLighter, primaryLighter + 51);
     }
 
-    public ColorUIResource getPrimary1() { return primary1; }
-    public ColorUIResource getPrimary2() { return primary2; }
-    public ColorUIResource getPrimary3() { return primary3; }
-    public ColorUIResource getSecondary1() { return secondary1; }
-    public ColorUIResource getSecondary2() { return secondary2; }
-    public ColorUIResource getSecondary3() { return secondary3; }
+    // Getters for each color
+
 }

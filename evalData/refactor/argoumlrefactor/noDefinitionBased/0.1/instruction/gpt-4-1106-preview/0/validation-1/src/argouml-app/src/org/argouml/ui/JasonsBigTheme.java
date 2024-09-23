@@ -60,6 +60,7 @@ public class JasonsBigTheme extends MetalTheme {
 	new ColorUIResource(204, 204, 204);
 
     private final FontUIResource controlFont =
+	new FontUIResource("SansSerif", Font.PLAIN, 14);
     private final FontUIResource systemFont =
 	new FontUIResource("Dialog", Font.PLAIN, 14);
     private final FontUIResource windowTitleFont =

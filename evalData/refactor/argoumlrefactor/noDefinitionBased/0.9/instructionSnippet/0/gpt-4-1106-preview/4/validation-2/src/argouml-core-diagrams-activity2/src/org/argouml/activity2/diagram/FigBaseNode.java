@@ -13,13 +13,13 @@
 
 package org.argouml.activity2.diagram;
 
-import org.argouml.activity2.diagram.RectangleBounds;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 
 import org.argouml.uml.diagram.DiagramSettings;
 import org.tigris.gef.presentation.FigGroup;
 import org.tigris.gef.presentation.FigNode;
+
 /**
  * The Fig for all node diagram elements. All specialist diagram elements
  * decorate this to get specialist behaviour 
@@ -38,7 +38,7 @@ class FigBaseNode extends FigNode implements DiagramNode {
      * @param bounds rectangle describing bounds
      * @param settings rendering settings
      */
-    FigBaseNode(final Object owner, final RectangleBounds bounds,
+    FigBaseNode(final Object owner, final Rectangle bounds,
             final DiagramSettings settings) {
         super(owner);
         setBounds(bounds);
@@ -76,12 +76,12 @@ class FigBaseNode extends FigNode implements DiagramNode {
     
     
     protected void setBoundsImpl(
-            final RectangleBounds bounds) {
+            Rectangle bounds) {
 
-        _x = bounds.getX();
-        _y = bounds.getY();
-        _w = bounds.getWidth();
-        _h = bounds.getHeight();
+        _x = bounds.x;
+        _y = bounds.y;
+        _w = bounds.width;
+        _h = bounds.height;
         
         positionChildren();
     }

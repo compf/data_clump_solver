@@ -15,9 +15,11 @@ package org.argouml.activity2.diagram;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+
 import org.argouml.uml.diagram.DiagramSettings;
 import org.tigris.gef.presentation.FigGroup;
 import org.tigris.gef.presentation.FigNode;
+
 /**
  * The Fig for all node diagram elements. All specialist diagram elements
  * decorate this to get specialist behaviour 
@@ -49,12 +51,12 @@ class FigBaseNode extends FigNode implements DiagramNode {
         addFig(displayState);
     }
     
-    @Override
+
     public boolean isDragConnectable() {
         return false;
     }
     
-    @Override
+
     public Dimension getMinimumSize() {
         return displayState.getMinimumSize();
     }
@@ -72,17 +74,14 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    @Override
-    protected void setBoundsImpl(
-            final int x,
-            final int y,
-            final int w,
-            final int h) {
 
-        _x = x;
-        _y = y;
-        _w = w;
-        _h = h;
+    protected void setBoundsImpl(
+            final Rectangle bounds) {
+
+        _x = (int) bounds.getX();
+        _y = (int) bounds.getY();
+        _w = (int) bounds.getWidth();
+        _h = (int) bounds.getHeight();
         
         positionChildren();
     }

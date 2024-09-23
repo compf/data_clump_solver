@@ -47,8 +47,10 @@ import javax.swing.plaf.metal.MetalTheme;
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsHugeTheme extends MetalTheme {
-private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
-    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);
+
+    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
+    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
+
     private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
 
     /*
@@ -75,17 +77,17 @@ private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
      */
-    protected ColorUIResource getSecondary1() { return secondaryColors.getPrimary1(); }
+    protected ColorUIResource getSecondary1() { return secondaryColors.getSecondary1(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
      */
-    protected ColorUIResource getSecondary2() { return secondaryColors.getPrimary2(); }
+    protected ColorUIResource getSecondary2() { return secondaryColors.getSecondary2(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
      */
-    protected ColorUIResource getSecondary3() { return secondaryColors.getPrimary3(); }
+    protected ColorUIResource getSecondary3() { return secondaryColors.getSecondary3(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()

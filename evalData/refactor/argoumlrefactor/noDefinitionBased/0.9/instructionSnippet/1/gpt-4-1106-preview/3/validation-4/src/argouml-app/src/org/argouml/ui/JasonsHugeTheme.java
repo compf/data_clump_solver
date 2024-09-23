@@ -37,19 +37,20 @@
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 package org.argouml.ui;
+
 import java.awt.Font;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
-import javax.swing.plaf.metal.DefaultMetalTheme;
+import javax.swing.plaf.metal.MetalTheme;
 
 /**
  * This class defines a variation on the default Metal Theme.
  */
-public class JasonsHugeTheme extends DefaultMetalTheme {
+public class JasonsHugeTheme extends MetalTheme {
 
-    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153);
-    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102);
-    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
+    private final ThemeColors primaryColors = new ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
+    private final ThemeColors secondaryColors = new ThemeColors(102, 102, 102, 153, 153, 153, 204, 204, 204);
+    private final ThemeFonts themeFonts = new ThemeFonts(new FontUIResource("SansSerif", Font.BOLD, 16), new FontUIResource("Dialog", Font.PLAIN, 16), new FontUIResource("SansSerif", Font.BOLD, 16), new FontUIResource("SansSerif", Font.PLAIN, 16), new FontUIResource("Dialog", Font.PLAIN, 14));
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getName()

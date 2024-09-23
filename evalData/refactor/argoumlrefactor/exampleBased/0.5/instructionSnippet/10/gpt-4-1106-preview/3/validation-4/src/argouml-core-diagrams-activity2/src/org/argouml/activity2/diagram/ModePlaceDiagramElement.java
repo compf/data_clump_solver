@@ -91,7 +91,7 @@ class ModePlaceDiagramElement extends FigModifyingModeImpl {
     }
 
     private GraphNode createDiagramElement(Layer lay, Object owner, DiagramSettings settings) {
-        FigBaseNode fig = new FigBaseNode(owner, new Rectangle(0, 0, 0, 0), settings);
+        FigBaseNode fig = new FigBaseNode(owner, new NodeBounds(0, 0, 0, 0), settings);
         DiagramElementBuilder.buildDiagramElement(fig, style, owner, settings);
         fig.setLayer(lay);
         return fig;

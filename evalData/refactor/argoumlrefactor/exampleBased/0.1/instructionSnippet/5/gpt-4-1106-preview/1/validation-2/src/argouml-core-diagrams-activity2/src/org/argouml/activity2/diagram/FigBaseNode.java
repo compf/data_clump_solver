@@ -40,8 +40,7 @@ class FigBaseNode extends FigNode implements DiagramNode {
      */
     FigBaseNode(final Object owner, final Rectangle bounds,
             final DiagramSettings settings) {
-        super(owner);
-        setBounds(bounds);
+        super(owner, bounds);
         this.settings = settings;
     }
     
@@ -74,19 +73,17 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    protected void setBoundsImpl(
-            final int x,
-            final int y,
-            final int w,
-            final int h) {
-            _x = x;
-            _y = y;
-            _w = w;
-            _h = h;
+    @Override
+    public void setBounds(final int x, final int y, final int w, final int h) {
+        super.setBounds(x, y, w, h);
+        _x = x;
+        _y = y;
+        _w = w;
+        _h = h;
         
         positionChildren();
-        }
-        
+    }
+
     /**
      * This is called to rearrange the contents of the Fig when a childs
      * minimum size means it will no longer fit. If this group also has

@@ -10,14 +10,14 @@
  *    Bob Tarling
  *****************************************************************************
  */
+
 package org.argouml.activity2.diagram;
-import org.tigris.gef.presentation.FigNode;
+
 import java.awt.Dimension;
 import java.awt.Rectangle;
-
 import org.argouml.uml.diagram.DiagramSettings;
 import org.tigris.gef.presentation.FigGroup;
-import org.argouml.activity2.diagram.NodeBounds;
+import org.tigris.gef.presentation.FigNode;
 
 /**
  * The Fig for all node diagram elements. All specialist diagram elements
@@ -73,12 +73,14 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    @Override
-    protected void setBoundsImpl(
-            int x, int y, int w, int h) {
-            _x = x;
-            _y = y;
-            _w = w;
+    protected void setBoundsImpl(int x, int y, int w, int h) {
+
+        _x = x;
+        _y = y;
+        _w = w;
+        _h = h;
+        firePropChange("bounds", null, new Rectangle(x, y, w, h));
+    }
         _h = h;
         
         positionChildren();

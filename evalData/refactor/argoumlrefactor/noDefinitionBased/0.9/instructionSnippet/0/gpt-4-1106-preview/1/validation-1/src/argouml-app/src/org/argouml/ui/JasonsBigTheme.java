@@ -42,15 +42,14 @@ import java.awt.Font;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalTheme;
-import org.argouml.ui.ThemeColor;
+
 /**
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsBigTheme extends MetalTheme {
 
-    private final ColorUIResource primary1 = new ColorUIResource(102, 102, 153);
-    private final ColorUIResource primary2 = new ColorUIResource(153, 153, 204);
-    private final ColorUIResource primary3 = new ColorUIResource(204, 204, 255);
+    private ThemeColors themeColors = new ThemeColors(new ColorUIResource(102, 102, 153), new ColorUIResource(153, 153, 204), new ColorUIResource(204, 204, 255));
+    private ThemeFonts themeFonts = new ThemeFonts(new FontUIResource("Dialog", Font.PLAIN, 14), new FontUIResource("Dialog", Font.BOLD, 14), new FontUIResource("Dialog", Font.PLAIN, 12));
 
     private final ColorUIResource secondary1 =
 	new ColorUIResource(102, 102, 102);
@@ -79,17 +78,17 @@ public class JasonsBigTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
      */
-    protected ColorUIResource getPrimary1() { return primaryColors.getPrimary1(); }
+    protected ColorUIResource getPrimary1() { return themeColors.primary1; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
-    protected ColorUIResource getPrimary2() { return primaryColors.getPrimary2(); }
+    protected ColorUIResource getPrimary2() { return themeColors.primary2; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
-    protected ColorUIResource getPrimary3() { return primaryColors.getPrimary3(); }
+    protected ColorUIResource getPrimary3() { return themeColors.primary3; }
 
     // these are gray in Metal Default Theme
     /*

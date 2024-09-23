@@ -59,61 +59,53 @@ class FigLifeLine extends ArgoFigGroup {
 
     private static final long serialVersionUID = 466925040550356L;
 
-    private FigLine lineFig;
-    private FigRect rectFig;
+
+
     
-    private List<FigActivation> activations;
-    private List<FigActivation> stackedActivations;
+
+
     
-    static final int WIDTH = 150;
-    static final int HEIGHT = 500;
+
+
 
     FigLifeLine(Object owner, Rectangle bounds, DiagramSettings settings) {
         super(owner, settings);
-        initialize(bounds.x, bounds.y);
+        lifeLineFig = new LifeLineFig(bounds.x, bounds.y, WIDTH, HEIGHT);
+        addFig(lifeLineFig.getRectFig());
+        addFig(lifeLineFig.getLineFig());
     }
     
-    private void initialize(int x, int y) {
-        activations = new LinkedList<FigActivation>();
-        stackedActivations = new LinkedList<FigActivation>();
+
+
         
-        rectFig = new FigRect(x, y, WIDTH, HEIGHT); 
-        rectFig.setFilled(false);
-        rectFig.setLineWidth(0);
-        lineFig = new FigLine(x + WIDTH / 2, y, 
-                x + WIDTH / 2, y + HEIGHT, LINE_COLOR);
-        lineFig.setDashed(true);
-        lineFig.setLineWidth(LINE_WIDTH);
-        
-        addFig(rectFig);
-        addFig(lineFig);
-    }
+
     
     // TODO: Does this still need to be synchronized? If so then explain why.
     synchronized void createActivations(final List<FigMessage> messages) {
-        clearActivations();
+        lifeLineFig.clearActivations();
+
         Collections.sort(messages, new FigMessageComparator());
         
-        activations = createStandardActivations(messages);
-        stackedActivations = createStackedActivations(messages);
+        lifeLineFig.setActivations(createStandardActivations(messages));
+        lifeLineFig.setStackedActivations(createStackedActivations(messages));
         
-        addActivations(activations);
-        addActivations(stackedActivations);
+        lifeLineFig.addActivations();
+
 
         // TODO: Do we need this?
-        calcBounds();
-    }
-    
+        lifeLineFig.calcBounds();
+        }
+        
     /**
      * Add the given list of activation Figs to the lifeline. The fill colour
      * is forced to the lifeline colour in the process.
      * @param activationFigs
      */
-    private void addActivations(
-            final List<FigActivation> activationFigs) {
-        for (final FigActivation figAct : activationFigs) {
-            figAct.setFillColor(getFillColor());
-            addFig(figAct);
+
+
+        
+
+
         }
     }
     
@@ -127,13 +119,13 @@ class FigLifeLine extends ArgoFigGroup {
         // if not then create an activation at the top of the lifeline
         FigActivation currentActivation = null;
         if (!hasIncomingCallActionFirst(figMessages)) {
-                            currentActivation = createActivationFig(
-                                    getOwner(),
-                                    lineFig.getX(),
-                    lineFig.getY(),
-                    0,
-                    0,
-                    
+                            currentActivation = lifeLineFig.createActivationFig(
+                    getOwner(),
+                    lifeLineFig.getLineFig().getX(),
+                    lifeLineFig.getLineFig().getY(), 
+                    lifeLineFig.getLineFig().getWidth(), 
+                    lifeLineFig.getLineFig().getHeight(),
+                    getSettings(),
                     null);
         }
         
@@ -154,9 +146,9 @@ class FigLifeLine extends ArgoFigGroup {
                             // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
-                            currentActivation = createActivationFig(
+                            currentActivation = lifeLineFig.createActivationFig(
                                     getOwner(), 
-                                    lineFig.getX(), 
+                                    lifeLineFig.getLineFig().getX(), 
                                     ySender, 
                                     0, 
                                     0,
@@ -166,10 +158,10 @@ class FigLifeLine extends ArgoFigGroup {
                         } else if (figMessage.isCreateMessage()) {
                             // if we are the destination of a create action,
                             // create the entire activation
-                            currentActivation = createActivationFig(
+                            currentActivation = lifeLineFig.createActivationFig(
                                     getOwner(),
-                                    lineFig.getX(),
-                                    lineFig.getY(),
+                                    lifeLineFig.getLineFig().getX(),
+                                    lifeLineFig.getLineFig().getY(),
                                     0,
                                     0,
                                     getSettings(),
@@ -189,7 +181,7 @@ class FigLifeLine extends ArgoFigGroup {
                             currentActivation.setHeight(
                                     ySender - currentActivation.getY());
                             currentActivation.setDestroy(true);
-                            lineFig.setHeight(ySender - getY());
+                            lifeLineFig.getLineFig().setHeight(ySender - getY());
                             newActivations.add(currentActivation);
                             currentActivation = null;
                         }
@@ -229,7 +221,7 @@ class FigLifeLine extends ArgoFigGroup {
         return mess1 != null
                 && mess1.getDestFigNode() == mess2.getDestFigNode()
                 && mess1.getSourceFigNode() == mess2.getSourceFigNode();
-    }
+        }
     
     /**
      * Return true if the given message fig is pointing in to this lifeline.
@@ -238,7 +230,7 @@ class FigLifeLine extends ArgoFigGroup {
      */
     private boolean isIncoming(FigMessage messageFig) {
         return (messageFig.getDestFigNode().getOwner() == getOwner());
-    }
+        }
     
     /**
      * Return true if the given message fig is pointing out from this lifeline.
@@ -247,7 +239,7 @@ class FigLifeLine extends ArgoFigGroup {
      */
     private boolean isOutgoing(FigMessage messageFig) {
         return (messageFig.getSourceFigNode().getOwner() == getOwner());
-    }
+        }
     
     private FigActivation createActivationFig(
             final Object owner, 
@@ -279,8 +271,8 @@ class FigLifeLine extends ArgoFigGroup {
             if (figMessage.isSelfMessage()) {
                 if (figMessage.isSynchCallMessage()) {
                     ySender = figMessage.getFinalY();
-                    currentAct = new FigActivation(figMessage.getOwner(),
-                            new Rectangle(lineFig.getX()
+                    currentAct = lifeLineFig.createActivationFig(figMessage.getOwner(),
+                            new Rectangle(lifeLineFig.getLineFig().getX()
                                     + FigActivation.DEFAULT_WIDTH / 2, ySender,
                                     0, 0), getSettings(), figMessage, false);
                 } else if (currentAct != null
@@ -302,7 +294,7 @@ class FigLifeLine extends ArgoFigGroup {
             (FigClassifierRole) getGroup();
         if (figMessages.isEmpty()) {
             return false;
-        }
+        
         FigMessage figMessage = figMessages.get(0);
         if (cr.equals(figMessage.getDestFigNode())
                 && !cr.equals(figMessage.getSourceFigNode())
@@ -312,15 +304,15 @@ class FigLifeLine extends ArgoFigGroup {
         return false;
     }
     
-    private void clearActivations() {
-        for (FigActivation oldActivation : activations) {
-            removeFig(oldActivation);    
+    private void clearActivations() { lifeLineFig.clearActivations(); }
+
+
         }
-        for (FigActivation oldActivation : stackedActivations) {
-            removeFig(oldActivation);    
+
+
         }
-        activations.clear();
-        stackedActivations.clear();
+
+
     }
     
     @Override
@@ -336,23 +328,23 @@ class FigLifeLine extends ArgoFigGroup {
     protected synchronized void setBoundsImpl(int x, int y, int w, int h) {
         final Rectangle oldBounds = getBounds();
         
-        rectFig.setBounds(x, y, w, h);
-        lineFig.setBounds(x + w / 2, y, w, h);
+        lifeLineFig.getRectFig().setBounds(x, y, w, h);
+        lifeLineFig.getLineFig().setBounds(x + w / 2, y, w, h);
         
         final int yDiff = oldBounds.y - y;
     
         // we don't recalculate activations, just move them
-        for (FigActivation act : activations) {
+        for (FigActivation act : lifeLineFig.getActivations()) {
             // TODO: why do we need to remove then add the Fig?
-            removeFig(act);
+
             act.setLocation(
-                    lineFig.getX() - FigActivation.DEFAULT_WIDTH / 2,
+                    lifeLineFig.getLineFig().getX() - FigActivation.DEFAULT_WIDTH / 2,
                     act.getY() - yDiff);
-            if (activations.size() == 1 
+            if (lifeLineFig.getActivations().size() == 1 
                     && act.getHeight() == oldBounds.height) {
                 act.setHeight(getHeight());
             }
-            addFig(act);
+
         }
         damage();
         _x = x;
@@ -362,7 +354,7 @@ class FigLifeLine extends ArgoFigGroup {
         firePropChange("bounds", oldBounds, getBounds());
     }
     
-    public void setLineWidth(int w) {
-        lineFig.setLineWidth(w);
+    public void setLineWidth(int w) { lifeLineFig.getLineFig().setLineWidth(w); }
+
     }
 }

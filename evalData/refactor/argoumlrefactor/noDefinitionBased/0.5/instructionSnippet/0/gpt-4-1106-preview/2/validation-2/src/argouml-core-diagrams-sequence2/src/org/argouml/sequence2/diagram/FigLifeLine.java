@@ -127,7 +127,7 @@ class FigLifeLine extends ArgoFigGroup {
         // if not then create an activation at the top of the lifeline
         FigActivation currentActivation = null;
         if (!hasIncomingCallActionFirst(figMessages)) {
-            currentActivation = createActivationFig(bounds,
+            currentActivation = createActivationFig(new Rectangle(new Rectangle(new Rectangle(
                     getOwner(),
                     lineFig.getX(),
                     lineFig.getY(), 
@@ -154,7 +154,7 @@ class FigLifeLine extends ArgoFigGroup {
                             // if we are the dest and is a call action, create the 
                             // activation, but don't add it until the height is set.
                             ySender = figMessage.getFinalY();
-                            currentActivation = createActivationFig(bounds,
+                            currentActivation = createActivationFig(new Rectangle(new Rectangle(new Rectangle(
                                     getOwner(), 
                                     lineFig.getX(), 
                                     ySender, 
@@ -166,7 +166,7 @@ class FigLifeLine extends ArgoFigGroup {
                         } else if (figMessage.isCreateMessage()) {
                             // if we are the destination of a create action,
                             // create the entire activation
-                            currentActivation = createActivationFig(bounds,
+                            currentActivation = createActivationFig(new Rectangle(new Rectangle(new Rectangle(
                                     getOwner(),
                                     lineFig.getX(),
                                     lineFig.getY(),

@@ -35,83 +35,11 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-
-package org.argouml.ui;
-
+// Specific imports for MetalTheme, ColorUIResource, and FontUIResource added
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalTheme;
 
-/**
- * This class defines a variation on the default Metal Theme.
- */
- public class JasonsBigTheme extends MetalTheme {
-
-    
-    
-    
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getName()
-     */
-    public String getName() { return "Large Fonts"; }
-    
-    // these are blue in Metal Default Theme
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()}
-     */
-    protected ColorUIResource getPrimary1() { return primary1; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
-     */
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
-     */
-
-    // these are gray in Metal Default Theme
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
-     */
-    protected ColorUIResource getSecondary1() { return secondary1; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
-     */
-    protected ColorUIResource getSecondary2() { return secondary2; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
-     */
-    protected ColorUIResource getSecondary3() { return secondary3; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()
-     */
-    public FontUIResource getControlTextFont() { return controlFont; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSystemTextFont()
-     */
-    public FontUIResource getSystemTextFont() { return systemFont; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getUserTextFont()
-     */
-    public FontUIResource getUserTextFont() { return userFont; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getMenuTextFont()
-     */
-    public FontUIResource getMenuTextFont() { return controlFont; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getSubTextFont()
-     */
-    public FontUIResource getSubTextFont() { return smallFont; }
-
-    /*
-     * @see javax.swing.plaf.metal.MetalTheme#getWindowTitleFont()
-     */
-    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
-}
+// Import for ThemeColors and ThemeFonts added
+import org.argouml.ui.ThemeColors;
+import org.argouml.ui.ThemeFonts;

@@ -38,34 +38,27 @@
 
 package org.argouml.ui;
 
-import javax.swing.plaf.ColorUIResource;
-import javax.swing.plaf.FontUIResource;
-import javax.swing.plaf.metal.DefaultMetalTheme;
+import org.argouml.ui.theme.ThemeColors;
+import org.argouml.ui.theme.ThemeFonts;
 import javax.swing.plaf.metal.MetalTheme;
 
-import java.awt.Font;
 /**
  * This class defines a variation on the default Metal Theme.
  */
-public class JasonsHugeTheme extends DefaultMetalTheme {
+public class JasonsHugeTheme extends MetalTheme {
 
-    private final ColorUIResource primary1 = new ColorUIResource(102, 102, 153);
-    private final ColorUIResource primary2 = new ColorUIResource(153, 153, 204);
-    private final ColorUIResource primary3 = new ColorUIResource(204, 204, 255);
+    private ThemeColors themeColors = new ThemeColors();
+    private ThemeFonts themeFonts = new ThemeFonts();
 
-    private final ColorUIResource secondary1 =
-	new ColorUIResource(102, 102, 102);
-    private final ColorUIResource secondary2 =
-	new ColorUIResource(153, 153, 153);
-    private final ColorUIResource secondary3 =
-	new ColorUIResource(204, 204, 204);
+	private ColorUIResource secondary1 = themeColors.getSecondary1();
+	private ColorUIResource secondary2 = themeColors.getSecondary2();
+	private ColorUIResource secondary3 = themeColors.getSecondary3();
 
-    private final FontUIResource controlFont =
-	new FontUIResource("SansSerif", Font.BOLD, 16);
+	private FontUIResource controlFont = themeFonts.getControlFont();
     private final FontUIResource systemFont =
 	new FontUIResource("Dialog", Font.PLAIN, 16);
     private final FontUIResource windowTitleFont =
-	new FontUIResource("SansSerif", Font.BOLD, 16);
+	private FontUIResource controlFont = themeFonts.getControlFont();
     private final FontUIResource userFont =
 	new FontUIResource("SansSerif", Font.PLAIN, 16);
     private final FontUIResource smallFont =

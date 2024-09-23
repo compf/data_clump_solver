@@ -1,0 +1,34 @@
+
+{
+    "refactorings": {
+        "src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java": [
+            {
+                "fromLine": 76,
+                "toLine": 77,
+                "oldContent": "        activations = new LinkedList<FigActivation>();\n        stackedActivations = new LinkedList<FigActivation>();",
+                "newContent": "        activationsManager = new ActivationsManager();"
+            },
+            {
+                "fromLine": 96,
+                "toLine": 100,
+                "oldContent": "        activations = createStandardActivations(messages);\n        stackedActivations = createStackedActivations(messages);\n        \n        addActivations(activations);\n        addActivations(stackedActivations);",
+                "newContent": "        activationsManager.createStandardActivations(messages);\n        activationsManager.createStackedActivations(messages);\n        \n        addActivations(activationsManager.getActivations());\n        addActivations(activationsManager.getStackedActivations());"
+            },
+            {
+                "fromLine": 315,
+                "toLine": 322,
+                "oldContent": "        for (FigActivation oldActivation : activations) {\n            removeFig(oldActivation);    \n        }\n        for (FigActivation oldActivation : stackedActivations) {\n            removeFig(oldActivation);    \n        }\n        activations.clear();\n        stackedActivations.clear();",
+                "newContent": "        activationsManager.clearActivations();"
+            },
+            {
+                "fromLine": 344,
+                "toLine": 350,
+                "oldContent": "        // we don't recalculate activations, just move them\n        for (FigActivation act : activations) {\n            // TODO: why do we need to remove then add the Fig?\n            removeFig(act);\n            act.setLocation(\n                    lineFig.getX() - FigActivation.DEFAULT_WIDTH / 2,\n                    act.getY() - yDiff);\n            if (activations.size() == 1 \n                    && act.getHeight() == oldBounds.height) {\n                act.setHeight(getHeight());\n            }\n            addFig(act);\n        }",
+                "newContent": "        // we don't recalculate activations, just move them\n        for (FigActivation act : activationsManager.getActivations()) {\n            // TODO: why do we need to remove then add the Fig?\n            removeFig(act);\n            act.setLocation(\n                    lineFig.getX() - FigActivation.DEFAULT_WIDTH / 2,\n                    act.getY() - yDiff);\n            if (activationsManager.getActivations().size() == 1 \n                    && act.getHeight() == oldBounds.height) {\n                act.setHeight(getHeight());\n            }\n            addFig(act);\n        }"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/ActivationsManager.java": "package org.argouml.sequence2.diagram;\n\nimport java.awt.Rectangle;\nimport java.util.Collections;\nimport java.util.LinkedList;\nimport java.util.List;\n\nimport org.argouml.uml.diagram.DiagramSettings;\n\n/**\n * Manages activations for a FigLifeLine.\n */\nclass ActivationsManager {\n\n    private List<FigActivation> activations;\n    private List<FigActivation> stackedActivations;\n\n    ActivationsManager() {\n        activations = new LinkedList<FigActivation>();\n        stackedActivations = new LinkedList<FigActivation>();\n    }\n\n    void createStandardActivations(List<FigMessage> messages) {\n        // Implement the method using the logic from FigLifeLine\n    }\n\n    void createStackedActivations(List<FigMessage> messages) {\n        // Implement the method using the logic from FigLifeLine\n    }\n\n    List<FigActivation> getActivations() {\n        return activations;\n    }\n\n    List<FigActivation> getStackedActivations() {\n        return stackedActivations;\n    }\n\n    void clearActivations() {\n        for (FigActivation oldActivation : activations) {\n            activations.remove(oldActivation);    \n        }\n        for (FigActivation oldActivation : stackedActivations) {\n            stackedActivations.remove(oldActivation);    \n        }\n        activations.clear();\n        stackedActivations.clear();\n    }\n}\n"
+    }
+}

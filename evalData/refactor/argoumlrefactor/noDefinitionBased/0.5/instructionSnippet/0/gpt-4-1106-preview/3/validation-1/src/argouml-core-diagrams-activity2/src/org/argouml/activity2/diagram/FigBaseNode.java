@@ -51,12 +51,12 @@ class FigBaseNode extends FigNode implements DiagramNode {
         addFig(displayState);
     }
     
-    @Override
+
     public boolean isDragConnectable() {
         return false;
     }
     
-    @Override
+
     public Dimension getMinimumSize() {
         return displayState.getMinimumSize();
     }
@@ -74,7 +74,7 @@ class FigBaseNode extends FigNode implements DiagramNode {
         updateEdges();
     }
     
-    
+
     protected void setBoundsImpl(
             final Rectangle bounds) {
 

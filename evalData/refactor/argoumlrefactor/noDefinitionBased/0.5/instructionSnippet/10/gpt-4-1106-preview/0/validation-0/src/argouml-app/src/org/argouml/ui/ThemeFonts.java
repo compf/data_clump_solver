@@ -11,12 +11,17 @@ public class ThemeFonts {
     private final FontUIResource smallFont;
 
     public ThemeFonts(String controlFontName, String systemFontName, int fontSize, int smallFontSize) {
-        controlFont = new FontUIResource(controlFontName, Font.PLAIN, fontSize);
-        systemFont = new FontUIResource(systemFontName, Font.PLAIN, fontSize);
-        windowTitleFont = new FontUIResource(controlFontName, Font.BOLD, fontSize);
-        userFont = new FontUIResource(controlFontName, Font.PLAIN, fontSize);
-        smallFont = new FontUIResource(systemFontName, Font.PLAIN, smallFontSize);
+        this.controlFont = new FontUIResource(controlFontName, Font.PLAIN, fontSize);
+        this.systemFont = new FontUIResource(systemFontName, Font.PLAIN, fontSize);
+        this.windowTitleFont = new FontUIResource(controlFontName, Font.BOLD, fontSize);
+        this.userFont = new FontUIResource(controlFontName, Font.PLAIN, fontSize);
+        this.smallFont = new FontUIResource(systemFontName, Font.PLAIN, smallFontSize);
     }
 
-    // getters and other methods if needed
+    // Accessors
+    public FontUIResource getControlFont() { return controlFont; }
+    public FontUIResource getSystemFont() { return systemFont; }
+    public FontUIResource getUserFont() { return userFont; }
+    public FontUIResource getWindowTitleFont() { return windowTitleFont; }
+    public FontUIResource getSmallFont() { return smallFont; }
 }

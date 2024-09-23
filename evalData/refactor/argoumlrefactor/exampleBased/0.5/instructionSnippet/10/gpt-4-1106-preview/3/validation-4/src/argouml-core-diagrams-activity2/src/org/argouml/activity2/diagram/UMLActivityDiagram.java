@@ -68,14 +68,14 @@ public class UMLActivityDiagram extends BaseDiagram implements ActivityDiagram {
     
     public DiagramElement createDiagramElement(
             final Object modelElement,
-            final Rectangle bounds) {
+            final NodeBounds bounds) {
         
         DiagramElement figNode = null;
         
         DiagramSettings settings = getDiagramSettings();
         
         if (Model.getFacade().isAActivityNode(modelElement)) {
-            figNode = new FigBaseNode(modelElement, bounds, settings);
+            figNode = new FigBaseNode(modelElement, bounds.toRectangle(), settings);
             final String style;
             if (Model.getFacade().isAObjectNode(modelElement)) {
                 style = "rect";

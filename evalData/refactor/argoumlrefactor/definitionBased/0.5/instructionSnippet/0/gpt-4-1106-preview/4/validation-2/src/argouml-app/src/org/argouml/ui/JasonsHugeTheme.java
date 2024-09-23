@@ -38,22 +38,25 @@
 
 package org.argouml.ui;
 
-import javax.swing.plaf.metal.MetalTheme;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.metal.MetalTheme;
 import java.awt.Font;
+
 /**
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsHugeTheme extends MetalTheme {
 
-    private final ColorUIResource primary1 = new ColorUIResource(102, 102, 153);
-    private final ColorUIResource primary2 = new ColorUIResource(153, 153, 204);
-    private final ColorUIResource primary3 = new ColorUIResource(204, 204, 255);
+    private final ThemeColors themeColors = new ThemeColors(102, 153, 204);
+    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
 
-    private org.argouml.ui.ThemeColors themeColors = new org.argouml.ui.ThemeColors(102, 102, 153, 153, 153, 204, 204, 204, 255);
-    private org.argouml.ui.ThemeFonts themeFonts = new org.argouml.ui.ThemeFonts("SansSerif", Font.BOLD, 16, "Dialog", Font.PLAIN, 16, "SansSerif", Font.BOLD, 16);
 
+    private final FontUIResource controlFont =
+    // The systemFont field has been removed and is now part of the ThemeFonts class
+	new FontUIResource("Dialog", Font.PLAIN, 16);
+    private final FontUIResource windowTitleFont =
+	new FontUIResource("SansSerif", Font.BOLD, 16);
     private final FontUIResource userFont =
 	new FontUIResource("SansSerif", Font.PLAIN, 16);
     private final FontUIResource smallFont =
@@ -83,12 +86,12 @@ public class JasonsHugeTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
      */
-    protected ColorUIResource getSecondary1() { return themeColors.getSecondary1(); }
+    protected ColorUIResource getSecondary1() { return secondary1; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
      */
-    protected ColorUIResource getSecondary2() { return themeColors.getSecondary2(); }
+    protected ColorUIResource getSecondary2() { return secondary2; }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()

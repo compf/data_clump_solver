@@ -48,8 +48,8 @@ import javax.swing.plaf.metal.MetalTheme;
  */
 public class JasonsHugeTheme extends MetalTheme {
 
-    private final ThemeColors primaryColors = new ThemeColors(102, 153, 204);
-    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204);
+    private final ThemeColors primaryColors = new ThemeColors(102, 153, 204, 255);
+    private final ThemeColors secondaryColors = new ThemeColors(102, 153, 204, 204);
     private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 16, 14);
 
     /*
@@ -61,32 +61,32 @@ public class JasonsHugeTheme extends MetalTheme {
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary1()
      */
-    protected ColorUIResource getPrimary1() { return primaryColors.getColor1(); }
+    protected ColorUIResource getPrimary1() { return primaryColors.getPrimary1(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary2()
      */
-    protected ColorUIResource getPrimary2() { return primaryColors.getColor2(); }
+    protected ColorUIResource getPrimary2() { return primaryColors.getPrimary2(); }
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getPrimary3()
      */
-    protected ColorUIResource getPrimary3() { return primaryColors.getColor3(); }
+    protected ColorUIResource getPrimary3() { return primaryColors.getPrimary3(); }
 
     // these are gray in Metal Default Theme
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary1()
      */
-    protected ColorUIResource getSecondary1() { return secondaryColors.getColor1(); }
+    protected ColorUIResource getSecondary1() { return secondaryColors.getSecondary1(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary2()
      */
-    protected ColorUIResource getSecondary2() { return secondaryColors.getColor2(); }
+    protected ColorUIResource getSecondary2() { return secondaryColors.getSecondary2(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getSecondary3()
      */
-    protected ColorUIResource getSecondary3() { return secondaryColors.getColor3(); }
+    protected ColorUIResource getSecondary3() { return secondaryColors.getSecondary3(); }
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getControlTextFont()

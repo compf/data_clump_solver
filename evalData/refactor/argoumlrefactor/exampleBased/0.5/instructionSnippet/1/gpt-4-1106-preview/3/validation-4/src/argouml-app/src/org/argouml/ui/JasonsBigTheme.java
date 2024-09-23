@@ -47,8 +47,9 @@ import javax.swing.plaf.metal.MetalTheme;
  * This class defines a variation on the default Metal Theme.
  */
 public class JasonsBigTheme extends MetalTheme {
-private final ThemeColors themeColors = new ThemeColors();
-    private final ThemeFonts themeFonts = new ThemeFonts();
+
+    private final ThemeColors themeColors = new ThemeColors(102, 153, 204);
+    private final ThemeFonts themeFonts = new ThemeFonts("SansSerif", "Dialog", 14, 12);
 
     /*
      * @see javax.swing.plaf.metal.MetalTheme#getName()
