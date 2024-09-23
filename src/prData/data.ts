@@ -1,9 +1,9 @@
 import {
   PR_Data,
-  Intentional,
+  IntentionalDesignChoice,
   Complexity,
-  NotWorthIt,
-  Internal,
+  RefactoringNotWorthIt,
+  
   Readability,
   parameters_to_parameters_data_clump,
   fields_to_fields_data_clump,
@@ -12,30 +12,33 @@ import {
   Performance,
   SmallerDataClump,
   DocumentationIssues,
-  JavaRecord,
+  JavaRecordBetter,
   ExtractedClassLocation,
-  ResponseTooLate,
   LLM_Useful,
   ClassName,
-  Imports,
+  
   OverEngineered,
   SameBaseClass,
-  ExtractedClassPublic,
+  ExtractedClassShouldNotBePublic,
   StyleAdaption,
   SemanticChanges,
-  LicenseHeader,
+  LicenseHeaderMissing,
   LLM_LegalIssues,
   LargerDataClump,
-  Invalid,
+  
   Neutral,
-  Maintainability,
+  ImprovedMaintainability,
   StronglyAgree,
   StronglyDisagree,
   Agree,
-  LLM_DeveloperOversight,
   NEUTRAL_COMMENT,
   Disagree,
-  Good_Idea
+  Good_Idea,
+  DeevloperMustOverseeLLM,
+  NoMeaningfulFeedback,
+
+  ImportsIssues,
+  InvalidPR
 } from "./structures";
 
 export const data: PR_Data = {
@@ -47,7 +50,7 @@ export const data: PR_Data = {
     size: 4,
     type: parameters_to_parameters_data_clump,
     category: "detectAndRefactor",
-    generalComments: [-Intentional],
+    generalComments: [-IntentionalDesignChoice],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -80,7 +83,7 @@ export const data: PR_Data = {
         comments: `Data clumps can be a code smell, but only if it breaks principles - sometimes you can have data clumps that actually do not break any. Just because similar or the same data exists in different objects does not inherently constitute a problem - I asked ChatGPT for an example here (paraphrasing):
 Consider the classes WeatherReport and FinancialStatement: both could have the following fields: LocalDate date, String location, double value (and any additional fields). These fields could be considered a 'data clump' by your definition but have vastly different applications and contexts. Can you extract these values in a meaningful way? Sure! Should you? Probably not - sharing these fields (even if it's through composition and not inheritence) would limit or hinder maintenance if any of these objects evolve in the future.
 I believe it would be straightforward to come up with a counter-example where extracting fields from two rather similar objects that have the same (or almost the same) context is beneficial, so I'm not going to do that.`,
-        keywords: [-NotWorthIt, -Intentional, -Maintainability]
+        keywords: [-RefactoringNotWorthIt, -IntentionalDesignChoice, -IntentionalDesignChoice]
       },
       {
         scale: StronglyAgree,
@@ -91,12 +94,12 @@ I believe it would be straightforward to come up with a counter-example where ex
         scale: StronglyDisagree,
         comments: `Our project is very small and most parts are very isolated. This initiative is probably better suited for projects with lots of moving/interacting parts.
 While the LLM did identify a 'data clump', extracting it did not improve readability or maintainability - in fact, it did the opposite. It added unnecessary boilerplate to code that was already very readable and straightforward to use.`,
-        keywords: [-Maintainability, -Readability]
+        keywords: [-ImprovedMaintainability, -Readability]
       },
       {
         scale: Agree,
         comments: "It's rather clear that the exercise did not break any code or functionality - however it often adds unnecessary 'null' values and creates wrapper objects.",
-        keywords: [-Intentional]
+        keywords: [-IntentionalDesignChoice]
       },
       {
         scale: StronglyAgree,
@@ -124,7 +127,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
 
     type: parameters_to_parameters_data_clump,
     category: "detectAndRefactor",
-    generalComments: [-Complexity, -Internal, -NotWorthIt, -Performance],
+    generalComments: [-Complexity, -RefactoringNotWorthIt, -Performance],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -301,7 +304,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
     category: "nameSuggestion",
     generalComments: [
       -DocumentationIssues,
-      -JavaRecord,
+      -JavaRecordBetter,
       -NotEnough,
       -ExtractedClassLocation,
     ],
@@ -407,7 +410,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       {
         scale: Agree,
         comments: `A developer needs to have the tool available in the IDE - or creating pull requests. Similar to OpenRewrite of Moderne. In contrast to OpenRewrite, code created by LLMs needs to have oversights.`,
-        keywords: [LLM_DeveloperOversight + NEUTRAL_COMMENT]
+        keywords: [DeevloperMustOverseeLLM + NEUTRAL_COMMENT]
       },
       {
         scale: Disagree,
@@ -416,7 +419,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
 - Bad, because Comments have not been moved
 - Bad, because basic checkstyle checks fail
 - Bad, because Java "record" data type not used`,
-        keywords: [-JavaRecord, -NotEnough, -DocumentationIssues, +Good_Idea, -ExtractedClassLocation]
+        keywords: [-JavaRecordBetter, -NotEnough, -DocumentationIssues, +Good_Idea, -ExtractedClassLocation]
       },
       {
         scale: StronglyAgree
@@ -441,7 +444,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
 
     type: fields_to_fields_data_clump,
     category: "nameSuggestion",
-    generalComments: [-Readability, -Intentional, -Complexity],
+    generalComments: [-Readability, -IntentionalDesignChoice, -Complexity],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -465,7 +468,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
         comments: `They may exist to represent real-word aspects, for example a) objects in the real world that may have similar properties - but need to be treated differently or that behave differently b) generated code that should not be edited by humans
 
 Also code is structured to suit the convenience of the original author or maintainers - so I personally give that preference.`,
-        keywords: [-Intentional]
+        keywords: [-IntentionalDesignChoice]
       },
       {
         scale: Disagree,
@@ -632,7 +635,7 @@ Also code is structured to suit the convenience of the original author or mainta
     state: "closed",
     merged: false,
     category: "detectAndRefactor",
-    generalComments: [NotWorthIt],
+    generalComments: [RefactoringNotWorthIt],
     reviewComments: [],
     size: 6,
     type: fields_to_fields_data_clump,
@@ -655,7 +658,7 @@ Also code is structured to suit the convenience of the original author or mainta
     category: "detectAndRefactor",
     size: 6,
     type: parameters_to_parameters_data_clump,
-    generalComments: [-ResponseTooLate],
+    generalComments: [-NoMeaningfulFeedback],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -688,7 +691,7 @@ Also code is structured to suit the convenience of the original author or mainta
     type: parameters_to_parameters_data_clump,
     size: 4,
     category: "detectAndRefactor",
-    generalComments: [-JavaRecord, -NotEnough],
+    generalComments: [-JavaRecordBetter, -NotEnough],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -711,7 +714,7 @@ Also code is structured to suit the convenience of the original author or mainta
       +LLM_Useful,
       +Readability,
       -ClassName,
-      -Imports,
+      -ImportsIssues,
     ],
     size: 4,
     type: parameters_to_parameters_data_clump,
@@ -882,7 +885,7 @@ Overall, this is 100% overhead`,
     size: 5,
     type: parameters_to_parameters_data_clump,
     category: "nameSuggestion",
-    generalComments: [-Complexity, -NotWorthIt],
+    generalComments: [-Complexity, -RefactoringNotWorthIt],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -926,7 +929,7 @@ Overall, this is 100% overhead`,
       -Performance,
       -DocumentationIssues,
       -SameBaseClass,
-      -ExtractedClassPublic,
+      -ExtractedClassShouldNotBePublic,
     ],
     generalCommentsRaw: [
       [
@@ -996,7 +999,7 @@ Overall, this is 100% overhead`,
       java: ">10 years"
     }],
     reviewComments: [
-      -JavaRecord,
+      -JavaRecordBetter,
       -Performance,
       -StyleAdaption,
       -NotEnough,
@@ -1187,7 +1190,7 @@ Overall, this is 100% overhead`,
     type: fields_to_fields_data_clump,
     category: "filterSnippet",
     generalComments: [-SameBaseClass],
-    reviewComments: [-ExtractedClassPublic, -NotEnough, -LicenseHeader],
+    reviewComments: [-ExtractedClassShouldNotBePublic, -NotEnough, -LicenseHeaderMissing],
     generalCommentsRaw: [
       [
         "Yay, your first pull request towards Jenkins core was created successfully! Thank you so much! <br> <br> A contributor will provide feedback soon",
@@ -1243,7 +1246,7 @@ Overall, this is 100% overhead`,
     size: 6,
     type: parameters_to_parameters_data_clump,
     category: "filterSnippet",
-    generalComments: [-LLM_Useful, -NotWorthIt],
+    generalComments: [-LLM_Useful, -RefactoringNotWorthIt],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -1265,7 +1268,7 @@ Overall, this is 100% overhead`,
     size: 5,
     type: parameters_to_parameters_data_clump,
     category: "filterSnippet",
-    generalComments: [-JavaRecord],
+    generalComments: [-JavaRecordBetter],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -1345,7 +1348,7 @@ Overall, this is 100% overhead`,
     generalComments: [],
     reviewComments: [
       -ExtractedClassLocation,
-      -ExtractedClassPublic,
+      -ExtractedClassShouldNotBePublic,
       -NotEnough,
       -OverEngineered,
     ],
@@ -1445,7 +1448,7 @@ Overall, this is 100% overhead`,
     }],
     type: fields_to_fields_data_clump,
     category: "filterManual",
-    generalComments: [-NotWorthIt, -LLM_LegalIssues],
+    generalComments: [-RefactoringNotWorthIt, -LLM_LegalIssues],
     reviewComments: [],
     generalCommentsRaw: [
       ["Thank you very much the feedback :)"],
@@ -1501,7 +1504,7 @@ Overall, this is 100% overhead`,
     category: "filterManual",
     generalComments: [
       -Readability,
-      -NotWorthIt,
+      -RefactoringNotWorthIt,
       -StyleAdaption,
       -LargerDataClump,
     ],
@@ -1551,7 +1554,7 @@ Overall, this is 100% overhead`,
     size: 4,
     type: fields_to_fields_data_clump,
     category: "filterManual",
-    generalComments: [-NotWorthIt, -Readability],
+    generalComments: [-RefactoringNotWorthIt, -Readability],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -1578,7 +1581,7 @@ Overall, this is 100% overhead`,
     size: 5,
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
-    generalComments: [-Invalid],
+    generalComments: [-InvalidPR],
     reviewComments: [],
     generalCommentsRaw: [],
     reviewCommentsRaw: [],
@@ -1641,7 +1644,7 @@ Overall, this is 100% overhead`,
     size: 21,
     type: fields_to_fields_data_clump,
     category: "filterManual",
-    generalComments: [-NotWorthIt],
+    generalComments: [-RefactoringNotWorthIt],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -1660,7 +1663,7 @@ Overall, this is 100% overhead`,
     size: 3,
     type: fields_to_fields_data_clump,
     category: "filterSnippet",
-    generalComments: [-Invalid],
+    generalComments: [-InvalidPR],
     reviewComments: [],
     generalCommentsRaw: [
       [
