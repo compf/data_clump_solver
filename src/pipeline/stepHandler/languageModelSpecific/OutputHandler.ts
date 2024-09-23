@@ -218,7 +218,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
     if(faultyInstance){
         trueCounter++;
         let c=fs.readFileSync("stuff/interesting.txt").toString()
-        let instance=(FileIO.instance as any).instance
+        let instance=JSON.parse(JSON.stringify((FileIO.instance as any).instance))
         let s=JSON.stringify(instance,undefined,2)
         if(!c.includes(s)){
             instance.diff=oldContentNewContentDiff
@@ -268,6 +268,9 @@ export function parse_piecewise_output(content: any, fullChat: ChatMessage[], co
                     let classContent=content.extractedClasses[extractedClassPath]
                     if(Array.isArray(classContent)){
                         classContent=classContent[0]
+                    }
+                    else if(typeof(classContent)=="object"){
+                        continue;
                     }
                     changes[outPath] = classContent
                 }
