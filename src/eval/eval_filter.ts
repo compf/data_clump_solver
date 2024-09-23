@@ -145,6 +145,10 @@ export class FilterEval extends BaseEvaluator {
         return instance;
     }
 
+    getNumDataClumpsPerBlock(): number {
+        return 5;
+    }
+
 }
     
 
