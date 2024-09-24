@@ -12,18 +12,12 @@ export class DetectAnalyzer extends EvalAnalyzer {
         return [new SuretyMetric(),new DataClumpSizeMetric()];
     }
 }
-function parseLLMOutput(dirPath: string) {
-    let detectionResult = JSON.parse(fs.readFileSync(dirPath + "/detectResult.json", { encoding: "utf-8" }))
 
-    let byLLM = Object.values(JSON.parse(detectionResult.messages[0]).data_clumps) as DataClumpTypeContext[]
-    return byLLM
-}
 export class SuretyMetric implements EvalMetric {
-    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext){
+    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext, parsed:any){
         console.log("Instance: "+JSON.stringify(instance))
-        let byLLM = parseLLMOutput(dirPath)
-        let groundTruthUnFiltered = (context.getFirstByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
-        let groundTruthFiltered =(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
+        let byLLM = parsed.data_clumps
+        
 
         const THRESHOLD_MATCH=0.9
         const THRESHOLD_MISS=0.2
@@ -40,7 +34,7 @@ export class SuretyMetric implements EvalMetric {
             "miss":0
         }
         for(let llmDC of byLLM){
-            let category=evaluateBestFittingDataClump(groundTruthUnFiltered,groundTruthFiltered,llmDC)
+            let category=evaluateBestFittingDataClump(context,llmDC)
            counters[category]=(counters[category] ?? 0)+1
            allCounter++
        
@@ -128,9 +122,9 @@ export class SuretyMetric implements EvalMetric {
 }
 
 export class DataClumpSizeMetric implements EvalMetric{
-    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext) {
+    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext,parsed) {
         let sizes:number[]=[]
-        let byLLM = parseLLMOutput(dirPath)
+        let byLLM = Object.values(parsed.data_clumps) as DataClumpTypeContext[]
         for(let dc of byLLM){
             sizes.push(Object.values(dc.data_clump_data).length)
         }
