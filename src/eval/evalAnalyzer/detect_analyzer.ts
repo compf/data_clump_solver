@@ -121,7 +121,7 @@ export class SuretyMetric implements EvalMetric {
 
 }
 
-export class DataClumpSizeMetric implements EvalMetric{
+ class DataClumpSizeMetric implements EvalMetric{
     eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext,parsed) {
         let sizes:number[]=[]
         let byLLM = Object.values(parsed.data_clumps) as DataClumpTypeContext[]

@@ -1,6 +1,6 @@
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../context/DataContext";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
-import { getRelevantFilesRec } from "../../util/Utils";
+import { getRelevantFilesRec, nop } from "../../util/Utils";
 import { BaseEvaluator, disableCloning, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import fs from "fs"
@@ -84,7 +84,18 @@ export abstract class EvalAnalyzer {
         }
         return result
     }
-    async performRawAnalysis(urls: string[]) {
+    isSubset(superSet: any, subSet: any) {
+        for (let k of Object.keys(subSet)) {
+            if (!(k in superSet)) {
+                return false
+            }
+            if (subSet[k] != superSet[k]) {
+                return false
+            }
+        }
+        return true
+    }
+    async performRawAnalysis(urls: string[], filters: any[]) {
         //disableCloning()
 
 
@@ -96,9 +107,27 @@ export abstract class EvalAnalyzer {
         let filterContext = new FileFilteringContext([".*instance.json"], [])
         getRelevantFilesRec("evalData", instancesPaths, filterContext)
         let metrics = this.getMetrics()
+
         let instanceType = this.getEvaluator().createInstanceCombination().instanceType[0]
-        let instances = instancesPaths.map(p => JSON.parse(fs.readFileSync(p, { encoding: "utf-8" })) as Instance)
+        let instances:Instance[]=[]
+        let newInstancePaths: string[] = []
+        
+        for(let p of instancesPaths){
+            let parsed=JSON.parse(fs.readFileSync(p, { encoding: "utf-8" }) as any)
+            if(filters.length==0){
+                instances.push(parsed)
+                newInstancePaths.push(p)
+            }
+            else if(filters.some((f)=>this.isSubset(parsed,f))){
+                instances.push(parsed);
+                newInstancePaths.push(p)
+            }
+        }
+        instancesPaths=newInstancePaths
+        
+        
         let counter = 0
+        let returnedInstances: Instance[] = []
         FileIO.instance = new InstanceBasedFileIO();
 
         for (let instance of instances) {
@@ -115,13 +144,15 @@ export abstract class EvalAnalyzer {
                 result[m.getName()] = metricResult
             }
             (instance as any).metrics = result
+            returnedInstances.push(instance)
+            nop();
 
 
         }
 
 
 
-        return instances
+        return returnedInstances
 
     }
 }
@@ -149,16 +180,16 @@ export function getProbabilityCorrectDataClump(input: any, compare: DataClumpTyp
             compare.to_class_or_interface_name,
             compare.from_method_name,
             compare.to_method_name,
-            
+
         ]
-        for(let data of Object.values(compare.data_clump_data)){
+        for (let data of Object.values(compare.data_clump_data)) {
             relevantValues.push(data.name)
             relevantValues.push(data.type)
         }
         let matches: string[] = []
         let all = relevantValues.length
         for (let r of relevantValues) {
-            if (r != null && r.includes(input)) {
+            if (r != null && input.includes(r)) {
                 matches.push(r)
             }
 

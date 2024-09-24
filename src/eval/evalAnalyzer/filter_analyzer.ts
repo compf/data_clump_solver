@@ -7,15 +7,15 @@ import { FilterEval } from "../eval_filter";
 import { EvalAnalyzer, EvalMetric, getBestFittingDataClump } from "./base_analyzer";
 import fs from "fs"
 import { resolve } from "path";
+import { DataClumpTypeContext } from "data-clumps-type-context";
 export class FilterAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new FilterEval();
     }
     getMetrics(): EvalMetric[] {
-        return [new PositionOnGroundTruthMetric()];
+        return [new PositionOnGroundTruthMetric(), new DataClumpSizeMetric()];
     }
 }
-
 export class PositionOnGroundTruthMetric implements EvalMetric {
     check(context: DataClumpDetectorContext, filterResults: { [key: string]: any[] }) {
         let reduced: { [key: string]: any[] } = {}
@@ -48,9 +48,8 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
         let withNumericIds = llm.simplifyKeys(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
         context = context.buildNewContext(new DataClumpDetectorContext(withNumericIds));
        
-
         let bestFittingDataClump=getBestFittingDataClump(context,[parsed.key,parsed.justification])
-        let k=bestFittingDataClump.dataClump?.key
+        let k=bestFittingDataClump!.dataClump?.key
         if(k==undefined || k==null){
             return {}
         }
@@ -58,10 +57,11 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
 
 
 
-        console.log("result", "\"", k, "\"")
         let dc = context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult().data_clumps[k];
+        if(dc==undefined || dc==null){
+            return {}
+        }
         let key = (context as DataClumpDetectorContext).createDataTypeNameClumpKey(dc)
-        console.log(key)
         let indices={}
         let reason=parsed.reason
         for (let fKey of Object.keys(filterResults) ) {
@@ -69,7 +69,6 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
             let index=items.indexOf(key)
             indices[fKey]=index
             if(index!=-1){
-                console.log("Position: ",index, items[index])
             }
         }
         //console.log(key)
@@ -79,5 +78,22 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
     getName(): string {
         return "PositionOnGroundTruthMetric";
     }
+
+}
+
+class DataClumpSizeMetric implements EvalMetric{
+    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext,parsed) {
+       let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
+       if(bestFittingDataClump.dataClump==null){
+              return {}
+       }
+       console.log("Best fitting data clump",bestFittingDataClump)
+        let size=Object.values(bestFittingDataClump!.dataClump!.data_clump_data).length
+        return {"Size":size}
+    }
+    getName(): string {
+        return "DataClumpSizeMetric";
+    } 
+
 
 }
