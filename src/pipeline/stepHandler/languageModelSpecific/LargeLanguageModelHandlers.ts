@@ -8,6 +8,7 @@ import { getRelevantFilesRec, makeUnique } from "../../../util/Utils";
 import { LanguageModelTemplateResolver } from "../../../util/languageModel/LanguageModelTemplateResolver";
 import { resolveFromConcreteName } from "../../../config/Configuration";
 import { Metric } from "../../../util/filterUtils/Metric";
+import { AST_Class } from "../../../context/AST_Type";
 export type DependentOnAnotherIteratorReturnType = { messages: string[]; clear: boolean; shallSend: boolean }
 export type InstructionReturnType = DependentOnAnotherIteratorReturnType & { doWrite: boolean }
 export type StateInformationType = { hasOtherFinished: boolean, context: DataClumpRefactoringContext }
@@ -45,9 +46,10 @@ export class SystemInstructionHandler extends SimpleInstructionHandler {
 
 export class AllFilesHandler extends LargeLanguageModelHandler {
     protected allFiles: string[] = []
+    protected counter: number = 0;
     fileFilteringContext: FileFilteringContext | null = null;
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
-
+        this.counter = 0
         let usageContext = context.getRelevantLocation();
         if (usageContext == null) {
             throw new Error("Usage context not found")
@@ -59,8 +61,8 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
         for (let file of Object.keys(pathLinesMap)) {
             file = resolve(context.getProjectPath(), file)
             let name = file
-            let content = fs.readFileSync(file, { encoding: "utf-8" })
             messages.push(this.getMessage(name, context))
+            this.counter++;
 
         }
         let chatMessages: ChatMessage[] = []
@@ -69,9 +71,9 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
         }
         return Promise.resolve(chatMessages)
     }
-    getMessage(filePath:string, context:DataClumpRefactoringContext): string {
+    getMessage(filePath: string, context: DataClumpRefactoringContext): string {
         let name = path.relative(context.getProjectPath(), filePath)
-        let content = fs.readFileSync( path.resolve(context.getProjectPath(), filePath), { encoding: "utf-8" })
+        let content = fs.readFileSync(path.resolve(context.getProjectPath(), filePath), { encoding: "utf-8" })
         return "//" + name + "\n" + content
     }
 
@@ -84,10 +86,35 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
 
 export class AllAST_FilesHandler extends AllFilesHandler {
     getMessage(filePath: string, context: DataClumpRefactoringContext): string {
-        filePath=path.relative(context.getProjectPath(), filePath)
+        filePath = path.relative(context.getProjectPath(), filePath)
         let astContext = context.getByType(ASTBuildingContext)! as ASTBuildingContext;
-        let content= astContext.getByPath(filePath);
-        return  "//"+content.file_path +"\n"+ JSON.stringify(content)
+        let content = astContext.getByPath(filePath);
+        content=this.simplifyAST(content)
+        return "//" + content.file_path + "\n" + JSON.stringify(content)
+    }
+    simplifyAST(content: AST_Class):AST_Class {
+        for (let f of Object.keys(content.fields)) {
+            content.fields[this.counter + ""] = content.fields[f];
+            content.fields[this.counter + ""].key = this.counter + ""
+            this.counter++;
+            delete content.fields[f]
+
+
+        }
+        for (let mKey of Object.keys(content.methods)) {
+            let m=content.methods[mKey]
+            content.methods[this.counter + ""] = content.methods[mKey];
+            content.methods[this.counter + ""].key = this.counter + ""
+            delete content.methods[mKey]
+            this.counter++;
+
+            for(let p of  m.parameters ){
+                p.key=this.counter+""
+                this.counter++;
+            }
+        }
+        console.log(content)
+        return content
     }
 }
 
@@ -209,7 +236,7 @@ enum ExtractionDirection { Up, Down, UpAndDown }
 
 export class CodeSnippetHandler extends LargeLanguageModelHandler {
     private additionalMargin = 0
-    private includeHeader=true;
+    private includeHeader = true;
     generateLines(centerLine: number, margin: number, extractionDirection: ExtractionDirection, lines: Set<number>) {
         let start = extractionDirection == ExtractionDirection.Up || extractionDirection == ExtractionDirection.UpAndDown ? centerLine - margin : centerLine;
         let end = extractionDirection == ExtractionDirection.Down || extractionDirection == ExtractionDirection.UpAndDown ? centerLine + margin : centerLine;
@@ -220,8 +247,8 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
 
         }
     }
-    splitIntoBlocks(content:string,lines: Set<number>, additionalData): { fromLine: number, toLine: number,content:string }[] {
-        let blocks: { fromLine: number, toLine: number,content:string, key?: string }[] = []
+    splitIntoBlocks(content: string, lines: Set<number>, additionalData): { fromLine: number, toLine: number, content: string }[] {
+        let blocks: { fromLine: number, toLine: number, content: string, key?: string }[] = []
         let lastLine = -1
         let fromLine = -1;
         let firstIteration = true;
@@ -234,8 +261,8 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
                 continue;
             }
             else if (line - lastLine > 1) {
-                let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine-1,lastLine).join("\n") }
-                Object.assign(block,additionalData)
+                let block = { fromLine, toLine: lastLine, content: content.split("\n").slice(fromLine - 1, lastLine).join("\n") }
+                Object.assign(block, additionalData)
                 blocks.push(block)
                 fromLine = line
                 lastLine = line
@@ -245,30 +272,30 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
 
             }
         }
-        let block={ fromLine, toLine: lastLine,content:content.split("\n").slice(fromLine-1,lastLine).join("\n") }
-        Object.assign(block,additionalData)
-        blocks.push( block)
+        let block = { fromLine, toLine: lastLine, content: content.split("\n").slice(fromLine - 1, lastLine).join("\n") }
+        Object.assign(block, additionalData)
+        blocks.push(block)
         return blocks;
     }
-    getImportBlock(path:string, context:DataClumpRefactoringContext):{start,margin:number}{
-        let content=fs.readFileSync(resolve(context.getProjectPath(),path),{encoding:"utf-8"}).split("\n");
+    getImportBlock(path: string, context: DataClumpRefactoringContext): { start, margin: number } {
+        let content = fs.readFileSync(resolve(context.getProjectPath(), path), { encoding: "utf-8" }).split("\n");
 
-        let start:number|null=null;
-        let margin=0;
-        for(let i=0;i<content.length;i++ ){
-            if(content[i].trim().startsWith("package") || content[i].trim().startsWith("import")){
-                if(start==null){
-                    start=i;
+        let start: number | null = null;
+        let margin = 0;
+        for (let i = 0; i < content.length; i++) {
+            if (content[i].trim().startsWith("package") || content[i].trim().startsWith("import")) {
+                if (start == null) {
+                    start = i;
                 }
             }
-            else if (content[i].trim()!=""){
-                if(start!=null){
-                    margin=i-start;
-                    return {start,margin}
+            else if (content[i].trim() != "") {
+                if (start != null) {
+                    margin = i - start;
+                    return { start, margin }
                 }
             }
         }
-        return{start:0,margin:0}
+        return { start: 0, margin: 0 }
 
     }
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
@@ -281,11 +308,11 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
         let pathLinesMapCopy: { [key: string]: Set<number> } = {}
         for (let path of Object.keys(pathLinesMap)) {
             pathLinesMapCopy[path] = new Set<number>();
-            if(this.includeHeader){
-                let headerData=this.getImportBlock(path,context)
-                this.generateLines(headerData.start,headerData.margin, ExtractionDirection.Down, pathLinesMapCopy[path])
+            if (this.includeHeader) {
+                let headerData = this.getImportBlock(path, context)
+                this.generateLines(headerData.start, headerData.margin, ExtractionDirection.Down, pathLinesMapCopy[path])
             }
-            
+
 
             for (let line of pathLinesMap[path]) {
 
@@ -302,26 +329,26 @@ export class CodeSnippetHandler extends LargeLanguageModelHandler {
         } = {};
         for (let path of Object.keys(pathLinesMapCopy)) {
             let content = fs.readFileSync(resolve(context.getProjectPath(), path), { encoding: "utf-8" })
-            let blocks = this.splitIntoBlocks(content,pathLinesMapCopy[path], undefined)!;
-            if(!(path in resultingMessages)){
-                resultingMessages[path]=[]
+            let blocks = this.splitIntoBlocks(content, pathLinesMapCopy[path], undefined)!;
+            if (!(path in resultingMessages)) {
+                resultingMessages[path] = []
             }
-           for(let b  of blocks){
-            resultingMessages[path].push(b);
-           }
-           
+            for (let b of blocks) {
+                resultingMessages[path].push(b);
+            }
+
 
         }
         return Promise.resolve([api.prepareMessage(JSON.stringify(resultingMessages), "input")])
     }
-    constructor(args: { additionalMargin?: number, includeHeader?:boolean }) {
+    constructor(args: { additionalMargin?: number, includeHeader?: boolean }) {
         super()
-        Object.assign(this,args)
-        
+        Object.assign(this, args)
+
     }
 }
 export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
-   async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
         let dcContext = context.getByType(DataClumpDetectorContext)!;
         let pathLinesMap: { [key: string]: Set<number> } = {}
         let allBlocks: { [path: string]: { fromLine: number, toLine: number, id?: string }[] } = {}
@@ -358,25 +385,25 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
             if (!(dc.to_file_path in allBlocks)) {
                 allBlocks[dc.to_file_path] = []
             }
-            let additionalData={
-                metrics:{
-                affected_files:await (resolveFromConcreteName("AffectedFilesMetric") as Metric).evaluate(dc,context),
-                occurence:await (resolveFromConcreteName("DataClumpOccurenceMetric") as Metric).evaluate(dc,context),
-                size:await (resolveFromConcreteName("DataClumpSizeMetric") as Metric).evaluate(dc,context)
+            let additionalData = {
+                metrics: {
+                    affected_files: await (resolveFromConcreteName("AffectedFilesMetric") as Metric).evaluate(dc, context),
+                    occurence: await (resolveFromConcreteName("DataClumpOccurenceMetric") as Metric).evaluate(dc, context),
+                    size: await (resolveFromConcreteName("DataClumpSizeMetric") as Metric).evaluate(dc, context)
                 },
-                key:dc.key
+                key: dc.key
 
             }
-            let content=fs.readFileSync(resolve(context.getProjectPath(),dc.from_file_path),{encoding:"utf-8"})
-            let blocks = this.splitIntoBlocks(content,pathLinesMap[dc.from_file_path],additionalData)
+            let content = fs.readFileSync(resolve(context.getProjectPath(), dc.from_file_path), { encoding: "utf-8" })
+            let blocks = this.splitIntoBlocks(content, pathLinesMap[dc.from_file_path], additionalData)
             allBlocks[dc.from_file_path].push(...blocks)
-            allBlocks[dc.from_file_path]=makeUnique(allBlocks[dc.from_file_path],(k)=>JSON.stringify(k))
+            allBlocks[dc.from_file_path] = makeUnique(allBlocks[dc.from_file_path], (k) => JSON.stringify(k))
 
-             content=fs.readFileSync(resolve(context.getProjectPath(),dc.to_file_path),{encoding:"utf-8"})
+            content = fs.readFileSync(resolve(context.getProjectPath(), dc.to_file_path), { encoding: "utf-8" })
 
-            blocks = this.splitIntoBlocks(content,pathLinesMap[dc.to_file_path], additionalData)
+            blocks = this.splitIntoBlocks(content, pathLinesMap[dc.to_file_path], additionalData)
             allBlocks[dc.to_file_path].push(...blocks)
-            allBlocks[dc.to_file_path]=makeUnique(allBlocks[dc.to_file_path],(k)=>JSON.stringify(k))
+            allBlocks[dc.to_file_path] = makeUnique(allBlocks[dc.to_file_path], (k) => JSON.stringify(k))
 
 
         }
@@ -431,7 +458,7 @@ export class SimplifiedDataClumpContextHandler extends LargeLanguageModelHandler
 
 export class ValidationResultHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
-        let validationContext=context.getByType(ValidationContext)! as ValidationContext;
+        let validationContext = context.getByType(ValidationContext)! as ValidationContext;
         /*let errors: { path: string, line: number, errorMessage: string,content?:string}[] = []
         for (let v of validationContext.validationResult) {
             let content:string|undefined=undefined
@@ -447,10 +474,10 @@ export class ValidationResultHandler extends LargeLanguageModelHandler {
         let msg:ChatMessage=api.prepareMessage(JSON.stringify(errors), "input")
         api.prepareMessage(msg.messages[0],msg.messageType)*/
 
-        let msg=api.prepareMessage(validationContext.raw!,"input")
+        let msg = api.prepareMessage(validationContext.raw!, "input")
         return Promise.resolve([msg])
-}
-private includeContent=true;
+    }
+    private includeContent = true;
 }
 export class SendAndClearHandler extends LargeLanguageModelHandler {
     handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
@@ -495,13 +522,13 @@ export class RepeatInstructionRandomlyHandler extends SimpleInstructionHandler {
     }
 }
 
-export function resolveHandlers(handlers:(LargeLanguageModelHandler|string)[]):LargeLanguageModelHandler[]{
-    let result:LargeLanguageModelHandler[]=[]
-    for(let handler of handlers){
-        if(typeof handler=="string"){
+export function resolveHandlers(handlers: (LargeLanguageModelHandler | string)[]): LargeLanguageModelHandler[] {
+    let result: LargeLanguageModelHandler[] = []
+    for (let handler of handlers) {
+        if (typeof handler == "string") {
             result.push(resolveFromConcreteName(handler) as LargeLanguageModelHandler)
         }
-        else{
+        else {
             result.push(handler)
         }
     }

@@ -60,6 +60,7 @@ export class DetectEval extends BaseEvaluator{
          let reply=await api.sendMessages(true)
          writeFileSync("detectResult.json", JSON.stringify(reply, null, 2));
     }
+ 
     createInstanceCombination(): DetectEvalInstanceCombination {
         let result= {
             instanceType: ["detect"],
@@ -71,7 +72,7 @@ export class DetectEval extends BaseEvaluator{
             ],
             iteration: [0, 1, 2, 3, 4],
             inputType: [
-                "ast",
+               // "ast",
                 "fullFile",
                 "snippet"],
             margin: [
@@ -83,8 +84,8 @@ export class DetectEval extends BaseEvaluator{
                 ],
             instructionType: [
                 "definitionBased",
-                //"exampleBased", 
-                //"noDefinitionBased"
+                "exampleBased", 
+                "noDefinitionBased"
                 ]
         } 
         if(isDebug()){
@@ -142,6 +143,7 @@ class RelevantLocationCombiner extends DataClumpRefactoringContext implements Re
         this.dataClumps=dataClumps;
     }
     getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
+        console.log(this.ast)
     let astResult: {[path: string]: Set<number> }={}
     let dataClumpResult: {[path: string]: Set<number> }={}
     this.ast.getRelevantLocations(astResult)

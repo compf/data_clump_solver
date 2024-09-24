@@ -97,7 +97,14 @@ export abstract class BaseEvaluator {
         let obtainingContext = await cloneHandler.handle(PipeLineStep.CodeObtaining, new DataClumpRefactoringContext(), {}) as CodeObtainingContext
         let dcHandler = new DataClumpDoctorStepHandler({});
         let originalDcContext:DataClumpDetectorContext;
-        let ctx=loadExistingContext(PipeLineStep.DataClumpDetection,obtainingContext)
+        let ctx=loadExistingContext(PipeLineStep.ASTGeneration,obtainingContext)
+        if(ctx==null){
+            ctx=obtainingContext;
+        }
+        else{
+            ctx=obtainingContext.buildNewContext(ctx)
+        }
+         ctx=loadExistingContext(PipeLineStep.DataClumpDetection,ctx)
         if(ctx!=null){
             originalDcContext=ctx as DataClumpDetectorContext
         }
