@@ -13,6 +13,7 @@ import { FileIO } from "../../util/FileIO";
 import { CloneObtainingStepHandler } from "../../pipeline/stepHandler/codeObtaining/CloneObtainingStepHandler";
 import { DataClumpsTypeContext, DataClumpTypeContext } from "data-clumps-type-context";
 import ts from "typescript";
+import simpleGit from "simple-git";
 
 export type InstanceCombinationWithMetrics = InstanceCombination & {
     metricNames: string[]
@@ -25,10 +26,7 @@ export type DataClumpGuess = {
     fromFiltered: boolean
 }
 
-export function parseLLMOutput(dirPath: string) {
-    let parsed = JSON.parse(fs.readFileSync(dirPath + "/response.json", { encoding: "utf-8" }))
-    return parsed
-}
+
 export abstract class EvalAnalyzer {
     abstract getEvaluator(): BaseEvaluator;
 
@@ -42,6 +40,10 @@ export abstract class EvalAnalyzer {
             }
         }
         return true;
+    }
+     parseLLMOutput(dirPath: string) {
+        let parsed = JSON.parse(fs.readFileSync(dirPath + "/response.json", { encoding: "utf-8" }))
+        return parsed
     }
 
     createCompareObjects(): any[] {
@@ -79,6 +81,8 @@ export abstract class EvalAnalyzer {
         let result = {}
         for (let url of urls) {
             let projectData = getRepoDataFromUrl(url)
+            let git = simpleGit("cloned_projects/" + projectData.repo)   
+            let g = await git.checkout( "context");
             let context = (await (this.getEvaluator().initProject(url)))!
             result[projectData.repo] = context
         }
@@ -138,9 +142,12 @@ export abstract class EvalAnalyzer {
             counter++
             let result = {}
             if (instance.instanceType != instanceType) continue
-            let parsed = parseLLMOutput(instancePath)
+            let parsed = this.parseLLMOutput(instancePath)
             for (let m of metrics) {
                 let metricResult = await m.eval(instance, instancePath, allCOntexts[(instance as any).projectName], parsed)
+                 
+
+
                 result[m.getName()] = metricResult
             }
             (instance as any).metrics = result

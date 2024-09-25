@@ -125,7 +125,6 @@ export class FilterEval extends BaseEvaluator {
             for(let r of result){
                 this.all_result[m.constructor.name].push({name:originalDcContext.createDataTypeNameClumpKey(r as DataClumpTypeContext), value:await m.evaluate(r,originalDcContext)})
             }
-            console.log(result)
 
         }
         fs.writeFileSync(resolve(this.getProjectDataFolder(url),"basicMetrics.json"), JSON.stringify(this.all_result, null, 2));

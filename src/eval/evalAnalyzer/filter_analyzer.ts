@@ -87,7 +87,6 @@ class DataClumpSizeMetric implements EvalMetric{
        if(bestFittingDataClump.dataClump==null){
               return {}
        }
-       console.log("Best fitting data clump",bestFittingDataClump)
         let size=Object.values(bestFittingDataClump!.dataClump!.data_clump_data).length
         return {"Size":size}
     }
