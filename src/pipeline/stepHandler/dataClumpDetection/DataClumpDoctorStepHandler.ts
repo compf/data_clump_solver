@@ -43,7 +43,7 @@ export class DataClumpDoctorStepHandler extends AbstractStepHandler {
         let result = JSON.parse(fs.readFileSync(output_path, { encoding: "utf-8" }))
 
         newContext = newContext.buildNewContext(new DataClumpDetectorContext(result as DataClumpsTypeContext));
-        //fs.copyFileSync(output_path, getContextSerializationPath(newContext, newContext)!)
+        fs.copyFileSync(output_path, getContextSerializationPath(newContext, newContext)!)
         return newContext
 
     }
