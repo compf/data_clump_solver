@@ -2,7 +2,7 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
-import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, Surety } from "./base_analyzer";
+import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, Surety } from "./base_analyzer";
 import fs from "fs"
 export class DetectAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
@@ -14,8 +14,9 @@ export class DetectAnalyzer extends EvalAnalyzer {
 }
 
 export class SuretyMetric implements EvalMetric {
-    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext, parsed:any){
+    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext){
         console.log("Instance: "+JSON.stringify(instance))
+        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
         let byLLM = parsed.data_clumps
         
 
@@ -122,8 +123,10 @@ export class SuretyMetric implements EvalMetric {
 }
 
  class DataClumpSizeMetric implements EvalMetric{
-    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext,parsed) {
+    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
         let sizes:number[]=[]
+        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
+
         let byLLM = Object.values(parsed.data_clumps) as DataClumpTypeContext[]
         for(let dc of byLLM){
             sizes.push(Object.values(dc.data_clump_data).length)

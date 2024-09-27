@@ -1,7 +1,7 @@
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../context/DataContext";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { getRelevantFilesRec, nop } from "../../util/Utils";
-import { BaseEvaluator, disableCloning, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
+import { BaseEvaluator, disableCloning, getInstancePath, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import fs from "fs"
 import { resolve, dirname } from "path"
@@ -13,7 +13,7 @@ import { FileIO } from "../../util/FileIO";
 import { CloneObtainingStepHandler } from "../../pipeline/stepHandler/codeObtaining/CloneObtainingStepHandler";
 import { DataClumpsTypeContext, DataClumpTypeContext } from "data-clumps-type-context";
 import ts from "typescript";
-import simpleGit from "simple-git";
+import simpleGit, { DiffResult } from "simple-git";
 
 export type InstanceCombinationWithMetrics = InstanceCombination & {
     metricNames: string[]
@@ -26,13 +26,22 @@ export type DataClumpGuess = {
     fromFiltered: boolean
 }
 
+export type InstanceGeneratedData={
+    instance:Instance,
+    responsePaths:string[],
+    requestPaths:string[],
+    fileContents:{[key:string]:string},
+    validationResults:number[],
+    gitDiff:DiffResult|null,
+    dataClumpDetectionResult:DataClumpsTypeContext|null
 
+}
 export abstract class EvalAnalyzer {
     abstract getEvaluator(): BaseEvaluator;
 
 
     abstract getMetrics(): EvalMetric[];
-
+    protected generatedData:{[key:string]:InstanceGeneratedData}={}
     filter(instance: Instance, compareObject: any): boolean {
         for (let key in compareObject) {
             if (instance[key] != compareObject[key]) {
@@ -99,6 +108,23 @@ export abstract class EvalAnalyzer {
         }
         return true
     }
+
+     loadGeneratedData(instance:Instance ,context:DataClumpRefactoringContext):Promise<InstanceGeneratedData>{
+        let responsePaths: string[] = []
+        let filterContext = new FileFilteringContext([getInstancePath(["evalData"],"/",instance)+"/.*response.json"], [])
+        getRelevantFilesRec("evalData", responsePaths, filterContext)
+        let requestPaths=responsePaths.map((p)=>p.replace("response.json","request.json"));
+        return  Promise.resolve({
+            instance:instance,
+            responsePaths:responsePaths,
+            requestPaths:requestPaths,
+            fileContents:{},
+            validationResults:[],
+            gitDiff:null,
+            dataClumpDetectionResult:null
+        })
+
+    }
     async performRawAnalysis(urls: string[], filters: any[]) {
         //disableCloning()
 
@@ -132,6 +158,11 @@ export abstract class EvalAnalyzer {
         
         let counter = 0
         let returnedInstances: Instance[] = []
+
+        for(let instance of instances){
+            if (instance.instanceType != instanceType) continue
+            this.generatedData[getInstancePath([],"/",instance)]=await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
+        }
         FileIO.instance = new InstanceBasedFileIO();
 
         for (let instance of instances) {
@@ -142,15 +173,14 @@ export abstract class EvalAnalyzer {
             counter++
             let result = {}
             if (instance.instanceType != instanceType) continue
+            let generated=this.generatedData[getInstancePath([],"/",instance)]
             let parsed = this.parseLLMOutput(instancePath)
             for (let m of metrics) {
-                let metricResult = await m.eval(instance, instancePath, allCOntexts[(instance as any).projectName], parsed)
-                 
-
-
+                let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName])
                 result[m.getName()] = metricResult
             }
             (instance as any).metrics = result
+            //console.log("Finished instance", JSON.stringify(instance,undefined,2))
             returnedInstances.push(instance)
             nop();
 
@@ -164,7 +194,7 @@ export abstract class EvalAnalyzer {
     }
 }
 export interface EvalMetric {
-    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext, llmOutput: any): any
+    eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): any
     getName(): string
 }
 

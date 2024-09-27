@@ -4,7 +4,7 @@ import { DataClumpLanguageModelFilter } from "../../pipeline/stepHandler/dataClu
 import { StubInterface } from "../../util/languageModel/StubInterface";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { FilterEval } from "../eval_filter";
-import { EvalAnalyzer, EvalMetric, getBestFittingDataClump } from "./base_analyzer";
+import { EvalAnalyzer, EvalMetric, getBestFittingDataClump, InstanceGeneratedData } from "./base_analyzer";
 import fs from "fs"
 import { resolve } from "path";
 import { DataClumpTypeContext } from "data-clumps-type-context";
@@ -38,7 +38,7 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
         return reduced
 
     }
-    async eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext, parsed:any) {
+    async eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
 
         let filterResults = JSON.parse(fs.readFileSync(resolve("evalData/filter",(instance as any).projectName,"basicMetrics.json"), { encoding: "utf-8" }).toString())
         let llm = new DataClumpLanguageModelFilter({ handlers: [] } as any)
@@ -47,7 +47,7 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
         }
         let withNumericIds = llm.simplifyKeys(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
         context = context.buildNewContext(new DataClumpDetectorContext(withNumericIds));
-       
+        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
         let bestFittingDataClump=getBestFittingDataClump(context,[parsed.key,parsed.justification])
         let k=bestFittingDataClump!.dataClump?.key
         if(k==undefined || k==null){
@@ -82,7 +82,9 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
 }
 
 class DataClumpSizeMetric implements EvalMetric{
-    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext,parsed) {
+    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
+
        let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
        if(bestFittingDataClump.dataClump==null){
               return {}

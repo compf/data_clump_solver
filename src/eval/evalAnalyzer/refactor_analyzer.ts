@@ -1,76 +1,204 @@
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { BaseEvaluator, getInstancePath, Instance, InstanceCombination } from "../base_eval";
 import { RefactorEval } from "../eval_refactor";
-import { EvalAnalyzer, EvalMetric } from "./base_analyzer";
-import {basename,dirname,resolve} from "path"
+import { EvalAnalyzer, EvalMetric, InstanceGeneratedData } from "./base_analyzer";
+import { basename, dirname, resolve } from "path"
 import fs from "fs"
-import simpleGit from "simple-git";
+import simpleGit, { DiffResult } from "simple-git";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { PipeLineStep } from "../../pipeline/PipeLineStep";
+import { nop } from "../../util/Utils";
+import { get } from "axios";
 
-class StubRefactorEval extends BaseEvaluator{
+class StubRefactorEval extends BaseEvaluator {
     analyzeInstance(instance: Instance, context: DataClumpRefactoringContext): Promise<void> {
         throw new Error("Method not implemented.");
     }
     createInstanceCombination(): InstanceCombination {
-        let refactorEval=new RefactorEval()
+        let refactorEval = new RefactorEval()
         return refactorEval.createInstanceCombination()
     }
-    
+
 }
 export class RefactorAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new StubRefactorEval();
     }
     getMetrics(): EvalMetric[] {
-        return [new FailureCountMetric(), new RemovedDataClumpsMetric()];
+        return [new FailureCountMetric(), new RemainingAttemptCountMetric(), new RemovedDataClumpsMetric(), new GitChangesMetric(), new CommentOutMetric()];
     }
     parseLLMOutput(dirPath: string) {
         return {}
     }
+    originalFiles: { [key: string]: string } = {}
+    newFiles: { [key: string]: boolean } = {}
+    async loadOriginalFile(path: string, context: DataClumpRefactoringContext) {
+        if (path in this.newFiles) {
+            return
+        }
+        if (!(path in this.originalFiles)) {
+            let git = simpleGit(context.getProjectPath())
+            let g = await git.checkout("context", ["-f"])
+
+            if (fs.existsSync(resolve(context.getProjectPath(), path))) {
+                this.originalFiles[path] = fs.readFileSync(resolve(context.getProjectPath(), path), { encoding: "utf-8" })
+            }
+            else {
+                this.newFiles[path] = true
+            }
+        }
+    }
+    async loadGeneratedData(instance: Instance, context: DataClumpRefactoringContext): Promise<InstanceGeneratedData> {
+        let git = simpleGit(context.getProjectPath())
+
+        let data = await super.loadGeneratedData(instance, context)
+
+        let originalContext = context.getFirstByType(DataClumpDetectorContext)!
+        let dirPath = getInstancePath(["evalData"], "/", instance)
+
+        let lastPath = fs.readdirSync(dirPath).filter((it) => !it.endsWith(".json")).slice(-1)
+        let p = resolve(dirPath, lastPath[0])
+        if (fs.existsSync(resolve(p, "validation_count.json"))) {
+            let validationResult = JSON.parse(fs.readFileSync(resolve(p, "validation_count.json"), { encoding: "utf-8" }))
+            data.validationResults = validationResult.compilingResults
+        }
+       
+
+        let branchedContext = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), ".data_clump_solver_data", "dataClumpDetectorContext.json")).toString())
+        data.dataClumpDetectionResult = branchedContext
+
+        let g1 = await git.diffSummary([getInstancePath([], "-", instance), "context"])
+        data.gitDiff = g1
+        for (let f of g1.files) {
+           await  this.loadOriginalFile(f.file, context)
+        }
+
+        let g = await git.checkout(getInstancePath([], "-", instance), ["-f"])
+
+        for (let f of g1.files) {
+            if (f.file.endsWith(".java")) {
+                data.fileContents[f.file] = fs.readFileSync(resolve(context.getProjectPath(), f.file), { encoding: "utf-8" })
+            }
+        }
+
+        return data
+    }
 }
 
-class FailureCountMetric implements EvalMetric {
-    eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext, llmOutput: any) {
-        dirPath=dirname(dirPath)
+class RemainingAttemptCountMetric implements EvalMetric {
+    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+        let errorCount=0;
 
-        let lastPath=fs.readdirSync(dirPath).filter((it)=>!it.endsWith(".json")).slice(-1)
-        let p=resolve(dirPath,lastPath[0])
-        if(!fs.existsSync(resolve(p,"validation_count.json"))){
-            return {errorCount:5}
+        if (instance.validationResults.length == 5 && instance.validationResults.every((it) => it == 1)) {
+            errorCount = 5
         }
-        let data=JSON.parse(fs.readFileSync(resolve(dirPath,lastPath[0],"validation_count.json"),{encoding:"utf-8"}))
-        let errorCount;
-        if(data.compilingResults.length==5){
-            errorCount=5
+        else {
+            errorCount = instance.validationResults.length - 1
+
         }
-        else{
-            errorCount=data.compilingResults.length-1
+        
+        return 5 - errorCount
+    }
+    getName(): string {
+        return "RemainingAttemptCount";
+    }
+
+}
+class FailureCountMetric implements EvalMetric {
+    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+        let invalid = 0;
+        if (instance.validationResults.length == 5 && instance.validationResults.every((it) => it == 1)) {
+            invalid = 1
         }
-        return {
-            errorCount:5-errorCount
-        }
-    } 
+        return 1 - invalid
+    }
     getName(): string {
         return "FailureCount";
     }
 
 }
 
-class RemovedDataClumpsMetric implements EvalMetric{
-    async eval(instance: Instance, dirPath: string, context: DataClumpRefactoringContext, llmOutput: any) {
-        let git = simpleGit(context.getProjectPath())
-        let g = await git.checkout(  getInstancePath([], "-", instance))
+class RemovedDataClumpsMetric implements EvalMetric {
+    async   eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext){
 
-        let detector=new DataClumpDoctorStepHandler({})
-        let originalContext=context.getFirstByType(DataClumpDetectorContext)!
-        let branchedContext=new CodeObtainingContext(context.getProjectPath()) as DataClumpRefactoringContext
-         branchedContext=context.buildNewContext(await detector.handle(PipeLineStep.DataClumpDetection   ,branchedContext,{})) as DataClumpDetectorContext
+        let invalidMetric=new FailureCountMetric()
+        if(invalidMetric.eval(instance,context)==0){
+            return 0
+        }
 
-        let removed=originalContext.getDataClumpDetectionResult().report_summary.amount_data_clumps!-(branchedContext as DataClumpDetectorContext).getDataClumpDetectionResult().report_summary.amount_data_clumps!
-        return {removedDataClumps:removed}
+        let originalContext = context.getFirstByType(DataClumpDetectorContext)!
+        let branchedContext =instance.dataClumpDetectionResult!
+
+        let removed = originalContext.getDataClumpDetectionResult().report_summary.amount_data_clumps! - branchedContext.report_summary.amount_data_clumps!
+        return removed
     }
     getName(): string {
         return "RemovedDataClumps";
+    }
+}
+
+class GitChangesMetric implements EvalMetric {
+    async  eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+        let g1=instance.gitDiff!
+        let insertions = 0;
+        let deletions = 0;
+        let files = 0;
+        for (let f of g1.files) {
+            if (f.file.endsWith(".java")) {
+                let obj = f as any
+                insertions += obj.insertions
+                deletions += obj.deletions
+                files++
+            }
+        }
+
+        return insertions + deletions + files
+      
+    }
+    getName(): string {
+        return "GitChanges";
+    }
+}
+
+class CommentOutMetric implements EvalMetric {
+    countCommentLines(fileContent: string[]) {
+        let count = 0;
+        let line = 0;
+        while (line < fileContent.length) {
+            if (fileContent[line].trim().startsWith("//")) {
+                count++
+            }
+            else if (line < fileContent.length && fileContent[line].trim().startsWith("/*")) {
+                count++
+                while (line < fileContent.length && !fileContent[line].trim().endsWith("*/")) {
+                    count++
+                    line++
+                }
+            }
+            line++
+        }
+        return count
+    }
+    async   eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+        let commentLines = 0;
+        let allLines = 0;
+        for (let f of Object.keys(instance.fileContents)) {
+            if (f.endsWith(".java")) {
+               
+                let fileContent = instance.fileContents[f].split("\n")
+                commentLines += this.countCommentLines(fileContent)
+                allLines += fileContent.length
+            }
+        }
+        if (allLines == 0) {
+            return 0
+        }
+
+        return 1 - commentLines / allLines;
+
+
+    }
+    getName(): string {
+        return "CommentOut";
     }
 }
