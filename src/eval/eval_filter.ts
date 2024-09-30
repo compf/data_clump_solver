@@ -80,16 +80,16 @@ export class FilterEval extends BaseEvaluator {
             instanceType: ["filter"],
             model: ["gpt-4-1106-preview"],
             temperature: [0.1, 0.5, 0.9],
-            iteration: [0, 1, 2, 3, 4],
+            iteration: [0, 1, 2, 3, 4,5,6,7,8,9],
             projectName:[],
             inputFormat: [
                 "filter",
                 "filter_code_snippet",
                 "filter_full_code"],
             instructionType: [
-                "definitionBased",
-                "exampleBased", 
-                "noDefinitionBased"
+                "definitionBased"
+               // "exampleBased", 
+                //"noDefinitionBased"
             ],
             margin: [
                 0,
@@ -143,7 +143,7 @@ export class FilterEval extends BaseEvaluator {
     }
 
     getNumDataClumpsPerBlock(): number {
-        return 5;
+        return 3;
     }
 
 }

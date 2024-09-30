@@ -238,6 +238,9 @@ export function createInstanceCombination<T>(tupleOfArrays: Arrayified<T>, keys:
 
 function createInstanceCombinationRecursive<T>(tupleOfArrays: Arrayified<T>, targetObject: T, currKeyIndex: number, objectList: T[], keys: string[]) {
     let currKey = keys[currKeyIndex];
+    if(tupleOfArrays[currKey].length==0){
+        createInstanceCombinationRecursive(tupleOfArrays,targetObject,currKeyIndex+1,objectList,keys)
+    }
     for (let value of tupleOfArrays[currKey]) {
         targetObject[currKey] = value
         if (currKeyIndex + 1 < keys.length) {

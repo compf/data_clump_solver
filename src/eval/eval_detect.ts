@@ -58,6 +58,9 @@ export class DetectEval extends BaseEvaluator{
          let reply=await api.sendMessages(true)
          writeFileSync("detectResult.json", JSON.stringify(reply, null, 2));
     }
+    getNumDataClumpsPerBlock(): number {
+        return 3
+    }
  
     createInstanceCombination(): DetectEvalInstanceCombination {
         let result= {
@@ -68,7 +71,7 @@ export class DetectEval extends BaseEvaluator{
                 0.5, 
                 0.9
             ],
-            iteration: [0, 1, 2, 3, 4],
+            iteration: [0, 1, 2, 3, 4,5,6,7,8,9],
             inputFormat: [
                // "ast",
                 "fullFile",
@@ -82,9 +85,9 @@ export class DetectEval extends BaseEvaluator{
                 ],
                 projectName:[],
             instructionType: [
-                "definitionBased",
-                "exampleBased", 
-                "noDefinitionBased"
+                "definitionBased"
+               // "exampleBased", 
+                //"noDefinitionBased"
                 ]
         } 
         if(isDebug()){
