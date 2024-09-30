@@ -177,7 +177,7 @@ export abstract class BaseEvaluator {
             }
             api.clear();
             api.resetParameters(instance)
-            setCurrLabel(Date.now().toString())
+            setCurrLabel(this.getBaseDirLabel())
             if (DEBUG) {
                 try {
                     await this.analyzeInstance(instance, ctx!);
@@ -200,6 +200,9 @@ export abstract class BaseEvaluator {
     abstract createInstanceCombination(): InstanceCombination;
     getNumDataClumpsPerBlock(): number {
         return 5;
+    }
+    getBaseDirLabel(){
+        return Date.now().toString()
     }
     getNumberIterations(): number {
         return 1000;

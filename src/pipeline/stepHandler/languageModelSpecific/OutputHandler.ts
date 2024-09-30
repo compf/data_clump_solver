@@ -275,6 +275,9 @@ export function parse_piecewise_output(content: any, fullChat: ChatMessage[], co
                     else if(typeof(classContent)=="object"){
                         continue;
                     }
+                    else if(extractedClassPath==""){
+                        continue;
+                    }
                     changes[outPath] = classContent
                 }
             }

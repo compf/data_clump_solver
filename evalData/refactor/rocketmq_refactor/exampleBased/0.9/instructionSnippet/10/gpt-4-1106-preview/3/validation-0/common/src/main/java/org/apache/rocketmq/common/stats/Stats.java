@@ -1,0 +1,1 @@
+// The refactored Stats class now does not contain any constants since they were removed or refactored out.

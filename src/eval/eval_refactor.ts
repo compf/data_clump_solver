@@ -57,9 +57,9 @@ export class RefactorEval extends BaseEvaluator {
                 ,
                 0.9],
             instructionType: [
-                "definitionBased",
-                "exampleBased",
-                "noDefinitionBased"
+               // "definitionBased",
+                "exampleBased"
+                //"noDefinitionBased"
             ],
             inputFormat: [
             
@@ -67,15 +67,7 @@ export class RefactorEval extends BaseEvaluator {
                 "instructionSnippet",
                     "instruction"
             ],
-            iteration: [0
-                ,
-                1
-                ,
-                2
-                ,
-                3
-                ,
-                4],
+            iteration: Array.from({length: 10}, (x, i) => i),
             margin: [0, 1, 2, 5, 10]
         }
         if (isDebug()) {
@@ -84,6 +76,9 @@ export class RefactorEval extends BaseEvaluator {
         }
         return result
     }
+    getBaseDirLabel(): string {
+        return "refactoring"
+    }
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         let context = await super.initProject(url);
         let git = simpleGit(context?.getProjectPath())
@@ -91,7 +86,7 @@ export class RefactorEval extends BaseEvaluator {
             return null;
         }
 
-        await git.checkout("-bcontext")
+        await git.checkout("-Bcontext")
         await git.add("-A")
         await git.commit("context")
 
@@ -101,10 +96,17 @@ export class RefactorEval extends BaseEvaluator {
     getValidationInstance():ValidationStepHandler{
         return new MavenBuildValidationStepHandler({skipTests:true})
     }
+    async validateInstance(context:DataClumpRefactoringContext){
+        let valL=this.getValidationInstance()
+        let resL=await valL.validate(context)
+        if(!resL.success){
+            throw "Project does not compile"
+        }
+    }
     async analyzeInstance(instance: RefactorInstance, context: DataClumpRefactoringContext): Promise<void> {
         let git = simpleGit(context.getProjectPath())
-        let g = await git.checkout("-b" + getInstancePath([], "-", instance))
-
+        let g = await git.checkout("-B" + getInstancePath([], "-", instance))
+        await this.validateInstance(context)
         let refactorHandlers: LargeLanguageModelHandler[] = [
             new SystemInstructionHandler({
                 instructionPath: `chatGPT_templates/refactor/${instance.inputFormat}.template`
@@ -156,6 +158,9 @@ export class RefactorEval extends BaseEvaluator {
         let stubOutputHandler = new StubOutputHandler();
         stubOutputHandler.apply = true;
         context = context.buildNewContext(await parseChat(chat, PipeLineStep.Refactoring, context, stubOutputHandler));
+        let val=new MavenBuildValidationStepHandler({skipTests:true})
+        let res=await val.validate(context)
+        writeFileSync("errors.txt",res.raw??"")
         await git.add("-A")
         await git.commit("refactoring ")
         context = context.buildNewContext(await stubOutputHandler.chooseProposal(context));
@@ -235,13 +240,18 @@ export class ReplayRefactorEvaluator extends RefactorEval{
     shallIgnore(instance: Instance): boolean {
         return !super.shallIgnore(instance)
     }
+    async validateInstance(context: DataClumpRefactoringContext): Promise<void> {
+        
+    }
 
     prepareLargeLanguageModelAPI(): void {
         registerFromName(InstanceBasedLanguageModelAPI.name,AbstractLanguageModel.name,FileIO.instance)
     }
+
     getValidationInstance(): ValidationStepHandler {
-        return new DummyValidationStep({skipTests:true});
+        return new DummyValidationStep({skipTests:true})
     }
+   
 
 }
 class DummyValidationStep extends ValidationStepHandler{
@@ -252,8 +262,17 @@ class DummyValidationStep extends ValidationStepHandler{
 }
 
 if (require.main === module) {
-    FileIO.instance = new DummyInstanceBasedIO()
-    let refactorEval = new ReplayRefactorEvaluator();
-    refactorEval.analyzeProject(init());
+    const replay=true;
+    if(replay){
+        FileIO.instance=new DummyInstanceBasedIO()
+        let refactorEval=new ReplayRefactorEvaluator();
+        refactorEval.analyzeProject(init());
+    }
+    else{
+        FileIO.instance = new InstanceBasedFileIO()
+        let refactorEval = new RefactorEval();
+        refactorEval.analyzeProject(init());
+    }
+   
 
 }

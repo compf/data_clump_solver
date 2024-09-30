@@ -1,0 +1,2957 @@
+messages:
+[
+	content:"
+	
+	I will provide you code snippets of one or more Java  files.
+	
+	Refactor all data clumps in the respective files.
+	To do this, replace the method parameters or fields of all data clump variables by a reference to the extracted class, and update all usages accordingly.
+	Also provide the content of all extracted classes.
+	If possible, the extracted classes should not be just mere data classes but contain additional functionality to increase readability and usability.
+	
+	
+	 Examples of data clump are provided below.
+	## Examples
+	/* 
+	    These examples show data clumps and how they might be refactored
+	    Imports are missing so these examples would not compile
+	*/
+	// ### example 5#########################
+	//'method parameters to method parameters' data clump
+	class Example1A {
+	
+	    // both methods share at least 3 parameters, so we can extract those 3
+	    // parameters into a class
+	
+	    public static String buildServiceKey(String path, String group, String version) {
+	        int length = path == null ? 0 : path.length();
+	        length += group == null ? 0 : group.length();
+	        length += version == null ? 0 : version.length();
+	        length += 2;
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(group)) {
+	            buf.append(group).append('/');
+	        }
+	        buf.append(path);
+	        if (StringUtils.isNotEmpty(version)) {
+	            buf.append(':').append(version);
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(String path, String group, String version, String prefix) {
+	        return prefix + buildServiceKey(path, group, version);
+	    }
+	
+	}
+	
+	// ## refactored ##################################
+	class KeyData {
+	    private String path;
+	    private String group;
+	    private String version;
+	
+	    KeyData(String path, String group, String version) {
+	        this.path = path;
+	        this.group = group;
+	        this.version = version;
+	    }
+	
+	    public String getPath() {
+	        return path;
+	    }
+	
+	    public String getGroup() {
+	        return group;
+	    }
+	
+	    public String getVersion() {
+	        return version;
+	    }
+	
+	    public int getLength() {
+	        return path == null ? 0
+	                : path.length() + group == null ? 0 : group.length() + version == null ? 0 : version.length() + 2;
+	    }
+	
+	}
+	
+	class Example1A {
+	
+	    public static String buildServiceKey(KeyData keyData) {
+	        int length = keyData.getLength();
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(keyData.getGroup())) {
+	            buf.append(keyData.getGroup()).append('/');
+	        }
+	        buf.append(keyData.getPath());
+	        if (StringUtils.isNotEmpty(keyData.getVersion())) {
+	            buf.append(':').append(keyData.getVersion());
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(KeyData keyData, String prefix) {
+	        return prefix + buildServiceKey(keyData);
+	    }
+	}
+	// #### example 5 end ##################################
+	
+	//
+	
+	// ## example 2 ##################################
+	// 'fields to fields' data clump
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a class
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+				
+				int state = node.getId();
+				states.add(state);
+				successors.put(state, new ArrayList<Integer>());
+				labels.put(state, new ArrayList<Label>())
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + successors.get(state) + ", Labels: "
+	                    + labels.get(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## refactored ##################################
+	
+	class StateGraphData {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	
+	    StateGraphData() {
+	        this.states = new ArrayList<Integer>();
+	        this.successors = new HashMap<Integer, List<Integer>>();
+	        this.labels = new HashMap<Integer, List<Label>>();
+	    }
+	
+	    public List<Integer> getStates() {
+	        return states;
+	    }
+	
+	    public Map<Integer, List<Integer>> getSuccessors(int state) {
+	        return successors.get(state);
+	    }
+	
+	    public Map<Integer, List<Label>> getLabels(int state) {
+	        return labels.get(state);
+	    }
+	
+	    public void addState(int state) {
+	        states.add(state);
+	        successors.put(state, new ArrayList<Integer>());
+	        labels.put(state, new ArrayList<Label>());
+	    }
+	
+	}
+	
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a
+	    // class
+	    private StateGraphData stateGraphData;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+	
+	            stateGraphData.addState(node.getId());
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private StateGraphData stateGraphData;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + stateGraphData.getSuccessor(state) + ", Labels: "
+	                    + stateGraphData.getLabel(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## example 2 end ##################################
+	
+	// ## example 3 ##################################
+	// 'parameters to fields' data clump
+	class Example3A {
+	    boolean validate(String methodName, Class<?>[] parameterTypes, Object[] arguments) {
+	        return parameterTypes.length == arguments.length;
+	    }
+	}
+	
+	// Example3B.java
+	class Example3B {
+	
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private String methodName;
+	
+	    private Class<?>[] parameterTypes;
+	
+	    private Object[] arguments;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	
+	}
+	
+	// ## refactored ##################################
+	class MethodCallData {
+	    public String methodName;
+	    public Class<?>[] parameterTypes;
+	    public Object[] arguments;
+	
+	    public boolean isValid() {
+	        return parameterTypes.length == arguments.length;
+	    }
+	
+	}
+	
+	class Example3A {
+	    boolean validate(MethodCallData methodCallData) {
+	        return methodCallData.isValid();
+	    }
+	}
+	
+	class Example3B {
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private MethodCallData methodCallData;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	}
+	// ## example 3 end ##################################
+	
+	// ## example 4 ##################################
+	class Example4A {
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        writer.incrementNumberReturned();
+	        writer.setAxisOrder(CRS.getAxisOrder(featureCrs));
+	    }
+	}
+	
+	// Example4B.java
+	class Example4B extends Example4A {
+	     // This pair of methods do not constitute a data clump even if signature is copied because
+	    // the method is overridden and therefore must have the same paremeters
+	    @Override
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        root.reset();
+	        super.beforeEvaluation(writer, root, feature);
+	    }
+	   
+	}
+	// ## example 4 end ##################################
+	
+	## Examples end
+	
+	
+	Use the following JSON format for the output:
+	
+	## JSON
+	
+	{
+	    "refactorings":{
+	        // for each refactored file
+	        "file1Path": [
+	            // for each change in the file performed by you. Try to group changes of neighboring lines
+	            {
+	                "fromLine": "<the fromLine>",
+	                "toLine":"<the toLine>",
+	                "oldContent": "the old content of the changed lines",
+	                "newContent": "the new content of the changed lines"
+	            },
+	            //...
+	        ]
+	    },
+	    "extractedClasses":{
+	          // for each extracted class
+	        "extractedClassPath1": "full content of the newly extracted class 1 ",
+	        //...
+	    }
+	}
+	
+	## END JSON
+	
+		
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+		[
+			fromLine:"			16",
+			toLine:"			51",
+			content:"
+			 */
+			package org.apache.rocketmq.common.stats;
+			
+			public class Stats {
+			
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			}
+						
+",
+,
+
+		],
+		store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			16",
+			toLine:"			74",
+			content:"
+			 */
+			package org.apache.rocketmq.store.stats;
+			
+			import java.util.HashMap;
+			import java.util.concurrent.ScheduledExecutorService;
+			import org.apache.commons.lang3.tuple.Pair;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.ThreadFactoryImpl;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.statistics.StatisticsItem;
+			import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+			import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+			import org.apache.rocketmq.common.statistics.StatisticsManager;
+			import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.common.stats.StatsItem;
+			import org.apache.rocketmq.common.stats.StatsItemSet;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.common.utils.ThreadUtils;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			
+			public class BrokerStatsManager {
+			
+			    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;
+			    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+			    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+			    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+			    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+			    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+			
+			    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+			
+			    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+			    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+			    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+			    // For commercial
+			    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+			    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+			    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+			    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+			    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+			
+			    // Send message latency
+			    public static final String TOPIC_PUT_LATENCY = "TOPIC_PUT_LATENCY";
+			    public static final String GROUP_ACK_NUMS = "GROUP_ACK_NUMS";
+			    public static final String GROUP_CK_NUMS = "GROUP_CK_NUMS";			
+",
+,
+			fromLine:"			105",
+			toLine:"			118",
+			content:"
+			    public static final String SUCCESS_MSG_SIZE = "SUCCESS_MSG_SIZE";
+			    public static final String FAILURE_MSG_SIZE = "FAILURE_MSG_SIZE";
+			    public static final String RT = "RT";
+			    public static final String INNER_RT = "INNER_RT";
+			
+			    @Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+			    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+			    // Pull Message Latency
+			    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+			
+			    // Consumer Register Time
+			    public static final String CONSUMER_REGISTER_TIME = "CONSUMER_REGISTER_TIME";
+			    // Producer Register Time
+			    public static final String PRODUCER_REGISTER_TIME = "PRODUCER_REGISTER_TIME";			
+",
+,
+			fromLine:"			580",
+			toLine:"			597",
+			content:"
+			    public double tpsGroupGetNums(final String group, final String topic) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        return this.statsTable.get(Stats.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();
+			    }
+			
+			    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,
+			        final long fallBehind) {
+			        final String statsKey = buildStatsKey(queueId, topic, group);
+			        this.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);
+			    }
+			
+			    public void recordDiskFallBehindSize(final String group, final String topic, final int queueId,
+			        final long fallBehind) {
+			        final String statsKey = buildStatsKey(queueId, topic, group);
+			        this.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);
+			    }
+			
+			    public void incDLQStatValue(final String key, final String owner, final String group,			
+",
+,
+
+		],
+		broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java:
+		[
+			fromLine:"			16",
+			toLine:"			51",
+			content:"
+			 */
+			package org.apache.rocketmq.broker.metrics;
+			
+			import java.util.Map;
+			import java.util.Set;
+			import java.util.function.Consumer;
+			import java.util.stream.Collectors;
+			import org.apache.rocketmq.broker.BrokerController;
+			import org.apache.rocketmq.broker.client.ConsumerGroupInfo;
+			import org.apache.rocketmq.broker.client.ConsumerManager;
+			import org.apache.rocketmq.broker.filter.ConsumerFilterData;
+			import org.apache.rocketmq.broker.filter.ConsumerFilterManager;
+			import org.apache.rocketmq.broker.filter.ExpressionMessageFilter;
+			import org.apache.rocketmq.broker.offset.ConsumerOffsetManager;
+			import org.apache.rocketmq.broker.processor.PopBufferMergeService;
+			import org.apache.rocketmq.broker.processor.PopInflightMessageCounter;
+			import org.apache.rocketmq.broker.subscription.SubscriptionGroupManager;
+			import org.apache.rocketmq.broker.topic.TopicConfigManager;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.KeyBuilder;
+			import org.apache.rocketmq.common.MixAll;
+			import org.apache.rocketmq.common.Pair;
+			import org.apache.rocketmq.common.TopicConfig;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.constant.PermName;
+			import org.apache.rocketmq.common.filter.ExpressionType;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			import org.apache.rocketmq.remoting.protocol.filter.FilterAPI;
+			import org.apache.rocketmq.remoting.protocol.heartbeat.ConsumeType;
+			import org.apache.rocketmq.remoting.protocol.heartbeat.SubscriptionData;
+			import org.apache.rocketmq.remoting.protocol.subscription.SimpleSubscriptionData;
+			import org.apache.rocketmq.remoting.protocol.subscription.SubscriptionGroupConfig;
+			import org.apache.rocketmq.store.DefaultMessageFilter;
+			import org.apache.rocketmq.store.MessageStore;
+						
+",
+,
+			fromLine:"			296",
+			toLine:"			306",
+			content:"
+			        }
+			
+			        return new Pair<>(total, earliestUnconsumedTimestamp);
+			    }
+			
+			    public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {
+			        long brokerOffset = messageStore.getMaxOffsetInQueue(topic, queueId);
+			        if (brokerOffset < 0) {
+			            brokerOffset = 0;
+			        }
+						
+",
+,
+			fromLine:"			435",
+			toLine:"			445",
+			content:"
+			            storeTimeStamp = storeTimeStamp > 0 ? storeTimeStamp : Long.MAX_VALUE;
+			        }
+			        return storeTimeStamp;
+			    }
+			
+			    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {
+			        long count = to - from;
+			
+			        if (brokerConfig.isEstimateAccumulation() && to > from) {
+			            SubscriptionData subscriptionData = null;
+			            if (brokerConfig.isUseStaticSubscription()) {			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+			[
+				fromLine:"				16",
+				toLine:"				51",
+				oldContent:"
+				 */
+				package org.apache.rocketmq.common.stats;
+				
+				public class Stats {
+				
+				    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+				    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+				    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+				    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+				    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+				    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+				    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+				    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+				    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+				    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+				    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+				    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+				    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+				    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+				    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+				    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+				    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+				    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+				    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+				    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+				    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+				    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+				
+				    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+				    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+				    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+				}
+								
+",
+				newContent:"
+								
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					common/src/main/java/org/apache/rocketmq/common/stats/StatsMetric.java:"
+			package org.apache.rocketmq.common.stats;
+			
+			public class StatsMetric {
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			
+			    public String getQueuePutNums() {
+			        return QUEUE_PUT_NUMS;
+			    }
+			
+			    public String getQueuePutSize() {
+			        return QUEUE_PUT_SIZE;
+			    }
+			
+			    // other getters
+			
+			    // potentially more methods can be added here
+			}
+						
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-common: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:[1,1] unclosed comment
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:[16,1] reached end of file while parsing
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-common
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+		[
+			fromLine:"			0",
+			toLine:"			6",
+			content:"
+						
+",
+,
+			fromLine:"			11",
+			toLine:"			21",
+			content:"
+			 * Unless required by applicable law or agreed to in writing, software
+			 * distributed under the License is distributed on an "AS IS" BASIS,
+			 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+			 * See the License for the specific language governing permissions and
+			 * limitations under the License.
+						
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+			[
+				fromLine:"				0",
+				toLine:"				6",
+				oldContent:"
+								
+",
+				newContent:"
+				/*
+				 * Licensed to the Apache Software Foundation (ASF) under one or more
+				 * contributor license agreements.  See the NOTICE file distributed with
+				 * this work for additional information regarding copyright ownership.
+				 * The ASF licenses this file to You under the Apache License, Version 2.0
+				 * (the "License"); you may not use this file except in compliance with
+				 * the License.  You may obtain a copy of the License at
+				 */				
+",
+,
+				fromLine:"				11",
+				toLine:"				21",
+				oldContent:"
+				 * Unless required by applicable law or agreed to in writing, software
+				 * distributed under the License is distributed on an "AS IS" BASIS,
+				 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+				 * See the License for the specific language governing permissions and
+				 * limitations under the License.
+								
+",
+				newContent:"
+				 * http://www.apache.org/licenses/LICENSE-2.0
+				 *
+				 * Unless required by applicable law or agreed to in writing, software
+				 * distributed under the License is distributed on an "AS IS" BASIS,
+				 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+				 * See the License for the specific language governing permissions and
+				 * limitations under the License.
+				 */
+				package org.apache.rocketmq.common.stats;
+								
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					common/src/main/java/org/apache/rocketmq/common/stats/StatsMetric.java:"
+			package org.apache.rocketmq.common.stats;
+			
+			public class StatsMetric {
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			
+			    public String getQueuePutNums() {
+			        return QUEUE_PUT_NUMS;
+			    }
+			
+			    public String getQueuePutSize() {
+			        return QUEUE_PUT_SIZE;
+			    }
+			
+			    // other getters
+			
+			    // potentially more methods can be added here
+			}
+						
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-store: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[35,40] cannot find symbol
+	[ERROR]   symbol:   class Stats
+	[ERROR]   location: package org.apache.rocketmq.common.stats
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[45,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[46,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[47,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[48,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[49,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[50,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[52,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[53,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[55,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[56,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[57,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[58,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[59,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[60,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[61,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[63,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[64,70] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[65,67] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[66,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[67,67] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[68,66] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[69,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[110,66] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[111,66] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[113,64] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[173,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[173,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[174,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[174,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[175,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[175,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[176,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[176,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[178,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[178,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[179,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[179,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[180,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[180,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[181,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[181,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[184,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[184,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[186,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[186,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[188,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[188,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[189,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[189,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[196,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[197,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[198,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[199,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[200,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[201,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[202,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[203,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[208,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[209,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[210,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[211,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[212,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[213,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[214,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[215,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[216,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[217,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[218,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[219,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[220,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[221,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[333,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[334,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[336,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[337,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[339,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[340,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[341,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[342,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[343,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[344,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[350,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[351,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[353,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[354,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[356,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[357,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[364,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[370,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[376,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[383,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[390,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[419,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[423,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[427,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[432,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[491,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[501,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[516,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-store
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			16",
+			toLine:"			74",
+			content:"
+			 */
+			package org.apache.rocketmq.store.stats;
+			
+			import java.util.HashMap;
+			import java.util.concurrent.ScheduledExecutorService;
+			import org.apache.commons.lang3.tuple.Pair;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.ThreadFactoryImpl;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.statistics.StatisticsItem;
+			import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+			import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+			import org.apache.rocketmq.common.statistics.StatisticsManager;
+			import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.common.stats.StatsItem;
+			import org.apache.rocketmq.common.stats.StatsItemSet;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.common.utils.ThreadUtils;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			
+			public class BrokerStatsManager {
+			
+			    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;
+			    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+			    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+			    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+			    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+			    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+			
+			    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+			
+			    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+			    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+			    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+			    // For commercial
+			    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+			    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+			    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+			    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+			    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+			
+			    // Send message latency
+			    public static final String TOPIC_PUT_LATENCY = "TOPIC_PUT_LATENCY";
+			    public static final String GROUP_ACK_NUMS = "GROUP_ACK_NUMS";
+			    public static final String GROUP_CK_NUMS = "GROUP_CK_NUMS";			
+",
+,
+			fromLine:"			105",
+			toLine:"			118",
+			content:"
+			    public static final String SUCCESS_MSG_SIZE = "SUCCESS_MSG_SIZE";
+			    public static final String FAILURE_MSG_SIZE = "FAILURE_MSG_SIZE";
+			    public static final String RT = "RT";
+			    public static final String INNER_RT = "INNER_RT";
+			
+			    @Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+			    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+			    // Pull Message Latency
+			    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+			
+			    // Consumer Register Time
+			    public static final String CONSUMER_REGISTER_TIME = "CONSUMER_REGISTER_TIME";
+			    // Producer Register Time
+			    public static final String PRODUCER_REGISTER_TIME = "PRODUCER_REGISTER_TIME";			
+",
+,
+			fromLine:"			168",
+			toLine:"			226",
+			content:"
+			
+			        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,
+			            scheduledExecutorService, log);
+			
+			        if (enableQueueStat) {
+			            this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+			        }
+			        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_CK_NUMS, new StatsItemSet(BROKER_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			
+			        this.statsTable.put(SNDBCK2DLQ_TIMES,
+			            new StatsItemSet(SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+			
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,
+			            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+			
+			        this.statsTable.put(CONSUMER_REGISTER_TIME,
+			            new StatsItemSet(CONSUMER_REGISTER_TIME, this.scheduledExecutorService, log));
+			        this.statsTable.put(PRODUCER_REGISTER_TIME,
+			            new StatsItemSet(PRODUCER_REGISTER_TIME, this.scheduledExecutorService, log));			
+",
+,
+			fromLine:"			328",
+			toLine:"			395",
+			content:"
+			
+			        return null;
+			    }
+			
+			    public void onTopicDeleted(final String topic) {
+			        this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);
+			        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, "@");
+			        }
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, "@");
+			        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, "@");
+			        this.momentStatsItemSetFallTime.delValueByInfixKey(topic, "@");
+			    }
+			
+			    public void onGroupDeleted(final String group) {
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueBySuffixKey(group, "@");
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueBySuffixKey(group, "@");
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueBySuffixKey(group, "@");
+			        }
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueBySuffixKey(group, "@");
+			        this.momentStatsItemSetFallSize.delValueBySuffixKey(group, "@");
+			        this.momentStatsItemSetFallTime.delValueBySuffixKey(group, "@");
+			    }
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), 1, 1);
+			        }
+			    }
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId, int num, int times) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), num, times);
+			        }
+			    }
+			
+			    public void incQueuePutSize(final String topic, final Integer queueId, final int size) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).addValue(buildStatsKey(topic, queueId), size, 1);
+			        }
+			    }
+			
+			    public void incQueueGetNums(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).addValue(statsKey, incValue, 1);
+			        }
+			    }
+			
+			    public void incQueueGetSize(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).addValue(statsKey, incValue, 1);
+			        }
+			    }
+			
+			    public void incConsumerRegisterTime(final int incValue) {
+			        this.statsTable.get(CONSUMER_REGISTER_TIME).addValue(this.clusterName, incValue, 1);			
+",
+,
+			fromLine:"			414",
+			toLine:"			437",
+			content:"
+			    public void incChannelIdleNum() {
+			        this.statsTable.get(CHANNEL_ACTIVITY).addValue(CHANNEL_ACTIVITY_IDLE, 1, 1);
+			    }
+			
+			    public void incTopicPutNums(final String topic) {
+			        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, 1, 1);
+			    }
+			
+			    public void incTopicPutNums(final String topic, int num, int times) {
+			        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, num, times);
+			    }
+			
+			    public void incTopicPutSize(final String topic, final int size) {
+			        this.statsTable.get(Stats.TOPIC_PUT_SIZE).addValue(topic, size, 1);
+			    }
+			
+			    public void incGroupGetNums(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).addValue(statsKey, incValue, 1);
+			    }
+			
+			    public void incGroupCkNums(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(GROUP_CK_NUMS).addValue(statsKey, incValue, 1);			
+",
+,
+			fromLine:"			486",
+			toLine:"			506",
+			content:"
+			        return strBuilder.toString();
+			    }
+			
+			    public void incGroupGetSize(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).addValue(statsKey, incValue, 1);
+			    }
+			
+			    public void incGroupGetLatency(final String group, final String topic, final int queueId, final int incValue) {
+			        String statsKey;
+			        if (enableQueueStat) {
+			            statsKey = buildStatsKey(queueId, topic, group);
+			        } else {
+			            statsKey = buildStatsKey(topic, group);
+			        }
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).addRTValue(statsKey, incValue, 1);
+			    }
+			
+			    public void incTopicPutLatency(final String topic, final int queueId, final int incValue) {
+			        StringBuilder statsKey;
+			        if (topic != null) {			
+",
+,
+			fromLine:"			511",
+			toLine:"			521",
+			content:"
+			        statsKey.append(queueId).append("@").append(topic);
+			        this.statsTable.get(TOPIC_PUT_LATENCY).addValue(statsKey.toString(), incValue, 1);
+			    }
+			
+			    public void incBrokerPutNums() {
+			        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(1);
+			    }
+			
+			    public void incBrokerPutNums(final String topic, final int incValue) {
+			        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+			        incBrokerPutNumsWithoutSystemTopic(topic, incValue);			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+			[
+				fromLine:"				16",
+				toLine:"				27",
+				oldContent:"
+				import org.apache.rocketmq.common.stats.Stats;
+								
+",
+				newContent:"
+				import org.apache.rocketmq.common.stats.StatsMetric;
+								
+",
+,
+				fromLine:"				35",
+				toLine:"				74",
+				oldContent:"
+				@Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;
+								
+",
+				newContent:"
+				@Deprecated public static final String QUEUE_PUT_NUMS = StatsMetric.QUEUE_PUT_NUMS;
+								
+",
+,
+				fromLine:"				105",
+				toLine:"				118",
+				oldContent:"
+				@Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+								
+",
+				newContent:"
+				@Deprecated public static final String GROUP_GET_FALL_SIZE = StatsMetric.GROUP_GET_FALL_SIZE;
+								
+",
+,
+				fromLine:"				168",
+				toLine:"				226",
+				oldContent:"
+				this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+								
+",
+				newContent:"
+				this.statsTable.put(StatsMetric.QUEUE_PUT_NUMS, new StatsItemSet(StatsMetric.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+								
+",
+,
+				fromLine:"				328",
+				toLine:"				395",
+				oldContent:"
+				this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);
+								
+",
+				newContent:"
+				this.statsTable.get(StatsMetric.TOPIC_PUT_NUMS).delValue(topic);
+								
+",
+,
+				fromLine:"				414",
+				toLine:"				437",
+				oldContent:"
+				this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, 1, 1);
+								
+",
+				newContent:"
+				this.statsTable.get(StatsMetric.TOPIC_PUT_NUMS).addValue(topic, 1, 1);
+								
+",
+,
+				fromLine:"				486",
+				toLine:"				506",
+				oldContent:"
+				this.statsTable.get(Stats.GROUP_GET_SIZE).addValue(statsKey, incValue, 1);
+								
+",
+				newContent:"
+				this.statsTable.get(StatsMetric.GROUP_GET_SIZE).addValue(statsKey, incValue, 1);
+								
+",
+,
+				fromLine:"				511",
+				toLine:"				521",
+				oldContent:"
+				this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(1);
+								
+",
+				newContent:"
+				this.statsTable.get(StatsMetric.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(1);
+								
+",
+,
+
+			],
+			common/src/main/java/org/apache/rocketmq/common/stats/StatsMetric.java:"
+			package org.apache.rocketmq.common.stats;
+			
+			public class StatsMetric {
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			
+			    // other constants and methods if necessary
+			}
+						
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-store: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[46,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[47,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[48,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[49,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[50,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[52,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[53,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[55,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[56,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[57,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[58,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[59,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[60,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[61,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[63,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[64,70] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[65,67] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[66,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[67,67] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[68,66] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[69,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[111,66] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[113,64] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[174,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[174,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[175,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[175,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[176,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[176,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[178,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[178,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[179,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[179,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[180,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[180,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[181,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[181,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[184,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[184,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[186,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[186,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[188,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[188,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[189,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[189,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[196,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[197,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[198,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[199,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[200,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[201,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[202,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[203,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[208,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[209,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[210,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[211,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[212,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[213,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[214,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[215,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[216,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[217,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[218,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[219,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[220,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[221,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[334,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[336,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[337,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[339,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[340,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[341,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[342,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[343,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[344,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[350,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[351,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[353,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[354,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[356,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[357,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[364,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[370,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[376,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[383,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[390,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[423,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[427,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[432,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[501,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[520,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[525,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[577,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[582,36] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-store
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			16",
+			toLine:"			74",
+			content:"
+			 */
+			package org.apache.rocketmq.store.stats;
+			
+			import java.util.HashMap;
+			import java.util.concurrent.ScheduledExecutorService;
+			import org.apache.commons.lang3.tuple.Pair;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.ThreadFactoryImpl;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.statistics.StatisticsItem;
+			import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+			import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+			import org.apache.rocketmq.common.statistics.StatisticsManager;
+			import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+			import org.apache.rocketmq.common.stats.StatsMetric;
+			import org.apache.rocketmq.common.stats.StatsItem;
+			import org.apache.rocketmq.common.stats.StatsItemSet;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.common.utils.ThreadUtils;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			
+			public class BrokerStatsManager {
+			
+			    @Deprecated public static final String QUEUE_PUT_NUMS = StatsMetric.QUEUE_PUT_NUMS;
+			    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+			    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+			    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+			    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+			    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+			
+			    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+			
+			    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+			    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+			    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+			    // For commercial
+			    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+			    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+			    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+			    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+			    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+			
+			    // Send message latency
+			    public static final String TOPIC_PUT_LATENCY = "TOPIC_PUT_LATENCY";
+			    public static final String GROUP_ACK_NUMS = "GROUP_ACK_NUMS";
+			    public static final String GROUP_CK_NUMS = "GROUP_CK_NUMS";			
+",
+,
+			fromLine:"			106",
+			toLine:"			118",
+			content:"
+			    public static final String FAILURE_MSG_SIZE = "FAILURE_MSG_SIZE";
+			    public static final String RT = "RT";
+			    public static final String INNER_RT = "INNER_RT";
+			
+			    @Deprecated public static final String GROUP_GET_FALL_SIZE = StatsMetric.GROUP_GET_FALL_SIZE;
+			    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+			    // Pull Message Latency
+			    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+			
+			    // Consumer Register Time
+			    public static final String CONSUMER_REGISTER_TIME = "CONSUMER_REGISTER_TIME";
+			    // Producer Register Time
+			    public static final String PRODUCER_REGISTER_TIME = "PRODUCER_REGISTER_TIME";			
+",
+,
+			fromLine:"			169",
+			toLine:"			226",
+			content:"
+			        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,
+			            scheduledExecutorService, log);
+			
+			        if (enableQueueStat) {
+			            this.statsTable.put(StatsMetric.QUEUE_PUT_NUMS, new StatsItemSet(StatsMetric.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+			        }
+			        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_CK_NUMS, new StatsItemSet(BROKER_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			
+			        this.statsTable.put(SNDBCK2DLQ_TIMES,
+			            new StatsItemSet(SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+			
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,
+			            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+			
+			        this.statsTable.put(CONSUMER_REGISTER_TIME,
+			            new StatsItemSet(CONSUMER_REGISTER_TIME, this.scheduledExecutorService, log));
+			        this.statsTable.put(PRODUCER_REGISTER_TIME,
+			            new StatsItemSet(PRODUCER_REGISTER_TIME, this.scheduledExecutorService, log));			
+",
+,
+			fromLine:"			329",
+			toLine:"			395",
+			content:"
+			        return null;
+			    }
+			
+			    public void onTopicDeleted(final String topic) {
+			        this.statsTable.get(StatsMetric.TOPIC_PUT_NUMS).delValue(topic);
+			        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, "@");
+			        }
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, "@");
+			        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, "@");
+			        this.momentStatsItemSetFallTime.delValueByInfixKey(topic, "@");
+			    }
+			
+			    public void onGroupDeleted(final String group) {
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueBySuffixKey(group, "@");
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueBySuffixKey(group, "@");
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueBySuffixKey(group, "@");
+			        }
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueBySuffixKey(group, "@");
+			        this.momentStatsItemSetFallSize.delValueBySuffixKey(group, "@");
+			        this.momentStatsItemSetFallTime.delValueBySuffixKey(group, "@");
+			    }
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), 1, 1);
+			        }
+			    }
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId, int num, int times) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), num, times);
+			        }
+			    }
+			
+			    public void incQueuePutSize(final String topic, final Integer queueId, final int size) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).addValue(buildStatsKey(topic, queueId), size, 1);
+			        }
+			    }
+			
+			    public void incQueueGetNums(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).addValue(statsKey, incValue, 1);
+			        }
+			    }
+			
+			    public void incQueueGetSize(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).addValue(statsKey, incValue, 1);
+			        }
+			    }
+			
+			    public void incConsumerRegisterTime(final int incValue) {
+			        this.statsTable.get(CONSUMER_REGISTER_TIME).addValue(this.clusterName, incValue, 1);			
+",
+,
+			fromLine:"			418",
+			toLine:"			437",
+			content:"
+			    public void incTopicPutNums(final String topic) {
+			        this.statsTable.get(StatsMetric.TOPIC_PUT_NUMS).addValue(topic, 1, 1);
+			    }
+			
+			    public void incTopicPutNums(final String topic, int num, int times) {
+			        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, num, times);
+			    }
+			
+			    public void incTopicPutSize(final String topic, final int size) {
+			        this.statsTable.get(Stats.TOPIC_PUT_SIZE).addValue(topic, size, 1);
+			    }
+			
+			    public void incGroupGetNums(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).addValue(statsKey, incValue, 1);
+			    }
+			
+			    public void incGroupCkNums(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(GROUP_CK_NUMS).addValue(statsKey, incValue, 1);			
+",
+,
+			fromLine:"			496",
+			toLine:"			506",
+			content:"
+			        if (enableQueueStat) {
+			            statsKey = buildStatsKey(queueId, topic, group);
+			        } else {
+			            statsKey = buildStatsKey(topic, group);
+			        }
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).addRTValue(statsKey, incValue, 1);
+			    }
+			
+			    public void incTopicPutLatency(final String topic, final int queueId, final int incValue) {
+			        StringBuilder statsKey;
+			        if (topic != null) {			
+",
+,
+			fromLine:"			515",
+			toLine:"			530",
+			content:"
+			    public void incBrokerPutNums() {
+			        this.statsTable.get(StatsMetric.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(1);
+			    }
+			
+			    public void incBrokerPutNums(final String topic, final int incValue) {
+			        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+			        incBrokerPutNumsWithoutSystemTopic(topic, incValue);
+			    }
+			
+			    public void incBrokerGetNums(final String topic, final int incValue) {
+			        this.statsTable.get(Stats.BROKER_GET_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+			        this.incBrokerGetNumsWithoutSystemTopic(topic, incValue);
+			    }
+			
+			    public void incBrokerAckNums(final int incValue) {
+			        this.statsTable.get(BROKER_ACK_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);			
+",
+,
+			fromLine:"			572",
+			toLine:"			587",
+			content:"
+			        return statsItem.getValue().longValue();
+			    }
+			
+			    public void incSendBackNums(final String group, final String topic) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);
+			    }
+			
+			    public double tpsGroupGetNums(final String group, final String topic) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        return this.statsTable.get(Stats.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();
+			    }
+			
+			    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,
+			        final long fallBehind) {
+			        final String statsKey = buildStatsKey(queueId, topic, group);			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+			[
+				fromLine:"				35",
+				toLine:"				74",
+				oldContent:"
+				    @Deprecated public static final String QUEUE_PUT_NUMS = StatsMetric.QUEUE_PUT_NUMS;
+				    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+								
+",
+				newContent:"
+				    @Deprecated public static final String QUEUE_PUT_SIZE = StatsMetric.QUEUE_PUT_SIZE;
+								
+",
+,
+				fromLine:"				106",
+				toLine:"				118",
+				oldContent:"
+				    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+								
+",
+				newContent:"
+				    @Deprecated public static final String GROUP_GET_FALL_TIME = StatsMetric.GROUP_GET_FALL_TIME;
+								
+",
+,
+				fromLine:"				169",
+				toLine:"				226",
+				oldContent:"
+				            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+								
+",
+				newContent:"
+				            this.statsTable.put(StatsMetric.QUEUE_PUT_SIZE, new StatsItemSet(StatsMetric.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+								
+",
+,
+				fromLine:"				329",
+				toLine:"				395",
+				oldContent:"
+				        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);
+								
+",
+				newContent:"
+				        this.statsTable.get(StatsMetric.TOPIC_PUT_SIZE).delValue(topic);
+								
+",
+,
+				fromLine:"				418",
+				toLine:"				437",
+				oldContent:"
+				        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, num, times);
+								
+",
+				newContent:"
+				        this.statsTable.get(StatsMetric.TOPIC_PUT_NUMS).addValue(topic, num, times);
+								
+",
+,
+				fromLine:"				496",
+				toLine:"				506",
+				oldContent:"
+				        this.statsTable.get(Stats.GROUP_GET_LATENCY).addRTValue(statsKey, incValue, 1);
+								
+",
+				newContent:"
+				        this.statsTable.get(StatsMetric.GROUP_GET_LATENCY).addRTValue(statsKey, incValue, 1);
+								
+",
+,
+				fromLine:"				515",
+				toLine:"				530",
+				oldContent:"
+				        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+								
+",
+				newContent:"
+				        this.statsTable.get(StatsMetric.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+								
+",
+,
+				fromLine:"				572",
+				toLine:"				587",
+				oldContent:"
+				        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);
+								
+",
+				newContent:"
+				        this.statsTable.get(StatsMetric.SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);
+								
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					common/src/main/java/org/apache/rocketmq/common/stats/StatsMetric.java:"
+			package org.apache.rocketmq.common.stats;
+			
+			public class StatsMetric {
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			
+			    // other constants and methods if necessary
+			}
+						
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-store: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[46,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[47,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[48,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[49,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[51,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[52,61] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[54,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[55,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[56,62] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[57,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[58,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[59,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[60,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[62,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[63,70] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[64,67] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[65,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[66,67] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[67,66] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[68,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[112,64] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[174,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[174,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[175,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[175,72] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[177,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[177,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[178,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[178,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[179,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[179,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[180,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[180,68] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[183,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[183,71] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[185,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[185,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[187,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[187,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[188,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[188,69] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[195,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[196,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[197,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[198,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[199,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[200,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[201,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[202,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[207,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[208,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[209,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[210,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[211,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[212,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[213,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[214,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[215,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[216,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[217,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[218,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[219,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[220,30] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[335,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[336,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[338,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[339,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[340,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[341,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[342,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[343,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[349,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[350,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[352,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[353,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[355,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[356,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[363,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[369,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[375,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[382,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[389,33] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[426,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[431,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[524,29] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[581,36] cannot find symbol
+	[ERROR]   symbol:   variable Stats
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-store
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			16",
+			toLine:"			73",
+			content:"
+			 */
+			package org.apache.rocketmq.store.stats;
+			
+			import java.util.HashMap;
+			import java.util.concurrent.ScheduledExecutorService;
+			import org.apache.commons.lang3.tuple.Pair;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.ThreadFactoryImpl;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.statistics.StatisticsItem;
+			import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+			import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+			import org.apache.rocketmq.common.statistics.StatisticsManager;
+			import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+			import org.apache.rocketmq.common.stats.StatsMetric;
+			import org.apache.rocketmq.common.stats.StatsItem;
+			import org.apache.rocketmq.common.stats.StatsItemSet;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.common.utils.ThreadUtils;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			
+			public class BrokerStatsManager {
+			
+			    @Deprecated public static final String QUEUE_PUT_SIZE = StatsMetric.QUEUE_PUT_SIZE;
+			    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+			    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+			    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+			    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+			
+			    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+			
+			    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+			    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+			    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+			    // For commercial
+			    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+			    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+			    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+			    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+			    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+			
+			    // Send message latency
+			    public static final String TOPIC_PUT_LATENCY = "TOPIC_PUT_LATENCY";
+			    public static final String GROUP_ACK_NUMS = "GROUP_ACK_NUMS";
+			    public static final String GROUP_CK_NUMS = "GROUP_CK_NUMS";			
+",
+,
+			fromLine:"			107",
+			toLine:"			117",
+			content:"
+			    public static final String INNER_RT = "INNER_RT";
+			
+			    @Deprecated public static final String GROUP_GET_FALL_SIZE = StatsMetric.GROUP_GET_FALL_SIZE;
+			    @Deprecated public static final String GROUP_GET_FALL_TIME = StatsMetric.GROUP_GET_FALL_TIME;
+			    // Pull Message Latency
+			    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+			
+			    // Consumer Register Time
+			    public static final String CONSUMER_REGISTER_TIME = "CONSUMER_REGISTER_TIME";
+			    // Producer Register Time
+			    public static final String PRODUCER_REGISTER_TIME = "PRODUCER_REGISTER_TIME";			
+",
+,
+			fromLine:"			169",
+			toLine:"			225",
+			content:"
+			            scheduledExecutorService, log);
+			
+			        if (enableQueueStat) {
+			            this.statsTable.put(StatsMetric.QUEUE_PUT_NUMS, new StatsItemSet(StatsMetric.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(StatsMetric.QUEUE_PUT_SIZE, new StatsItemSet(StatsMetric.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+			        }
+			        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_CK_NUMS, new StatsItemSet(BROKER_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			
+			        this.statsTable.put(SNDBCK2DLQ_TIMES,
+			            new StatsItemSet(SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+			
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,
+			            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+			
+			        this.statsTable.put(CONSUMER_REGISTER_TIME,
+			            new StatsItemSet(CONSUMER_REGISTER_TIME, this.scheduledExecutorService, log));
+			        this.statsTable.put(PRODUCER_REGISTER_TIME,
+			            new StatsItemSet(PRODUCER_REGISTER_TIME, this.scheduledExecutorService, log));			
+",
+,
+			fromLine:"			330",
+			toLine:"			394",
+			content:"
+			
+			    public void onTopicDeleted(final String topic) {
+			        this.statsTable.get(StatsMetric.TOPIC_PUT_NUMS).delValue(topic);
+			        this.statsTable.get(StatsMetric.TOPIC_PUT_SIZE).delValue(topic);
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, "@");
+			        }
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, "@");
+			        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, "@");
+			        this.momentStatsItemSetFallTime.delValueByInfixKey(topic, "@");
+			    }
+			
+			    public void onGroupDeleted(final String group) {
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueBySuffixKey(group, "@");
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueBySuffixKey(group, "@");
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueBySuffixKey(group, "@");
+			        }
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueBySuffixKey(group, "@");
+			        this.momentStatsItemSetFallSize.delValueBySuffixKey(group, "@");
+			        this.momentStatsItemSetFallTime.delValueBySuffixKey(group, "@");
+			    }
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), 1, 1);
+			        }
+			    }
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId, int num, int times) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), num, times);
+			        }
+			    }
+			
+			    public void incQueuePutSize(final String topic, final Integer queueId, final int size) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).addValue(buildStatsKey(topic, queueId), size, 1);
+			        }
+			    }
+			
+			    public void incQueueGetNums(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).addValue(statsKey, incValue, 1);
+			        }
+			    }
+			
+			    public void incQueueGetSize(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).addValue(statsKey, incValue, 1);
+			        }
+			    }
+			
+			    public void incConsumerRegisterTime(final int incValue) {
+			        this.statsTable.get(CONSUMER_REGISTER_TIME).addValue(this.clusterName, incValue, 1);			
+",
+,
+			fromLine:"			421",
+			toLine:"			436",
+			content:"
+			    public void incTopicPutNums(final String topic, int num, int times) {
+			        this.statsTable.get(StatsMetric.TOPIC_PUT_NUMS).addValue(topic, num, times);
+			    }
+			
+			    public void incTopicPutSize(final String topic, final int size) {
+			        this.statsTable.get(Stats.TOPIC_PUT_SIZE).addValue(topic, size, 1);
+			    }
+			
+			    public void incGroupGetNums(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).addValue(statsKey, incValue, 1);
+			    }
+			
+			    public void incGroupCkNums(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(GROUP_CK_NUMS).addValue(statsKey, incValue, 1);			
+",
+,
+			fromLine:"			519",
+			toLine:"			529",
+			content:"
+			        this.statsTable.get(StatsMetric.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+			        incBrokerPutNumsWithoutSystemTopic(topic, incValue);
+			    }
+			
+			    public void incBrokerGetNums(final String topic, final int incValue) {
+			        this.statsTable.get(Stats.BROKER_GET_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+			        this.incBrokerGetNumsWithoutSystemTopic(topic, incValue);
+			    }
+			
+			    public void incBrokerAckNums(final int incValue) {
+			        this.statsTable.get(BROKER_ACK_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);			
+",
+,
+			fromLine:"			576",
+			toLine:"			586",
+			content:"
+			        this.statsTable.get(StatsMetric.SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);
+			    }
+			
+			    public double tpsGroupGetNums(final String group, final String topic) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        return this.statsTable.get(Stats.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();
+			    }
+			
+			    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,
+			        final long fallBehind) {
+			        final String statsKey = buildStatsKey(queueId, topic, group);			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+
+],
+model:"
+gpt-4-1106-preview
+",
+response_format:
+{
+	type:"
+	json_object	
+",
+
+}
+temperature:"0.9",

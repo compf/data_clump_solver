@@ -1,0 +1,43 @@
+"{
+    "refactorings": {
+        "common/src/main/java/org/apache/rocketmq/common/stats/Stats.java": [
+            {
+                "fromLine": 21,
+                "toLine": 46,
+                "oldContent": "    public static final String QUEUE_PUT_NUMS = \"QUEUE_PUT_NUMS\";\n    public static final String QUEUE_PUT_SIZE = \"QUEUE_PUT_SIZE\";\n    public static final String QUEUE_GET_NUMS = \"QUEUE_GET_NUMS\";\n    public static final String QUEUE_GET_SIZE = \"QUEUE_GET_SIZE\";\n    public static final String TOPIC_PUT_NUMS = \"TOPIC_PUT_NUMS\";\n    public static final String TOPIC_PUT_SIZE = \"TOPIC_PUT_SIZE\";\n    public static final String GROUP_GET_NUMS = \"GROUP_GET_NUMS\";\n    public static final String GROUP_GET_SIZE = \"GROUP_GET_SIZE\";\n    public static final String SNDBCK_PUT_NUMS = \"SNDBCK_PUT_NUMS\";\n    public static final String BROKER_PUT_NUMS = \"BROKER_PUT_NUMS\";\n    public static final String BROKER_GET_NUMS = \"BROKER_GET_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_NUMS = \"GROUP_GET_FROM_DISK_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_SIZE = \"GROUP_GET_FROM_DISK_SIZE\";\n    public static final String BROKER_GET_FROM_DISK_NUMS = \"BROKER_GET_FROM_DISK_NUMS\";\n    public static final String BROKER_GET_FROM_DISK_SIZE = \"BROKER_GET_FROM_DISK_SIZE\";\n    public static final String COMMERCIAL_SEND_TIMES = \"COMMERCIAL_SEND_TIMES\";\n    public static final String COMMERCIAL_SNDBCK_TIMES = \"COMMERCIAL_SNDBCK_TIMES\";\n    public static final String COMMERCIAL_RCV_TIMES = \"COMMERCIAL_RCV_TIMES\";\n    public static final String COMMERCIAL_RCV_EPOLLS = \"COMMERCIAL_RCV_EPOLLS\";\n    public static final String COMMERCIAL_SEND_SIZE = \"COMMERCIAL_SEND_SIZE\";\n    public static final String COMMERCIAL_RCV_SIZE = \"COMMERCIAL_RCV_SIZE\";\n    public static final String COMMERCIAL_PERM_FAILURES = \"COMMERCIAL_PERM_FAILURES\";\n    public static final String GROUP_GET_FALL_SIZE = \"GROUP_GET_FALL_SIZE\";\n    public static final String GROUP_GET_FALL_TIME = \"GROUP_GET_FALL_TIME\";\n    public static final String GROUP_GET_LATENCY = \"GROUP_GET_LATENCY\";",
+                "newContent": ""
+            }
+        ],
+        "store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
+            {
+                "fromLine": 45,
+                "toLine": 113,
+                "oldContent": "    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;\n    ... (other deprecated fields)",
+                "newContent": ""
+            },
+            {
+                "fromLine": 585,
+                "toLine": 592,
+                "oldContent": "    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,\n        final long fallBehind) {\n    ... (method implementation)\n    }\n    public void recordDiskFallBehindSize(final String group, final String topic, final int queueId,\n        final long fallBehind) {\n    ... (method implementation)\n    }",
+                "newContent": "    public void recordDiskFallBehindTime(StatsKey statsKey, final long fallBehind) {\n    ... (method implementation)\n    }\n    public void recordDiskFallBehindSize(StatsKey statsKey, final long fallBehind) {\n    ... (method implementation)\n    }"
+            }
+        ],
+        "broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java": [
+            {
+                "fromLine": 301,
+                "toLine": 301,
+                "oldContent": "    public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {",
+                "newContent": "    public Pair<Long, Long> getConsumerLagStats(StatsKey statsKey, boolean isPop) {"
+            },
+            {
+                "fromLine": 440,
+                "toLine": 440,
+                "oldContent": "    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {",
+                "newContent": "    public long calculateMessageCount(StatsKey statsKey, long from, long to) {"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "common/src/main/java/org/apache/rocketmq/common/stats/StatsKey.java": "package org.apache.rocketmq.common.stats;\n\npublic class StatsKey {\n    private final String group;\n    private final String topic;\n    private final int queueId;\n\n    public StatsKey(String group, String topic, int queueId) {\n        this.group = group;\n        this.topic = topic;\n        this.queueId = queueId;\n    }\n\n    public String getGroup() {\n        return group;\n    }\n\n    public String getTopic() {\n        return topic;\n    }\n\n    public int getQueueId() {\n        return queueId;\n    }\n\n    // Additional functionality related to stats keys may be added here\n}\n"
+    }
+}"

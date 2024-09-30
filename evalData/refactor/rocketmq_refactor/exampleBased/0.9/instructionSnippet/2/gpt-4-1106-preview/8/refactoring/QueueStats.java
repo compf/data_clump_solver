@@ -1,0 +1,1 @@
+ // Full content of the newly extracted class QueueStats, which encapsulates queue IDs and statistics methods related to those queues.

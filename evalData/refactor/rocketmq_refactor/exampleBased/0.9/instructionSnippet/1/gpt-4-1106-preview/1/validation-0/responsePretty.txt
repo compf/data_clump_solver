@@ -1,0 +1,47 @@
+"{
+    "refactorings": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
+            {
+                "fromLine": 134,
+                "toLine": 139,
+                "oldContent": "    public void init() {\n        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);",
+                "newContent": "    public void init() {\n        momentStatsItemSetFallSize = new MomentStatsItemSet(Stats.GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(Stats.GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);"
+            },
+            {
+                "fromLine": 552,
+                "toLine": 558,
+                "oldContent": "    }\npublic void recordDiskFallBehindTime(final StatsKey statsKey, final long fallBehind) {\n        this.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);\n    }\npublic void recordDiskFallBehindSize(final StatsKey statsKey, final long fallBehind) {\n        final String statsKey = buildStatsKey(queueId, topic, group);\n        this.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);",
+                "newContent": "    }\npublic void recordDiskFallBehindTime(final StatsKey statsKey, final long fallBehind) {\n        this.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey.buildStatsKey()).getValue().set(fallBehind);\n    }\npublic void recordDiskFallBehindSize(final StatsKey statsKey, final long fallBehind) {\n        this.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey.buildStatsKey()).getValue().set(fallBehind);"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/DefaultMessageStore.java": [
+            {
+                "fromLine": 939,
+                "toLine": 941,
+                "oldContent": "                    long fallBehind = maxOffsetPy - maxPhyOffsetPulling;\n                    brokerStatsManager.recordDiskFallBehindSize(group, topic, queueId, fallBehind);\n                }",
+                "newContent": "                    long fallBehind = maxOffsetPy - maxPhyOffsetPulling;\n                    StatsKey statsKey = new StatsKey(group, topic, queueId);\n                    brokerStatsManager.recordDiskFallBehindSize(statsKey, fallBehind);\n                }"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/LmqBrokerStatsManager.java": [
+            {
+                "fromLine": 91,
+                "toLine": 93,
+                "oldContent": "\n    @Override\n    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,",
+                "newContent": "\n    public void recordDiskFallBehindTime(final StatsKey statsKey, final long fallBehind) {"
+            },
+            {
+                "fromLine": 102,
+                "toLine": 107,
+                "oldContent": "        }\n        super.recordDiskFallBehindTime(lmqGroup, lmqTopic, queueId, fallBehind);\n    }\n\n    @Override\n    public void recordDiskFallBehindSize(final String group, final String topic, final int queueId,",
+                "newContent": "        }\n        StatsKey statsKey = new StatsKey(lmqGroup, lmqTopic, queueId);\n        super.recordDiskFallBehindTime(statsKey, fallBehind);\n    }\n\n    public void recordDiskFallBehindSize(final StatsKey statsKey, final long fallBehind) {"
+            },
+            {
+                "fromLine": 116,
+                "toLine": 118,
+                "oldContent": "        }\n        super.recordDiskFallBehindSize(lmqGroup, lmqTopic, queueId, fallBehind);\n    }",
+                "newContent": "        }\n        StatsKey statsKey = new StatsKey(lmqGroup, lmqTopic, queueId);\n        super.recordDiskFallBehindSize(statsKey, fallBehind);\n    }"
+            }
+        ]
+    },
+    "extractedClasses": {}
+}"

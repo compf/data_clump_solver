@@ -1,0 +1,112 @@
+"{
+    "refactorings": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/broker/src/main/java/org/apache/rocketmq/broker/processor/PeekMessageProcessor.java": [
+            {
+                "fromLine": 297,
+                "toLine": 299,
+                "oldContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(group, topic, queueId, this.brokerController.getMessageStore().now() - storeTimestamp);",
+                "newContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(new org.apache.rocketmq.store.stats.DiskFallBehindStats(group, topic, queueId, this.brokerController.getMessageStore().now() - storeTimestamp));"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/broker/src/main/java/org/apache/rocketmq/broker/processor/PopMessageProcessor.java": [
+            {
+                "fromLine": 805,
+                "toLine": 807,
+                "oldContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(group, topic, queueId,\n            this.brokerController.getMessageStore().now() - storeTimestamp);",
+                "newContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(new org.apache.rocketmq.store.stats.DiskFallBehindStats(group, topic, queueId, this.brokerController.getMessageStore().now() - storeTimestamp));"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java": [
+            {
+                "fromLine": 285,
+                "toLine": 287,
+                "oldContent": "Pair<Long, Long> pair = getConsumerLagStats(group, topic, queueId, isPop);",
+                "newContent": "Pair<Long, Long> pair = getConsumerLagStats(new ConsumerLagStatsRequest(group, topic, queueId, isPop));"
+            },
+            {
+                "fromLine": 305,
+                "toLine": 310,
+                "oldContent": "if (isPop) {\n            long pullOffset = popBufferMergeService.getLatestOffset(topic, group, queueId);\n            if (pullOffset < 0) {\n                pullOffset = offsetManager.queryOffset(group, topic, queueId);\n            }",
+                "newContent": "if (isPop) {\n            long pullOffset = popBufferMergeService.getLatestOffset(request.getTopic(), request.getGroup(), request.getQueueId());\n            if (pullOffset < 0) {\n                pullOffset = offsetManager.queryOffset(request.getGroup(), request.getTopic(), request.getQueueId());\n            }"
+            },
+            {
+                "fromLine": 313,
+                "toLine": 318,
+                "oldContent": "long inFlightNum = popInflightMessageCounter.getGroupPopInFlightMessageNum(topic, group, queueId);\n            long lag = calculateMessageCount(group, topic, queueId, pullOffset, brokerOffset) + inFlightNum;\n            long consumerOffset = pullOffset - inFlightNum;\n            long consumerStoreTimeStamp = getStoreTimeStamp(topic, queueId, consumerOffset);\n            return new Pair<>(lag, consumerStoreTimeStamp);",
+                "newContent": "long inFlightNum = popInflightMessageCounter.getGroupPopInFlightMessageNum(request.getTopic(), request.getGroup(), request.getQueueId());\n            long lag = calculateMessageCount(new MessageCountRequest(request.getGroup(), request.getTopic(), request.getQueueId(), pullOffset, brokerOffset)) + inFlightNum;\n            long consumerOffset = pullOffset - inFlightNum;\n            long consumerStoreTimeStamp = getStoreTimeStamp(request.getTopic(), request.getQueueId(), consumerOffset);\n            return new Pair<>(lag, consumerStoreTimeStamp);"
+            },
+            {
+                "fromLine": 320,
+                "toLine": 322,
+                "oldContent": "long consumerOffset = offsetManager.queryOffset(group, topic, queueId);",
+                "newContent": "long consumerOffset = offsetManager.queryOffset(request.getGroup(), request.getTopic(), request.getQueueId());"
+            },
+            {
+                "fromLine": 325,
+                "toLine": 328,
+                "oldContent": "long lag = calculateMessageCount(group, topic, queueId, consumerOffset, brokerOffset);\n        long consumerStoreTimeStamp = getStoreTimeStamp(topic, queueId, consumerOffset);\n        return new Pair<>(lag, consumerStoreTimeStamp);",
+                "newContent": "long lag = calculateMessageCount(new MessageCountRequest(request.getGroup(), request.getTopic(), request.getQueueId(), consumerOffset, brokerOffset));\n        long consumerStoreTimeStamp = getStoreTimeStamp(request.getTopic(), request.getQueueId(), consumerOffset);\n        return new Pair<>(lag, consumerStoreTimeStamp);"
+            },
+            {
+                "fromLine": 380,
+                "toLine": 382,
+                "oldContent": "long inflight = calculateMessageCount(group, topic, queueId, commitOffset, pullOffset);\n        long pullStoreTimeStamp = getStoreTimeStamp(topic, queueId, pullOffset);",
+                "newContent": "long inflight = calculateMessageCount(new MessageCountRequest(group, topic, queueId, commitOffset, pullOffset));\n        long pullStoreTimeStamp = getStoreTimeStamp(topic, queueId, pullOffset);"
+            },
+            {
+                "fromLine": 426,
+                "toLine": 428,
+                "oldContent": "return calculateMessageCount(group, topic, queueId, pullOffset, brokerOffset);",
+                "newContent": "return calculateMessageCount(new MessageCountRequest(group, topic, queueId, pullOffset, brokerOffset));"
+            },
+            {
+                "fromLine": 440,
+                "toLine": 448,
+                "oldContent": "if (brokerConfig.isEstimateAccumulation() && to > from) {\n            SubscriptionData subscriptionData = null;\n            if (brokerConfig.isUseStaticSubscription()) {\n                SubscriptionGroupConfig subscriptionGroupConfig = subscriptionGroupManager.findSubscriptionGroupConfig(group);\n                if (subscriptionGroupConfig != null) {\n                    for (SimpleSubscriptionData simpleSubscriptionData : subscriptionGroupConfig.getSubscriptionDataSet()) {\n                        if (topic.equals(simpleSubscriptionData.getTopic())) {\n                            try {",
+                "newContent": "if (brokerConfig.isEstimateAccumulation() && request.getTo() > request.getFrom()) {\n            SubscriptionData subscriptionData = null;\n            if (brokerConfig.isUseStaticSubscription()) {\n                SubscriptionGroupConfig subscriptionGroupConfig = subscriptionGroupManager.findSubscriptionGroupConfig(request.getGroup());\n                if (subscriptionGroupConfig != null) {\n                    for (SimpleSubscriptionData simpleSubscriptionData : subscriptionGroupConfig.getSubscriptionDataSet()) {\n                        if (request.getTopic().equals(simpleSubscriptionData.getTopic())) {\n                            try {"
+            },
+            {
+                "fromLine": 451,
+                "toLine": 453,
+                "oldContent": "} catch (Exception e) {\n                                LOGGER.error(\"Try to build subscription for group:{}, topic:{} exception.\", group, topic, e);\n                            }",
+                "newContent": "} catch (Exception e) {\n                                LOGGER.error(\"Try to build subscription for group:{}, topic:{} exception.\", request.getGroup(), request.getTopic(), e);\n                            }"
+            },
+            {
+                "fromLine": 458,
+                "toLine": 462,
+                "oldContent": "} else {\n                ConsumerGroupInfo consumerGroupInfo = consumerManager.getConsumerGroupInfo(group, true);\n                if (consumerGroupInfo != null) {\n                    subscriptionData = consumerGroupInfo.findSubscriptionData(topic);\n                }",
+                "newContent": "} else {\n                ConsumerGroupInfo consumerGroupInfo = consumerManager.getConsumerGroupInfo(request.getGroup(), true);\n                if (consumerGroupInfo != null) {\n                    subscriptionData = consumerGroupInfo.findSubscriptionData(request.getTopic());\n                }"
+            },
+            {
+                "fromLine": 467,
+                "toLine": 473,
+                "oldContent": "&& !SubscriptionData.SUB_ALL.equals(subscriptionData.getSubString())) {\n                    count = messageStore.estimateMessageCount(topic, queueId, from, to,\n                        new DefaultMessageFilter(subscriptionData));\n                } else if (ExpressionType.SQL92.equalsIgnoreCase(subscriptionData.getExpressionType())) {\n                    ConsumerFilterData consumerFilterData = consumerFilterManager.get(topic, group);\n                    count = messageStore.estimateMessageCount(topic, queueId, from, to,\n                        new ExpressionMessageFilter(subscriptionData,",
+                "newContent": "&& !SubscriptionData.SUB_ALL.equals(subscriptionData.getSubString())) {\n                    count = messageStore.estimateMessageCount(request.getTopic(), request.getQueueId(), request.getFrom(), request.getTo(),\n                        new DefaultMessageFilter(subscriptionData));\n                } else if (ExpressionType.SQL92.equalsIgnoreCase(subscriptionData.getExpressionType())) {\n                    ConsumerFilterData consumerFilterData = consumerFilterManager.get(request.getTopic(), request.getGroup());\n                    count = messageStore.estimateMessageCount(request.getTopic(), request.getQueueId(), request.getFrom(), request.getTo(),\n                        new ExpressionMessageFilter(subscriptionData,"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/broker/src/main/java/org/apache/rocketmq/broker/processor/PopReviveService.java": [
+            {
+                "fromLine": 217,
+                "toLine": 219,
+                "oldContent": "brokerController.getBrokerStatsManager().recordDiskFallBehindTime(group, topic, queueId,\n                        brokerController.getMessageStore().now() - foundList.get(foundList.size() - 1).getStoreTimestamp());",
+                "newContent": "brokerController.getBrokerStatsManager().recordDiskFallBehindTime(new org.apache.rocketmq.store.stats.DiskFallBehindStats(group, topic, queueId, brokerController.getMessageStore().now() - foundList.get(foundList.size() - 1).getStoreTimestamp()));"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/broker/src/main/java/org/apache/rocketmq/broker/transaction/queue/TransactionalMessageBridge.java": [
+            {
+                "fromLine": 144,
+                "toLine": 146,
+                "oldContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(group, topic, queueId,\n                        this.brokerController.getMessageStore().now() - foundList.get(foundList.size() - 1)",
+                "newContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(new org.apache.rocketmq.store.stats.DiskFallBehindStats(group, topic, queueId, this.brokerController.getMessageStore().now() - foundList.get(foundList.size() - 1).getStoreTimestamp()));"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/broker/src/main/java/org/apache/rocketmq/broker/processor/DefaultPullMessageResultHandler.java": [
+            {
+                "fromLine": 266,
+                "toLine": 268,
+                "oldContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(group, topic, queueId, this.brokerController.getMessageStore().now() - storeTimestamp);",
+                "newContent": "this.brokerController.getBrokerStatsManager().recordDiskFallBehindTime(new org.apache.rocketmq.store.stats.DiskFallBehindStats(group, topic, queueId, this.brokerController.getMessageStore().now() - storeTimestamp));"
+            }
+        ]
+    }
+}"

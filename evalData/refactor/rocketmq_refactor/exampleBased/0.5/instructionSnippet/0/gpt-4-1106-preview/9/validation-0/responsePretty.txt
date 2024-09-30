@@ -1,0 +1,61 @@
+"{
+    "refactorings": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
+            {
+                "fromLine": 89,
+                "toLine": 92,
+                "oldContent": "@Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;\n@Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;\n@Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;",
+                "newContent": ""
+            },
+            {
+                "fromLine": 564,
+                "toLine": 566,
+                "oldContent": "public void recordDiskFallBehindTime(final ConsumerLag consumerLag) {\nfinal String statsKey = buildStatsKey(queueId, topic, group);\nthis.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);",
+                "newContent": "public void recordDiskFallBehindTime(final String group, final String topic, final int queueId, final long fallBehind) {\nfinal String statsKey = buildStatsKey(group, topic, queueId);\nthis.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);"
+            },
+            {
+                "fromLine": 569,
+                "toLine": 571,
+                "oldContent": "public void recordDiskFallBehindSize(final ConsumerLag consumerLag) {\nfinal String statsKey = buildStatsKey(queueId, topic, group);\nthis.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);",
+                "newContent": "public void recordDiskFallBehindSize(final String group, final String topic, final int queueId, final long fallBehind) {\nfinal String statsKey = buildStatsKey(group, topic, queueId);\nthis.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/DefaultMessageStore.java": [
+            {
+                "fromLine": 940,
+                "toLine": 940,
+                "oldContent": "brokerStatsManager.recordDiskFallBehindSize(group, topic, queueId, fallBehind);",
+                "newContent": "brokerStatsManager.recordDiskFallBehindSize(group, topic, queueId, fallBehind);"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/LmqBrokerStatsManager.java": [
+            {
+                "fromLine": 92,
+                "toLine": 92,
+                "oldContent": "@Override",
+                "newContent": ""
+            },
+            {
+                "fromLine": 103,
+                "toLine": 103,
+                "oldContent": "super.recordDiskFallBehindTime(lmqGroup, lmqTopic, queueId, fallBehind);",
+                "newContent": "this.recordDiskFallBehindTime(lmqGroup, lmqTopic, queueId, fallBehind);"
+            },
+            {
+                "fromLine": 106,
+                "toLine": 106,
+                "oldContent": "@Override",
+                "newContent": ""
+            },
+            {
+                "fromLine": 117,
+                "toLine": 117,
+                "oldContent": "super.recordDiskFallBehindSize(lmqGroup, lmqTopic, queueId, fallBehind);",
+                "newContent": "this.recordDiskFallBehindSize(lmqGroup, lmqTopic, queueId, fallBehind);"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/ConsumerLag.java": "package org.apache.rocketmq.store.stats;\n\npublic class ConsumerLag {\n    private final String group;\n    private final String topic;\n    private final int queueId;\n    private final long from;\n    private final long to;\n    private final boolean isPop;\n\n    public ConsumerLag(String group, String topic, int queueId, long from, long to, boolean isPop) {\n        this.group = group;\n        this.topic = topic;\n        this.queueId = queueId;\n        this.from = from;\n        this.to = to;\n        this.isPop = isPop;\n    }\n\n    public String getGroup() {\n        return group;\n    }\n\n    public String getTopic() {\n        return topic;\n    }\n\n    public int getQueueId() {\n        return queueId;\n    }\n\n    public long getFrom() {\n        return from;\n    }\n\n    public long getTo() {\n        return to;\n    }\n\n    public boolean isPop() {\n        return isPop;\n    }\n}\n"
+    }
+}"

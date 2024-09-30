@@ -1,0 +1,1584 @@
+messages:
+[
+	content:"
+	
+	I will provide you code snippets of one or more Java  files.
+	
+	Refactor all data clumps in the respective files.
+	To do this, replace the method parameters or fields of all data clump variables by a reference to the extracted class, and update all usages accordingly.
+	Also provide the content of all extracted classes.
+	If possible, the extracted classes should not be just mere data classes but contain additional functionality to increase readability and usability.
+	
+	
+	 Examples of data clump are provided below.
+	## Examples
+	/* 
+	    These examples show data clumps and how they might be refactored
+	    Imports are missing so these examples would not compile
+	*/
+	// ### example 5#########################
+	//'method parameters to method parameters' data clump
+	class Example1A {
+	
+	    // both methods share at least 3 parameters, so we can extract those 3
+	    // parameters into a class
+	
+	    public static String buildServiceKey(String path, String group, String version) {
+	        int length = path == null ? 0 : path.length();
+	        length += group == null ? 0 : group.length();
+	        length += version == null ? 0 : version.length();
+	        length += 2;
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(group)) {
+	            buf.append(group).append('/');
+	        }
+	        buf.append(path);
+	        if (StringUtils.isNotEmpty(version)) {
+	            buf.append(':').append(version);
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(String path, String group, String version, String prefix) {
+	        return prefix + buildServiceKey(path, group, version);
+	    }
+	
+	}
+	
+	// ## refactored ##################################
+	class KeyData {
+	    private String path;
+	    private String group;
+	    private String version;
+	
+	    KeyData(String path, String group, String version) {
+	        this.path = path;
+	        this.group = group;
+	        this.version = version;
+	    }
+	
+	    public String getPath() {
+	        return path;
+	    }
+	
+	    public String getGroup() {
+	        return group;
+	    }
+	
+	    public String getVersion() {
+	        return version;
+	    }
+	
+	    public int getLength() {
+	        return path == null ? 0
+	                : path.length() + group == null ? 0 : group.length() + version == null ? 0 : version.length() + 2;
+	    }
+	
+	}
+	
+	class Example1A {
+	
+	    public static String buildServiceKey(KeyData keyData) {
+	        int length = keyData.getLength();
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(keyData.getGroup())) {
+	            buf.append(keyData.getGroup()).append('/');
+	        }
+	        buf.append(keyData.getPath());
+	        if (StringUtils.isNotEmpty(keyData.getVersion())) {
+	            buf.append(':').append(keyData.getVersion());
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(KeyData keyData, String prefix) {
+	        return prefix + buildServiceKey(keyData);
+	    }
+	}
+	// #### example 5 end ##################################
+	
+	//
+	
+	// ## example 2 ##################################
+	// 'fields to fields' data clump
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a class
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+				
+				int state = node.getId();
+				states.add(state);
+				successors.put(state, new ArrayList<Integer>());
+				labels.put(state, new ArrayList<Label>())
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + successors.get(state) + ", Labels: "
+	                    + labels.get(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## refactored ##################################
+	
+	class StateGraphData {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	
+	    StateGraphData() {
+	        this.states = new ArrayList<Integer>();
+	        this.successors = new HashMap<Integer, List<Integer>>();
+	        this.labels = new HashMap<Integer, List<Label>>();
+	    }
+	
+	    public List<Integer> getStates() {
+	        return states;
+	    }
+	
+	    public Map<Integer, List<Integer>> getSuccessors(int state) {
+	        return successors.get(state);
+	    }
+	
+	    public Map<Integer, List<Label>> getLabels(int state) {
+	        return labels.get(state);
+	    }
+	
+	    public void addState(int state) {
+	        states.add(state);
+	        successors.put(state, new ArrayList<Integer>());
+	        labels.put(state, new ArrayList<Label>());
+	    }
+	
+	}
+	
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a
+	    // class
+	    private StateGraphData stateGraphData;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+	
+	            stateGraphData.addState(node.getId());
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private StateGraphData stateGraphData;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + stateGraphData.getSuccessor(state) + ", Labels: "
+	                    + stateGraphData.getLabel(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## example 2 end ##################################
+	
+	// ## example 3 ##################################
+	// 'parameters to fields' data clump
+	class Example3A {
+	    boolean validate(String methodName, Class<?>[] parameterTypes, Object[] arguments) {
+	        return parameterTypes.length == arguments.length;
+	    }
+	}
+	
+	// Example3B.java
+	class Example3B {
+	
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private String methodName;
+	
+	    private Class<?>[] parameterTypes;
+	
+	    private Object[] arguments;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	
+	}
+	
+	// ## refactored ##################################
+	class MethodCallData {
+	    public String methodName;
+	    public Class<?>[] parameterTypes;
+	    public Object[] arguments;
+	
+	    public boolean isValid() {
+	        return parameterTypes.length == arguments.length;
+	    }
+	
+	}
+	
+	class Example3A {
+	    boolean validate(MethodCallData methodCallData) {
+	        return methodCallData.isValid();
+	    }
+	}
+	
+	class Example3B {
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private MethodCallData methodCallData;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	}
+	// ## example 3 end ##################################
+	
+	// ## example 4 ##################################
+	class Example4A {
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        writer.incrementNumberReturned();
+	        writer.setAxisOrder(CRS.getAxisOrder(featureCrs));
+	    }
+	}
+	
+	// Example4B.java
+	class Example4B extends Example4A {
+	     // This pair of methods do not constitute a data clump even if signature is copied because
+	    // the method is overridden and therefore must have the same paremeters
+	    @Override
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        root.reset();
+	        super.beforeEvaluation(writer, root, feature);
+	    }
+	   
+	}
+	// ## example 4 end ##################################
+	
+	## Examples end
+	
+	
+	Use the following JSON format for the output:
+	
+	## JSON
+	
+	{
+	    "refactorings":{
+	        // for each refactored file
+	        "file1Path": [
+	            // for each change in the file performed by you. Try to group changes of neighboring lines
+	            {
+	                "fromLine": "<the fromLine>",
+	                "toLine":"<the toLine>",
+	                "oldContent": "the old content of the changed lines",
+	                "newContent": "the new content of the changed lines"
+	            },
+	            //...
+	        ]
+	    },
+	    "extractedClasses":{
+	          // for each extracted class
+	        "extractedClassPath1": "full content of the newly extracted class 1 ",
+	        //...
+	    }
+	}
+	
+	## END JSON
+	
+		
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+		[
+			fromLine:"			16",
+			toLine:"			48",
+			content:"
+			 */
+			package org.apache.rocketmq.common.stats;
+			
+			public class Stats {
+			
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			}
+						
+",
+,
+
+		],
+		store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			16",
+			toLine:"			71",
+			content:"
+			 */
+			package org.apache.rocketmq.store.stats;
+			
+			import java.util.HashMap;
+			import java.util.concurrent.ScheduledExecutorService;
+			import org.apache.commons.lang3.tuple.Pair;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.ThreadFactoryImpl;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.statistics.StatisticsItem;
+			import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+			import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+			import org.apache.rocketmq.common.statistics.StatisticsManager;
+			import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.common.stats.StatsItem;
+			import org.apache.rocketmq.common.stats.StatsItemSet;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.common.utils.ThreadUtils;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			
+			public class BrokerStatsManager {
+			
+			    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;
+			    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+			    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+			    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+			    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+			    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+			
+			    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+			
+			    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+			    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+			    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+			    // For commercial
+			    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+			    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+			    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+			    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+			    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+			
+			    // Send message latency			
+",
+,
+			fromLine:"			108",
+			toLine:"			115",
+			content:"
+			    public static final String INNER_RT = "INNER_RT";
+			
+			    @Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+			    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+			    // Pull Message Latency
+			    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+			
+			    // Consumer Register Time			
+",
+,
+			fromLine:"			583",
+			toLine:"			594",
+			content:"
+			    }
+			
+			    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,
+			        final long fallBehind) {
+			        final String statsKey = buildStatsKey(queueId, topic, group);
+			        this.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);
+			    }
+			
+			    public void recordDiskFallBehindSize(final String group, final String topic, final int queueId,
+			        final long fallBehind) {
+			        final String statsKey = buildStatsKey(queueId, topic, group);
+			        this.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);			
+",
+,
+
+		],
+		broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java:
+		[
+			fromLine:"			16",
+			toLine:"			51",
+			content:"
+			 */
+			package org.apache.rocketmq.broker.metrics;
+			
+			import java.util.Map;
+			import java.util.Set;
+			import java.util.function.Consumer;
+			import java.util.stream.Collectors;
+			import org.apache.rocketmq.broker.BrokerController;
+			import org.apache.rocketmq.broker.client.ConsumerGroupInfo;
+			import org.apache.rocketmq.broker.client.ConsumerManager;
+			import org.apache.rocketmq.broker.filter.ConsumerFilterData;
+			import org.apache.rocketmq.broker.filter.ConsumerFilterManager;
+			import org.apache.rocketmq.broker.filter.ExpressionMessageFilter;
+			import org.apache.rocketmq.broker.offset.ConsumerOffsetManager;
+			import org.apache.rocketmq.broker.processor.PopBufferMergeService;
+			import org.apache.rocketmq.broker.processor.PopInflightMessageCounter;
+			import org.apache.rocketmq.broker.subscription.SubscriptionGroupManager;
+			import org.apache.rocketmq.broker.topic.TopicConfigManager;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.KeyBuilder;
+			import org.apache.rocketmq.common.MixAll;
+			import org.apache.rocketmq.common.Pair;
+			import org.apache.rocketmq.common.TopicConfig;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.constant.PermName;
+			import org.apache.rocketmq.common.filter.ExpressionType;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			import org.apache.rocketmq.remoting.protocol.filter.FilterAPI;
+			import org.apache.rocketmq.remoting.protocol.heartbeat.ConsumeType;
+			import org.apache.rocketmq.remoting.protocol.heartbeat.SubscriptionData;
+			import org.apache.rocketmq.remoting.protocol.subscription.SimpleSubscriptionData;
+			import org.apache.rocketmq.remoting.protocol.subscription.SubscriptionGroupConfig;
+			import org.apache.rocketmq.store.DefaultMessageFilter;
+			import org.apache.rocketmq.store.MessageStore;
+						
+",
+,
+			fromLine:"			299",
+			toLine:"			303",
+			content:"
+			    }
+			
+			    public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {
+			        long brokerOffset = messageStore.getMaxOffsetInQueue(topic, queueId);
+			        if (brokerOffset < 0) {			
+",
+,
+			fromLine:"			438",
+			toLine:"			442",
+			content:"
+			    }
+			
+			    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {
+			        long count = to - from;
+						
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+			[
+				fromLine:"				16",
+				toLine:"				48",
+				oldContent:"
+				 */
+				package org.apache.rocketmq.common.stats;
+				
+				public class Stats {
+				
+				    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+				    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+				    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+				    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+				    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+				    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+				    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+				    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+				    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+				    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+				    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+				    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+				    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+				    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+				    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+				    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+				    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+				    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+				    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+				    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+				    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+				    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+				
+				    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+				    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+				    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+				}
+								
+",
+				newContent:"
+								
+",
+,
+
+			],
+			store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+			[
+				fromLine:"				16",
+				toLine:"				71",
+				oldContent:"
+				 */
+				package org.apache.rocketmq.store.stats;
+				
+				import java.util.HashMap;
+				import java.util.concurrent.ScheduledExecutorService;
+				import org.apache.commons.lang3.tuple.Pair;
+				import org.apache.rocketmq.common.BrokerConfig;
+				import org.apache.rocketmq.common.ThreadFactoryImpl;
+				import org.apache.rocketmq.common.UtilAll;
+				import org.apache.rocketmq.common.constant.LoggerName;
+				import org.apache.rocketmq.common.statistics.StatisticsItem;
+				import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+				import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+				import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+				import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+				import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+				import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+				import org.apache.rocketmq.common.statistics.StatisticsManager;
+				import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+				import org.apache.rocketmq.common.stats.Stats;
+				import org.apache.rocketmq.common.stats.StatsItem;
+				import org.apache.rocketmq.common.stats.StatsItemSet;
+				import org.apache.rocketmq.common.topic.TopicValidator;
+				import org.apache.rocketmq.common.utils.ThreadUtils;
+				import org.apache.rocketmq.logging.org.slf4j.Logger;
+				import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+				
+				public class BrokerStatsManager {
+				
+				    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;
+				    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+				    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+				    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+				    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+				    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+				
+				    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+				    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+				
+				    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+				    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+				    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+				    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+				    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+				    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+				    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+				    // For commercial
+				    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+				    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+				    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+				    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+				    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+				    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+				    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+				
+				    // Send message latency				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				108",
+				toLine:"				115",
+				oldContent:"
+				    public static final String INNER_RT = "INNER_RT";
+				
+				    @Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+				    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+				    // Pull Message Latency
+				    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+				
+				    // Consumer Register Time				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				583",
+				toLine:"				594",
+				oldContent:"
+				    }
+				
+				    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,
+				        final long fallBehind) {
+				        final String statsKey = buildStatsKey(queueId, topic, group);
+				        this.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);
+				    }
+				
+				    public void recordDiskFallBehindSize(final String group, final String topic, final int queueId,
+				        final long fallBehind) {
+				        final String statsKey = buildStatsKey(queueId, topic, group);
+				        this.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);				
+",
+				newContent:"
+								
+",
+,
+
+			],
+			broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java:
+			[
+				fromLine:"				16",
+				toLine:"				51",
+				oldContent:"
+				 */
+				package org.apache.rocketmq.broker.metrics;
+				
+				import java.util.Map;
+				import java.util.Set;
+				import java.util.function.Consumer;
+				import java.util.stream.Collectors;
+				import org.apache.rocketmq.broker.BrokerController;
+				import org.apache.rocketmq.broker.client.ConsumerGroupInfo;
+				import org.apache.rocketmq.broker.client.ConsumerManager;
+				import org.apache.rocketmq.broker.filter.ConsumerFilterData;
+				import org.apache.rocketmq.broker.filter.ConsumerFilterManager;
+				import org.apache.rocketmq.broker.filter.ExpressionMessageFilter;
+				import org.apache.rocketmq.broker.offset.ConsumerOffsetManager;
+				import org.apache.rocketmq.broker.processor.PopBufferMergeService;
+				import org.apache.rocketmq.broker.processor.PopInflightMessageCounter;
+				import org.apache.rocketmq.broker.sub.SubscriptionGroupManager;
+				import org.apache.rocketmq.broker.topic.TopicConfigManager;
+				import org.apache.rocketmq.common.BrokerConfig;
+				import org.apache.rocketmq.common.KeyBuilder;
+				import org.apache.rocketmq.common.MixAll;
+				import org.apache.rocketmq.common.Pair;
+				import org.apache.rocketmq.common.TopicConfig;
+				import org.apache.rocketmq.common.constant.LoggerName;
+				import org.apache.rocketmq.common.constant.PermName;
+				import org.apache.rocketmq.common.filter.ExpressionType;
+				import org.apache.rocketmq.logging.org.slf4j.Logger;
+				import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+				import org.apache.rocketmq.remoting.protocol.filter.FilterAPI;
+				import org.apache.rocketmq.remoting.protocol.heartbeat.ConsumeType;
+				import org.apache.rocketmq.remoting.protocol.heartbeat.SubscriptionData;
+				import org.apache.rocketmq.remoting.protocol.subscription.SimpleSubscriptionData;
+				import org.apache.rocketmq.remoting.protocol.subscription.SubscriptionGroupConfig;
+				import org.apache.rocketmq.store.DefaultMessageFilter;
+				import org.apache.rocketmq.store.MessageStore;
+								
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				299",
+				toLine:"				303",
+				oldContent:"
+				    }
+				
+				    public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {
+				        long brokerOffset = messageStore.getMaxOffsetInQueue(topic, queueId);
+				        if (brokerOffset < 0) {				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				438",
+				toLine:"				442",
+				oldContent:"
+				    }
+				
+				    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {
+				        long count = to - from;
+								
+",
+				newContent:"
+								
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					common/src/main/java/org/apache/rocketmq/common/stats/StatKeys.java:"
+			package org.apache.rocketmq.common.stats;
+			
+			public class StatKeys {
+			
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			}
+						
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-common: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:[1,1] unclosed comment
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:[16,1] reached end of file while parsing
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-common
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+		[
+			fromLine:"			0",
+			toLine:"			3",
+			content:"
+						
+",
+,
+			fromLine:"			14",
+			toLine:"			18",
+			content:"
+			 * See the License for the specific language governing permissions and
+			 * limitations under the License.
+						
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+			[
+				fromLine:"				0",
+				toLine:"				3",
+				oldContent:"
+								
+",
+				newContent:"
+				/*
+								
+",
+,
+				fromLine:"				14",
+				toLine:"				18",
+				oldContent:"
+				 * See the License for the specific language governing permissions and
+				 * limitations under the License.
+								
+",
+				newContent:"
+				 * See the License for the specific language governing permissions and
+				 * limitations under the License.
+				 */
+				package org.apache.rocketmq.common.stats;
+				
+				public class Stats {
+				
+				    // Stats constants are now moved to StatKeys
+				
+				}
+								
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/stats/StatKeys.java:"
+			package org.apache.rocketmq.common.stats;
+			
+			public class StatKeys {
+			
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			}
+						
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-store: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[66,26] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[67,26] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[69,26] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[70,26] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[72,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[73,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[74,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[76,19] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[77,19] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[78,19] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[79,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[80,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[82,19] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[83,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[84,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[86,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[88,12] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[90,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[91,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[92,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[93,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[94,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[96,12] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[98,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[99,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[100,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[101,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[103,12] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[107,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[110,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[112,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[113,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[114,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[115,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[117,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[118,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[119,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[120,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[121,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[122,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[123,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[124,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[125,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[126,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[127,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[128,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[129,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[130,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[132,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[134,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[136,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[138,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[140,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[143,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[146,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[148,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[150,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[152,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[154,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[156,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[158,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[161,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[163,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[166,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[168,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[169,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[172,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[177,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[179,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[181,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[183,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[185,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[187,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[189,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[191,20] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[193,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[195,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[197,21] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[198,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[203,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[206,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[207,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[209,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[210,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[212,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[214,17] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[216,13] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[218,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[223,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[225,9] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[227,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[229,12] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[231,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[233,12] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[235,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[237,12] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[239,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[241,12] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[243,5] class, interface, or enum expected
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[245,12] class, interface, or enum expected
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-store
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			0",
+			toLine:"			0",
+			content:"
+						
+",
+,
+			fromLine:"			64",
+			toLine:"			247",
+			content:"
+			     * read disk follow stats
+			     */
+			    private static final Logger log = LoggerFactory.getLogger(LoggerName.ROCKETMQ_STATS_LOGGER_NAME);
+			    private static final Logger COMMERCIAL_LOG = LoggerFactory.getLogger(
+			        LoggerName.COMMERCIAL_LOGGER_NAME);
+			    private static final Logger ACCOUNT_LOG = LoggerFactory.getLogger(LoggerName.ACCOUNT_LOGGER_NAME);
+			    private static final Logger DLQ_STAT_LOG = LoggerFactory.getLogger(
+			        LoggerName.DLQ_STATS_LOGGER_NAME);
+			    private ScheduledExecutorService scheduledExecutorService;
+			    private ScheduledExecutorService commercialExecutor;
+			    private ScheduledExecutorService accountExecutor;
+			
+			    private final HashMap<String, StatsItemSet> statsTable = new HashMap<>();
+			    private final String clusterName;
+			    private final boolean enableQueueStat;
+			    private MomentStatsItemSet momentStatsItemSetFallSize;
+			    private MomentStatsItemSet momentStatsItemSetFallTime;
+			
+			    private final StatisticsManager accountStatManager = new StatisticsManager();
+			    private StateGetter producerStateGetter;
+			    private StateGetter consumerStateGetter;
+			
+			    private BrokerConfig brokerConfig;
+			
+			    public BrokerStatsManager(BrokerConfig brokerConfig) {
+			        this.brokerConfig = brokerConfig;
+			        this.enableQueueStat = brokerConfig.isEnableDetailStat();
+			        initScheduleService();
+			        this.clusterName = brokerConfig.getBrokerClusterName();
+			        init();
+			    }
+			
+			    public BrokerStatsManager(String clusterName, boolean enableQueueStat) {
+			        this.clusterName = clusterName;
+			        this.enableQueueStat = enableQueueStat;
+			        initScheduleService();
+			        init();
+			    }
+			
+			    public void init() {
+			        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,
+			            scheduledExecutorService, log);
+			
+			        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,
+			            scheduledExecutorService, log);
+			
+			        if (enableQueueStat) {
+			            this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+			        }
+			        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_CK_NUMS, new StatsItemSet(BROKER_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			
+			        this.statsTable.put(SNDBCK2DLQ_TIMES,
+			            new StatsItemSet(SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+			
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,
+			            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+			
+			        this.statsTable.put(CONSUMER_REGISTER_TIME,
+			            new StatsItemSet(CONSUMER_REGISTER_TIME, this.scheduledExecutorService, log));
+			        this.statsTable.put(PRODUCER_REGISTER_TIME,
+			            new StatsItemSet(PRODUCER_REGISTER_TIME, this.scheduledExecutorService, log));
+			
+			        this.statsTable.put(CHANNEL_ACTIVITY, new StatsItemSet(CHANNEL_ACTIVITY, this.scheduledExecutorService, log));
+			
+			        StatisticsItemFormatter formatter = new StatisticsItemFormatter();
+			        accountStatManager.setBriefMeta(new Pair[] {
+			            Pair.of(RT, new long[][] {{50, 50}, {100, 10}, {1000, 10}}),
+			            Pair.of(INNER_RT, new long[][] {{10, 10}, {100, 10}, {1000, 10}})});
+			        String[] itemNames = new String[] {
+			            MSG_NUM, SUCCESS_MSG_NUM, FAILURE_MSG_NUM, COMMERCIAL_MSG_NUM,
+			            SUCCESS_REQ_NUM, FAILURE_REQ_NUM,
+			            MSG_SIZE, SUCCESS_MSG_SIZE, FAILURE_MSG_SIZE,
+			            RT, INNER_RT};
+			        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+			            ACCOUNT_SEND, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+			        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+			            ACCOUNT_RCV, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+			        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+			            ACCOUNT_SEND_BACK, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+			        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+			            ACCOUNT_SEND_BACK_TO_DLQ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+			        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+			            ACCOUNT_SEND_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+			        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+			            ACCOUNT_REV_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+			        this.accountStatManager.setStatisticsItemStateGetter(new StatisticsItemStateGetter() {
+			            @Override
+			            public boolean online(StatisticsItem item) {
+			                String[] strArr = null;
+			                try {
+			                    strArr = splitAccountStatKey(item.getStatObject());
+			                } catch (Exception e) {
+			                    log.warn("parse account stat key failed, key: {}", item.getStatObject());
+			                    return false;
+			                }
+			
+			                // TODO ugly
+			                if (strArr == null || strArr.length < 4) {
+			                    return false;
+			                }
+			
+			                String instanceId = strArr[1];
+			                String topic = strArr[2];
+			                String group = strArr[3];
+			
+			                String kind = item.getStatKind();
+			                if (ACCOUNT_SEND.equals(kind) || ACCOUNT_SEND_REJ.equals(kind)) {
+			                    return producerStateGetter.online(instanceId, group, topic);
+			                } else if (ACCOUNT_RCV.equals(kind) || ACCOUNT_SEND_BACK.equals(kind) || ACCOUNT_SEND_BACK_TO_DLQ.equals(kind) || ACCOUNT_REV_REJ.equals(kind)) {
+			                    return consumerStateGetter.online(instanceId, group, topic);
+			                }
+			                return false;
+			            }
+			        });
+			    }
+			
+			    private void initScheduleService() {
+			        this.scheduledExecutorService =
+			            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("BrokerStatsThread", true, brokerConfig));
+			        this.commercialExecutor =
+			            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("CommercialStatsThread", true, brokerConfig));
+			        this.accountExecutor =
+			            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("AccountStatsThread", true, brokerConfig));
+			    }
+			
+			    public MomentStatsItemSet getMomentStatsItemSetFallSize() {
+			        return momentStatsItemSetFallSize;
+			    }
+			
+			    public MomentStatsItemSet getMomentStatsItemSetFallTime() {
+			        return momentStatsItemSetFallTime;
+			    }
+			
+			    public StateGetter getProducerStateGetter() {
+			        return producerStateGetter;
+			    }
+			
+			    public void setProducerStateGetter(StateGetter producerStateGetter) {
+			        this.producerStateGetter = producerStateGetter;
+			    }
+			
+			    public StateGetter getConsumerStateGetter() {
+			        return consumerStateGetter;
+			    }			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+			[
+				fromLine:"				0",
+				toLine:"				0",
+				oldContent:"
+								
+",
+				newContent:"
+				/*
+				*/
+								
+",
+,
+				fromLine:"				64",
+				toLine:"				247",
+				oldContent:"
+				     * read disk follow stats
+				     */
+				    private static final Logger log = LoggerFactory.getLogger(LoggerName.ROCKETMQ_STATS_LOGGER_NAME);
+				    private static final Logger COMMERCIAL_LOG = LoggerFactory.getLogger(
+				        LoggerName.COMMERCIAL_LOGGER_NAME);
+				    private static final Logger ACCOUNT_LOG = LoggerFactory.getLogger(LoggerName.ACCOUNT_LOGGER_NAME);
+				    private static final Logger DLQ_STAT_LOG = LoggerFactory.getLogger(
+				        LoggerName.DLQ_STATS_LOGGER_NAME);
+				    private ScheduledExecutorService scheduledExecutorService;
+				    private ScheduledExecutorService commercialExecutor;
+				    private ScheduledExecutorService accountExecutor;
+				
+				    private final HashMap<String, StatsItemSet> statsTable = new HashMap<>();
+				    private final String clusterName;
+				    private final boolean enableQueueStat;
+				    private MomentStatsItemSet momentStatsItemSetFallSize;
+				    private MomentStatsItemSet momentStatsItemSetFallTime;
+				
+				    private final StatisticsManager accountStatManager = new StatisticsManager();
+				    private StateGetter producerStateGetter;
+				    private StateGetter consumerStateGetter;
+				
+				    private BrokerConfig brokerConfig;
+				
+				    public BrokerStatsManager(BrokerConfig brokerConfig) {
+				        this.brokerConfig = brokerConfig;
+				        this.enableQueueStat = brokerConfig.isEnableDetailStat();
+				        initScheduleService();
+				        this.clusterName = brokerConfig.getBrokerClusterName();
+				        init();
+				    }
+				
+				    public BrokerStatsManager(String clusterName, boolean enableQueueStat) {
+				        this.clusterName = clusterName;
+				        this.enableQueueStat = enableQueueStat;
+				        initScheduleService();
+				        init();
+				    }
+				
+				    public void init() {
+				        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,
+				            scheduledExecutorService, log);
+				
+				        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,
+				            scheduledExecutorService, log);
+				
+				        if (enableQueueStat) {
+				            this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+				            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+				            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+				            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+				        }
+				        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+				        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+				        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(BROKER_CK_NUMS, new StatsItemSet(BROKER_CK_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,
+				            new StatsItemSet(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+				        this.statsTable.put(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+				            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,
+				            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,
+				            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,
+				            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+				        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,
+				            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+				
+				        this.statsTable.put(SNDBCK2DLQ_TIMES,
+				            new StatsItemSet(SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+				
+				        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,
+				            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+				        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,
+				            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+				        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,
+				            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+				        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,
+				            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+				        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,
+				            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+				        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,
+				            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+				        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,
+				            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+				
+				        this.statsTable.put(CONSUMER_REGISTER_TIME,
+				            new StatsItemSet(CONSUMER_REGISTER_TIME, this.scheduledExecutorService, log));
+				        this.statsTable.put(PRODUCER_REGISTER_TIME,
+				            new StatsItemSet(PRODUCER_REGISTER_TIME, this.scheduledExecutorService, log));
+				
+				        this.statsTable.put(CHANNEL_ACTIVITY, new StatsItemSet(CHANNEL_ACTIVITY, this.scheduledExecutorService, log));
+				
+				        StatisticsItemFormatter formatter = new StatisticsItemFormatter();
+				        accountStatManager.setBriefMeta(new Pair[] {
+				            Pair.of(RT, new long[][] {{50, 50}, {100, 10}, {1000, 10}}),
+				            Pair.of(INNER_RT, new long[][] {{10, 10}, {100, 10}, {1000, 10}})});
+				        String[] itemNames = new String[] {
+				            MSG_NUM, SUCCESS_MSG_NUM, FAILURE_MSG_NUM, COMMERCIAL_MSG_NUM,
+				            SUCCESS_REQ_NUM, FAILURE_REQ_NUM,
+				            MSG_SIZE, SUCCESS_MSG_SIZE, FAILURE_MSG_SIZE,
+				            RT, INNER_RT};
+				        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+				            ACCOUNT_SEND, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+				        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+				            ACCOUNT_RCV, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+				        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+				            ACCOUNT_SEND_BACK, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+				        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+				            ACCOUNT_SEND_BACK_TO_DLQ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+				        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+				            ACCOUNT_SEND_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+				        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+				            ACCOUNT_REV_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+				        this.accountStatManager.setStatisticsItemStateGetter(new StatisticsItemStateGetter() {
+				            @Override
+				            public boolean online(StatisticsItem item) {
+				                String[] strArr = null;
+				                try {
+				                    strArr = splitAccountStatKey(item.getStatObject());
+				                } catch (Exception e) {
+				                    log.warn("parse account stat key failed, key: {}", item.getStatObject());
+				                    return false;
+				                }
+				
+				                // TODO ugly
+				                if (strArr == null || strArr.length < 4) {
+				                    return false;
+				                }
+				
+				                String instanceId = strArr[1];
+				                String topic = strArr[2];
+				                String group = strArr[3];
+				
+				                String kind = item.getStatKind();
+				                if (ACCOUNT_SEND.equals(kind) || ACCOUNT_SEND_REJ.equals(kind)) {
+				                    return producerStateGetter.online(instanceId, group, topic);
+				                } else if (ACCOUNT_RCV.equals(kind) || ACCOUNT_SEND_BACK.equals(kind) || ACCOUNT_SEND_BACK_TO_DLQ.equals(kind) || ACCOUNT_REV_REJ.equals(kind)) {
+				                    return consumerStateGetter.online(instanceId, group, topic);
+				                }
+				                return false;
+				            }
+				        });
+				    }
+				
+				    private void initScheduleService() {
+				        this.scheduledExecutorService =
+				            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("BrokerStatsThread", true, brokerConfig));
+				        this.commercialExecutor =
+				            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("CommercialStatsThread", true, brokerConfig));
+				        this.accountExecutor =
+				            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("AccountStatsThread", true, brokerConfig));
+				    }
+				
+				    public MomentStatsItemSet getMomentStatsItemSetFallSize() {
+				        return momentStatsItemSetFallSize;
+				    }
+				
+				    public MomentStatsItemSet getMomentStatsItemSetFallTime() {
+				        return momentStatsItemSetFallTime;
+				    }
+				
+				    public StateGetter getProducerStateGetter() {
+				        return producerStateGetter;
+				    }
+				
+				    public void setProducerStateGetter(StateGetter producerStateGetter) {
+				        this.producerStateGetter = producerStateGetter;
+				    }
+				
+				    public StateGetter getConsumerStateGetter() {
+				        return consumerStateGetter;
+				    }				
+",
+				newContent:"
+								
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+				
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-store: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[1,1] unclosed comment
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[523,1] reached end of file while parsing
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-store
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			0",
+			toLine:"			3",
+			content:"
+						
+",
+,
+			fromLine:"			521",
+			toLine:"			525",
+			content:"
+			    }
+			}
+						
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+
+],
+model:"
+gpt-4-1106-preview
+",
+response_format:
+{
+	type:"
+	json_object	
+",
+
+}
+temperature:"0.9",

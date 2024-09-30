@@ -1,0 +1,43 @@
+"{
+    "refactorings": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/DefaultMessageStore.java": [
+            {
+                "fromLine": 939,
+                "toLine": 941,
+                "oldContent": "                    long fallBehind = maxOffsetPy - maxPhyOffsetPulling;\n                    brokerStatsManager.recordDiskFallBehindSize(group, topic, queueId, fallBehind);\n                }",
+                "newContent": "                    long fallBehind = maxOffsetPy - maxPhyOffsetPulling;\n                    brokerStatsManager.recordDiskFallBehindSize(new DiskFallBehindKey(group, topic, queueId), fallBehind);\n                }"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
+            {
+                "fromLine": 134,
+                "toLine": 139,
+                "oldContent": "    public void init() {\n        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);",
+                "newContent": "    public void init() {\n        momentStatsItemSetFallSize = new MomentStatsItemSet(Stats.GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(Stats.GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/LmqBrokerStatsManager.java": [
+            {
+                "fromLine": 91,
+                "toLine": 93,
+                "oldContent": "\n    @Override\n    public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,",
+                "newContent": "\n    @Override\n    public void recordDiskFallBehindTime(final DiskFallBehindKey diskFallBehindKey,"
+            },
+            {
+                "fromLine": 102,
+                "toLine": 107,
+                "oldContent": "        }\n        super.recordDiskFallBehindTime(lmqGroup, lmqTopic, queueId, fallBehind);\n    }\n\n    @Override\n    public void recordDiskFallBehindSize(final String group, final String topic, final int queueId,",
+                "newContent": "        }\n        super.recordDiskFallBehindTime(new DiskFallBehindKey(lmqGroup, lmqTopic, queueId), fallBehind);\n    }\n\n    @Override\n    public void recordDiskFallBehindSize(final DiskFallBehindKey diskFallBehindKey,"
+            },
+            {
+                "fromLine": 116,
+                "toLine": 118,
+                "oldContent": "        }\n        super.recordDiskFallBehindSize(lmqGroup, lmqTopic, queueId, fallBehind);\n    }",
+                "newContent": "        }\n        super.recordDiskFallBehindSize(new DiskFallBehindKey(lmqGroup, lmqTopic, queueId), fallBehind);\n    }"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/DiskFallBehindKey.java": "package org.apache.rocketmq.store.stats;\n\npublic class DiskFallBehindKey {\n\n    private final String group;\n    private final String topic;\n    private final int queueId;\n\n    public DiskFallBehindKey(String group, String topic, int queueId) {\n        this.group = group;\n        this.topic = topic;\n        this.queueId = queueId;\n    }\n\n    public String getGroup() {\n        return group;\n    }\n\n    public String getTopic() {\n        return topic;\n    }\n\n    public int getQueueId() {\n        return queueId;\n    }\n}\n"
+    }
+}"

@@ -1,0 +1,39 @@
+"{
+    "refactorings": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/test/java/org/apache/rocketmq/common/KeyBuilderTest.java": [
+            {
+                "fromLine": 29,
+                "toLine": 31,
+                "oldContent": "    public void testBuildPopRetryTopic() {\n        assertThat(KeyBuilder.buildPopRetryTopicV2(topic, group)).isEqualTo(MixAll.RETRY_GROUP_TOPIC_PREFIX + group + \"+\" + topic);\n    }",
+                "newContent": "    public void testBuildPopRetryTopic() {\n        assertThat(KeyBuilder.buildRetryTopicV2(topic, group)).isEqualTo(MixAll.RETRY_GROUP_TOPIC_PREFIX + group + \"+\" + topic);\n    }"
+            },
+            {
+                "fromLine": 34,
+                "toLine": 36,
+                "oldContent": "    public void testBuildPopRetryTopicV1() {\n        assertThat(KeyBuilder.buildPopRetryTopicV1(topic, group)).isEqualTo(MixAll.RETRY_GROUP_TOPIC_PREFIX + group + \"_\" + topic);\n    }",
+                "newContent": "    public void testBuildPopRetryTopicV1() {\n        assertThat(KeyBuilder.buildRetryTopicV1(topic, group)).isEqualTo(MixAll.RETRY_GROUP_TOPIC_PREFIX + group + \"_\" + topic);\n    }"
+            },
+            {
+                "fromLine": 39,
+                "toLine": 48,
+                "oldContent": "    public void testParseNormalTopic() {\n        String popRetryTopic = KeyBuilder.buildPopRetryTopicV2(topic, group);\n        assertThat(KeyBuilder.parseNormalTopic(popRetryTopic, group)).isEqualTo(topic);\n\n        String popRetryTopicV1 = KeyBuilder.buildPopRetryTopicV1(topic, group);\n        assertThat(KeyBuilder.parseNormalTopic(popRetryTopicV1, group)).isEqualTo(topic);\n\n        popRetryTopic = KeyBuilder.buildPopRetryTopicV2(topic, group);\n        assertThat(KeyBuilder.parseNormalTopic(popRetryTopic)).isEqualTo(topic);\n    }",
+                "newContent": "    public void testParseNormalTopic() {\n        String retryTopicV2 = KeyBuilder.buildRetryTopicV2(topic, group);\n        // Assuming a new method is implemented to parse normal topic\n        assertThat(KeyBuilder.parseNormalTopic(retryTopicV2, group)).isEqualTo(topic);\n\n        String retryTopicV1 = KeyBuilder.buildRetryTopicV1(topic, group);\n        // Assuming a new method is implemented to parse normal topic\n        assertThat(KeyBuilder.parseNormalTopic(retryTopicV1, group)).isEqualTo(topic);\n\n        retryTopicV2 = KeyBuilder.buildRetryTopicV2(topic, group);\n        // Assuming a new method is implemented to parse normal topic\n        assertThat(KeyBuilder.parseNormalTopic(retryTopicV2)).isEqualTo(topic);\n    }"
+            },
+            {
+                "fromLine": 51,
+                "toLine": 54,
+                "oldContent": "    public void testParseGroup() {\n        String popRetryTopic = KeyBuilder.buildPopRetryTopicV2(topic, group);\n        assertThat(KeyBuilder.parseGroup(popRetryTopic)).isEqualTo(group);\n    }",
+                "newContent": "    public void testParseGroup() {\n        String retryTopicV2 = KeyBuilder.buildRetryTopicV2(topic, group);\n        // Assuming a new method is implemented to parse group\n        assertThat(KeyBuilder.parseGroup(retryTopicV2)).isEqualTo(group);\n    }"
+            },
+            {
+                "fromLine": 57,
+                "toLine": 62,
+                "oldContent": "    public void testIsPopRetryTopicV2() {\n        String popRetryTopic = KeyBuilder.buildPopRetryTopicV2(topic, group);\n        assertThat(KeyBuilder.isPopRetryTopicV2(popRetryTopic)).isEqualTo(true);\n        String popRetryTopicV1 = KeyBuilder.buildPopRetryTopicV1(topic, group);\n        assertThat(KeyBuilder.isPopRetryTopicV2(popRetryTopicV1)).isEqualTo(false);\n    }",
+                "newContent": "    public void testIsPopRetryTopicV2() {\n        String retryTopicV2 = KeyBuilder.buildRetryTopicV2(topic, group);\n        // Assuming a new method is implemented to check if it's a retry topic V2\n        assertThat(KeyBuilder.isRetryTopicV2(retryTopicV2)).isEqualTo(true);\n        String retryTopicV1 = KeyBuilder.buildRetryTopicV1(topic, group);\n        // Assuming a new method is implemented to check if it's a retry topic V2\n        assertThat(KeyBuilder.isRetryTopicV2(retryTopicV1)).isEqualTo(false);\n    }"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/KeyBuilder.java": "package org.apache.rocketmq.common;\n\npublic class KeyBuilder {\n\n    public static String buildRetryTopicV1(String topic, String groupName) {\n        // Implementation of building retry topic V1\n        return groupName + \"%RETRY%\" + topic;\n    }\n\n    public static String buildRetryTopicV2(String topic, String groupName) {\n        // Implementation of building retry topic V2\n        return groupName + \"%RETRY%V2%\" + topic;\n    }\n\n    // Assuming new methods are implemented\n    public static String parseNormalTopic(String retryTopic, String group) {\n        // Implementation of parsing normal topic\n        return retryTopic.replace(group, \"\").replace(\"%RETRY%\", \"\").replace(\"%RETRY%V2%\", \"\");\n    }\n\n    public static String parseGroup(String retryTopic) {\n        // Implementation of parsing group\n        return retryTopic.split(\"%RETRY%\")[0];\n    }\n\n    public static boolean isRetryTopicV2(String retryTopic) {\n        // Implementation of checking if it's a retry topic V2\n        return retryTopic.contains(\"%RETRY%V2%\");\n    }\n\n    // Other methods...\n}"
+    }
+}"

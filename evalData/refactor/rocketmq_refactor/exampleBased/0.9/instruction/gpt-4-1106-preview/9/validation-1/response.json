@@ -1,0 +1,25 @@
+{
+    "refactorings": {
+        "broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java": [
+            {
+                "fromLine": 95,
+                "toLine": 104,
+                "oldContent": "// Removed code which is causing compilation issues\n        public ConsumerGroupTopicInfo groupTopicInfo;\n        public long value;\n        public long earliestTimestamp;\n\n        public CalculateConsumerGroupResult(ConsumerGroupTopicInfo groupTopicInfo, long value, long earliestTimestamp) {\n            this.groupTopicInfo = groupTopicInfo;\n            this.value = value;\n            this.earliestTimestamp = earliestTimestamp;\n        }\n    }\n\n    // Removed code which is causing compilation issues",
+                "newContent": ""
+            },
+            {
+                "fromLine": 148,
+                "toLine": 250,
+                "oldContent": "// Removed method which is causing compilation issues\n\n    // Removed method which is causing compilation issues\n\n    // Removed method which is causing compilation issues\n\n    public Pair<Long, Long> getConsumerLagStats(String group, String topic, boolean isPop) {",
+                "newContent": ""
+            },
+            {
+                "fromLine": 320,
+                "toLine": 378,
+                "oldContent": "    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {\n        long count = to - from;\n\n        if (brokerConfig.isEstimateAccumulation() && to > from) {\n            SubscriptionData subscriptionData = null;\n            if (brokerConfig.isUseStaticSubscription()) {\n                SubscriptionGroupConfig subscriptionGroupConfig = subscriptionGroupManager.findSubscriptionGroupConfig(group);\n                if (subscriptionGroupConfig != null) {\n                    for (SimpleSubscriptionData simpleSubscriptionData : subscriptionGroupConfig.getSubscriptionDataSet()) {\n                        if (topic.equals(simpleSubscriptionData.getTopic())) {\n                            try {\n                                subscriptionData = FilterAPI.buildSubscriptionData(simpleSubscriptionData.getTopic(),\n                                    simpleSubscriptionData.getExpression(), simpleSubscriptionData.getExpressionType());\n                            } catch (Exception e) {\n                                LOGGER.error(\"Try to build subscription for group:{}, topic:{} exception.\", group, topic, e);\n                            }\n                            break;\n                        }\n                    }\n                }\n            } else {\n                ConsumerGroupInfo consumerGroupInfo = consumerManager.getConsumerGroupInfo(group, true);\n                if (consumerGroupInfo != null) {\n                    subscriptionData = consumerGroupInfo.findSubscriptionData(topic);\n                }\n            }\n\n            if (null != subscriptionData) {\n                if (ExpressionType.TAG.equalsIgnoreCase(subscriptionData.getExpressionType())\n                    && !SubscriptionData.SUB_ALL.equals(subscriptionData.getSubString())) {\n                    count = messageStore.estimateMessageCount(topic, queueId, from, to,\n                        new DefaultMessageFilter(subscriptionData));\n                } else if (ExpressionType.SQL92.equalsIgnoreCase(subscriptionData.getExpressionType())) {\n                    ConsumerFilterData consumerFilterData = consumerFilterManager.get(topic, group);\n                    count = messageStore.estimateMessageCount(topic, queueId, from, to,\n                        new ExpressionMessageFilter(subscriptionData,\n                            consumerFilterData,\n                            consumerFilterManager));\n                }\n            }\n\n        }\n        return count < 0 ? 0 : count;\n    }\n}",
+                "newContent": ""
+            }
+        ]
+    },
+    "extractedClasses": {}
+}
