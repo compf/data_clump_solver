@@ -42,9 +42,14 @@ function instanceKeyComparator(a: string, b: string) {
 }
 export type Instance = {
     instanceType: string,
+    projectName: string,
     model: string,
     temperature: number,
     iteration: number,
+    inputFormat: string,
+    instructionType:string,
+    margin: number
+
 }
 export type Arrayified<T> = {
     [K in keyof T]: T[K][];
@@ -169,7 +174,7 @@ export abstract class BaseEvaluator {
         let fileIO = FileIO.instance as InstanceBasedFileIO
         for (let instanceStr of allInstances) {
             let instance = JSON.parse(instanceStr) as Instance
-            instance["projectName"] = path.basename(ctx.getProjectPath())
+            instance.projectName = path.basename(ctx.getProjectPath())
             fileIO.instance = instance;
             console.log(instance)
             if (this.shallIgnore(instance)) {

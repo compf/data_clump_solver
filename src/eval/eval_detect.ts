@@ -17,9 +17,7 @@ import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
 import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import {resolve} from "path"
 type DetectEvalInstance = Instance & {
-    inputType: string,
-    margin: number,
-    instructionType: string
+
 }
 type DetectEvalInstanceCombination =Arrayified<DetectEvalInstance>
 export class DetectEval extends BaseEvaluator{
@@ -28,7 +26,7 @@ export class DetectEval extends BaseEvaluator{
         let resolver= resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver;
        
 
-        resolver.set("%{ast}", instance.inputType=="ast" ?  "chatGPT_templates/detect/represented_as_ast.template":"chatGPT_templates/empty_file.template");
+        resolver.set("%{ast}", instance.inputFormat=="ast" ?  "chatGPT_templates/detect/represented_as_ast.template":"chatGPT_templates/empty_file.template");
         let defPath="";
         if(instance.instructionType=="definitionBased"){
             defPath="chatGPT_templates/data_clump_def.template"
@@ -44,13 +42,13 @@ export class DetectEval extends BaseEvaluator{
         let handlers:LargeLanguageModelHandler[]=[
             new SystemInstructionHandler({instructionPath:"chatGPT_templates/detect/instruction.template"})
         ]
-        if(instance.inputType=="fullFile"){
+        if(instance.inputFormat=="fullFile"){
             handlers.push(new AllFilesHandler())
         }
-        else if(instance.inputType=="snippet"){
+        else if(instance.inputFormat=="snippet"){
             handlers.push(new CodeSnippetHandler({additionalMargin:instance.margin}))
         }
-        else if(instance.inputType=="ast"){
+        else if(instance.inputFormat=="ast"){
             handlers.push(new AllAST_FilesHandler())
         }
         let chat: ChatMessage[] = []
@@ -71,7 +69,7 @@ export class DetectEval extends BaseEvaluator{
                 0.9
             ],
             iteration: [0, 1, 2, 3, 4],
-            inputType: [
+            inputFormat: [
                // "ast",
                 "fullFile",
                 "snippet"],
@@ -82,6 +80,7 @@ export class DetectEval extends BaseEvaluator{
                   5, 
                   //10
                 ],
+                projectName:[],
             instructionType: [
                 "definitionBased",
                 "exampleBased", 
@@ -95,7 +94,7 @@ export class DetectEval extends BaseEvaluator{
         return result
     }
     simplifyInstance(instance: DetectEvalInstance): DetectEvalInstance {
-        if(instance.inputType!="snippet"){
+        if(instance.inputFormat!="snippet"){
             delete instance["margin" as any];
          }
          return instance;

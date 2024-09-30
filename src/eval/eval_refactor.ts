@@ -21,9 +21,6 @@ import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBas
 import { ValidationStepHandler } from "../pipeline/stepHandler/validation/ValidationStepHandler";
 export type RefactorInstance = Instance & {
 
-    instructionType: string,
-    inputFormat: string,
-    margin: number
 
 }
 
@@ -68,7 +65,8 @@ export class RefactorEval extends BaseEvaluator {
                     "instruction"
             ],
             iteration: Array.from({length: 10}, (x, i) => i),
-            margin: [0, 1, 2, 5, 10]
+            margin: [0, 1, 2, 5, 10],
+            projectName:[]
         }
         if (isDebug()) {
             result.iteration = [0]
