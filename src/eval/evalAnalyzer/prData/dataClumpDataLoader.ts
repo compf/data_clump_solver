@@ -1,12 +1,12 @@
-import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext } from "../context/DataContext";
-import { CloneBasedProjectRetriever } from "../eval/project_list_retriever";
-import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
-import { resolve } from "path";
-import {data} from "./data";
+import { DataClumpRefactoringContext, CodeObtainingContext, FileFilteringContext } from "../../../context/DataContext";
+import { PipeLineStep } from "../../../pipeline/PipeLineStep";
+import { DataClumpDoctorStepHandler } from "../../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
+import { getRepoDataFromUrl } from "../../../util/vcs/VCS_Service";
+import { CloneBasedProjectRetriever } from "../../project_list_retriever";
+import { data } from "./data";
 import * as fs from "fs";
 import readlineSync from "readline-sync";
-import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
-import { PipeLineStep } from "../pipeline/PipeLineStep";
+import { resolve } from "path";
 export async function loadData(){
     for(let url of Object.keys(data)){
         let repoData=getRepoDataFromUrl(url);

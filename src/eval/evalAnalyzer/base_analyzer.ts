@@ -55,23 +55,7 @@ export abstract class EvalAnalyzer {
         return parsed
     }
 
-    createCompareObjects(): any[] {
-        let result: any[] = []
-        let combination = this.getEvaluator().createInstanceCombination()
-        for (let key of Object.keys(combination)) {
 
-            let values = combination[key]
-            if (values.length == 1) {
-                continue
-            }
-            for (let v of values) {
-                let obj = {}
-                obj[key] = v
-                result.push(obj)
-            }
-        }
-        return result
-    }
 
 
     fillObject(keys: string[], obj: any): any {
@@ -97,17 +81,7 @@ export abstract class EvalAnalyzer {
         }
         return result
     }
-    isSubset(superSet: any, subSet: any) {
-        for (let k of Object.keys(subSet)) {
-            if (!(k in superSet)) {
-                return false
-            }
-            if (subSet[k] != superSet[k]) {
-                return false
-            }
-        }
-        return true
-    }
+  
 
      loadGeneratedData(instance:Instance ,context:DataClumpRefactoringContext):Promise<InstanceGeneratedData>{
         let responsePaths: string[] = []
@@ -132,7 +106,7 @@ export abstract class EvalAnalyzer {
 
         let allCOntexts = await this.loadContext(urls)
 
-
+        let subSetChecker=new SubSetChecker()
         let instancesPaths: string[] = []
         let filterContext = new FileFilteringContext([".*instance.json"], [])
         getRelevantFilesRec("evalData", instancesPaths, filterContext)
@@ -148,7 +122,7 @@ export abstract class EvalAnalyzer {
                 instances.push(parsed)
                 newInstancePaths.push(p)
             }
-            else if(filters.some((f)=>this.isSubset(parsed,f))){
+            else if(filters.some((f)=>subSetChecker.isSubset(parsed,f))){
                 instances.push(parsed);
                 newInstancePaths.push(p)
             }
@@ -194,7 +168,7 @@ export abstract class EvalAnalyzer {
     }
 }
 export interface EvalMetric {
-    eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): any
+    eval(instance: any, context: DataClumpRefactoringContext): any
     getName(): string
 }
 
@@ -366,4 +340,144 @@ export function getBestFittingDataClump(context: DataClumpRefactoringContext, in
         }
     }
     return { score: maxValue, dataClump: maxDc, fromFiltered: fromFiltered, maxFails, maxMatches }
+}
+
+export class SubSetChecker{
+
+ isSubset(superSet: any, subSet: any) {
+    for (let k of Object.keys(subSet)) {
+        if (!(k in superSet)) {
+            return false
+        }
+        if (subSet[k] != superSet[k]) {
+            return false
+        }
+    }
+    return true
+}
+}
+
+function transpose(obj:any, indices:number[]){
+    let result={}
+    let values=[]
+
+    for(let k1 of Object.keys(obj)){
+        result[k1]={}
+        for(let k2 of Object.keys(obj[k1])){
+          
+        }
+    }
+}
+
+export function concatenateResults(prefix:string,compareObjects:any[],metrics:EvalMetric[],instances: Instance[], subSetChecker:SubSetChecker) {
+    let result = {}
+
+    for (let functionKey of Object.keys(statFunctions)) {
+        let f= statFunctions[functionKey]
+        result[functionKey] = {}
+
+        for (let metricKey of metrics.map((it) => it.getName())) { 
+           
+          
+           
+            result[functionKey][metricKey] = {}
+            for (let cmp of compareObjects) {
+                let compareKey=Object.keys(cmp).map((it)=>it+ "= "+cmp[it]).join(" , ")
+                let relevantInstances = instances.filter((it) => subSetChecker.isSubset(it, cmp))
+                let res=f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
+                if(!isNaN(res)){    
+               result[functionKey][metricKey][compareKey] = res;
+                }
+               
+            }
+        }
+    }
+
+    for(let functionKey of Object.keys(result)){
+        fs.mkdirSync("evalDataResults/"+prefix+"/"+functionKey,{recursive:true})
+        for(let metricKey of Object.keys(result[functionKey])){
+            fs.writeFileSync("evalDataResults/"+prefix+"/"+functionKey+"/"+metricKey+".json",JSON.stringify(result[functionKey][metricKey],undefined,2))
+        }
+    }
+    return result;
+}
+export function mean(array: any[]) {
+    if (typeof (array[0]) == "number") {
+        array = array.filter((it) => !isNaN(it))
+        return array.reduce((a, b) => a + b) / array.length
+    }
+    else if (typeof (array[0]) == "object") {
+        let result = {}
+        for (let key of Object.keys(array[0])) {
+            result[key] = mean(array.map((it) => it[key]))
+        }
+        return result;
+    }
+}
+
+export function median(array: any[]) {
+    array.sort((a, b) => a - b)
+    let mid = Math.floor(array.length / 2)
+    if (array.length % 2 == 0) {
+        return (array[mid - 1] + array[mid]) / 2
+    }
+    else {
+        return array[mid]
+    }
+}
+
+export function variance(array: any[]) {
+    let m = mean(array) as number
+    let sum = 0;
+    for (let a of array) {
+        sum += (a - m) ** 2
+    }
+    if (isNaN(sum)) {
+        console.log(array)
+        console.log(m)
+        throw "invalid"
+    }
+    return sum / array.length
+}
+
+export const statFunctions = {
+    "mean": mean,
+    "median": median,
+    "variance": variance,
+    count: (array: any[]) => array.length>0?array.length:undefined
+}
+
+
+export function createCompareObjects(baseObjects:any): any[] {
+    let result: any[] = []
+    let combination = baseObjects
+    for (let key1 of Object.keys(combination)) {
+        for(let v1 of combination[key1]){
+            let obj={}
+            obj[key1]=v1
+            result.push(obj)
+        }
+        for (let key2 of Object.keys(combination)) {
+
+            if(key1==key2){
+                continue
+            }
+            else if(key1=="iteration" || key2=="iteration"){
+                continue
+            }
+            else{
+               for(let v1 of combination[key1]){
+                   for(let v2 of combination[key2]){
+                       let obj={}
+                       obj[key1]=v1
+                       obj[key2]=v2
+                       result.push(obj)
+                   }
+               }
+            }
+        }
+
+       
+    }
+    return result
 }

@@ -34,6 +34,10 @@ export const MAX_COUNTER_VALUE=counter; // maximum value for counter
 
 export const parameters_to_parameters_data_clump = "parameters_to_parameters_data_clump";
 export const fields_to_fields_data_clump = "fields_to_fields_data_clump";
+export const detectAndRefactor="detectAndRefactor";
+export const nameSuggestion = "nameSuggestion";
+export const filterSnippet = "filterSnippet";
+export const filterManual="filterManual";
 export type PR_Data_Entry = {
 
     url: string,

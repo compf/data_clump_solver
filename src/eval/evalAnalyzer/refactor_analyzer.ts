@@ -180,21 +180,30 @@ class CommentOutMetric implements EvalMetric {
         return count
     }
     async   eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
-        let commentLines = 0;
-        let allLines = 0;
+        let branchedCommentLines = 0;
+        let branchedAllLines = 0;
+        let originalCommentLines = 0;
+        let originalAllLines = 0;
         for (let f of Object.keys(instance.fileContents)) {
             if (f.endsWith(".java")) {
-               
+               if(fs.existsSync(resolve(context.getProjectPath(),f))){
+                let originalContent=fs.readFileSync(resolve(context.getProjectPath(), f), { encoding: "utf-8" }).split("\n")
+                originalCommentLines += this.countCommentLines(originalContent)
+                originalAllLines += originalContent.length
+
+               }
                 let fileContent = instance.fileContents[f].split("\n")
-                commentLines += this.countCommentLines(fileContent)
-                allLines += fileContent.length
+                branchedCommentLines += this.countCommentLines(fileContent)
+                branchedAllLines += fileContent.length
             }
         }
-        if (allLines == 0) {
+        if (branchedAllLines == 0 || originalAllLines == 0) {
             return 0
         }
 
-        return 1 - commentLines / allLines;
+       let branched=branchedCommentLines / branchedAllLines
+         let original=originalCommentLines / originalAllLines
+         return (original-branched)/original
 
 
     }
