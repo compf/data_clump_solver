@@ -1,6 +1,6 @@
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../context/DataContext";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
-import { getRelevantFilesRec, nop } from "../../util/Utils";
+import { getRelevantFilesRec, nop, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
 import { BaseEvaluator, disableCloning, getInstancePath, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import fs from "fs"
@@ -51,7 +51,7 @@ export abstract class EvalAnalyzer {
         return true;
     }
      parseLLMOutput(dirPath: string) {
-        let parsed = JSON.parse(fs.readFileSync(dirPath + "/response.json", { encoding: "utf-8" }))
+        let parsed = tryParseJSON(fs.readFileSync(dirPath + "/response.json", { encoding: "utf-8" }))??"{}"
         return parsed
     }
 
@@ -99,13 +99,14 @@ export abstract class EvalAnalyzer {
         })
 
     }
+    abstract getName(): string
     async performRawAnalysis(urls: string[], filters: any[]) {
         //disableCloning()
 
 
 
         let allCOntexts = await this.loadContext(urls)
-
+        let repoNames = Object.keys(allCOntexts)
         let subSetChecker=new SubSetChecker()
         let instancesPaths: string[] = []
         let filterContext = new FileFilteringContext([".*instance.json"], [])
@@ -134,21 +135,26 @@ export abstract class EvalAnalyzer {
         let returnedInstances: Instance[] = []
 
         for(let instance of instances){
-            if (instance.instanceType != instanceType) continue
+            if (instance.instanceType != instanceType  || !repoNames.includes(instance.projectName)) continue
             this.generatedData[getInstancePath([],"/",instance)]=await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
         }
         FileIO.instance = new InstanceBasedFileIO();
 
         for (let instance of instances) {
-
+            
             (FileIO.instance as InstanceBasedFileIO).instance = instance
             let instancePath = dirname(instancesPaths[counter])
             instancePath = getFirstDirectory(instancePath)
             counter++
             let result = {}
-            if (instance.instanceType != instanceType) continue
+            if (instance.instanceType != instanceType  || !repoNames.includes(instance.projectName)) continue
             let generated=this.generatedData[getInstancePath([],"/",instance)]
-            let parsed = this.parseLLMOutput(instancePath)
+            if(generated.instance.inputFormat){
+                (generated.instance as any).inputType=instance.inputFormat
+            }
+            else if((generated.instance as any).inputType){
+                generated.instance.inputFormat=(instance as any).inputType
+            }
             for (let m of metrics) {
                 let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName])
                 result[m.getName()] = metricResult
@@ -407,6 +413,7 @@ export function mean(array: any[]) {
         return array.reduce((a, b) => a + b) / array.length
     }
     else if (typeof (array[0]) == "object") {
+        console.log(array)
         let result = {}
         for (let key of Object.keys(array[0])) {
             result[key] = mean(array.map((it) => it[key]))

@@ -4,6 +4,7 @@ import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, Surety } from "./base_analyzer";
 import fs from "fs"
+import { tryParseJSON } from "../../util/Utils";
 export class DetectAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new DetectEval();
@@ -11,12 +12,18 @@ export class DetectAnalyzer extends EvalAnalyzer {
     getMetrics(): EvalMetric[] {
         return [new SuretyMetric(),new DataClumpSizeMetric()];
     }
+    getName(): string {
+        return "Detect"
+    }
 }
 
 export class SuretyMetric implements EvalMetric {
     eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext){
         console.log("Instance: "+JSON.stringify(instance))
-        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
+        let parsed=tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+        if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){ 
+            return 0;
+        }
         let byLLM = parsed.data_clumps
         
 
@@ -27,15 +34,15 @@ export class SuretyMetric implements EvalMetric {
         let noCounter=0;
         let unsureCounter=0;
         let allCounter=0;
-
+        
         let counters={
             "match":0,
             "prettySure":0,
             "prettyUnsure":0,
             "miss":0
         }
-        for(let llmDC of byLLM){
-            let category=evaluateBestFittingDataClump(context,llmDC)
+        for(let llmDC of Object.values(byLLM)){
+            let category=evaluateBestFittingDataClump(context,llmDC as DataClumpTypeContext)
            counters[category]=(counters[category] ?? 0)+1
            allCounter++
        
@@ -87,7 +94,8 @@ export class SuretyMetric implements EvalMetric {
 
         //console.log(byLLM)
         //console.log(context)
-        return counters
+        let result=counters.match+0.75*counters.prettySure-0.75*counters.prettyUnsure-counters.miss
+        return result
     }
     createPathLineMap(dataClump: DataClumpTypeContext[]) {
         let result: { [key: string]: Set<number> } = {}
@@ -125,14 +133,20 @@ export class SuretyMetric implements EvalMetric {
  class DataClumpSizeMetric implements EvalMetric{
     eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
         let sizes:number[]=[]
-        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
+        let parsed=tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+         if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
+            return 0;
+        }
 
         let byLLM = Object.values(parsed.data_clumps) as DataClumpTypeContext[]
         for(let dc of byLLM){
             sizes.push(Object.values(dc.data_clump_data).length)
         }
         console.log(sizes)
-        return sizes
+        if(sizes.length==0){
+            return 0
+        }
+        return sizes.sort((a,b)=>b-a)[0]
     }
     getName(): string {
         return "DataClumpSizeMetric";

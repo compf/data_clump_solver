@@ -30,6 +30,9 @@ export class RefactorAnalyzer extends EvalAnalyzer {
     parseLLMOutput(dirPath: string) {
         return {}
     }
+    getName(): string {
+        return "Refactor"
+    }
     originalFiles: { [key: string]: string } = {}
     newFiles: { [key: string]: boolean } = {}
     async loadOriginalFile(path: string, context: DataClumpRefactoringContext) {
@@ -113,7 +116,7 @@ class FailureCountMetric implements EvalMetric {
         return 1 - invalid
     }
     getName(): string {
-        return "FailureCount";
+        return "ValidPrograms";
     }
 
 }
