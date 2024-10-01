@@ -390,9 +390,13 @@ export function concatenateResults(prefix:string,compareObjects:any[],metrics:Ev
             for (let cmp of compareObjects) {
                 let compareKey=Object.keys(cmp).map((it)=>it+ "= "+cmp[it]).join(" , ")
                 let relevantInstances = instances.filter((it) => subSetChecker.isSubset(it, cmp))
+                if(relevantInstances.length==0){
+                    continue
+                }
                 let res=f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
-                console.log(metricKey,res)
-                if(!isNaN(res)){    
+                console.log(metricKey,cmp,res)
+                
+                if(!isNaN(res) || Object.values(res).every((it)=>!isNaN(it as number))){      
                result[functionKey][metricKey][compareKey] = res;
                 }
                
@@ -447,12 +451,24 @@ export function variance(array: any[]) {
     }
     return sum / array.length
 }
+function groupedCount(array:any[]){
+    let result={}
+    for(let a of array){
+       if(!(a in result)){
+           result[a]=0
+       }
+         result[a]++
+    }
+    return result
+}
+
 
 export const statFunctions = {
     "mean": mean,
     "median": median,
     "variance": variance,
-    count: (array: any[]) => array.length>0?array.length:undefined
+    "count": (array: any[]) => array.length>0?array.length:undefined,
+    "groupedCount":groupedCount
 }
 
 

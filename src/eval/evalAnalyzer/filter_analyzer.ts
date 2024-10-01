@@ -8,6 +8,7 @@ import { EvalAnalyzer, EvalMetric, getBestFittingDataClump, InstanceGeneratedDat
 import fs from "fs"
 import { resolve } from "path";
 import { DataClumpTypeContext } from "data-clumps-type-context";
+import { tryParseJSON } from "../../util/Utils";
 export class FilterAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new FilterEval();
@@ -52,7 +53,10 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
         }
         let withNumericIds = llm.simplifyKeys(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
         context = context.buildNewContext(new DataClumpDetectorContext(withNumericIds));
-        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
+        let parsed=tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+        if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
+            return 0
+        }
         let bestFittingDataClump=getBestFittingDataClump(context,[parsed.key,parsed.justification])
         let k=bestFittingDataClump!.dataClump?.key
         if(k==undefined || k==null){
@@ -87,6 +91,7 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
                 s+=1000
             }
         }
+        console.log(this.getName(),instance,s)
         return s
     }
     getName(): string {
@@ -97,13 +102,18 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
 
 class DataClumpSizeMetric implements EvalMetric{
     eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
-        let parsed=JSON.parse(fs.readFileSync(instance.responsePaths[0]).toString())
+        let parsed=tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+        if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
+            return 0;
+        }
 
        let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
-       if(bestFittingDataClump.dataClump==null){
+       if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
               return 0
        }
         let size=Object.values(bestFittingDataClump!.dataClump!.data_clump_data).length
+        console.log(this.getName(),instance,size)
+
         return  size
     }
     getName(): string {
