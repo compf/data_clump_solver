@@ -10,7 +10,7 @@ import { resolve } from "path";
 export async function loadData(){
     for(let url of Object.keys(data)){
         let repoData=getRepoDataFromUrl(url);
-        if(fs.existsSync("src/prData/typeContexts/"+repoData.repo+".json")){
+        if(fs.existsSync("src/eval/evalAnalyzer/prData/typeContexts/"+repoData.repo+".json")){
             continue
         }
         url=url.replace(".com/"+repoData.owner,".com/compf")
@@ -25,7 +25,8 @@ export async function loadData(){
         let dcDoctor=new DataClumpDoctorStepHandler({})
         context=await dcDoctor.handle(PipeLineStep.DataClumpDetection,context,undefined);
         let data=JSON.parse(fs.readFileSync("stuff/output.json").toString())
-        fs.writeFileSync("src/prData/typeContexts/"+repoData.repo+".json",JSON.stringify(data,null,2))
+        fs.writeFileSync("src/eval/evalAnalyzer/prData/typeContexts/"+repoData.repo+".json",JSON.stringify(data,null,2))
+        console.log("Saved contexts",fs.readdirSync("src/eval/evalAnalyzer/prData/typeContexts/").length)
         console.log(repoData.repo)
         readlineSync.question("Search data clump")
 

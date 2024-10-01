@@ -33,7 +33,7 @@ export type InstanceGeneratedData={
     fileContents:{[key:string]:string},
     validationResults:number[],
     gitDiff:DiffResult|null,
-    dataClumpDetectionResult:DataClumpsTypeContext|null
+    dataClumpDetectionResult:number|null
 
 }
 export abstract class EvalAnalyzer {
@@ -74,9 +74,9 @@ export abstract class EvalAnalyzer {
         let result = {}
         for (let url of urls) {
             let projectData = getRepoDataFromUrl(url)
+            let context = (await (this.getEvaluator().initProject(url)))!
             let git = simpleGit("cloned_projects/" + projectData.repo)   
             let g = await git.checkout( "context");
-            let context = (await (this.getEvaluator().initProject(url)))!
             result[projectData.repo] = context
         }
         return result
@@ -391,6 +391,7 @@ export function concatenateResults(prefix:string,compareObjects:any[],metrics:Ev
                 let compareKey=Object.keys(cmp).map((it)=>it+ "= "+cmp[it]).join(" , ")
                 let relevantInstances = instances.filter((it) => subSetChecker.isSubset(it, cmp))
                 let res=f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
+                console.log(metricKey,res)
                 if(!isNaN(res)){    
                result[functionKey][metricKey][compareKey] = res;
                 }

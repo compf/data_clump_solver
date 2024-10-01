@@ -1,6 +1,6 @@
 import simpleGit from "simple-git";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { DataClumpRefactoringContext, FileFilteringContext, LargeLanguageModelContext, ValidationResult } from "../context/DataContext";
+import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, LargeLanguageModelContext, ValidationResult } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { LanguageModelDetectOrRefactorHandler } from "../pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
@@ -19,6 +19,7 @@ import {resolve} from "path";
 import fs from "fs"
 import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import { ValidationStepHandler } from "../pipeline/stepHandler/validation/ValidationStepHandler";
+import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 export type RefactorInstance = Instance & {
 
 
@@ -85,7 +86,7 @@ export class RefactorEval extends BaseEvaluator {
         }
 
         await git.checkout("-Bcontext")
-        await git.add("-A")
+        await git.add(["-f",".data_clump_solver_data"])
         await git.commit("context")
 
         return context;
@@ -160,10 +161,15 @@ export class RefactorEval extends BaseEvaluator {
         let res=await val.validate(context)
         writeFileSync("errors.txt",res.raw??"")
         await git.add("-A")
-        await git.commit("refactoring ")
+        await git.commit("refactoring")
         context = context.buildNewContext(await stubOutputHandler.chooseProposal(context));
 
         let count = await multiValidationHandler.getValidationCount(context);
+        
+        let detector=new DataClumpDoctorStepHandler({})
+        let ctx=await detector.handle(PipeLineStep.DataClumpDetection,context.getByType(CodeObtainingContext)!,undefined)
+        await git.add(["-f",".data_clump_solver_data"])
+        await git.commit("added data clumps data")
         await git.checkout("context")
         writeFileSync("validation_count.json", JSON.stringify(count, null, 2))
         console.log("Validation count", count);

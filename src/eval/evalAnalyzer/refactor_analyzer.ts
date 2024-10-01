@@ -9,6 +9,7 @@ import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClump
 import { PipeLineStep } from "../../pipeline/PipeLineStep";
 import { nop } from "../../util/Utils";
 import { get } from "axios";
+import { DataClumpsTypeContext } from "data-clumps-type-context";
 
 class StubRefactorEval extends BaseEvaluator {
     analyzeInstance(instance: Instance, context: DataClumpRefactoringContext): Promise<void> {
@@ -52,6 +53,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
         }
     }
     async loadGeneratedData(instance: Instance, context: DataClumpRefactoringContext): Promise<InstanceGeneratedData> {
+        console.log(instance)
         let git = simpleGit(context.getProjectPath())
 
         let data = await super.loadGeneratedData(instance, context)
@@ -65,24 +67,31 @@ export class RefactorAnalyzer extends EvalAnalyzer {
             let validationResult = JSON.parse(fs.readFileSync(resolve(p, "validation_count.json"), { encoding: "utf-8" }))
             data.validationResults = validationResult.compilingResults
         }
-       
-
-        let branchedContext = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), ".data_clump_solver_data", "dataClumpDetectorContext.json")).toString())
-        data.dataClumpDetectionResult = branchedContext
-
-        let g1 = await git.diffSummary([getInstancePath([], "-", instance), "context"])
+        let branchName=getInstancePath([], "-", instance)
+        let branches=await (await git.branch()).all.filter((it)=>it==branchName);
+        console.log(branches)
+        if(branches.length==0){
+            branchName="origin/"+branchName
+        }
+        let g = await git.checkout(branchName, ["-f"])
+        let branchedContext = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), ".data_clump_solver_data", "dataClumpDetectorContext.json")).toString()) as DataClumpsTypeContext
+        data.dataClumpDetectionResult = branchedContext.report_summary.amount_data_clumps
+  
+        let g1 = await git.diffSummary([branchName, "context"])
         data.gitDiff = g1
         for (let f of g1.files) {
-           await  this.loadOriginalFile(f.file, context)
-        }
-
-        let g = await git.checkout(getInstancePath([], "-", instance), ["-f"])
-
-        for (let f of g1.files) {
-            if (f.file.endsWith(".java")) {
-                data.fileContents[f.file] = fs.readFileSync(resolve(context.getProjectPath(), f.file), { encoding: "utf-8" })
-            }
-        }
+            await  this.loadOriginalFile(f.file, context)
+         }
+        
+ 
+         for (let f of g1.files) {
+             if (f.file.endsWith(".java") && fs.existsSync(resolve(context.getProjectPath(), f.file))) {
+                 data.fileContents[f.file] = fs.readFileSync(resolve(context.getProjectPath(), f.file), { encoding: "utf-8" })
+             }
+         }
+       
+        
+    
 
         return data
     }
@@ -132,7 +141,7 @@ class RemovedDataClumpsMetric implements EvalMetric {
         let originalContext = context.getFirstByType(DataClumpDetectorContext)!
         let branchedContext =instance.dataClumpDetectionResult!
 
-        let removed = originalContext.getDataClumpDetectionResult().report_summary.amount_data_clumps! - branchedContext.report_summary.amount_data_clumps!
+        let removed = originalContext.getDataClumpDetectionResult().report_summary.amount_data_clumps! - branchedContext
         return removed
     }
     getName(): string {
