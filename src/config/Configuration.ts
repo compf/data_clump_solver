@@ -1,7 +1,7 @@
 import { ContainerBuilder } from "node-dependency-injection"
 import { AbstractStepHandler } from "../pipeline/stepHandler/AbstractStepHandler"
 import fs from "fs"
-import { resolve,relative } from "path"
+import { resolve,relative,sep } from "path"
 import { PipeLineStep } from "../pipeline/PipeLineStep"
 import { PipeLine } from "../pipeline/PipeLine"
 import { DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../context/DataContext"
@@ -39,11 +39,18 @@ const nameScriptFileMap={
 export function getDataClumpThreshold(dataClumpTyo:string):number{
     return 3;
 }
-
+function createExcludePattern():string[]{
+    if(sep=="\\"){
+        return [resolve("dist","src","data-clumps-doctor").replaceAll("\\","\\\\")+sep+".*",".*js\.ma"]
+    }
+    else{
+        return ["dist/src/data-clumps-doctor/.*",".*js\.ma"]
+    }
+}
 function loadAllClasses(){
     let paths:string[]=[]
     let startTime=Date.now()
-    getRelevantFilesRec("./dist/src",paths,new FileFilteringContext([".*\.js"],[".*dist/src/data-clumps-doctor/.*",".*js\.ma"]))
+    getRelevantFilesRec(resolve("./dist","src"),paths,new FileFilteringContext([".*\.js"],createExcludePattern()))
     for(let path of paths){
         console.log("Loading "+path)
         if (path.endsWith("Configuration.js")){

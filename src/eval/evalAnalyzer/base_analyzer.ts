@@ -505,3 +505,21 @@ export function createCompareObjects(baseObjects:any): any[] {
     }
     return result
 }
+
+export abstract class MultipleValuesMetric implements EvalMetric {
+    func: { (arr: any[]): any };
+    name:string
+    constructor( f:{(arr:number[]):any}, name:string){
+        this.func=f
+        this.name=name
+    }
+
+    getName(): string {
+        return this.name
+    }
+    eval(instance: any, context: DataClumpRefactoringContext) {
+        return this.func(this.evalArray(instance, context))
+    }
+    abstract evalArray(instance: any, context: DataClumpRefactoringContext): any[]
+    
+}
