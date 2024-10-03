@@ -98,7 +98,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
 }
 
 class RemainingAttemptCountMetric implements EvalMetric {
-    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+   async eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
         let errorCount=0;
 
         if (instance.validationResults.length == 5 && instance.validationResults.every((it) => it == 1)) {
@@ -117,7 +117,7 @@ class RemainingAttemptCountMetric implements EvalMetric {
 
 }
 class FailureCountMetric implements EvalMetric {
-    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+    async eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
         let invalid = 0;
         if (instance.validationResults.length == 5 && instance.validationResults.every((it) => it == 1)) {
             invalid = 1
@@ -134,7 +134,7 @@ class RemovedDataClumpsMetric implements EvalMetric {
     async   eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext){
 
         let invalidMetric=new FailureCountMetric()
-        if(invalidMetric.eval(instance,context)==0){
+        if(await invalidMetric.eval(instance,context)==0){
             return 0
         }
 

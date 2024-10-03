@@ -30,6 +30,7 @@ export type InstanceGeneratedData={
     instance:Instance,
     responsePaths:string[],
     requestPaths:string[],
+    responsesParsed:any[]
     fileContents:{[key:string]:string},
     validationResults:number[],
     gitDiff:DiffResult|null,
@@ -82,7 +83,9 @@ export abstract class EvalAnalyzer {
         return result
     }
   
-
+    getClosingBrackets(path:string):string{
+        return "}}}}}"
+    }
      loadGeneratedData(instance:Instance ,context:DataClumpRefactoringContext):Promise<InstanceGeneratedData>{
         let responsePaths: string[] = []
         let filterContext = new FileFilteringContext([getInstancePath(["evalData"],"/",instance)+"/.*response.json"], [])
@@ -91,6 +94,7 @@ export abstract class EvalAnalyzer {
         return  Promise.resolve({
             instance:instance,
             responsePaths:responsePaths,
+            responsesParsed:responsePaths.map((it)=>parseInvalidJSON(fs.readFileSync(it).toString(), this.getClosingBrackets(it))),
             requestPaths:requestPaths,
             fileContents:{},
             validationResults:[],
@@ -174,7 +178,7 @@ export abstract class EvalAnalyzer {
     }
 }
 export interface EvalMetric {
-    eval(instance: any, context: DataClumpRefactoringContext): any
+    eval(instance: any, context: DataClumpRefactoringContext): Promise<any>
     getName(): string
 }
 
@@ -396,7 +400,7 @@ export function concatenateResults(prefix:string,compareObjects:any[],metrics:Ev
                 let res=f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
                 console.log(metricKey,cmp,res)
                 
-                if(!isNaN(res) || Object.values(res).every((it)=>!isNaN(it as number))){      
+                if(true){      
                result[functionKey][metricKey][compareKey] = res;
                 }
                
@@ -413,8 +417,14 @@ export function concatenateResults(prefix:string,compareObjects:any[],metrics:Ev
     return result;
 }
 export function mean(array: any[]) {
+    if(array.length==0){
+        return 0;
+    }
     if (typeof (array[0]) == "number") {
         array = array.filter((it) => !isNaN(it))
+        if(array.length==0){
+            return 0;
+        }
         return array.reduce((a, b) => a + b) / array.length
     }
     else if (typeof (array[0]) == "object") {
@@ -439,6 +449,7 @@ export function median(array: any[]) {
 }
 
 export function variance(array: any[]) {
+    array=array.filter((it)=>!isNaN(it as number))
     let m = mean(array) as number
     let sum = 0;
     for (let a of array) {
@@ -513,13 +524,26 @@ export abstract class MultipleValuesMetric implements EvalMetric {
         this.func=f
         this.name=name
     }
-
+    abstract getPrefix():string;
     getName(): string {
-        return this.name
+        return this.getPrefix()+"_"+this.name
     }
-    eval(instance: any, context: DataClumpRefactoringContext) {
-        return this.func(this.evalArray(instance, context))
+   async  eval(instance: any, context: DataClumpRefactoringContext):Promise<number> {
+        return this.func( await this.evalArray(instance, context))
     }
-    abstract evalArray(instance: any, context: DataClumpRefactoringContext): any[]
+    abstract evalArray(instance: any, context: DataClumpRefactoringContext): Promise<any[]>
+    
+}
+
+export class InvalidJsonMetric implements EvalMetric{
+   async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<any> {
+       let content=fs.readFileSync(instance.responsePaths[0]).toString()
+       let parsed=tryParseJSON(content)
+
+       return parsed==null?0:1;
+    }
+    getName(): string {
+       return "InvalidJSON"
+    }
     
 }

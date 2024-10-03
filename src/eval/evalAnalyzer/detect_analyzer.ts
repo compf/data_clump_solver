@@ -2,10 +2,10 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
-import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, MultipleValuesMetric, statFunctions, Surety } from "./base_analyzer";
+import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric, statFunctions, Surety } from "./base_analyzer";
 import fs from "fs"
-import { tryParseJSON } from "../../util/Utils";
-import { Dictionary } from "data-clumps-type-context";
+import { parseInvalidJSON, tryParseJSON } from "../../util/Utils";
+import { DataClumpsTypeContext, Dictionary } from "data-clumps-type-context";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 export class DetectAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
@@ -15,14 +15,16 @@ export class DetectAnalyzer extends EvalAnalyzer {
         let result:EvalMetric[] = [
             new SuretyMetric(),
             new OutputFormatCorrectnessMetric(),
+            new InvalidJsonMetric()
         ]
+
         for(let n of Object.keys(statFunctions)){
             result.push(new DataClumpSizeMetric(statFunctions[n],n))
             result.push(new DataClumpOccurenceMetricEval(statFunctions[n],n))
             result.push(new FieldToFieldMetric(statFunctions[n],n))
             result.push(new ParametersToParametersMetric(statFunctions[n],n))
         }
-        return [new SuretyMetric()];
+        return result;
     }
     getName(): string {
         return "Detect"
@@ -30,9 +32,9 @@ export class DetectAnalyzer extends EvalAnalyzer {
 }
 
 export class SuretyMetric implements EvalMetric {
-    eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext) {
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext):Promise<any> {
         console.log("Instance: " + JSON.stringify(instance))
-        let parsed = tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+        let parsed = instance.responsesParsed[0]
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
             return 0;
         }
@@ -141,18 +143,29 @@ export class SuretyMetric implements EvalMetric {
     }
 
 }
-
+function getDataClumpTypeContext(instance:InstanceGeneratedData) :DataClumpsTypeContext{
+   
+    let parsed =instance.responsesParsed[0]
+    if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
+        return {data_clumps:{}} as any;
+    }
+    
+    return parsed
+}
 class DataClumpSizeMetric extends MultipleValuesMetric {
-    evalArray(instance: InstanceGeneratedData, context: DataClumpRefactoringContext) {
+  async   evalArray(instance: InstanceGeneratedData, context: DataClumpRefactoringContext):Promise<any[]> {
         let sizes: number[] = []
-        let parsed = tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
-        if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
-            return [];
-        }
-
-        let byLLM = Object.values(parsed.data_clumps) as DataClumpTypeContext[]
+        let byLLM=Object.values(getDataClumpTypeContext(instance).data_clumps)
         for (let dc of byLLM) {
-            sizes.push(Object.values(dc.data_clump_data).length)
+            dc=getBestFittingDataClump(context,dc).dataClump as any
+            if(dc.data_clump_data){
+                let s=Object.values(dc.data_clump_data).length
+                if(s){
+                    sizes.push(s)
+    
+                }
+            }
+           
         }
         console.log(sizes)
         if (sizes.length == 0) {
@@ -160,22 +173,22 @@ class DataClumpSizeMetric extends MultipleValuesMetric {
         }
         return sizes
     }
-    getName(): string {
-        return "DataClumpSize"+super.getName();
+    getPrefix(): string {
+        return "DataClumpSize"
     }
 
 
 }
 
 class OutputFormatCorrectnessMetric implements EvalMetric {
-    eval(instance: any, context: DataClumpRefactoringContext) {
-        let parsed = tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+   async  eval(instance: any, context: DataClumpRefactoringContext) :Promise<any> {
+        let parsed=getDataClumpTypeContext(instance)
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
             return 0;
         }
         let counters: { match: number, miss: number } = { match: 0, miss: 0 }
         if ("data_clumps" in parsed) {
-            parsed = parsed.data_clumps
+            parsed = parsed.data_clumps as any
         }
         else {
             counters.miss = 1
@@ -319,10 +332,10 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
 
 
 class DataClumpOccurenceMetricEval extends MultipleValuesMetric{
-    evalArray(instance: any, context: DataClumpRefactoringContext): any[] {
-        let values: number[] = []
-        let parsed = tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
-        if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
+    async evalArray(instance: any, context: DataClumpRefactoringContext): Promise<any[]> {
+        let values:number[]=[]
+        let parsed=getDataClumpTypeContext(instance)
+        if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0 || parsed.data_clumps==undefined) {
             return [];
         }
 
@@ -330,6 +343,11 @@ class DataClumpOccurenceMetricEval extends MultipleValuesMetric{
         let dcOccurenceMetric=new DataClumpOccurenceMetric()
        
         for (let dc of byLLM) {
+            dc=getBestFittingDataClump(context,dc).dataClump as any
+            if(dc==null){
+                continue;
+            }
+            console.log(dc)
             dcOccurenceMetric.evaluate(dc,context).then((result)=>{
                 values.push(result)
             })
@@ -339,21 +357,20 @@ class DataClumpOccurenceMetricEval extends MultipleValuesMetric{
         }
         return values
     }
-    getName(): string {
-        return "DataClumpOccurence"+super.getName();
+    getPrefix(): string {
+        return "DataClumpOccurence"
     }
 }
 
 class FieldToFieldMetric extends MultipleValuesMetric{
-    evalArray(instance: any, context: DataClumpRefactoringContext): any[] {
+   async  evalArray(instance: any, context: DataClumpRefactoringContext): Promise<any[]> {
         let values: number[] = []
-        let parsed = tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+        let parsed=getDataClumpTypeContext(instance)
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
             return [];
         }
 
         let byLLM = Object.values(parsed.data_clumps) as DataClumpTypeContext[]
-        let dcOccurenceMetric=new DataClumpOccurenceMetric()
        
         for (let dc of byLLM) {
            if(dc.from_method_name==null && dc.to_method_name==null){
@@ -368,21 +385,20 @@ class FieldToFieldMetric extends MultipleValuesMetric{
         }
         return values
     }
-    getName(): string {
-        return "FieldToField"+super.getName();
+    getPrefix(): string {
+        return "FieldToField"
     }
 }
 
 class ParametersToParametersMetric extends MultipleValuesMetric{
-    evalArray(instance: any, context: DataClumpRefactoringContext): any[] {
+    async evalArray(instance: any, context: DataClumpRefactoringContext): Promise<any[]> {
         let values: number[] = []
-        let parsed = tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
+        let parsed=getDataClumpTypeContext(instance)
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
             return [];
         }
 
         let byLLM = Object.values(parsed.data_clumps) as DataClumpTypeContext[]
-        let dcOccurenceMetric=new DataClumpOccurenceMetric()
        
         for (let dc of byLLM) {
            if(dc.from_method_name!=null && dc.to_method_name!=null){
@@ -397,7 +413,7 @@ class ParametersToParametersMetric extends MultipleValuesMetric{
         }
         return values
     }
-    getName(): string {
-        return "ParametersToParameters"+super.getName();
+    getPrefix(): string {
+        return "ParametersToParameters"
     }
 }

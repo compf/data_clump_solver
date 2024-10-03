@@ -43,7 +43,7 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
         return reduced
 
     }
-    async eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+    async eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
         console.log("Instance: "+JSON.stringify(instance))
 
         let filterResults = JSON.parse(fs.readFileSync(resolve("evalData/filter",(instance.instance).projectName,"basicMetrics.json"), { encoding: "utf-8" }).toString())
@@ -101,7 +101,7 @@ export class PositionOnGroundTruthMetric implements EvalMetric {
 }
 
 class DataClumpSizeMetric implements EvalMetric{
-    eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
+   async  eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
         let parsed=tryParseJSON(fs.readFileSync(instance.responsePaths[0]).toString())
         if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
             return 0;

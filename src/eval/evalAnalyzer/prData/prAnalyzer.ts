@@ -162,7 +162,7 @@ class ConditionalMetric implements EvalMetric {
         this.name = name;
     }
 
-    eval(instance: PR_Data_Entry, context: any) {
+   async eval(instance: PR_Data_Entry, context: any):Promise<any> {
         console.log(this.getName())
         let b = this.filter(instance)
         return b ? 1 : 0
