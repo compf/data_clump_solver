@@ -1,7 +1,7 @@
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { BaseEvaluator, getInstancePath, Instance, InstanceCombination } from "../base_eval";
 import { RefactorEval } from "../eval_refactor";
-import { EvalAnalyzer, EvalMetric, InstanceGeneratedData } from "./base_analyzer";
+import { EvalAnalyzer, EvalMetric, InstanceGeneratedData, InvalidJsonMetric } from "./base_analyzer";
 import { basename, dirname, resolve } from "path"
 import fs from "fs"
 import simpleGit, { DiffResult } from "simple-git";
@@ -26,7 +26,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
         return new StubRefactorEval();
     }
     getMetrics(): EvalMetric[] {
-        return [new FailureCountMetric(), new RemainingAttemptCountMetric(), new RemovedDataClumpsMetric(), new GitChangesMetric(), new CommentOutMetric()];
+        return [new FailureCountMetric(), new RemainingAttemptCountMetric(), new RemovedDataClumpsMetric(), new GitChangesMetric(), new CommentOutMetric(), new InvalidJsonMetric()];
     }
     parseLLMOutput(dirPath: string) {
         return {}
@@ -215,7 +215,7 @@ class CommentOutMetric implements EvalMetric {
 
        let branched=branchedCommentLines / branchedAllLines
          let original=originalCommentLines / originalAllLines
-         return (original-branched)/original
+         return  original/branched;
 
 
     }

@@ -4,7 +4,7 @@ import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric, statFunctions, Surety } from "./base_analyzer";
 import fs from "fs"
-import { parseInvalidJSON, tryParseJSON } from "../../util/Utils";
+import { debugOnNull, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
 import { DataClumpsTypeContext, Dictionary } from "data-clumps-type-context";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 export class DetectAnalyzer extends EvalAnalyzer {
@@ -157,8 +157,8 @@ class DataClumpSizeMetric extends MultipleValuesMetric {
         let sizes: number[] = []
         let byLLM=Object.values(getDataClumpTypeContext(instance).data_clumps)
         for (let dc of byLLM) {
-            dc=getBestFittingDataClump(context,dc).dataClump as any
-            if(dc.data_clump_data){
+            dc=debugOnNull(()=>getBestFittingDataClump(context,dc).dataClump as any)
+            if(dc!=null && dc.data_clump_data){
                 let s=Object.values(dc.data_clump_data).length
                 if(s){
                     sizes.push(s)
@@ -347,10 +347,8 @@ class DataClumpOccurenceMetricEval extends MultipleValuesMetric{
             if(dc==null){
                 continue;
             }
-            console.log(dc)
-            dcOccurenceMetric.evaluate(dc,context).then((result)=>{
-                values.push(result)
-            })
+            let v =await dcOccurenceMetric.evaluate(dc,context.getFirstByType(DataClumpDetectorContext)!);
+            values.push(v)
         }
         if (values.length == 0) {
             return[]

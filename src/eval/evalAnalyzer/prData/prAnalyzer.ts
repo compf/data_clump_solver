@@ -60,7 +60,7 @@ let filters = {
 
 
 
-function main() {
+async function main() {
   
     for (let i = 1; i < MAX_COUNTER_VALUE; i++) {
         let variables = Object.keys(require("./structures"))
@@ -81,7 +81,7 @@ function main() {
         }
         d["metrics"]={}
         for(let m of allMetrics){
-            d["metrics"][m.getName()]=m.eval(d,undefined)
+            d["metrics"][m.getName()]=await m.eval(d,undefined)
         }
     }
 

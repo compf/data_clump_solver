@@ -2,6 +2,7 @@ import { Minimatch } from "minimatch";
 import { FileFilteringContext } from "../context/DataContext";
 import fs from "fs"
 import path from "path";
+import {createHash} from "crypto"
 import { FileIO } from "./FileIO";
 export const MiniMatchConf = { dot: true, matchBase: true,debug:false };
   /** 
@@ -286,26 +287,69 @@ function mergeObject(target:any, obj:any){
         }
     }
 }
-
-export function parseInvalidJSON(jsonString:string, closingBrackets:string){
+const processedInvalidJsonPath="stuff/processed_invalid.json"
+function loadProcessedInvalidJSON(jsonString:string):any{
     let result=tryParseJSON(jsonString);
+    if(result!=null){
+        return result;
+    }
+    if(fs.existsSync(processedInvalidJsonPath)){
+       let dict=JSON.parse(fs.readFileSync(processedInvalidJsonPath).toString())
+        let key=createHash('sha256').update(jsonString).digest('base64');
+        if (key in dict){
+            return dict[key]
+        }
+        else{
+            return null;
+        }
+        
+    }
+    else{
+        return null;
+    }
+}
+function saveProcessedInvalidJson(jsonString,obj:any){
+    if(fs.existsSync(processedInvalidJsonPath)){
+        let dict=JSON.parse(fs.readFileSync(processedInvalidJsonPath).toString())
+        let key=createHash('sha256').update(jsonString).digest('base64');
+       dict[key]=obj;
+       fs.writeFileSync(processedInvalidJsonPath,JSON.stringify(dict))
+        
+    }
+    else{
+        return null;
+    }
+}
+export function parseInvalidJSON(jsonString:string, closingBrackets:string){
+    
+   let result=loadProcessedInvalidJSON(jsonString)
+    let original=jsonString
     let counter=0
     while(result==null && jsonString.length>0){
-        let lengthBefore=jsonString.length
         jsonString=jsonString.slice(0,jsonString.length-1)
        // console.log()
-        let lengthAfter=jsonString.length;
-        if(counter==86){
-            nop()
-        }
-        //console.log(counter++,jsonString)
+        
+        console.log(counter++,jsonString)
         for(let i=0;i<closingBrackets.length;i++){
             let temp=jsonString+closingBrackets.slice(undefined,i+1);
             result=tryParseJSON(temp)
-            if(result!=null)return result;
+            if(result!=null){
+                saveProcessedInvalidJson(original,result)
+                return result;
+
+            }
         }
         
     }
     return result;
     
+}
+
+export function debugOnNull(f:any){
+    let res=f();
+    if(res==null || res==undefined){
+        nop();
+        f();
+    }
+    return res
 }
