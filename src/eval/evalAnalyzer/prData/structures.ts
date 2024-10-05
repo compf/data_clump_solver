@@ -38,15 +38,16 @@ export const detectAndRefactor="detectAndRefactor";
 export const nameSuggestion = "nameSuggestion";
 export const filterSnippet = "filterSnippet";
 export const filterManual="filterManual";
+export const open="open"
+export const closed="closed"
 export type PR_Data_Entry = {
 
     url: string,
     merged: boolean,
-    state: string,
+    state: "open"|"closed",
     key?: string,
     type: string,
     size: number,
-    noResponse?: boolean,
     manualChanges?: boolean,
     category: string
     likertData?: {

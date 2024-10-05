@@ -410,7 +410,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       {
         scale: Agree,
         comments: `A developer needs to have the tool available in the IDE - or creating pull requests. Similar to OpenRewrite of Moderne. In contrast to OpenRewrite, code created by LLMs needs to have oversights.`,
-        keywords: [DeevloperMustOverseeLLM + NEUTRAL_COMMENT]
+        keywords: [-DeevloperMustOverseeLLM]
       },
       {
         scale: Disagree,
@@ -498,7 +498,6 @@ Also code is structured to suit the convenience of the original author or mainta
     "key": "fields_to_fields_data_clump-flyway-core/src/main/java/org/flywaydb/core/internal/command/DbValidate.java-org.flywaydb.core.internal.command.DbValidate-org.flywaydb.core.internal.command.DbMigrate-configurationmigrationResolverschemadatabasecallbackExecutorschemaHistory",
 
     type: fields_to_fields_data_clump,
-    noResponse: true,
     size: 5,
     category: "nameSuggestion",
     generalComments: [],
