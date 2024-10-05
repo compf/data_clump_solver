@@ -478,7 +478,7 @@ export const statFunctions = {
     "mean": mean,
     "median": median,
     "variance": variance,
-    "count": (array: any[]) => array.length>0?array.length:undefined,
+    "count": (a)=>a.reduce((a,b)=>a+b),
     "groupedCount":groupedCount
 }
 

@@ -45,43 +45,8 @@ function analyze(fullResult: any, relevantData: PR_Data_Entry[], depth: number, 
 
 
 }
-abstract class FilterAndMetric{
-    abstract eval(d:PR_Data_Entry):number
-    abstract getValues():any[]
-    abstract getMetricName():string;
-    getFilterName(v:any){
-        return this.getMetricName()+"="+v;
-    }
-     appendFilters(filters:{[key:string]:{(d:PR_Data_Entry):boolean}}){
-        let values=this.getValues();
-        for(let v of values){
-            let k=this.getMetricName()
-            filters[this.getFilterName(v)]=(d)=>d[k]==v;
-        }
-     }
-}
 
 
-class SimpleFilter extends FilterAndMetric{
-    protected values:any[];
-    protected key:string
-
-    constructor(key:string, ...values:any){
-        super();
-        this.key=key;
-        this.values=values
-    }
-    eval(d: PR_Data_Entry): number {
-        return d[this.key]==this.values[0]?1:0
-    }
-   
-    getValues(): any[] {
-        return this.values;
-    }
-    getMetricName(): string {
-        return this.key;
-    }
-}
 function hasCommentCategory(cat:string, d:PR_Data_Entry):boolean{
     let i=Object.keys(structures).indexOf(cat)
     let b=   d.generalComments.includes(i) || d.reviewComments.includes(i) ||
@@ -91,113 +56,47 @@ function hasCommentCategory(cat:string, d:PR_Data_Entry):boolean{
         && it.keywords?.includes(i) || it.keywords?.includes(-i))));
         return b;
 }
-class IncludeCommentFilter extends FilterAndMetric{
-    private commentCategory:string
-    getValues(): any[] {
-        return Object.values(structures).slice(0,MAX_COUNTER_VALUE)
-    }
-    constructor(commentCategory:string){
-        super()
-        this.commentCategory=commentCategory;
-    }
-    getMetricName(): string {
-        return this.commentCategory;
-    }
-
-    eval(d: PR_Data_Entry): number {
-
-       let b=hasCommentCategory(this.commentCategory,d)
-        return b ?1 :0;
-    }
-    appendFilters(filters: { [key: string]: { (d: PR_Data_Entry): boolean; }; }): void {
-        let keys=Object.keys(structures).slice(0,MAX_COUNTER_VALUE-1)
-        for(let k of keys){
-            let k2=k;
-            filters[k]=(d)=>hasCommentCategory(k2,d)
-        }
-
-        
-    }
-}
-
-class DataClumpSizeMetric extends FilterAndMetric{
-    getMetricName(): string {
-        return "size"
-    }
-
-    eval(d: PR_Data_Entry): number {
-        return d.size
-    }
-
-    getValues(): any[] {
-        return makeUnique(Object.values(data).map((it)=>it.size))
-    }
-}
-
-class MeaningFullCommentsMetric extends FilterAndMetric{
-    getValues(): any[] {
-        return []
-    }
-    eval(d: PR_Data_Entry): number {
-        return d.reviewComments.length>0  || d.generalComments.length>0 ?1:0
-        
-    }
-    getMetricName(): string {
-        return "MeaningfulComments"
-    }
-
-    appendFilters(filters: { [key: string]: { (d: PR_Data_Entry): boolean; }; }): void {
-        filters["meaningfulComments=true"]=(d)=>d.reviewComments.length>0  || d.generalComments.length>0
-        filters["meaningfulComments=false"]=(d)=>!(d.reviewComments.length>0  || d.generalComments.length>0)
-
-    }
-
-}
-
-class PositiveCommentsMetric extends FilterAndMetric{
-    getValues(): any[] {
-        return []
-    }
-    eval(d: PR_Data_Entry): number {
-        return d.reviewComments.some((it)=>it>0)  ||d.generalComments.some((it)=>it>0) ?1:0
-        
-    }
-    getMetricName(): string {
-        return "PositiveComments"
-    }
-
-    appendFilters(filters: { [key: string]: { (d: PR_Data_Entry): boolean; }; }): void {
-        filters["PositiveComments=true"]=(d)=> d.reviewComments.some((it)=>it>0)  ||d.generalComments.some((it)=>it>0)
-        filters["PositiveComments=false"]=(d)=> !(d.reviewComments.some((it)=>it>0)  ||d.generalComments.some((it)=>it>0))
-
-    }
-}
-
-let metrics:FilterAndMetric[]=[
-    new SimpleFilter("merged",true,false),
-    new SimpleFilter("state",open,closed),
-    new SimpleFilter("type",fields_to_fields_data_clump,parameters_to_parameters_data_clump),
-    new SimpleFilter("category", nameSuggestion, detectAndRefactor),
-    new MeaningFullCommentsMetric(),
-    new DataClumpSizeMetric(),
-    new PositiveCommentsMetric(),
-]
-for(let c of Object.keys(structures).slice(0,MAX_COUNTER_VALUE-1)){
-    metrics.push(new IncludeCommentFilter(c))
-}
 
 
 
 
+
+
+type Mapper={[key:string]:{(instances:PR_Data_Entry[]):number[]}};
 async function main() {
     let structures=require("./structures")
     let variables = Object.keys(structures).slice(0, MAX_COUNTER_VALUE-1)
     let filters: { [key: string]: { (d: PR_Data_Entry): boolean; }}={};
-
-    for(let m of metrics){
-        m.appendFilters(filters)
-        
+    filters["PositiveComments=true"]=(d)=> d.reviewComments.some((it)=>it>0)  ||d.generalComments.some((it)=>it>0)
+    filters["PositiveComments=false"]=(d)=> !(d.reviewComments.some((it)=>it>0)  ||d.generalComments.some((it)=>it>0))
+    filters["meaningfulComments=true"]=(d)=>d.reviewComments.length>0  || d.generalComments.length>0
+    filters["meaningfulComments=false"]=(d)=>!(d.reviewComments.length>0  || d.generalComments.length>0)
+    let keys=Object.keys(structures).slice(0,MAX_COUNTER_VALUE-1)
+    for(let k of keys){
+        let k2=k;
+        filters[k]=(d)=>hasCommentCategory(k2,d)
     }
+
+    filters["merged=true"]=(d)=>d.merged
+    filters["merged=false"]=(d)=>!d.merged
+    filters["state=open"]=(d)=>d.state=="open"
+    filters["state=closed"]=(d)=>d.state=="closed"
+    filters["category=detectAndRefactor"]=(d)=>d.category==detectAndRefactor
+    filters["category=nameSuggestion"]=(d)=>d.category==nameSuggestion
+    filters["type="+fields_to_fields_data_clump]=(d)=>d.type==fields_to_fields_data_clump
+    filters["type="+parameters_to_parameters_data_clump]=(d)=>d.type==parameters_to_parameters_data_clump
+    
+    let metrics:Mapper={}
+
+    for(let fKey of Object.keys(filters)){
+        let f=filters[fKey]
+        metrics[fKey]=(instances)=>instances.map((it)=>f(it)?1:0)
+    }
+    metrics["size"]=(instances)=>instances.map((it)=>it.size)
+
+
+
+
 
     for (let d of Object.values(data)) {
         if (d.category == filterManual) {
@@ -206,10 +105,7 @@ async function main() {
         if (d.category == filterSnippet) {
             d.category = detectAndRefactor
         }
-        (d as any).metrics={}
-        for(let m of metrics){
-            (d as any).metrics[m.getMetricName()]=m.eval(d)
-        }
+       
        
     }
 
@@ -220,14 +116,14 @@ async function main() {
 }
 
 
-function concatenateResultsPR(prefix: string, data:PR_Data_Entry[], filters: { [key: string]: { (d: PR_Data_Entry): boolean; }}, metrics:FilterAndMetric[] ) {
+function concatenateResultsPR(prefix: string, data:PR_Data_Entry[], filters: { [key: string]: { (d: PR_Data_Entry): boolean; }}, metrics:Mapper ) {
     let result = {}
 
     for (let functionKey of Object.keys(statFunctions)) {
         let f = statFunctions[functionKey]
         result[functionKey] = {}
 
-        for (let metricKey of metrics.map((it) => it.getMetricName())) {
+        for (let metricKey of Object.keys(metrics)) {
 
 
 
@@ -238,7 +134,8 @@ function concatenateResultsPR(prefix: string, data:PR_Data_Entry[], filters: { [
                 if (relevantInstances.length == 0) {
                     continue
                 }
-                let res = f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
+                let mapped=metrics[metricKey](relevantInstances)
+                let res = f(mapped)
                 console.log(metricKey, filterKey, res)
 
                 if (true) {

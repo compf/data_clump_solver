@@ -17,6 +17,8 @@ def draw_fig(base_path:str, fName:str):
         obj=json.load(f)
     all_values=[]
     for key in obj:
+        if "=" not in key:
+            continue
         key_splitted=key.split(" , ")
         var1_name, var1_value=key_splitted[0].split("=")
         var1_name=var1_name.strip()
@@ -65,7 +67,7 @@ def draw_fig(base_path:str, fName:str):
         plt.title(capitalize(get_stat_function(base_path))+": "+category)
         p=os.path.abspath("../evalDataFigures/"+base_path.replace("./",""))
         os.makedirs(p,exist_ok=True)
-        plt.savefig(p+"/"+fName.replace(".json","_"+key+".svg"))
+        plt.savefig(p+"/"+fName.replace(".json","_"+key+".svg"), metadata={'Date': None})
         plt.close()
                
 
