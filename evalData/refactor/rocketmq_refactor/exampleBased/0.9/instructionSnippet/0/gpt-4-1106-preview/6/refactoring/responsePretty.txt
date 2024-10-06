@@ -1,46 +1,164 @@
-"{
-    "refactorings": {
-        "common/src/main/java/org/apache/rocketmq/common/stats/Stats.java": [{
-            "fromLine": 21,
-            "toLine": 42,
-            "oldContent": "    public static final String QUEUE_PUT_NUMS = \"QUEUE_PUT_NUMS\";\n    public static final String QUEUE_PUT_SIZE = \"QUEUE_PUT_SIZE\";\n    public static final String QUEUE_GET_NUMS = \"QUEUE_GET_NUMS\";\n    public static final String QUEUE_GET_SIZE = \"QUEUE_GET_SIZE\";\n    public static final String TOPIC_PUT_NUMS = \"TOPIC_PUT_NUMS\";\n    public static final String TOPIC_PUT_SIZE = \"TOPIC_PUT_SIZE\";\n    public static final String GROUP_GET_NUMS = \"GROUP_GET_NUMS\";\n    public static final String GROUP_GET_SIZE = \"GROUP_GET_SIZE\";\n    public static final String SNDBCK_PUT_NUMS = \"SNDBCK_PUT_NUMS\";\n    public static final String BROKER_PUT_NUMS = \"BROKER_PUT_NUMS\";\n    public static final String BROKER_GET_NUMS = \"BROKER_GET_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_NUMS = \"GROUP_GET_FROM_DISK_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_SIZE = \"GROUP_GET_FROM_DISK_SIZE\";\n    public static final String BROKER_GET_FROM_DISK_NUMS = \"BROKER_GET_FROM_DISK_NUMS\";\n    public static final String BROKER_GET_FROM_DISK_SIZE = \"BROKER_GET_FROM_DISK_SIZE\";\n    public static final String COMMERCIAL_SEND_TIMES = \"COMMERCIAL_SEND_TIMES\";\n    public static final String COMMERCIAL_SNDBCK_TIMES = \"COMMERCIAL_SNDBCK_TIMES\";\n    public static final String COMMERCIAL_RCV_TIMES = \"COMMERCIAL_RCV_TIMES\";\n    public static final String COMMERCIAL_RCV_EPOLLS = \"COMMERCIAL_RCV_EPOLLS\";\n    public static final String COMMERCIAL_SEND_SIZE = \"COMMERCIAL_SEND_SIZE\";\n    public static final String COMMERCIAL_RCV_SIZE = \"COMMERCIAL_RCV_SIZE\";\n    public static final String COMMERCIAL_PERM_FAILURES = \"COMMERCIAL_PERM_FAILURES\";",
-            "newContent": "// The constants have been moved to BrokerStatsItemNames class"
-        }, {
-            "fromLine": 44,
-            "toLine": 46,
-            "oldContent": "    public static final String GROUP_GET_FALL_SIZE = \"GROUP_GET_FALL_SIZE\";\n    public static final String GROUP_GET_FALL_TIME = \"GROUP_GET_FALL_TIME\";\n    public static final String GROUP_GET_LATENCY = \"GROUP_GET_LATENCY\";",
-            "newContent": "// The constants related to group fall size, time, and latency have been moved to BrokerStatsItemNames class"
-        }],
-	"store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [{
-            "fromLine": 45,
-            "toLine": 69,
-            "oldContent": "@Deprecated public static final String ...",
-            "newContent": "// Deprecated fields have been removed since they are refactored to BrokerStatsItemNames"
-        }, {
-            "fromLine": 110,
-            "toLine": 113,
-            "oldContent": "@Deprecated public static final String ...",
-            "newContent": "// Deprecated fields related to group fall size, time, and latency have been removed"
-        }, {
-            "fromLine": 585,
-            "toLine": 592,
-            "oldContent": "public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,\n        final long fallBehind) {\n ... \npublic void recordDiskFallBehindSize(final String group, final String topic, final int queueId,\n        final long fallBehind) {",
-            "newContent": "// Contents of recordDiskFallBehindTime/Size methods have been updated to use BrokerStatsItemNames"
-        }],
-	"broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java": [{
-            "fromLine": 301,
-            "toLine": 301,
-            "oldContent": "public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {",
-            "newContent": "// getConsumerLagStats method signature updated to use TopicQueueGroup class"
-        }, {
-            "fromLine": 440,
-            "toLine": 440,
-            "oldContent": "public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {",
-            "newContent": "// calculateMessageCount method signature updated to use TopicQueueGroup class"
-        }]
-    },
-    "extractedClasses": {
-        "broker/src/main/java/org/apache/rocketmq/broker/metrics/TopicQueueGroup.java": "public class TopicQueueGroup {\n    private String topic;\n    private int queueId;\n    private String group;\n\n    public TopicQueueGroup(String topic, int queueId, String group) {\n        this.topic = topic;\n        this.queueId = queueId;\n        this.group = group;\n    }\n\n    public String getTopic() {\n        return topic;\n    }\n\n    public int getQueueId() {\n        return queueId;\n    }\n\n    public String getGroup() {\n        return group;\n    }\n}",
-        "common/src/main/java/org/apache/rocketmq/common/stats/BrokerStatsItemNames.java": "public class BrokerStatsItemNames {\n    public static final String QUEUE_PUT_NUMS = \"QUEUE_PUT_NUMS\";\n    public static final String QUEUE_PUT_SIZE = \"QUEUE_PUT_SIZE\";\n    public static final String QUEUE_GET_NUMS = \"QUEUE_GET_NUMS\";\n    public static final String QUEUE_GET_SIZE = \"QUEUE_GET_SIZE\";\n    public static final String TOPIC_PUT_NUMS = \"TOPIC_PUT_NUMS\";\n    public static final String TOPIC_PUT_SIZE = \"TOPIC_PUT_SIZE\";\n    public static final String GROUP_GET_NUMS = \"GROUP_GET_NUMS\";\n    public static final String GROUP_GET_SIZE = \"GROUP_GET_SIZE\";\n    public static final String SNDBCK_PUT_NUMS = \"SNDBCK_PUT_NUMS\";\n    public static final String BROKER_PUT_NUMS = \"BROKER_PUT_NUMS\";\n    public static final String BROKER_GET_NUMS = \"BROKER_GET_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_NUMS = \"GROUP_GET_FROM_DISK_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_SIZE = \"GROUP_GET_FROM_DISK_SIZE\";\n    public static final String BROKER_GET_FROM_DISK_NUMS = \"BROKER_GET_FROM_DISK_NUMS\";\n    public static final String BROKER_GET_FROM_DISK_SIZE = \"BROKER_GET_FROM_DISK_SIZE\";\n    public static final String COMMERCIAL_SEND_TIMES = \"COMMERCIAL_SEND_TIMES\";\n    public static final String COMMERCIAL_SNDBCK_TIMES = \"COMMERCIAL_SNDBCK_TIMES\";\n    public static final String COMMERCIAL_RCV_TIMES = \"COMMERCIAL_RCV_TIMES\";\n    public static final String COMMERCIAL_RCV_EPOLLS = \"COMMERCIAL_RCV_EPOLLS\";\n    public static final String COMMERCIAL_SEND_SIZE = \"COMMERCIAL_SEND_SIZE\";\n    public static final String COMMERCIAL_RCV_SIZE = \"COMMERCIAL_RCV_SIZE\";\n    public static final String COMMERCIAL_PERM_FAILURES = \"COMMERCIAL_PERM_FAILURES\";\n    public static final String GROUP_GET_FALL_SIZE = \"GROUP_GET_FALL_SIZE\";\n    public static final String GROUP_GET_FALL_TIME = \"GROUP_GET_FALL_TIME\";\n    public static final String GROUP_GET_LATENCY = \"GROUP_GET_LATENCY\";\n}"
-    }
-}"
+refactorings:
+{
+	common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+	[
+		fromLine:"		21",
+		toLine:"		42",
+		oldContent:"
+		    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+		    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+		    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+		    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+		    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+		    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+		    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+		    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+		    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+		    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+		    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+		    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+		    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+		    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+		    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+		    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+		    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+		    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+		    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+		    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+		    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+		    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";		
+",
+		newContent:"
+		// The constants have been moved to BrokerStatsItemNames class		
+",
+,
+		fromLine:"		44",
+		toLine:"		46",
+		oldContent:"
+		    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+		    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+		    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";		
+",
+		newContent:"
+		// The constants related to group fall size, time, and latency have been moved to BrokerStatsItemNames class		
+",
+,
+
+	],
+	store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+	[
+		fromLine:"		45",
+		toLine:"		69",
+		oldContent:"
+		@Deprecated public static final String ...		
+",
+		newContent:"
+		// Deprecated fields have been removed since they are refactored to BrokerStatsItemNames		
+",
+,
+		fromLine:"		110",
+		toLine:"		113",
+		oldContent:"
+		@Deprecated public static final String ...		
+",
+		newContent:"
+		// Deprecated fields related to group fall size, time, and latency have been removed		
+",
+,
+		fromLine:"		585",
+		toLine:"		592",
+		oldContent:"
+		public void recordDiskFallBehindTime(final String group, final String topic, final int queueId,
+		        final long fallBehind) {
+		 ... 
+		public void recordDiskFallBehindSize(final String group, final String topic, final int queueId,
+		        final long fallBehind) {		
+",
+		newContent:"
+		// Contents of recordDiskFallBehindTime/Size methods have been updated to use BrokerStatsItemNames		
+",
+,
+
+	],
+	broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java:
+	[
+		fromLine:"		301",
+		toLine:"		301",
+		oldContent:"
+		public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {		
+",
+		newContent:"
+		// getConsumerLagStats method signature updated to use TopicQueueGroup class		
+",
+,
+		fromLine:"		440",
+		toLine:"		440",
+		oldContent:"
+		public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {		
+",
+		newContent:"
+		// calculateMessageCount method signature updated to use TopicQueueGroup class		
+",
+,
+
+	],
+
+}
+extractedClasses:
+{
+	broker/src/main/java/org/apache/rocketmq/broker/metrics/TopicQueueGroup.java:"
+	public class TopicQueueGroup {
+	    private String topic;
+	    private int queueId;
+	    private String group;
+	
+	    public TopicQueueGroup(String topic, int queueId, String group) {
+	        this.topic = topic;
+	        this.queueId = queueId;
+	        this.group = group;
+	    }
+	
+	    public String getTopic() {
+	        return topic;
+	    }
+	
+	    public int getQueueId() {
+	        return queueId;
+	    }
+	
+	    public String getGroup() {
+	        return group;
+	    }
+	}	
+",
+	common/src/main/java/org/apache/rocketmq/common/stats/BrokerStatsItemNames.java:"
+	public class BrokerStatsItemNames {
+	    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+	    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+	    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+	    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+	    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+	    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+	    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+	    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+	    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+	    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+	    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+	    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+	    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+	    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+	    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+	    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+	    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+	    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+	    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+	    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+	    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+	    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+	    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+	    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+	    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+	}	
+",
+
+}

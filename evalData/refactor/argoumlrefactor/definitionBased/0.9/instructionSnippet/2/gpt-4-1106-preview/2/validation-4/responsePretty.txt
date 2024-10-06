@@ -1,57 +1,190 @@
-"{
-    "refactorings": {
-        "/root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java": [
-            {
-                "fromLine": 40,
-                "toLine": 51,
-                "oldContent": "\npackage org.argouml.sequence2.diagram;\n\nimport java.util.Collections;\nimport java.util.LinkedList;\nimport java.util.List;\n\nimport org.argouml.uml.diagram.ui.ArgoFigGroup;\nimport org.tigris.gef.presentation.FigLine;\nimport org.tigris.gef.presentation.FigRect;\n\n",
-                "newContent": "\npackage org.argouml.sequence2.diagram;\n\nimport java.util.Collections;\nimport java.util.LinkedList;\nimport java.util.List;\nimport java.awt.Rectangle;\nimport org.argouml.uml.diagram.DiagramSettings;\nimport org.argouml.uml.diagram.ui.ArgoFigGroup;\nimport org.tigris.gef.presentation.FigLine;\nimport org.tigris.gef.presentation.FigRect;\n\n"
-            },
-            {
-                "fromLine": 67,
-                "toLine": 71,
-                "oldContent": "    static final int HEIGHT = 500;\n\n    FigLifeLine(Object owner, Rectangle bounds, DiagramSettings settings) {\n        super(owner, settings);\n        initialize(bounds.x, bounds.y);",
-                "newContent": "    static final int HEIGHT = 500;\n\n    FigLifeLine(Object owner, ActivationFigDimensions dimensions, DiagramSettings settings) {\n        super(owner, settings);\n        initialize(dimensions.x, dimensions.y);"
-            },
-            {
-                "fromLine": 126,
-                "toLine": 130,
-                "oldContent": "        FigActivation currentActivation = null;\n        if (!hasIncomingCallActionFirst(figMessages)) {\n            currentActivation = createActivationFig(\n                    getOwner(),\n                    lineFig.getX(),",
-                "newContent": "        FigActivation currentActivation = null;\n        if (!hasIncomingCallActionFirst(figMessages)) {\n            ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX(), 0, FigActivation.DEFAULT_WIDTH, HEIGHT);\n            currentActivation = createActivationFig(\n                    getOwner(),\n                    actDims,"
-            },
-            {
-                "fromLine": 153,
-                "toLine": 157,
-                "oldContent": "                            // activation, but don't add it until the height is set.\n                            ySender = figMessage.getFinalY();\n                            currentActivation = createActivationFig(\n                                    getOwner(), \n                                    lineFig.getX(), ",
-                "newContent": "                            // activation, but don't add it until the height is set.\n                            ySender = figMessage.getFinalY();\n                            ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX(), ySender, FigActivation.DEFAULT_WIDTH, HEIGHT);\n                            currentActivation = createActivationFig(\n                                    getOwner(), \n                                    actDims,"
-            },
-            {
-                "fromLine": 165,
-                "toLine": 169,
-                "oldContent": "                            // if we are the destination of a create action,\n                            // create the entire activation\n                            currentActivation = createActivationFig(\n                                    getOwner(),\n                                    lineFig.getX(),",
-                "newContent": "                            // if we are the destination of a create action,\n                            // create the entire activation\n                            ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX(), 0, FigActivation.DEFAULT_WIDTH, HEIGHT);\n                            currentActivation = createActivationFig(\n                                    getOwner(),\n                                    actDims,"
-            },
-            {
-                "fromLine": 251,
-                "toLine": 259,
-                "oldContent": "            final Object owner, \n            final ActivationFigDimensions dimensions,\n            final DiagramSettings settings,\n            final FigMessage messageFig) {\n        return new FigActivation(\n                owner,\n                new Rectangle(x, y, w, h),\n                settings,\n                messageFig);",
-                "newContent": "            final Object owner, \n            final ActivationFigDimensions dimensions,\n            final DiagramSettings settings,\n            final FigMessage messageFig) {\n        return new FigActivation(\n                owner,\n                new Rectangle(dimensions.x, dimensions.y, dimensions.width, dimensions.height),\n                settings,\n                messageFig);"
-            },
-            {
-                "fromLine": 276,
-                "toLine": 280,
-                "oldContent": "                    ySender = figMessage.getFinalY();\n                    currentAct = new FigActivation(figMessage.getOwner(),\n                            new Rectangle(lineFig.getX()\n                                    + FigActivation.DEFAULT_WIDTH / 2, ySender,\n                                    0, 0), getSettings(), figMessage, false);",
-                "newContent": "                    ySender = figMessage.getFinalY();\n                    ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX() + FigActivation.DEFAULT_WIDTH / 2, ySender, FigActivation.DEFAULT_WIDTH, HEIGHT);\n                    currentAct = new FigActivation(figMessage.getOwner(),\n                            new Rectangle(actDims.x, actDims.y, actDims.width, actDims.height), getSettings(), figMessage, false);"
-            },
-            {
-                "fromLine": 330,
-                "toLine": 334,
-                "oldContent": "    // below will resolve this and the synch can go.\n    protected synchronized void setBoundsImpl(int x, int y, int w, int h) {\n        final Rectangle oldBounds = getBounds();\n        \n        rectFig.setBounds(x, y, w, h);",
-                "newContent": "// below will resolve this and the synch can go.\n    protected synchronized void setBoundsImpl(int x, int y, int w, int h) {\n        final Rectangle oldBounds = new Rectangle(_x, _y, _w, _h);\n        \n        rectFig.setBounds(x, y, w, h);"
-            }
-        ]
-    },
-    "extractedClasses": {
-        "src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/ActivationFigDimensions.java": "package org.argouml.sequence2.diagram;\n\npublic class ActivationFigDimensions {\n    public final int x;\n    public final int y;\n    public final int width;\n    public final int height;\n\n    public ActivationFigDimensions(int x, int y, int width, int height) {\n        this.x = x;\n        this.y = y;\n        this.width = width;\n        this.height = height;\n    }\n}"
-    }
-}"
+refactorings:
+{
+	/root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java:
+	[
+		fromLine:"		40",
+		toLine:"		51",
+		oldContent:"
+		
+		package org.argouml.sequence2.diagram;
+		
+		import java.util.Collections;
+		import java.util.LinkedList;
+		import java.util.List;
+		
+		import org.argouml.uml.diagram.ui.ArgoFigGroup;
+		import org.tigris.gef.presentation.FigLine;
+		import org.tigris.gef.presentation.FigRect;
+		
+				
+",
+		newContent:"
+		
+		package org.argouml.sequence2.diagram;
+		
+		import java.util.Collections;
+		import java.util.LinkedList;
+		import java.util.List;
+		import java.awt.Rectangle;
+		import org.argouml.uml.diagram.DiagramSettings;
+		import org.argouml.uml.diagram.ui.ArgoFigGroup;
+		import org.tigris.gef.presentation.FigLine;
+		import org.tigris.gef.presentation.FigRect;
+		
+				
+",
+,
+		fromLine:"		67",
+		toLine:"		71",
+		oldContent:"
+		    static final int HEIGHT = 500;
+		
+		    FigLifeLine(Object owner, Rectangle bounds, DiagramSettings settings) {
+		        super(owner, settings);
+		        initialize(bounds.x, bounds.y);		
+",
+		newContent:"
+		    static final int HEIGHT = 500;
+		
+		    FigLifeLine(Object owner, ActivationFigDimensions dimensions, DiagramSettings settings) {
+		        super(owner, settings);
+		        initialize(dimensions.x, dimensions.y);		
+",
+,
+		fromLine:"		126",
+		toLine:"		130",
+		oldContent:"
+		        FigActivation currentActivation = null;
+		        if (!hasIncomingCallActionFirst(figMessages)) {
+		            currentActivation = createActivationFig(
+		                    getOwner(),
+		                    lineFig.getX(),		
+",
+		newContent:"
+		        FigActivation currentActivation = null;
+		        if (!hasIncomingCallActionFirst(figMessages)) {
+		            ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX(), 0, FigActivation.DEFAULT_WIDTH, HEIGHT);
+		            currentActivation = createActivationFig(
+		                    getOwner(),
+		                    actDims,		
+",
+,
+		fromLine:"		153",
+		toLine:"		157",
+		oldContent:"
+		                            // activation, but don't add it until the height is set.
+		                            ySender = figMessage.getFinalY();
+		                            currentActivation = createActivationFig(
+		                                    getOwner(), 
+		                                    lineFig.getX(), 		
+",
+		newContent:"
+		                            // activation, but don't add it until the height is set.
+		                            ySender = figMessage.getFinalY();
+		                            ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX(), ySender, FigActivation.DEFAULT_WIDTH, HEIGHT);
+		                            currentActivation = createActivationFig(
+		                                    getOwner(), 
+		                                    actDims,		
+",
+,
+		fromLine:"		165",
+		toLine:"		169",
+		oldContent:"
+		                            // if we are the destination of a create action,
+		                            // create the entire activation
+		                            currentActivation = createActivationFig(
+		                                    getOwner(),
+		                                    lineFig.getX(),		
+",
+		newContent:"
+		                            // if we are the destination of a create action,
+		                            // create the entire activation
+		                            ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX(), 0, FigActivation.DEFAULT_WIDTH, HEIGHT);
+		                            currentActivation = createActivationFig(
+		                                    getOwner(),
+		                                    actDims,		
+",
+,
+		fromLine:"		251",
+		toLine:"		259",
+		oldContent:"
+		            final Object owner, 
+		            final ActivationFigDimensions dimensions,
+		            final DiagramSettings settings,
+		            final FigMessage messageFig) {
+		        return new FigActivation(
+		                owner,
+		                new Rectangle(x, y, w, h),
+		                settings,
+		                messageFig);		
+",
+		newContent:"
+		            final Object owner, 
+		            final ActivationFigDimensions dimensions,
+		            final DiagramSettings settings,
+		            final FigMessage messageFig) {
+		        return new FigActivation(
+		                owner,
+		                new Rectangle(dimensions.x, dimensions.y, dimensions.width, dimensions.height),
+		                settings,
+		                messageFig);		
+",
+,
+		fromLine:"		276",
+		toLine:"		280",
+		oldContent:"
+		                    ySender = figMessage.getFinalY();
+		                    currentAct = new FigActivation(figMessage.getOwner(),
+		                            new Rectangle(lineFig.getX()
+		                                    + FigActivation.DEFAULT_WIDTH / 2, ySender,
+		                                    0, 0), getSettings(), figMessage, false);		
+",
+		newContent:"
+		                    ySender = figMessage.getFinalY();
+		                    ActivationFigDimensions actDims = new ActivationFigDimensions(lineFig.getX() + FigActivation.DEFAULT_WIDTH / 2, ySender, FigActivation.DEFAULT_WIDTH, HEIGHT);
+		                    currentAct = new FigActivation(figMessage.getOwner(),
+		                            new Rectangle(actDims.x, actDims.y, actDims.width, actDims.height), getSettings(), figMessage, false);		
+",
+,
+		fromLine:"		330",
+		toLine:"		334",
+		oldContent:"
+		    // below will resolve this and the synch can go.
+		    protected synchronized void setBoundsImpl(int x, int y, int w, int h) {
+		        final Rectangle oldBounds = getBounds();
+		        
+		        rectFig.setBounds(x, y, w, h);		
+",
+		newContent:"
+		// below will resolve this and the synch can go.
+		    protected synchronized void setBoundsImpl(int x, int y, int w, int h) {
+		        final Rectangle oldBounds = new Rectangle(_x, _y, _w, _h);
+		        
+		        rectFig.setBounds(x, y, w, h);		
+",
+,
+
+	],
+
+}
+extractedClasses:
+{
+	src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/ActivationFigDimensions.java:"
+	package org.argouml.sequence2.diagram;
+	
+	public class ActivationFigDimensions {
+	    public final int x;
+	    public final int y;
+	    public final int width;
+	    public final int height;
+	
+	    public ActivationFigDimensions(int x, int y, int width, int height) {
+	        this.x = x;
+	        this.y = y;
+	        this.width = width;
+	        this.height = height;
+	    }
+	}	
+",
+
+}

@@ -1,15 +1,56 @@
-"{
-    "refactorings": {
-        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/consumer/ReceiptHandle.java": [
-            {
-                "fromLine": 229,
-                "toLine": 234,
-                "oldContent": "        if (RETRY_TOPIC.equals(topicType)) {\n            return KeyBuilder.buildPopRetryTopicV1(topic, groupName);\n        }\n        if (RETRY_TOPIC_V2.equals(topicType)) {\n            return KeyBuilder.buildPopRetryTopicV2(topic, groupName);\n        }",
-                "newContent": "        if (RETRY_TOPIC.equals(topicType)) {\n            // Corrected method call\n            return KeyBuilder.buildRetryTopic(topic, groupName, 1);\n        }\n        if (RETRY_TOPIC_V2.equals(topicType)) {\n            // Corrected method call\n            return KeyBuilder.buildRetryTopic(topic, groupName, 2);\n        }"
-            }
-        ]
-    },
-    "extractedClasses": {
-        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/KeyBuilder.java": "package org.apache.rocketmq.common;\n\npublic class KeyBuilder {\n\n    public static String buildStatsKey(int queueId, String topic, String group) {\n        return group + \"@\" + topic + \"@\" + queueId;\n    }\n\n    // Added methods to handle retry topics\n    public static String buildRetryTopic(String topic, String groupName, int version) {\n        switch (version) {\n            case 1:\n                return topic + \"RETRY\" + groupName;\n            case 2:\n                return topic + \"RETRY_V2\" + groupName;\n            default:\n                throw new IllegalArgumentException(\"Unsupported version for retry topic: \" + version);\n        }\n    }\n\n}"
-    }
-}"
+refactorings:
+{
+	/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/consumer/ReceiptHandle.java:
+	[
+		fromLine:"		229",
+		toLine:"		234",
+		oldContent:"
+		        if (RETRY_TOPIC.equals(topicType)) {
+		            return KeyBuilder.buildPopRetryTopicV1(topic, groupName);
+		        }
+		        if (RETRY_TOPIC_V2.equals(topicType)) {
+		            return KeyBuilder.buildPopRetryTopicV2(topic, groupName);
+		        }		
+",
+		newContent:"
+		        if (RETRY_TOPIC.equals(topicType)) {
+		            // Corrected method call
+		            return KeyBuilder.buildRetryTopic(topic, groupName, 1);
+		        }
+		        if (RETRY_TOPIC_V2.equals(topicType)) {
+		            // Corrected method call
+		            return KeyBuilder.buildRetryTopic(topic, groupName, 2);
+		        }		
+",
+,
+
+	],
+
+}
+extractedClasses:
+{
+	/root/data_clump_solver/cloned_projects/rocketmq_refactor/common/src/main/java/org/apache/rocketmq/common/KeyBuilder.java:"
+	package org.apache.rocketmq.common;
+	
+	public class KeyBuilder {
+	
+	    public static String buildStatsKey(int queueId, String topic, String group) {
+	        return group + "@" + topic + "@" + queueId;
+	    }
+	
+	    // Added methods to handle retry topics
+	    public static String buildRetryTopic(String topic, String groupName, int version) {
+	        switch (version) {
+	            case 1:
+	                return topic + "RETRY" + groupName;
+	            case 2:
+	                return topic + "RETRY_V2" + groupName;
+	            default:
+	                throw new IllegalArgumentException("Unsupported version for retry topic: " + version);
+	        }
+	    }
+	
+	}	
+",
+
+}

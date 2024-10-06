@@ -1,67 +1,141 @@
-"{
-    "refactorings": {
-        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
-            {
-                "fromLine": 568,
-                "toLine": 568,
-                "oldContent": "        recordDiskFallBehindTime(group, topic, queueId, fallBehind);",
-                "newContent": "        this.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);"
-            },
-            {
-                "fromLine": 572,
-                "toLine": 572,
-                "oldContent": "        recordDiskFallBehindSize(group, topic, queueId, fallBehind);",
-                "newContent": "        final String statsKey = buildStatsKey(queueId, topic, group);\n        this.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);"
-            },
-            {
-                "fromLine": 574,
-                "toLine": 576,
-                "oldContent": "    public void incDLQStatValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) {\n    }",
-                "newContent": "    public void incDLQStatValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) {\n        final String statsKey = buildCommercialStatsKey(owner, topic, group, type);\n        this.statsTable.get(key).addValue(statsKey, incValue, 1);\n    }"
-            },
-            {
-                "fromLine": 578,
-                "toLine": 582,
-                "oldContent": "    public void incCommercialValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) {\n        final String statsKey = buildCommercialStatsKey(owner, topic, group, type);",
-                "newContent": "    public void incCommercialValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) {\n        final String statsKey = buildCommercialStatsKey(owner, topic, group, type);\n        this.statsTable.get(key).addValue(statsKey, incValue, 1);\n    }"
-            },
-            {
-                "fromLine": 584,
-                "toLine": 588,
-                "oldContent": "    }",
-                "newContent": "    public void incAccountValue(final String key, final String accountOwnerParent, final String accountOwnerSelf, final String instanceId, final String group, final String topic, final String msgType, final int incValue) {\n        final String statsKey = buildAccountStatsKey(accountOwnerParent, accountOwnerSelf, instanceId, topic, group, msgType);\n        this.statsTable.get(key).addValue(statsKey, incValue, 1);\n    }"
-            },
-            {
-                "fromLine": 589,
-                "toLine": 594,
-                "oldContent": "            msgType, flowlimitThreshold);",
-                "newContent": "    public void incAccountValue(final String key, final String accountOwnerParent, final String accountOwnerSelf, final String instanceId, final String group, final String topic, final String msgType, final int incValue, final String flowlimitThreshold) {\n        final String statsKey = buildAccountStatsKey(accountOwnerParent, accountOwnerSelf, instanceId, topic, group, msgType, flowlimitThreshold);\n        this.statsTable.get(key).addValue(statsKey, incValue, 1);\n    }"
-            },
-            {
-                "fromLine": 596,
-                "toLine": 603,
-                "oldContent": "    }",
-                "newContent": "    public void incAccountValue(final String statType, final String owner, final String instanceId, final String topic, final String group, final String msgType, final long... incValues) {\n        final String key = buildAccountStatKey(owner, instanceId, topic, group, msgType);\n        this.accountStatManager.inc(statType, key, incValues);\n    }"
-            },
-            {
-                "fromLine": 605,
-                "toLine": 615,
-                "oldContent": "        strBuilder.append(owner);\n        strBuilder.append(\"@\");\n        strBuilder.append(topic);\n        strBuilder.append(\"@\");\n        strBuilder.append(group);\n        strBuilder.append(\"@\");\n        strBuilder.append(type);\n        return strBuilder.toString();\n    }",
-                "newContent": "    private String buildCommercialStatsKey(String owner, String topic, String group, String type) {\n        return owner + '@' + topic + '@' + group + '@' + type;\n    }"
-            },
-            {
-                "fromLine": 618,
-                "toLine": 626,
-                "oldContent": "        strBuilder.append(accountOwnerParent);\n        strBuilder.append(\"@\");\n        strBuilder.append(accountOwnerSelf);\n        }",
-                "newContent": "    private String buildAccountStatsKey(String accountOwnerParent, String accountOwnerSelf, String instanceId, String topic, String group, String msgType, String flowlimitThreshold) {\n        return accountOwnerParent + '@' + accountOwnerSelf + '@' + instanceId + '@' + topic + '@' + group + '@' + msgType + (flowlimitThreshold != null ? '@' + flowlimitThreshold : '');\n    }"
-            },
-            {
-                "fromLine": 629,
-                "toLine": 635,
-                "oldContent": "        return accountOwnerParent + '@' + accountOwnerSelf + '@' + instanceId + '@' + topic + '@' + group + '@' + msgType + (flowlimitThreshold != null ? '@' + flowlimitThreshold : '');\n        strBuilder.append(\"@\");\n        strBuilder.append(\"@\");\n        }",
-                "newContent": "    private String buildAccountStatKey(final String owner, final String instanceId, final String topic, final String group, final String msgType, final String flowlimitThreshold) {\n        final String sep = \"|\";\n        return owner + sep + instanceId + sep + topic + sep + group + sep + msgType + (flowlimitThreshold != null ? sep + flowlimitThreshold : '');\n    }"
-            }
-        ]
-    },
-    "extractedClasses": {}
-}"
+refactorings:
+{
+	/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+	[
+		fromLine:"		568",
+		toLine:"		568",
+		oldContent:"
+		        recordDiskFallBehindTime(group, topic, queueId, fallBehind);		
+",
+		newContent:"
+		        this.momentStatsItemSetFallTime.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);		
+",
+,
+		fromLine:"		572",
+		toLine:"		572",
+		oldContent:"
+		        recordDiskFallBehindSize(group, topic, queueId, fallBehind);		
+",
+		newContent:"
+		        final String statsKey = buildStatsKey(queueId, topic, group);
+		        this.momentStatsItemSetFallSize.getAndCreateStatsItem(statsKey).getValue().set(fallBehind);		
+",
+,
+		fromLine:"		574",
+		toLine:"		576",
+		oldContent:
+{
+    public void incDLQStatValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) 				
+}
+		newContent:"
+		    public void incDLQStatValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) {
+		        final String statsKey = buildCommercialStatsKey(owner, topic, group, type);
+		        this.statsTable.get(key).addValue(statsKey, incValue, 1);
+		    }		
+",
+,
+		fromLine:"		578",
+		toLine:"		582",
+		oldContent:"
+		    public void incCommercialValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) {
+		        final String statsKey = buildCommercialStatsKey(owner, topic, group, type);		
+",
+		newContent:"
+		    public void incCommercialValue(final String key, final String owner, final String group, final String topic, final String type, final int incValue) {
+		        final String statsKey = buildCommercialStatsKey(owner, topic, group, type);
+		        this.statsTable.get(key).addValue(statsKey, incValue, 1);
+		    }		
+",
+,
+		fromLine:"		584",
+		toLine:"		588",
+		oldContent:"
+		    }		
+",
+		newContent:"
+		    public void incAccountValue(final String key, final String accountOwnerParent, final String accountOwnerSelf, final String instanceId, final String group, final String topic, final String msgType, final int incValue) {
+		        final String statsKey = buildAccountStatsKey(accountOwnerParent, accountOwnerSelf, instanceId, topic, group, msgType);
+		        this.statsTable.get(key).addValue(statsKey, incValue, 1);
+		    }		
+",
+,
+		fromLine:"		589",
+		toLine:"		594",
+		oldContent:"
+		            msgType, flowlimitThreshold);		
+",
+		newContent:"
+		    public void incAccountValue(final String key, final String accountOwnerParent, final String accountOwnerSelf, final String instanceId, final String group, final String topic, final String msgType, final int incValue, final String flowlimitThreshold) {
+		        final String statsKey = buildAccountStatsKey(accountOwnerParent, accountOwnerSelf, instanceId, topic, group, msgType, flowlimitThreshold);
+		        this.statsTable.get(key).addValue(statsKey, incValue, 1);
+		    }		
+",
+,
+		fromLine:"		596",
+		toLine:"		603",
+		oldContent:"
+		    }		
+",
+		newContent:"
+		    public void incAccountValue(final String statType, final String owner, final String instanceId, final String topic, final String group, final String msgType, final long... incValues) {
+		        final String key = buildAccountStatKey(owner, instanceId, topic, group, msgType);
+		        this.accountStatManager.inc(statType, key, incValues);
+		    }		
+",
+,
+		fromLine:"		605",
+		toLine:"		615",
+		oldContent:"
+		        strBuilder.append(owner);
+		        strBuilder.append("@");
+		        strBuilder.append(topic);
+		        strBuilder.append("@");
+		        strBuilder.append(group);
+		        strBuilder.append("@");
+		        strBuilder.append(type);
+		        return strBuilder.toString();
+		    }		
+",
+		newContent:"
+		    private String buildCommercialStatsKey(String owner, String topic, String group, String type) {
+		        return owner + '@' + topic + '@' + group + '@' + type;
+		    }		
+",
+,
+		fromLine:"		618",
+		toLine:"		626",
+		oldContent:"
+		        strBuilder.append(accountOwnerParent);
+		        strBuilder.append("@");
+		        strBuilder.append(accountOwnerSelf);
+		        }		
+",
+		newContent:"
+		    private String buildAccountStatsKey(String accountOwnerParent, String accountOwnerSelf, String instanceId, String topic, String group, String msgType, String flowlimitThreshold) {
+		        return accountOwnerParent + '@' + accountOwnerSelf + '@' + instanceId + '@' + topic + '@' + group + '@' + msgType + (flowlimitThreshold != null ? '@' + flowlimitThreshold : '');
+		    }		
+",
+,
+		fromLine:"		629",
+		toLine:"		635",
+		oldContent:"
+		        return accountOwnerParent + '@' + accountOwnerSelf + '@' + instanceId + '@' + topic + '@' + group + '@' + msgType + (flowlimitThreshold != null ? '@' + flowlimitThreshold : '');
+		        strBuilder.append("@");
+		        strBuilder.append("@");
+		        }		
+",
+		newContent:"
+		    private String buildAccountStatKey(final String owner, final String instanceId, final String topic, final String group, final String msgType, final String flowlimitThreshold) {
+		        final String sep = "|";
+		        return owner + sep + instanceId + sep + topic + sep + group + sep + msgType + (flowlimitThreshold != null ? sep + flowlimitThreshold : '');
+		    }		
+",
+,
+
+	],
+
+}
+extractedClasses:
+{
+
+}

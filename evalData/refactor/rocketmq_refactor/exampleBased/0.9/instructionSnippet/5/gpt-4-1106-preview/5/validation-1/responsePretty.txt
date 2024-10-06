@@ -1,20 +1,199 @@
-"{
-    "refactorings": {
-        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
-            {
-                "fromLine": 16,
-                "toLine": 38,
-                "oldContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\nimport org.apache.rocketmq.common.statistics.StatisticsItem;\nimport org.apache.rocketmq.common.statistics.StatisticsItemFormatter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;\nimport org.apache.rocketmq.common.statistics.StatisticsKindMeta;\nimport org.apache.rocketmq.common.stats.MomentStatsItemSet;\nimport org.apache.rocketmq.common.topic.TopicValidator;\nimport org.apache.rocketmq.common.utils.ThreadUtils;\nimport org.apache.rocketmq.logging.org.slf4j.Logger;\nimport org.apache.rocketmq.logging.org.slf4j.LoggerFactory;\n",
-                "newContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\nimport org.apache.rocketmq.common.constant.StatsConstants;\nimport org.apache.rocketmq.common.statistics.StatisticsItem;\nimport org.apache.rocketmq.common.statistics.StatisticsItemFormatter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;\nimport org.apache.rocketmq.common.statistics.StatisticsKindMeta;\nimport org.apache.rocketmq.common.stats.MomentStatsItemSet;\nimport org.apache.rocketmq.common.stats.StatsItem;\nimport org.apache.rocketmq.common.stats.StatsItemSet;\nimport org.apache.rocketmq.common.topic.TopicValidator;\nimport org.apache.rocketmq.common.utils.ThreadUtils;\nimport org.apache.rocketmq.logging.org.slf4j.Logger;\nimport org.apache.rocketmq.logging.org.slf4j.LoggerFactory;\n"
-            },
-            {
-                "fromLine": 99,
-                "toLine": 115,
-                "oldContent": "        LoggerName.DLQ_STATS_LOGGER_NAME);\n    private ScheduledExecutorService scheduledExecutorService;\n    private ScheduledExecutorService commercialExecutor;\n    private ScheduledExecutorService accountExecutor;\n\n    private final HashMap<String, StatsItemSet> statsTable = new HashMap<>();\n    private final String clusterName;\n    private final boolean enableQueueStat;\n    private MomentStatsItemSet momentStatsItemSetFallSize;\n    private MomentStatsItemSet momentStatsItemSetFallTime;\n\n    private final StatisticsManager accountStatManager = new StatisticsManager();\n    private StateGetter producerStateGetter;\n    private StateGetter consumerStateGetter;\n\n    private BrokerConfig brokerConfig;\n",
-                "newContent": "        LoggerName.DLQ_STATS_LOGGER_NAME);\n    private ScheduledExecutorService scheduledExecutorService;\n    private ScheduledExecutorService commercialExecutor;\n    private ScheduledExecutorService accountExecutor;\n\n    private final HashMap<String, StatsItemSet> statsTable = new HashMap<>();\n    private final String clusterName;\n    private final boolean enableQueueStat;\n    private MomentStatsItemSet momentStatsItemSetFallSize;\n    private MomentStatsItemSet momentStatsItemSetFallTime;\n\n    private final StatisticsManager accountStatManager;\n    private StateGetter producerStateGetter;\n    private StateGetter consumerStateGetter;\n\n    private BrokerConfig brokerConfig;\n\n    public BrokerStatsManager(BrokerConfig brokerConfig) {\n        this.brokerConfig = brokerConfig;\n        this.clusterName = brokerConfig.getBrokerClusterName();\n        this.enableQueueStat = brokerConfig.isEnableQueueStat();\n        this.accountStatManager = new StatisticsManager();\n        initializeScheduledExecutors();\n        initializeStatsItems();\n    }\n"
-            },
-            {
-                "fromLine": 128,
-                "toLine": 193,
-                "oldContent": "        init();\n    }\n\n    public void init() {\n        momentStatsItemSetFallSize = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);\n\n        if (enableQueueStat) {\n            this.statsTable.put(StatsConstants.QUEUE_PUT_NUMS, new StatsItemSet(StatsConstants.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(StatsConstants.QUEUE_PUT_SIZE, new StatsItemSet(StatsConstants.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));\n            this.statsTable.put(StatsConstants.QUEUE_GET_NUMS, new StatsItemSet(StatsConstants.QUEUE_GET_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(StatsConstants.QUEUE_GET_SIZE, new StatsItemSet(StatsConstants.QUEUE_GET_SIZE, this.scheduledExecutorService, log));\n        }\n        // Other constants refactored into StatsConstants class\n        this.statsTable.put(StatsConstants.TOPIC_PUT_NUMS, new StatsItemSet(StatsConstants.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.TOPIC_PUT_SIZE, new StatsItemSet(StatsConstants.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_NUMS, new StatsItemSet(StatsConstants.GROUP_GET_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_SIZE, new StatsItemSet(StatsConstants.GROUP_GET_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_ACK_NUMS, new StatsItemSet(StatsConstants.GROUP_ACK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_CK_NUMS, new StatsItemSet(StatsConstants.GROUP_CK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_LATENCY, new StatsItemSet(StatsConstants.GROUP_GET_LATENCY, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.TOPIC_PUT_LATENCY, new StatsItemSet(StatsConstants.TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.SNDBCK_PUT_NUMS, new StatsItemSet(StatsConstants.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.DLQ_PUT_NUMS, new StatsItemSet(StatsConstants.DLQ_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS, new StatsItemSet(StatsConstants.BROKER_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_NUMS, new StatsItemSet(StatsConstants.BROKER_GET_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_ACK_NUMS, new StatsItemSet(StatsConstants.BROKER_ACK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_CK_NUMS, new StatsItemSet(StatsConstants.BROKER_CK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,\n            new StatsItemSet(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,\n            new StatsItemSet(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_NUMS,\n            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_SIZE,\n            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_NUMS,\n            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_SIZE,\n            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n\n        this.statsTable.put(StatsConstants.SNDBCK2DLQ_TIMES,\n            new StatsItemSet(StatsConstants.SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));\n\n        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_TIMES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_TIMES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_SIZE,\n            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_SIZE,\n            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_EPOLLS,\n            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_SNDBCK_TIMES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_PERM_FAILURES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));\n\n        this.statsTable.put(StatsConstants.CONSUMER_REGISTER_TIME,\n            new StatsItemSet(StatsConstants.CONSUMER_REGISTER_TIME, this.scheduledExecutorService,"},{"fromLine":286,"toLine":296,"content":"    public void shutdown() {\n        this.scheduledExecutorService.shutdown();\n        this.commercialExecutor.shutdown();\n    }\n\n    public StatsItem getStatsItem(final String statsName, final String statsKey) {\n        try {\n            return this.statsTable.get(statsName).getStatsItem(statsKey);\n        } catch (Exception e) {\n        }\n"}]}  
-}"
+refactorings:
+{
+	/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+	[
+		fromLine:"		16",
+		toLine:"		38",
+		oldContent:"
+		 */
+		package org.apache.rocketmq.store.stats;
+		
+		import java.util.HashMap;
+		import java.util.concurrent.ScheduledExecutorService;
+		import org.apache.commons.lang3.tuple.Pair;
+		import org.apache.rocketmq.common.BrokerConfig;
+		import org.apache.rocketmq.common.ThreadFactoryImpl;
+		import org.apache.rocketmq.common.UtilAll;
+		import org.apache.rocketmq.common.constant.LoggerName;
+		import org.apache.rocketmq.common.statistics.StatisticsItem;
+		import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+		import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+		import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+		import org.apache.rocketmq.common.topic.TopicValidator;
+		import org.apache.rocketmq.common.utils.ThreadUtils;
+		import org.apache.rocketmq.logging.org.slf4j.Logger;
+		import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+				
+",
+		newContent:"
+		 */
+		package org.apache.rocketmq.store.stats;
+		
+		import java.util.HashMap;
+		import java.util.concurrent.ScheduledExecutorService;
+		import org.apache.commons.lang3.tuple.Pair;
+		import org.apache.rocketmq.common.BrokerConfig;
+		import org.apache.rocketmq.common.ThreadFactoryImpl;
+		import org.apache.rocketmq.common.UtilAll;
+		import org.apache.rocketmq.common.constant.LoggerName;
+		import org.apache.rocketmq.common.constant.StatsConstants;
+		import org.apache.rocketmq.common.statistics.StatisticsItem;
+		import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+		import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+		import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+		import org.apache.rocketmq.common.stats.StatsItem;
+		import org.apache.rocketmq.common.stats.StatsItemSet;
+		import org.apache.rocketmq.common.topic.TopicValidator;
+		import org.apache.rocketmq.common.utils.ThreadUtils;
+		import org.apache.rocketmq.logging.org.slf4j.Logger;
+		import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+				
+",
+,
+		fromLine:"		99",
+		toLine:"		115",
+		oldContent:"
+		        LoggerName.DLQ_STATS_LOGGER_NAME);
+		    private ScheduledExecutorService scheduledExecutorService;
+		    private ScheduledExecutorService commercialExecutor;
+		    private ScheduledExecutorService accountExecutor;
+		
+		    private final HashMap<String, StatsItemSet> statsTable = new HashMap<>();
+		    private final String clusterName;
+		    private final boolean enableQueueStat;
+		    private MomentStatsItemSet momentStatsItemSetFallSize;
+		    private MomentStatsItemSet momentStatsItemSetFallTime;
+		
+		    private final StatisticsManager accountStatManager = new StatisticsManager();
+		    private StateGetter producerStateGetter;
+		    private StateGetter consumerStateGetter;
+		
+		    private BrokerConfig brokerConfig;
+				
+",
+		newContent:"
+		        LoggerName.DLQ_STATS_LOGGER_NAME);
+		    private ScheduledExecutorService scheduledExecutorService;
+		    private ScheduledExecutorService commercialExecutor;
+		    private ScheduledExecutorService accountExecutor;
+		
+		    private final HashMap<String, StatsItemSet> statsTable = new HashMap<>();
+		    private final String clusterName;
+		    private final boolean enableQueueStat;
+		    private MomentStatsItemSet momentStatsItemSetFallSize;
+		    private MomentStatsItemSet momentStatsItemSetFallTime;
+		
+		    private final StatisticsManager accountStatManager;
+		    private StateGetter producerStateGetter;
+		    private StateGetter consumerStateGetter;
+		
+		    private BrokerConfig brokerConfig;
+		
+		    public BrokerStatsManager(BrokerConfig brokerConfig) {
+		        this.brokerConfig = brokerConfig;
+		        this.clusterName = brokerConfig.getBrokerClusterName();
+		        this.enableQueueStat = brokerConfig.isEnableQueueStat();
+		        this.accountStatManager = new StatisticsManager();
+		        initializeScheduledExecutors();
+		        initializeStatsItems();
+		    }
+				
+",
+,
+		fromLine:"		128",
+		toLine:"		193",
+		oldContent:"
+		        init();
+		    }
+		
+		    public void init() {
+		        momentStatsItemSetFallSize = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_SIZE,
+		            scheduledExecutorService, log);
+		
+		        momentStatsItemSetFallTime = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_TIME,
+		            scheduledExecutorService, log);
+		
+		        if (enableQueueStat) {
+		            this.statsTable.put(StatsConstants.QUEUE_PUT_NUMS, new StatsItemSet(StatsConstants.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+		            this.statsTable.put(StatsConstants.QUEUE_PUT_SIZE, new StatsItemSet(StatsConstants.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+		            this.statsTable.put(StatsConstants.QUEUE_GET_NUMS, new StatsItemSet(StatsConstants.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+		            this.statsTable.put(StatsConstants.QUEUE_GET_SIZE, new StatsItemSet(StatsConstants.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+		        }
+		        // Other constants refactored into StatsConstants class
+		        this.statsTable.put(StatsConstants.TOPIC_PUT_NUMS, new StatsItemSet(StatsConstants.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.TOPIC_PUT_SIZE, new StatsItemSet(StatsConstants.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_NUMS, new StatsItemSet(StatsConstants.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_SIZE, new StatsItemSet(StatsConstants.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_ACK_NUMS, new StatsItemSet(StatsConstants.GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_CK_NUMS, new StatsItemSet(StatsConstants.GROUP_CK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_LATENCY, new StatsItemSet(StatsConstants.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.TOPIC_PUT_LATENCY, new StatsItemSet(StatsConstants.TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.SNDBCK_PUT_NUMS, new StatsItemSet(StatsConstants.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.DLQ_PUT_NUMS, new StatsItemSet(StatsConstants.DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS, new StatsItemSet(StatsConstants.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_NUMS, new StatsItemSet(StatsConstants.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_ACK_NUMS, new StatsItemSet(StatsConstants.BROKER_ACK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_CK_NUMS, new StatsItemSet(StatsConstants.BROKER_CK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,
+		            new StatsItemSet(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+		            new StatsItemSet(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_NUMS,
+		            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_SIZE,
+		            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_NUMS,
+		            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_SIZE,
+		            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+		
+		        this.statsTable.put(StatsConstants.SNDBCK2DLQ_TIMES,
+		            new StatsItemSet(StatsConstants.SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+		
+		        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_TIMES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_TIMES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_SIZE,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_SIZE,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_EPOLLS,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_SNDBCK_TIMES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_PERM_FAILURES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+		
+		        this.statsTable.put(StatsConstants.CONSUMER_REGISTER_TIME,
+		            new StatsItemSet(StatsConstants.CONSUMER_REGISTER_TIME, this.scheduledExecutorService,		
+",
+,
+		fromLine:"		286",
+		toLine:"		296",
+		content:"
+		    public void shutdown() {
+		        this.scheduledExecutorService.shutdown();
+		        this.commercialExecutor.shutdown();
+		    }
+		
+		    public StatsItem getStatsItem(final String statsName, final String statsKey) {
+		        try {
+		            return this.statsTable.get(statsName).getStatsItem(statsKey);
+		        } catch (Exception e) {
+		        }
+				
+",
+,
+
+	],
+
+}

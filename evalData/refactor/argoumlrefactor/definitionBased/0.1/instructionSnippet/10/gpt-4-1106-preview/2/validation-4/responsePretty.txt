@@ -1,27 +1,225 @@
-"{
-    "refactorings": {
-        "/root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java": [
-            {
-                "fromLine": 120,
-                "toLine": 140,
-                "oldContent": "    private List<FigActivation> createStandardActivations(\n                final List<FigMessage> figMessages) {        \n        \n        final List<FigActivation> newActivations =\n            new LinkedList<FigActivation>();\n        \n        // Check here if there are no incoming call actions\n        // if not then create an activation at the top of the lifeline\n        FigActivation currentActivation = null;\n        if (!hasIncomingCallActionFirst(figMessages)) {\n            currentActivation = createActivationFig(\n                    getOwner(),\n                    lineFig.getX(),\n                    lineFig.getY(), \n                    lineFig.getWidth(), \n                    lineFig.getHeight(),\n                    getSettings(),\n                    null);\n        }\n        \n        // This counts the number of repeated call/returns that take place",
-                "newContent": "    private List<FigActivation> createStandardActivations(\n                final List<FigMessage> figMessages) {        \n        \n        final List<FigActivation> newActivations =\n            new LinkedList<FigActivation>();\n        \n        // Check here if there are no incoming call actions\n        // if not then create an activation at the top of the lifeline\n        FigActivation currentActivation = null;\n        if (!hasIncomingCallActionFirst(figMessages)) {\n            ActivationData data = new ActivationData(\n                    getOwner(),\n                    lineFig.getX(),\n                    lineFig.getY(), \n                    lineFig.getWidth(), \n                    lineFig.getHeight(),\n                    getSettings(),\n                    null);\n            currentActivation = createActivationFig(data);\n        }\n        \n        // This counts the number of repeated call/returns that take place"
-            },
-            {
-                "fromLine": 147,
-                "toLine": 179,
-                "oldContent": "        for (FigMessage figMessage : figMessages) {\n            int ySender = 0;\n            \n            if (!figMessage.isSelfMessage()) {\n                if (isIncoming(figMessage)) {\n                    if (currentActivation == null) {\n                        if (figMessage.isSynchCallMessage()) {\n                            // if we are the dest and is a call action, create the \n                            // activation, but don't add it until the height is set.\n                            ySender = figMessage.getFinalY();\n                            currentActivation = createActivationFig(\n                                    getOwner(), \n                                    lineFig.getX(), \n                                    ySender, \n                                    0, \n                                    0,\n                                    getSettings(),\n                                    figMessage);\n                            activationsCount++;\n                        } else if (figMessage.isCreateMessage()) {\n                            // if we are the destination of a create action,\n                            // create the entire activation\n                            currentActivation = createActivationFig(\n                                    getOwner(),\n                                    lineFig.getX(),\n                                    lineFig.getY(),\n                                    0,\n                                    0,\n                                    getSettings(),\n                                    figMessage);\n                            activationsCount++;\n                        }\n                    } else {",
-                "newContent": "        for (FigMessage figMessage : figMessages) {\n            int ySender = 0;\n            \n            if (!figMessage.isSelfMessage()) {\n                if (isIncoming(figMessage)) {\n                    if (currentActivation == null) {\n                        if (figMessage.isSynchCallMessage()) {\n                            // if we are the dest and is a call action, create the \n                            // activation, but don't add it until the height is set.\n                            ySender = figMessage.getFinalY();\n                            ActivationData data = new ActivationData(\n                                    getOwner(), \n                                    lineFig.getX(), \n                                    ySender, \n                                    0, \n                                    0,\n                                    getSettings(),\n                                    figMessage);\n                            currentActivation = createActivationFig(data);\n                            activationsCount++;\n                        } else if (figMessage.isCreateMessage()) {\n                            // if we are the destination of a create action,\n                            // create the entire activation\n                            ActivationData data = new ActivationData(\n                                    getOwner(),\n                                    lineFig.getX(),\n                                    lineFig.getY(),\n                                    0,\n                                    0,\n                                    getSettings(),\n                                    figMessage);\n                            currentActivation = createActivationFig(data);\n                            activationsCount++;\n                        }\n                    } else {"
-            },
-            {
-                "fromLine": 245,
-                "toLine": 268,
-                "oldContent": "     * @param messageFig\n     * @return true if the message is outgoing\n     */\n    private boolean isOutgoing(FigMessage messageFig) {\n        return (messageFig.getSourceFigNode().getOwner() == getOwner());\n    }\n    \n    private FigActivation createActivationFig(\n            final ActivationData data) {\n        return new FigActivation(\n                data.getOwner(),\n                new Rectangle(data.getX(), data.getY(), data.getWidth(), data.getHeight()),\n                data.getSettings(),\n                data.getMessageFig());\n    }\n    \n    private List<FigActivation> createStackedActivations(\n            final List<FigMessage> figMessages) {\n        \n        final List<FigActivation> newActivations =\n            new LinkedList<FigActivation>();\n        \n        FigActivation currentAct = null;\n        }",
-                "newContent": "     * @param messageFig\n     * @return true if the message is outgoing\n     */\n    private boolean isOutgoing(FigMessage messageFig) {\n        return (messageFig.getSourceFigNode().getOwner() == getOwner());\n    }\n    \n    private FigActivation createActivationFig(\n            final ActivationData data) {\n        return new FigActivation(\n                data.owner(),\n                new Rectangle(data.x(), data.y(), data.width(), data.height()),\n                data.settings(),\n                data.messageFig());\n    }\n    \n    private List<FigActivation> createStackedActivations(\n            final List<FigMessage> figMessages) {\n        \n        final List<FigActivation> newActivations =\n            new LinkedList<FigActivation>();\n        \n        FigActivation currentAct = null;\n        }"
-            }
-        ]
-    },
-    "extractedClasses": {
-        "src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/ActivationData.java": "package org.argouml.sequence2.diagram;\n\nimport org.argouml.uml.diagram.DiagramSettings;\n\npublic class ActivationData {\n    private final Object owner;\n    private final int x;\n    private final int y;\n    private final int width;\n    private final int height;\n    private final DiagramSettings settings;\n    private final FigMessage messageFig;\n\n    public ActivationData(Object owner, int x, int y, int width, int height, DiagramSettings settings, FigMessage messageFig) {\n        this.owner = owner;\n        this.x = x;\n        this.y = y;\n        this.width = width;\n        this.height = height;\n        this.settings = settings;\n        this.messageFig = messageFig;\n    }\n\n    public Object owner() { return owner; }\n    public int x() { return x; }\n    public int y() { return y; }\n    public int width() { return width; }\n    public int height() { return height; }\n    public DiagramSettings settings() { return settings; }\n    public FigMessage messageFig() { return messageFig; }\n}"
-    }
-}"
+refactorings:
+{
+	/root/data_clump_solver/cloned_projects/argoumlrefactor/src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/FigLifeLine.java:
+	[
+		fromLine:"		120",
+		toLine:"		140",
+		oldContent:"
+		    private List<FigActivation> createStandardActivations(
+		                final List<FigMessage> figMessages) {        
+		        
+		        final List<FigActivation> newActivations =
+		            new LinkedList<FigActivation>();
+		        
+		        // Check here if there are no incoming call actions
+		        // if not then create an activation at the top of the lifeline
+		        FigActivation currentActivation = null;
+		        if (!hasIncomingCallActionFirst(figMessages)) {
+		            currentActivation = createActivationFig(
+		                    getOwner(),
+		                    lineFig.getX(),
+		                    lineFig.getY(), 
+		                    lineFig.getWidth(), 
+		                    lineFig.getHeight(),
+		                    getSettings(),
+		                    null);
+		        }
+		        
+		        // This counts the number of repeated call/returns that take place		
+",
+		newContent:"
+		    private List<FigActivation> createStandardActivations(
+		                final List<FigMessage> figMessages) {        
+		        
+		        final List<FigActivation> newActivations =
+		            new LinkedList<FigActivation>();
+		        
+		        // Check here if there are no incoming call actions
+		        // if not then create an activation at the top of the lifeline
+		        FigActivation currentActivation = null;
+		        if (!hasIncomingCallActionFirst(figMessages)) {
+		            ActivationData data = new ActivationData(
+		                    getOwner(),
+		                    lineFig.getX(),
+		                    lineFig.getY(), 
+		                    lineFig.getWidth(), 
+		                    lineFig.getHeight(),
+		                    getSettings(),
+		                    null);
+		            currentActivation = createActivationFig(data);
+		        }
+		        
+		        // This counts the number of repeated call/returns that take place		
+",
+,
+		fromLine:"		147",
+		toLine:"		179",
+		oldContent:"
+		        for (FigMessage figMessage : figMessages) {
+		            int ySender = 0;
+		            
+		            if (!figMessage.isSelfMessage()) {
+		                if (isIncoming(figMessage)) {
+		                    if (currentActivation == null) {
+		                        if (figMessage.isSynchCallMessage()) {
+		                            // if we are the dest and is a call action, create the 
+		                            // activation, but don't add it until the height is set.
+		                            ySender = figMessage.getFinalY();
+		                            currentActivation = createActivationFig(
+		                                    getOwner(), 
+		                                    lineFig.getX(), 
+		                                    ySender, 
+		                                    0, 
+		                                    0,
+		                                    getSettings(),
+		                                    figMessage);
+		                            activationsCount++;
+		                        } else if (figMessage.isCreateMessage()) {
+		                            // if we are the destination of a create action,
+		                            // create the entire activation
+		                            currentActivation = createActivationFig(
+		                                    getOwner(),
+		                                    lineFig.getX(),
+		                                    lineFig.getY(),
+		                                    0,
+		                                    0,
+		                                    getSettings(),
+		                                    figMessage);
+		                            activationsCount++;
+		                        }
+		                    } else {		
+",
+		newContent:"
+		        for (FigMessage figMessage : figMessages) {
+		            int ySender = 0;
+		            
+		            if (!figMessage.isSelfMessage()) {
+		                if (isIncoming(figMessage)) {
+		                    if (currentActivation == null) {
+		                        if (figMessage.isSynchCallMessage()) {
+		                            // if we are the dest and is a call action, create the 
+		                            // activation, but don't add it until the height is set.
+		                            ySender = figMessage.getFinalY();
+		                            ActivationData data = new ActivationData(
+		                                    getOwner(), 
+		                                    lineFig.getX(), 
+		                                    ySender, 
+		                                    0, 
+		                                    0,
+		                                    getSettings(),
+		                                    figMessage);
+		                            currentActivation = createActivationFig(data);
+		                            activationsCount++;
+		                        } else if (figMessage.isCreateMessage()) {
+		                            // if we are the destination of a create action,
+		                            // create the entire activation
+		                            ActivationData data = new ActivationData(
+		                                    getOwner(),
+		                                    lineFig.getX(),
+		                                    lineFig.getY(),
+		                                    0,
+		                                    0,
+		                                    getSettings(),
+		                                    figMessage);
+		                            currentActivation = createActivationFig(data);
+		                            activationsCount++;
+		                        }
+		                    } else {		
+",
+,
+		fromLine:"		245",
+		toLine:"		268",
+		oldContent:"
+		     * @param messageFig
+		     * @return true if the message is outgoing
+		     */
+		    private boolean isOutgoing(FigMessage messageFig) {
+		        return (messageFig.getSourceFigNode().getOwner() == getOwner());
+		    }
+		    
+		    private FigActivation createActivationFig(
+		            final ActivationData data) {
+		        return new FigActivation(
+		                data.getOwner(),
+		                new Rectangle(data.getX(), data.getY(), data.getWidth(), data.getHeight()),
+		                data.getSettings(),
+		                data.getMessageFig());
+		    }
+		    
+		    private List<FigActivation> createStackedActivations(
+		            final List<FigMessage> figMessages) {
+		        
+		        final List<FigActivation> newActivations =
+		            new LinkedList<FigActivation>();
+		        
+		        FigActivation currentAct = null;
+		        }		
+",
+		newContent:"
+		     * @param messageFig
+		     * @return true if the message is outgoing
+		     */
+		    private boolean isOutgoing(FigMessage messageFig) {
+		        return (messageFig.getSourceFigNode().getOwner() == getOwner());
+		    }
+		    
+		    private FigActivation createActivationFig(
+		            final ActivationData data) {
+		        return new FigActivation(
+		                data.owner(),
+		                new Rectangle(data.x(), data.y(), data.width(), data.height()),
+		                data.settings(),
+		                data.messageFig());
+		    }
+		    
+		    private List<FigActivation> createStackedActivations(
+		            final List<FigMessage> figMessages) {
+		        
+		        final List<FigActivation> newActivations =
+		            new LinkedList<FigActivation>();
+		        
+		        FigActivation currentAct = null;
+		        }		
+",
+,
+
+	],
+
+}
+extractedClasses:
+{
+	src/argouml-core-diagrams-sequence2/src/org/argouml/sequence2/diagram/ActivationData.java:"
+	package org.argouml.sequence2.diagram;
+	
+	import org.argouml.uml.diagram.DiagramSettings;
+	
+	public class ActivationData {
+	    private final Object owner;
+	    private final int x;
+	    private final int y;
+	    private final int width;
+	    private final int height;
+	    private final DiagramSettings settings;
+	    private final FigMessage messageFig;
+	
+	    public ActivationData(Object owner, int x, int y, int width, int height, DiagramSettings settings, FigMessage messageFig) {
+	        this.owner = owner;
+	        this.x = x;
+	        this.y = y;
+	        this.width = width;
+	        this.height = height;
+	        this.settings = settings;
+	        this.messageFig = messageFig;
+	    }
+	
+	    public Object owner() { return owner; }
+	    public int x() { return x; }
+	    public int y() { return y; }
+	    public int width() { return width; }
+	    public int height() { return height; }
+	    public DiagramSettings settings() { return settings; }
+	    public FigMessage messageFig() { return messageFig; }
+	}	
+",
+
+}

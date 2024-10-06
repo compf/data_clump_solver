@@ -1,162 +1,394 @@
-"{
-    "refactorings": {
-        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
-            {
-                "fromLine": 16,
-                "toLine": 42,
-                "oldContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\nimport org.apache.rocketmq.common.statistics.StatisticsItem;\nimport org.apache.rocketmq.common.statistics.StatisticsItemFormatter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;\nimport org.apache.rocketmq.common.statistics.StatisticsKindMeta;\nimport org.apache.rocketmq.common.statistics.StatisticsManager;\nimport org.apache.rocketmq.common.stats.MomentStatsItemSet;\nimport org.apache.rocketmq.common.stats.Stats;\nimport org.apache.rocketmq.common.stats.StatsItem;\nimport org.apache.rocketmq.common.stats.StatsItemSet;\nimport org.apache.rocketmq.common.topic.TopicValidator;\nimport org.apache.rocketmq.common.utils.ThreadUtils;\nimport org.apache.rocketmq.logging.org.slf4j.Logger;\nimport org.apache.rocketmq.logging.org.slf4j.LoggerFactory;\n",
-                "newContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\nimport org.apache.rocketmq.common.statistics.StatisticsItem;\nimport org.apache.rocketmq.common.statistics.StatisticsItemFormatter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;\nimport org.apache.rocketmq.common.statistics.StatisticsKindMeta;\nimport org.apache.rocketmq.common.statistics.StatisticsManager;\nimport org.apache.rocketmq.common.stats.MomentStatsItemSet;\nimport org.apache.rocketmq.common.stats.StatsItem;\nimport org.apache.rocketmq.common.stats.StatsItemSet;\nimport org.apache.rocketmq.common.topic.TopicValidator;\nimport org.apache.rocketmq.common.utils.ThreadUtils;\nimport org.apache.rocketmq.logging.org.slf4j.Logger;\nimport org.apache.rocketmq.logging.org.slf4j.LoggerFactory;\nimport org.apache.rocketmq.common.stats.StatsKey;\n"
-            },
-            {
-                "fromLine": 134,
-                "toLine": 139,
-                "oldContent": "    public void init() {\n        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);",
-                "newContent": "    public void init() {\n        momentStatsItemSetFallSize = new MomentStatsItemSet(StatsKey.GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(StatsKey.GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);"
-            },
-            {
-                "fromLine": 141,
-                "toLine": 159,
-                "oldContent": "        if (enableQueueStat) {\n            this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));\n            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));\n        }\n        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));\n        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));",
-                "newContent": ""
-            },
-            {
-                "fromLine": 164,
-                "toLine": 173,
-                "oldContent": "            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,\n            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,\n            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,\n            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,\n            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n",
-                "newContent": ""
-            },
-            {
-                "fromLine": 176,
-                "toLine": 191,
-                "oldContent": "\n        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,\n            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,\n            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,\n            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,\n            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,\n            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,\n            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,\n            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));\n",
-                "newContent": ""
-            },
-            {
-                "fromLine": 301,
-                "toLine": 314,
-                "oldContent": "    public void onTopicDeleted(final String topic) {\n        this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);\n        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);\n        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, \"@\");\n        }\n        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, \"@\");\n        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, \"@\");",
-                "newContent": ""
-            },
-            {
-                "fromLine": 318,
-                "toLine": 327,
-                "oldContent": "    public void onGroupDeleted(final String group) {\n        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueBySuffixKey(group, \"@\");\n        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueBySuffixKey(group, \"@\");\n        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueBySuffixKey(group, \"@\");\n            this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueBySuffixKey(group, \"@\");\n        }\n        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, \"@\");\n        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueBySuffixKey(group, \"@\");\n        this.momentStatsItemSetFallSize.delValueBySuffixKey(group, \"@\");",
-                "newContent": ""
-            },
-            {
-                "fromLine": 332,
-                "toLine": 334,
-                "oldContent": "        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), 1, 1);\n        }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 338,
-                "toLine": 340,
-                "oldContent": "        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), num, times);\n        }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 344,
-                "toLine": 346,
-                "oldContent": "        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_PUT_SIZE).addValue(buildStatsKey(topic, queueId), size, 1);\n        }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 351,
-                "toLine": 353,
-                "oldContent": "            final String statsKey = buildStatsKey(topic, queueId, group);\n            this.statsTable.get(Stats.QUEUE_GET_NUMS).addValue(statsKey, incValue, 1);\n        }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 358,
-                "toLine": 360,
-                "oldContent": "            final String statsKey = buildStatsKey(topic, queueId, group);\n            this.statsTable.get(Stats.QUEUE_GET_SIZE).addValue(statsKey, incValue, 1);\n        }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 387,
-                "toLine": 389,
-                "oldContent": "    public void incTopicPutNums(final String topic) {\n        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, 1, 1);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 391,
-                "toLine": 393,
-                "oldContent": "    public void incTopicPutNums(final String topic, int num, int times) {\n        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, num, times);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 395,
-                "toLine": 397,
-                "oldContent": "    public void incTopicPutSize(final String topic, final int size) {\n        this.statsTable.get(Stats.TOPIC_PUT_SIZE).addValue(topic, size, 1);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 400,
-                "toLine": 402,
-                "oldContent": "        final String statsKey = buildStatsKey(topic, group);\n        this.statsTable.get(Stats.GROUP_GET_NUMS).addValue(statsKey, incValue, 1);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 459,
-                "toLine": 461,
-                "oldContent": "        final String statsKey = buildStatsKey(topic, group);\n        this.statsTable.get(Stats.GROUP_GET_SIZE).addValue(statsKey, incValue, 1);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 469,
-                "toLine": 471,
-                "oldContent": "        }\n        this.statsTable.get(Stats.GROUP_GET_LATENCY).addRTValue(statsKey, incValue, 1);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 484,
-                "toLine": 486,
-                "oldContent": "    public void incBrokerPutNums() {\n        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(1);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 488,
-                "toLine": 490,
-                "oldContent": "    public void incBrokerPutNums(final String topic, final int incValue) {\n        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);\n        incBrokerPutNumsWithoutSystemTopic(topic, incValue);",
-                "newContent": ""
-            },
-            {
-                "fromLine": 493,
-                "toLine": 495,
-                "oldContent": "    public void incBrokerGetNums(final String topic, final int incValue) {\n        this.statsTable.get(Stats.BROKER_GET_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);\n        this.incBrokerGetNumsWithoutSystemTopic(topic, incValue);",
-                "newContent": ""
-            },
-            {
-                "fromLine": 545,
-                "toLine": 547,
-                "oldContent": "        final String statsKey = buildStatsKey(topic, group);\n        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);\n    }",
-                "newContent": ""
-            },
-            {
-                "fromLine": 550,
-                "toLine": 555,
-                "oldContent": "        final String statsKey = buildStatsKey(topic, group);\n        return this.statsTable.get(Stats.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();\n    }\n\n    public void recordDiskFallBehindTime(final StatsKey statsKey,\n        final long fallBehind) {",
-                "newContent": "        final String statsKey = buildStatsKey(topic, group);\n        return this.statsTable.get(StatsKey.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();\n    }\n\n    public void recordDiskFallBehindTime(final StatsKey statsKey,\n        final long fallBehind) {"
-            },
-            {
-                "fromLine": 558,
-                "toLine": 560,
-                "oldContent": "\n    public void recordDiskFallBehindSize(final StatsKey statsKey,\n        final long fallBehind) {",
-                "newContent": "\n    public void recordDiskFallBehindSize(final StatsKey statsKey,\n        final long fallBehind) {"
-            }
-        ],
-        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/DefaultMessageStore.java": [
-            {
-                "fromLine": 939,
-                "toLine": 941,
-                "oldContent": "                    long fallBehind = maxOffsetPy - maxPhyOffsetPulling;\n                    brokerStatsManager.recordDiskFallBehindSize(group, topic, queueId, fallBehind);\n                }",
-                "newContent": "                    long
-                {
-                    "fromLine": 939,
-                    "toLine": 941,
-                    "oldContent": "                    long fallBehind = maxOffsetPy - maxPhyOffsetPulling;\n                    brokerStatsManager.recordDiskFallBehindSize(group, topic, queueId, fallBehind);\n                }",
-                    "newContent": "                    long fallBehind = maxOffsetPy - maxPhyOffsetPulling;\n                    StatsKey statsKey = new StatsKey(group, topic, queueId);\n                    brokerStatsManager.recordDiskFallBehindSize(statsKey, fallBehind);\n                }"
-                }
-           
-       			"
+refactorings:
+{
+	/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+	[
+		fromLine:"		16",
+		toLine:"		42",
+		oldContent:"
+		 */
+		package org.apache.rocketmq.store.stats;
+		
+		import java.util.HashMap;
+		import java.util.concurrent.ScheduledExecutorService;
+		import org.apache.commons.lang3.tuple.Pair;
+		import org.apache.rocketmq.common.BrokerConfig;
+		import org.apache.rocketmq.common.ThreadFactoryImpl;
+		import org.apache.rocketmq.common.UtilAll;
+		import org.apache.rocketmq.common.constant.LoggerName;
+		import org.apache.rocketmq.common.statistics.StatisticsItem;
+		import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+		import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+		import org.apache.rocketmq.common.statistics.StatisticsManager;
+		import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+		import org.apache.rocketmq.common.stats.Stats;
+		import org.apache.rocketmq.common.stats.StatsItem;
+		import org.apache.rocketmq.common.stats.StatsItemSet;
+		import org.apache.rocketmq.common.topic.TopicValidator;
+		import org.apache.rocketmq.common.utils.ThreadUtils;
+		import org.apache.rocketmq.logging.org.slf4j.Logger;
+		import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+				
+",
+		newContent:"
+		 */
+		package org.apache.rocketmq.store.stats;
+		
+		import java.util.HashMap;
+		import java.util.concurrent.ScheduledExecutorService;
+		import org.apache.commons.lang3.tuple.Pair;
+		import org.apache.rocketmq.common.BrokerConfig;
+		import org.apache.rocketmq.common.ThreadFactoryImpl;
+		import org.apache.rocketmq.common.UtilAll;
+		import org.apache.rocketmq.common.constant.LoggerName;
+		import org.apache.rocketmq.common.statistics.StatisticsItem;
+		import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+		import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+		import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+		import org.apache.rocketmq.common.statistics.StatisticsManager;
+		import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+		import org.apache.rocketmq.common.stats.StatsItem;
+		import org.apache.rocketmq.common.stats.StatsItemSet;
+		import org.apache.rocketmq.common.topic.TopicValidator;
+		import org.apache.rocketmq.common.utils.ThreadUtils;
+		import org.apache.rocketmq.logging.org.slf4j.Logger;
+		import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+		import org.apache.rocketmq.common.stats.StatsKey;
+				
+",
+,
+		fromLine:"		134",
+		toLine:"		139",
+		oldContent:"
+		    public void init() {
+		        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,
+		            scheduledExecutorService, log);
+		
+		        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,
+		            scheduledExecutorService, log);		
+",
+		newContent:"
+		    public void init() {
+		        momentStatsItemSetFallSize = new MomentStatsItemSet(StatsKey.GROUP_GET_FALL_SIZE,
+		            scheduledExecutorService, log);
+		
+		        momentStatsItemSetFallTime = new MomentStatsItemSet(StatsKey.GROUP_GET_FALL_TIME,
+		            scheduledExecutorService, log);		
+",
+,
+		fromLine:"		141",
+		toLine:"		159",
+		oldContent:"
+		        if (enableQueueStat) {
+		            this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+		            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+		            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+		            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+		        }
+		        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+		        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		164",
+		toLine:"		173",
+		oldContent:"
+		            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,
+		            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,
+		            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,
+		            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,
+		            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+				
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		176",
+		toLine:"		191",
+		oldContent:"
+		
+		        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,
+		            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,
+		            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,
+		            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,
+		            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,
+		            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,
+		            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,
+		            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+				
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		301",
+		toLine:"		314",
+		oldContent:"
+		    public void onTopicDeleted(final String topic) {
+		        this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);
+		        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);
+		        if (enableQueueStat) {
+		            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, "@");
+		            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, "@");
+		        }
+		        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, "@");
+		        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, "@");		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		318",
+		toLine:"		327",
+		oldContent:"
+		    public void onGroupDeleted(final String group) {
+		        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueBySuffixKey(group, "@");
+		        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueBySuffixKey(group, "@");
+		        if (enableQueueStat) {
+		            this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueBySuffixKey(group, "@");
+		            this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueBySuffixKey(group, "@");
+		        }
+		        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, "@");
+		        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueBySuffixKey(group, "@");
+		        this.momentStatsItemSetFallSize.delValueBySuffixKey(group, "@");		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		332",
+		toLine:"		334",
+		oldContent:"
+		        if (enableQueueStat) {
+		            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), 1, 1);
+		        }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		338",
+		toLine:"		340",
+		oldContent:"
+		        if (enableQueueStat) {
+		            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), num, times);
+		        }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		344",
+		toLine:"		346",
+		oldContent:"
+		        if (enableQueueStat) {
+		            this.statsTable.get(Stats.QUEUE_PUT_SIZE).addValue(buildStatsKey(topic, queueId), size, 1);
+		        }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		351",
+		toLine:"		353",
+		oldContent:"
+		            final String statsKey = buildStatsKey(topic, queueId, group);
+		            this.statsTable.get(Stats.QUEUE_GET_NUMS).addValue(statsKey, incValue, 1);
+		        }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		358",
+		toLine:"		360",
+		oldContent:"
+		            final String statsKey = buildStatsKey(topic, queueId, group);
+		            this.statsTable.get(Stats.QUEUE_GET_SIZE).addValue(statsKey, incValue, 1);
+		        }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		387",
+		toLine:"		389",
+		oldContent:"
+		    public void incTopicPutNums(final String topic) {
+		        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, 1, 1);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		391",
+		toLine:"		393",
+		oldContent:"
+		    public void incTopicPutNums(final String topic, int num, int times) {
+		        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, num, times);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		395",
+		toLine:"		397",
+		oldContent:"
+		    public void incTopicPutSize(final String topic, final int size) {
+		        this.statsTable.get(Stats.TOPIC_PUT_SIZE).addValue(topic, size, 1);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		400",
+		toLine:"		402",
+		oldContent:"
+		        final String statsKey = buildStatsKey(topic, group);
+		        this.statsTable.get(Stats.GROUP_GET_NUMS).addValue(statsKey, incValue, 1);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		459",
+		toLine:"		461",
+		oldContent:"
+		        final String statsKey = buildStatsKey(topic, group);
+		        this.statsTable.get(Stats.GROUP_GET_SIZE).addValue(statsKey, incValue, 1);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		469",
+		toLine:"		471",
+		oldContent:"
+		        }
+		        this.statsTable.get(Stats.GROUP_GET_LATENCY).addRTValue(statsKey, incValue, 1);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		484",
+		toLine:"		486",
+		oldContent:"
+		    public void incBrokerPutNums() {
+		        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(1);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		488",
+		toLine:"		490",
+		oldContent:"
+		    public void incBrokerPutNums(final String topic, final int incValue) {
+		        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+		        incBrokerPutNumsWithoutSystemTopic(topic, incValue);		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		493",
+		toLine:"		495",
+		oldContent:"
+		    public void incBrokerGetNums(final String topic, final int incValue) {
+		        this.statsTable.get(Stats.BROKER_GET_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+		        this.incBrokerGetNumsWithoutSystemTopic(topic, incValue);		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		545",
+		toLine:"		547",
+		oldContent:"
+		        final String statsKey = buildStatsKey(topic, group);
+		        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);
+		    }		
+",
+		newContent:"
+				
+",
+,
+		fromLine:"		550",
+		toLine:"		555",
+		oldContent:"
+		        final String statsKey = buildStatsKey(topic, group);
+		        return this.statsTable.get(Stats.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();
+		    }
+		
+		    public void recordDiskFallBehindTime(final StatsKey statsKey,
+		        final long fallBehind) {		
+",
+		newContent:"
+		        final String statsKey = buildStatsKey(topic, group);
+		        return this.statsTable.get(StatsKey.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();
+		    }
+		
+		    public void recordDiskFallBehindTime(final StatsKey statsKey,
+		        final long fallBehind) {		
+",
+,
+		fromLine:"		558",
+		toLine:"		560",
+		oldContent:"
+		
+		    public void recordDiskFallBehindSize(final StatsKey statsKey,
+		        final long fallBehind) {		
+",
+		newContent:"
+		
+		    public void recordDiskFallBehindSize(final StatsKey statsKey,
+		        final long fallBehind) {		
+",
+,
+
+	],
+
+}

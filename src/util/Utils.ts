@@ -228,6 +228,7 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
             }
             else{
                 value=value.replaceAll("\n","\n"+indent)
+                value=value.replaceAll("\\n","\n"+indent)
                 text+="\""+"\n"+indent+value +indent+"\n"+"\",\n"
             }
         }

@@ -1,14 +1,245 @@
-"{
-    "refactorings": {
-        "/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
-            {
-                "fromLine": 16,
-                "toLine": 29,
-                "oldContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\nimport org.apache.rocketmq.common.stats.StatsItemSet;\nimport org.apache.rocketmq.common.stats.MomentStatsItemSet;\nimport org.apache.rocketmq.common.stats.StatsItem;\nimport org.apache.rocketmq.common.statistics.StatisticsManager;",
-                "newContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\n// Updated imports\nimport org.apache.rocketmq.common.stats.*;\nimport org.apache.rocketmq.common.statistics.*;"
-            },
-            {
-                "fromLine": 130,
-                "toLine": 327,
-                "oldContent": "        init();\n    }\n\n    }\n\n    public BrokerStatsManager(String clusterName, boolean enableQueueStat) {\n        this.clusterName = clusterName;\n        this.enableQueueStat = enableQueueStat;\n        initScheduleService();\n        init();\n    }\n\n    public void init() {\n        // Initialization with extracted constants\n        momentStatsItemSetFallSize = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_SIZE,\n            scheduledExecutorService, log);\n\n        momentStatsItemSetFallTime = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_TIME,\n            scheduledExecutorService, log);\n\n        if (enableQueueStat) {\n            this.statsTable.put(StatsConstants.QUEUE_PUT_NUMS, new StatsItemSet(StatsConstants.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(StatsConstants.QUEUE_PUT_SIZE, new StatsItemSet(StatsConstants.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));\n            this.statsTable.put(StatsConstants.QUEUE_GET_NUMS, new StatsItemSet(StatsConstants.QUEUE_GET_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(StatsConstants.QUEUE_GET_SIZE, new StatsItemSet(StatsConstants.QUEUE_GET_SIZE, this.scheduledExecutorService, log));\n        }\n        // Other constants refactored into StatsConstants class\n        this.statsTable.put(StatsConstants.TOPIC_PUT_NUMS, new StatsItemSet(StatsConstants.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.TOPIC_PUT_SIZE, new StatsItemSet(StatsConstants.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_NUMS, new StatsItemSet(StatsConstants.GROUP_GET_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_SIZE, new StatsItemSet(StatsConstants.GROUP_GET_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_ACK_NUMS, new StatsItemSet(StatsConstants.GROUP_ACK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_CK_NUMS, new StatsItemSet(StatsConstants.GROUP_CK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_LATENCY, new StatsItemSet(StatsConstants.GROUP_GET_LATENCY, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.TOPIC_PUT_LATENCY, new StatsItemSet(StatsConstants.TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.SNDBCK_PUT_NUMS, new StatsItemSet(StatsConstants.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.DLQ_PUT_NUMS, new StatsItemSet(StatsConstants.DLQ_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS, new StatsItemSet(StatsConstants.BROKER_PUT_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_NUMS, new StatsItemSet(StatsConstants.BROKER_GET_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_ACK_NUMS, new StatsItemSet(StatsConstants.BROKER_ACK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_CK_NUMS, new StatsItemSet(StatsConstants.BROKER_CK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,\n            new StatsItemSet(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,\n            new StatsItemSet(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_NUMS,\n            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_SIZE,\n            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_NUMS,\n            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_SIZE,\n            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n\n        this.statsTable.put(StatsConstants.SNDBCK2DLQ_TIMES,\n            new StatsItemSet(StatsConstants.SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));\n\n        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_TIMES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_TIMES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_SIZE,\n            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_SIZE,\n            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_EPOLLS,\n            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_SNDBCK_TIMES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(StatsConstants.COMMERCIAL_PERM_FAILURES,\n            new StatsItemSet(StatsConstants.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));\n\n        this.statsTable.put(StatsConstants.CONSUMER_REGISTER_TIME,\n            new StatsItemSet(StatsConstants.CONSUMER_REGISTER_TIME, this.scheduledExecutorService, log));\n        this.statsTable.put(StatsConstants.PRODUCER_REGISTER_TIME,\n            new StatsItemSet(StatsConstants.PRODUCER_REGISTER_TIME, this.scheduledExecutorService, log));\n\n        this.statsTable.put(StatsConstants.CHANNEL_ACTIVITY, new StatsItemSet(StatsConstants.CHANNEL_ACTIVITY, this.scheduledExecutorService, log));\n\n        StatisticsItemFormatter formatter = new StatisticsItemFormatter();\n        accountStatManager.setBriefMeta(new Pair[] {\n            Pair.of(StatsConstants.RT, new long[][] {{50, 50}, {100, 10}, {1000, 10}}),\n            Pair.of(StatsConstants.INNER_RT, new long[][] {{10, 10}, {100, 10}, {1000, 10}})});\n        String[] itemNames = new String[] {\n            MSG_NUM, SUCCESS_MSG_NUM, FAILURE_MSG_NUM, COMMERCIAL_MSG_NUM,\n            SUCCESS_REQ_NUM, FAILURE_REQ_NUM,\n            MSG_SIZE, SUCCESS_MSG_SIZE, FAILURE_MSG_SIZE,\n            RT, INNER_RT};\n        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(\n            ACCOUNT_SEND, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));\n        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(\n            ACCOUNT_RCV, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));\n        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(\n            ACCOUNT_SEND_BACK, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));\n        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(\n            ACCOUNT_SEND_BACK_TO_DLQ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));\n        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(\n            ACCOUNT_SEND_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));\n        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(\n            ACCOUNT_REV_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));\n        this.accountStatManager.setStatisticsItemStateGetter(new StatisticsItemStateGetter() {\n            @Override\n            public boolean online(StatisticsItem item) {\n                String[] strArr = null;\n                try {\n                    strArr = splitAccountStatKey(item.getStatObject());\n                } catch (Exception e) {\n                    log.warn(\"parse account stat key failed, key: {}\", item.getStatObject());\n                    return false;\n                }\n\n                // TODO ugly\n                if (strArr == null || strArr.length < 4) {\n                    return false;\n                }\n\n                String instanceId = strArr[1];\n                String topic = strArr[2];\n                String group = strArr[3];\n\n                String kind = item.getStatKind();\n                if (ACCOUNT_SEND.equals(kind) || ACCOUNT_SEND_REJ.equals(kind)) {\n                    return producerStateGetter.online(instanceId, group, topic);\n                } else if (ACCOUNT_RCV.equals(kind) || ACCOUNT_SEND_BACK.equals(kind) || ACCOUNT_SEND_BACK_TO_DLQ.equals(kind) || ACCOUNT_REV_REJ.equals(kind)) {\n                    return consumerStateGetter.online(instanceId, group, topic);\n                }\n                return false;\n            }\n        });\n    }\n\n    private void initScheduleService() {\n        this.scheduledExecutorService =\n            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(\"BrokerStatsThread\", true, brokerConfig));\n        this.commercialExecutor =\n            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(\"CommercialStatsThread\", true, brokerConfig));\n        this.accountExecutor =\n            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(\"AccountStatsThread\", true, brokerConfig));\n    }\n\n    public MomentStatsItemSet getMomentStatsItemSetFallSize() {\n        return momentStatsItemSetFallSize;\n    }\n\n    public MomentStatsItemSet getMomentStatsItemSetFallTime() {\n        return momentStatsItemSetFallTime;\n    }\n\n    public StateGetter getProducerStateGetter() {\n        return producerStateGetter;\n    }\n\n    public void setProducerStateGetter(StateGetter producerStateGetter) {\n        this.producerStateGetter = producerStateGetter;\n    }\n\n    the StateGetter getConsumerStateGetter() {\n        return consumerStateGetter;\n    }\n\n    the void setConsumerStateGetter(StateGetter consumerStateGetter) {\n        this.consumerStateGetter = consumerStateGetter;\n    }\n\n    public void start() {\n    }\n\n    the void shutdown() {\n        this.scheduledExecutorService.shutdown();\n        this.commercialExecutor.shutdown();\n    }\n\n    public StatsItem getStatsItem(final String statsName, final String statsKey) {\n        try {\n            return this.statsTable.get(statsName).getStatsItem(statsKey);\n        } catch (Exception e) {\n        }\n\n        return null;\n    }\n\n    the void onTopicDeleted(final String topic) {\n        this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);\n        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);\n        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, \"@\");\n        }\n        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, \"@\");\n        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, \"@\");\n        this.momentStatsItemSetFallTime.delValueByInfixKey(topic, \"@\");\n    }\n"}]}   
-}"
+refactorings:
+{
+	/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+	[
+		fromLine:"		16",
+		toLine:"		29",
+		oldContent:"
+		 */
+		package org.apache.rocketmq.store.stats;
+		
+		import java.util.HashMap;
+		import java.util.concurrent.ScheduledExecutorService;
+		import org.apache.commons.lang3.tuple.Pair;
+		import org.apache.rocketmq.common.BrokerConfig;
+		import org.apache.rocketmq.common.ThreadFactoryImpl;
+		import org.apache.rocketmq.common.UtilAll;
+		import org.apache.rocketmq.common.constant.LoggerName;
+		import org.apache.rocketmq.common.stats.StatsItemSet;
+		import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+		import org.apache.rocketmq.common.stats.StatsItem;
+		import org.apache.rocketmq.common.statistics.StatisticsManager;		
+",
+		newContent:"
+		 */
+		package org.apache.rocketmq.store.stats;
+		
+		import java.util.HashMap;
+		import java.util.concurrent.ScheduledExecutorService;
+		import org.apache.commons.lang3.tuple.Pair;
+		import org.apache.rocketmq.common.BrokerConfig;
+		import org.apache.rocketmq.common.ThreadFactoryImpl;
+		import org.apache.rocketmq.common.UtilAll;
+		import org.apache.rocketmq.common.constant.LoggerName;
+		// Updated imports
+		import org.apache.rocketmq.common.stats.*;
+		import org.apache.rocketmq.common.statistics.*;		
+",
+,
+		fromLine:"		130",
+		toLine:"		327",
+		oldContent:"
+		        init();
+		    }
+		
+		    }
+		
+		    public BrokerStatsManager(String clusterName, boolean enableQueueStat) {
+		        this.clusterName = clusterName;
+		        this.enableQueueStat = enableQueueStat;
+		        initScheduleService();
+		        init();
+		    }
+		
+		    public void init() {
+		        // Initialization with extracted constants
+		        momentStatsItemSetFallSize = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_SIZE,
+		            scheduledExecutorService, log);
+		
+		        momentStatsItemSetFallTime = new MomentStatsItemSet(StatsConstants.GROUP_GET_FALL_TIME,
+		            scheduledExecutorService, log);
+		
+		        if (enableQueueStat) {
+		            this.statsTable.put(StatsConstants.QUEUE_PUT_NUMS, new StatsItemSet(StatsConstants.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+		            this.statsTable.put(StatsConstants.QUEUE_PUT_SIZE, new StatsItemSet(StatsConstants.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+		            this.statsTable.put(StatsConstants.QUEUE_GET_NUMS, new StatsItemSet(StatsConstants.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+		            this.statsTable.put(StatsConstants.QUEUE_GET_SIZE, new StatsItemSet(StatsConstants.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+		        }
+		        // Other constants refactored into StatsConstants class
+		        this.statsTable.put(StatsConstants.TOPIC_PUT_NUMS, new StatsItemSet(StatsConstants.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.TOPIC_PUT_SIZE, new StatsItemSet(StatsConstants.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_NUMS, new StatsItemSet(StatsConstants.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_SIZE, new StatsItemSet(StatsConstants.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_ACK_NUMS, new StatsItemSet(StatsConstants.GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_CK_NUMS, new StatsItemSet(StatsConstants.GROUP_CK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_LATENCY, new StatsItemSet(StatsConstants.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.TOPIC_PUT_LATENCY, new StatsItemSet(StatsConstants.TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.SNDBCK_PUT_NUMS, new StatsItemSet(StatsConstants.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.DLQ_PUT_NUMS, new StatsItemSet(StatsConstants.DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS, new StatsItemSet(StatsConstants.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_NUMS, new StatsItemSet(StatsConstants.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_ACK_NUMS, new StatsItemSet(StatsConstants.BROKER_ACK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_CK_NUMS, new StatsItemSet(StatsConstants.BROKER_CK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC,
+		            new StatsItemSet(StatsConstants.BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+		            new StatsItemSet(StatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_NUMS,
+		            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.GROUP_GET_FROM_DISK_SIZE,
+		            new StatsItemSet(StatsConstants.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_NUMS,
+		            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.BROKER_GET_FROM_DISK_SIZE,
+		            new StatsItemSet(StatsConstants.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+		
+		        this.statsTable.put(StatsConstants.SNDBCK2DLQ_TIMES,
+		            new StatsItemSet(StatsConstants.SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+		
+		        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_TIMES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_TIMES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_SEND_SIZE,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_SIZE,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_RCV_EPOLLS,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_SNDBCK_TIMES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+		        this.statsTable.put(StatsConstants.COMMERCIAL_PERM_FAILURES,
+		            new StatsItemSet(StatsConstants.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+		
+		        this.statsTable.put(StatsConstants.CONSUMER_REGISTER_TIME,
+		            new StatsItemSet(StatsConstants.CONSUMER_REGISTER_TIME, this.scheduledExecutorService, log));
+		        this.statsTable.put(StatsConstants.PRODUCER_REGISTER_TIME,
+		            new StatsItemSet(StatsConstants.PRODUCER_REGISTER_TIME, this.scheduledExecutorService, log));
+		
+		        this.statsTable.put(StatsConstants.CHANNEL_ACTIVITY, new StatsItemSet(StatsConstants.CHANNEL_ACTIVITY, this.scheduledExecutorService, log));
+		
+		        StatisticsItemFormatter formatter = new StatisticsItemFormatter();
+		        accountStatManager.setBriefMeta(new Pair[] {
+		            Pair.of(StatsConstants.RT, new long[][] {{50, 50}, {100, 10}, {1000, 10}}),
+		            Pair.of(StatsConstants.INNER_RT, new long[][] {{10, 10}, {100, 10}, {1000, 10}})});
+		        String[] itemNames = new String[] {
+		            MSG_NUM, SUCCESS_MSG_NUM, FAILURE_MSG_NUM, COMMERCIAL_MSG_NUM,
+		            SUCCESS_REQ_NUM, FAILURE_REQ_NUM,
+		            MSG_SIZE, SUCCESS_MSG_SIZE, FAILURE_MSG_SIZE,
+		            RT, INNER_RT};
+		        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+		            ACCOUNT_SEND, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+		        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+		            ACCOUNT_RCV, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+		        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+		            ACCOUNT_SEND_BACK, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+		        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+		            ACCOUNT_SEND_BACK_TO_DLQ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+		        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+		            ACCOUNT_SEND_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+		        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+		            ACCOUNT_REV_REJ, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));
+		        this.accountStatManager.setStatisticsItemStateGetter(new StatisticsItemStateGetter() {
+		            @Override
+		            public boolean online(StatisticsItem item) {
+		                String[] strArr = null;
+		                try {
+		                    strArr = splitAccountStatKey(item.getStatObject());
+		                } catch (Exception e) {
+		                    log.warn("parse account stat key failed, key: {}", item.getStatObject());
+		                    return false;
+		                }
+		
+		                // TODO ugly
+		                if (strArr == null || strArr.length < 4) {
+		                    return false;
+		                }
+		
+		                String instanceId = strArr[1];
+		                String topic = strArr[2];
+		                String group = strArr[3];
+		
+		                String kind = item.getStatKind();
+		                if (ACCOUNT_SEND.equals(kind) || ACCOUNT_SEND_REJ.equals(kind)) {
+		                    return producerStateGetter.online(instanceId, group, topic);
+		                } else if (ACCOUNT_RCV.equals(kind) || ACCOUNT_SEND_BACK.equals(kind) || ACCOUNT_SEND_BACK_TO_DLQ.equals(kind) || ACCOUNT_REV_REJ.equals(kind)) {
+		                    return consumerStateGetter.online(instanceId, group, topic);
+		                }
+		                return false;
+		            }
+		        });
+		    }
+		
+		    private void initScheduleService() {
+		        this.scheduledExecutorService =
+		            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("BrokerStatsThread", true, brokerConfig));
+		        this.commercialExecutor =
+		            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("CommercialStatsThread", true, brokerConfig));
+		        this.accountExecutor =
+		            ThreadUtils.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("AccountStatsThread", true, brokerConfig));
+		    }
+		
+		    public MomentStatsItemSet getMomentStatsItemSetFallSize() {
+		        return momentStatsItemSetFallSize;
+		    }
+		
+		    public MomentStatsItemSet getMomentStatsItemSetFallTime() {
+		        return momentStatsItemSetFallTime;
+		    }
+		
+		    public StateGetter getProducerStateGetter() {
+		        return producerStateGetter;
+		    }
+		
+		    public void setProducerStateGetter(StateGetter producerStateGetter) {
+		        this.producerStateGetter = producerStateGetter;
+		    }
+		
+		    the StateGetter getConsumerStateGetter() {
+		        return consumerStateGetter;
+		    }
+		
+		    the void setConsumerStateGetter(StateGetter consumerStateGetter) {
+		        this.consumerStateGetter = consumerStateGetter;
+		    }
+		
+		    public void start() {
+		    }
+		
+		    the void shutdown() {
+		        this.scheduledExecutorService.shutdown();
+		        this.commercialExecutor.shutdown();
+		    }
+		
+		    public StatsItem getStatsItem(final String statsName, final String statsKey) {
+		        try {
+		            return this.statsTable.get(statsName).getStatsItem(statsKey);
+		        } catch (Exception e) {
+		        }
+		
+		        return null;
+		    }
+		
+		    the void onTopicDeleted(final String topic) {
+		        this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);
+		        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);
+		        if (enableQueueStat) {
+		            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, "@");
+		            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, "@");
+		        }
+		        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, "@");
+		        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, "@");
+		        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, "@");
+		        this.momentStatsItemSetFallTime.delValueByInfixKey(topic, "@");
+		    }
+				
+",
+,
+
+	],
+
+}
