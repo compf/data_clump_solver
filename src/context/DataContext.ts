@@ -302,7 +302,7 @@ export class ASTBuildingContext extends DataClumpRefactoringContext implements R
     }
 }
 
-export  class RelevantLocationsContext{
+export  class RelevantLocationsContext extends DataClumpRefactoringContext{
      getRelevantLocations(lines:{[path:string]:Set<number>}):void{}
 }
 

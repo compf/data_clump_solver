@@ -1,14 +1,10 @@
 import { Readable, Writable } from "stream";
 import { spawn } from "child_process"
 import {resolve} from "path"
-import { LanguageServerAPI } from "./LanguageServerAPI";
+import { LanguageServerAPI, LSP_State } from "./LanguageServerAPI";
 import { ResponseMessage } from "./TypeDefinitions";
 import { tryParseJSON } from "../Utils";
-enum State{NotInitialized,Initialized}
-let currState=State.NotInitialized;
-let first=true;
 export class EclipseLSP_API extends LanguageServerAPI {
-
     async init(path:string,callback:{(data:ResponseMessage):void}): Promise<{ reader: Readable; writer: Writable; }> {
         let cp = spawn("/bin/bash", ["dist/eclipse.jdt.ls/run.sh"], { stdio: "pipe" });
         this.childProcess=cp;
@@ -37,9 +33,9 @@ export class EclipseLSP_API extends LanguageServerAPI {
                     else{
                         buffer="";
                     }
-                    if (currState == State.NotInitialized && content.id == 1 && first) {
-                        first = false;
-                        currState = State.Initialized;
+                    if (this.currState == LSP_State.NotInitialized && content.id == 1 && this.first) {
+                        this.first = false;
+                        this.currState = LSP_State.Initialized;
                         console.log("sending init")
                         super.callInitialized(cp.stdin)
                         cp.stdout.emit("initialized")

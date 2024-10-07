@@ -1,6 +1,6 @@
 import simpleGit from "simple-git";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
-import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, LargeLanguageModelContext, ValidationResult } from "../context/DataContext";
+import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, LargeLanguageModelContext, RelevantLocationsContext, ValidationResult } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { LanguageModelDetectOrRefactorHandler } from "../pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
@@ -20,8 +20,13 @@ import fs from "fs"
 import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import { ValidationStepHandler } from "../pipeline/stepHandler/validation/ValidationStepHandler";
 import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
+import { LanguageServerReferenceStepHandler } from "../pipeline/stepHandler/referenceFinding/LanguageServerReferenceStepHandler";
+import { LanguageServerAPI } from "../util/languageServer/LanguageServerAPI";
+import { FilterOrMetric } from "../util/filterUtils/SingleItemFilter";
+import { DataClumpSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpSizeMetric";
+import { RandomRanker } from "../util/filterUtils/RandomRanker";
 export type RefactorInstance = Instance & {
-
+includeUsages:string
 
 }
 
@@ -36,7 +41,13 @@ export class RefactorEval extends BaseEvaluator {
         return false;
     }
     getNumDataClumpsPerBlock(): number {
-        return 1;
+        return 2;
+    }
+    getCriteria(): FilterOrMetric[] {
+        return [
+            new DataClumpSizeMetric({normalize:false}),
+            new RandomRanker()
+        ]
     }
     simplifyInstance(instance: RefactorInstance): RefactorInstance {
         if (instance.inputFormat != "instructionSnippet") {
@@ -67,22 +78,43 @@ export class RefactorEval extends BaseEvaluator {
             ],
             iteration: Array.from({length: 10}, (x, i) => i),
             margin: [0, 1, 2, 5, 10],
-            projectName:[]
+            projectName:[],
+            includeUsages:[]
         }
         if (isDebug()) {
             result.iteration = [0]
             result.temperature = [0.1]
         }
+        if(this.includeUsage()){
+            result.includeUsages=["withUsages"] as any
+        }
+        else{
+            result.includeUsages=["noUsages"] as any
+        }
         return result
+    }
+    includeUsage(): boolean {
+        return true;
     }
     getBaseDirLabel(): string {
         return "refactoring"
     }
+    async getUsageInformation(context:RelevantLocationsContext):Promise<RelevantLocationsContext>{
+        registerFromName("EclipseLSP_API",LanguageServerAPI.name,{})
+        let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
+        context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
+        return context;
+    }
+    
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         let context = await super.initProject(url);
         let git = simpleGit(context?.getProjectPath())
         if (context == null) {
             return null;
+        }
+        if(this.includeUsage()){
+            context= context.buildNewContext(await this.getUsageInformation(context as RelevantLocationsContext))
+
         }
 
         await git.checkout("-Bcontext")
@@ -266,7 +298,7 @@ class DummyValidationStep extends ValidationStepHandler{
 }
 
 if (require.main === module) {
-    const replay=true;
+    const replay=false;
     if(replay){
         FileIO.instance=new DummyInstanceBasedIO()
         let refactorEval=new ReplayRefactorEvaluator();

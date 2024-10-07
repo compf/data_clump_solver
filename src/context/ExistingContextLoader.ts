@@ -21,7 +21,7 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     (astContext as ASTBuildingContext).load(resolve(ast_out_path,p))
                 }
                 if(any){
-                    return astContext
+                    return context.buildNewContext(astContext)
                 }
                 else{
                     return null

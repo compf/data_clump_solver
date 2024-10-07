@@ -1,7 +1,7 @@
 import fs from "fs"
 import { GitHubService } from "../util/vcs/GitHubService"
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service"
-import { CodeObtainingContext, createDataClumpsTypeContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../context/DataContext";
+import { CodeObtainingContext, createDataClumpsTypeContext, DataClumpDetectorContext, DataClumpRefactoringContext, RelevantLocationsContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
 import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
@@ -28,6 +28,8 @@ import { AffectedFilesMetric } from "../pipeline/stepHandler/dataClumpFiltering/
 import { Metric } from "../util/filterUtils/Metric";
 import { CloneObtainingStepHandler } from "../pipeline/stepHandler/codeObtaining/CloneObtainingStepHandler";
 import { loadExistingContext } from "../context/ExistingContextLoader";
+import { LanguageServerReferenceStepHandler } from "../pipeline/stepHandler/referenceFinding/LanguageServerReferenceStepHandler";
+import { LanguageServerAPI } from "../util/languageServer/LanguageServerAPI";
 const constantScores = {
     "instanceType": -1000,
     "projectName": -999,
@@ -67,6 +69,9 @@ export function disableCloning() {
 }
 export abstract class BaseEvaluator {
 
+    includeUsage():boolean{
+        return false;
+    }
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
 
@@ -118,7 +123,7 @@ export abstract class BaseEvaluator {
             originalDcContext.serialize()
 
         }
-        let builder = new InterestingDataClumpContextBuilder(this.getCriteria(), this.getNumDataClumpsPerBlock(), this.getNumberIterations())
+        let builder = new InterestingDataClumpContextBuilder(this.getCriteria(), this.getNumDataClumpsPerBlock(), this.getNumberIterations(),this.includeUsage())
         let projectDataFolder = this.getProjectDataFolder(url)
         let submittedDataClumpsPath = resolve(projectDataFolder, "submittedDataClumps.json")
         let filtered: DataClumpDetectorContext;
@@ -257,10 +262,12 @@ export class InterestingDataClumpContextBuilder {
     private numDataClumpContextPerBlock = 5;
     private criteria: FilterOrMetric[] = [];
     private numIterations = 100;
-    constructor(criteria: FilterOrMetric[], numDataClumpContextPerBlock = 3, numIterations = 10) {
+    private includeUsage:boolean;
+    constructor(criteria: FilterOrMetric[], numDataClumpContextPerBlock = 3, numIterations = 10, includeUsage:boolean) {
         this.criteria = criteria;
         this.numDataClumpContextPerBlock = numDataClumpContextPerBlock;
         this.numIterations = numIterations;
+        this.includeUsage=includeUsage
     }
     async run(initialContext: DataClumpDetectorContext): Promise<DataClumpDetectorContext> {
         let currMin = Number.MAX_VALUE;
@@ -301,7 +308,7 @@ export class InterestingDataClumpContextBuilder {
                         }
                     }
                 }
-                let tokenSize = this.guessTokenSize(currMinContext);
+                let tokenSize = await  this.guessTokenSize(currMinContext);
                 console.log("Estimated token size", tokenSize)
                 console.log("################")
             }
@@ -312,11 +319,11 @@ export class InterestingDataClumpContextBuilder {
         return currMinContext!;
 
     }
-    guessTokenSize(context: DataClumpDetectorContext) {
+   async  guessTokenSize(context: DataClumpDetectorContext):Promise<number> {
 
         let tokenizer = new GPT4Tokenizer({ type: "gpt4" });
 
-        let files = this.getFiles(Object.values(context.getDataClumpDetectionResult().data_clumps));
+        let files = await  this.getFiles(context);
         let tokens = 0;
         let allContent = "";
         for (let file of files) {
@@ -330,18 +337,29 @@ export class InterestingDataClumpContextBuilder {
 
         //fileNumberFilter.getAffectedFiles(context)
     }
-    getFiles(dataClumps: DataClumpTypeContext[]): Set<string> {
-        let files: Set<string> = new Set();
-        let sum = 0;
-        for (let dataClump of dataClumps) {
-            files.add(dataClump.from_file_path);
-            files.add(dataClump.to_file_path);
+    async getUsageInformation(context:RelevantLocationsContext):Promise<RelevantLocationsContext>{
+        registerFromName("EclipseLSP_API",LanguageServerAPI.name,{})
+        let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
+        context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
+        return context;
+    }
+    async getFiles(context:DataClumpRefactoringContext): Promise< Set<string>> {
+        if(this.includeUsage){
+           context= context.buildNewContext(await this.getUsageInformation(context as RelevantLocationsContext))
         }
-        return files;
+        let relContext=context as RelevantLocationsContext
+        let lines:{[path:string]:Set<number>}={};     
+        relContext.getRelevantLocations(lines)
+        return new Set(Object.keys(lines));
     }
     async calcSize(dataClumps: DataClumpTypeContext[], context: DataClumpRefactoringContext): Promise<number> {
-
-        let files = this.getFiles(dataClumps);
+        let limitedContext=createDataClumpsTypeContext({});
+       
+        for(let dc of dataClumps){
+            limitedContext.data_clumps[dc.key]=dc;
+        }
+        let limitedDcContext=context.buildNewContext(new DataClumpDetectorContext(limitedContext))
+        let files = await this.getFiles(limitedDcContext);
         let sum = 0;
         for (let file of files) {
             sum += fs.statSync(resolve(context.getProjectPath(), file)).size;

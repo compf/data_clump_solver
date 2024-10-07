@@ -12,8 +12,13 @@ export enum Methods {
     Definition = "textDocument/definition",
     Implementation="textDocument/implementation"
 }
+export enum LSP_State{NotInitialized,Initialized}
+
 export abstract class LanguageServerAPI {
     protected childProcess: ChildProcess|null=null;
+    protected first:boolean=true;
+    protected currState:LSP_State=LSP_State.NotInitialized;
+
     abstract init(path:string,callback:{(data:ResponseMessage):void}): Promise<{ reader: Readable; writer: Writable; }>
     callInitialized(socket: Writable) {
         let msg = this.create_request_message(2, Methods.Initialized, {})
@@ -29,6 +34,8 @@ export abstract class LanguageServerAPI {
         console.log("closing")
         if(this.childProcess!=null){
             this.childProcess.kill()
+            this.first=true;
+            this.currState=LSP_State.NotInitialized
             console.log("killed")
         }
     }
