@@ -34,11 +34,11 @@ import {
   NEUTRAL_COMMENT,
   Disagree,
   Good_Idea,
-  DeevloperMustOverseeLLM,
   NoMeaningfulFeedback,
 
   ImportsIssues,
-  InvalidPR
+  InvalidPR,
+  DeveloperMustOverseeLLM
 } from "./structures";
 
 export const data: PR_Data = {
@@ -410,7 +410,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       {
         scale: Agree,
         comments: `A developer needs to have the tool available in the IDE - or creating pull requests. Similar to OpenRewrite of Moderne. In contrast to OpenRewrite, code created by LLMs needs to have oversights.`,
-        keywords: [-DeevloperMustOverseeLLM]
+        keywords: [-DeveloperMustOverseeLLM]
       },
       {
         scale: Disagree,
@@ -423,6 +423,9 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       },
       {
         scale: StronglyAgree
+      },
+      {
+        scale:StronglyAgree
       },
       {
         scale: Disagree
@@ -469,6 +472,9 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
 
 Also code is structured to suit the convenience of the original author or maintainers - so I personally give that preference.`,
         keywords: [-IntentionalDesignChoice]
+      },
+      {
+        scale:Agree
       },
       {
         scale: Disagree,

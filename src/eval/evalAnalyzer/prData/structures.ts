@@ -27,7 +27,7 @@ export const LLM_LegalIssues = counter++;
 export const InvalidPR = counter++;
 export const ImprovedMaintainability = counter++;
 export const IsolatedComponents = counter++;
-export const DeevloperMustOverseeLLM = counter++;
+export const DeveloperMustOverseeLLM = counter++;
 export const Good_Idea = counter++;
 
 export const MAX_COUNTER_VALUE=counter; // maximum value for counter
@@ -40,6 +40,18 @@ export const filterSnippet = "filterSnippet";
 export const filterManual="filterManual";
 export const open="open"
 export const closed="closed"
+
+export const GenerializedCommentCategories = {
+    CodeReadability:[Readability,Complexity, LongLines],
+    Usefulness:[RefactoringNotWorthIt,OverEngineered, IntentionalDesignChoice],
+    Details:[ExtractedClassLocation,ClassName,ImportsIssues, LicenseHeaderMissing, ExtractedClassShouldNotBePublic, JavaRecordBetter],
+    DataClumpChoice:[SmallerDataClump,LargerDataClump],
+    ManualWork:[NotEnough,ManualChanges, StyleAdaption, DocumentationIssues],
+    FunctionalImpact:[Performance, SemanticChanges],
+    GeneralComments:[LLM_Useful,LLM_LegalIssues, ImprovedMaintainability, DeveloperMustOverseeLLM, Good_Idea]
+
+
+}
 export type PR_Data_Entry = {
 
     url: string,
@@ -63,7 +75,8 @@ export type PR_Data_Entry = {
     generalComments: number[],
     reviewComments: number[],
     generalCommentsRaw: string[][],
-    reviewCommentsRaw: string[][]
+    reviewCommentsRaw: string[][],
+    categorizedComments?:number[]
 }
 
 
