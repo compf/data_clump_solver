@@ -5,7 +5,7 @@ import { loadData } from "./dataClumpDataLoader";
 import { makeUnique, nop } from "../../../util/Utils";
 import { concatenateResults, createCompareObjects, EvalAnalyzer, EvalMetric, mean, statFunctions, SubSetChecker } from "../base_analyzer";
 import { Arrayified } from "../../base_eval";
-import {resolve } from "path"
+import {dirname, resolve } from "path"
 let structures=require("./structures")
 
 function analyze(fullResult: any, relevantData: PR_Data_Entry[], depth: number, relevantFilters: any, parentResult: any) {
@@ -49,12 +49,30 @@ function analyze(fullResult: any, relevantData: PR_Data_Entry[], depth: number, 
 
 
 function hasCommentCategory(cat:string, d:PR_Data_Entry):boolean{
-    let i=Object.keys(structures).indexOf(cat)
+    let i=Object.keys(structures).indexOf(cat)+1
     let b=   d.generalComments.includes(i) || d.reviewComments.includes(i) ||
     d.generalComments.includes(-i) || d.reviewComments.includes(-i) ||
     (d.likertData!=undefined && 
        d.likertData.some((it)=>it.some((it)=>it.comments!=undefined
-        && it.keywords?.includes(i) || it.keywords?.includes(-i))));
+        && (it.keywords?.includes(i) || it.keywords?.includes(-i)))));
+        return b;
+}
+
+function hasPositiveCommentCategory(cat:string, d:PR_Data_Entry):boolean{
+    let i=Object.keys(structures).indexOf(cat)+1
+    let b=   d.generalComments.includes(i) || d.reviewComments.includes(i) ||
+    (d.likertData!=undefined && 
+       d.likertData.some((it)=>it.some((it)=>it.comments!=undefined
+        && it.keywords?.includes(i))));
+        return b;
+}
+
+function hasNegativeCommentCategory(cat:string, d:PR_Data_Entry):boolean{
+    let i=Object.keys(structures).indexOf(cat)+1
+    let b= d.generalComments.includes(-i) || d.reviewComments.includes(-i) ||
+    (d.likertData!=undefined && 
+       d.likertData.some((it)=>it.some((it)=>it.comments!=undefined
+        && it.keywords?.includes(-i))));
         return b;
 }
 
@@ -68,6 +86,7 @@ async function main() {
     let structures=require("./structures")
     let variables = Object.keys(structures).slice(0, MAX_COUNTER_VALUE-1)
     let filters: { [key: string]: { (d: PR_Data_Entry): boolean; }}={};
+    filters["all"]=()=>true
     filters["PositiveComments=true"]=(d)=> d.reviewComments.some((it)=>it>0)  ||d.generalComments.some((it)=>it>0)
     filters["PositiveComments=false"]=(d)=> !(d.reviewComments.some((it)=>it>0)  ||d.generalComments.some((it)=>it>0))
     filters["meaningfulComments=true"]=(d)=>d.reviewComments.length>0  || d.generalComments.length>0
@@ -76,6 +95,8 @@ async function main() {
     for(let k of keys){
         let k2=k;
         filters[k]=(d)=>hasCommentCategory(k2,d)
+        filters[k+"+"]=(d)=>hasPositiveCommentCategory(k2,d)
+        filters[k+"-"]=(d)=>hasNegativeCommentCategory(k2,d)
     }
 
     filters["merged=true"]=(d)=>d.merged
@@ -156,17 +177,25 @@ const permutator = (inputArr:any[]) => {
   
    return result;
   }
-function saveResults(prefix:string, path:string, keyNames:string[], keys:{[key:string]:string}, val:any){
-    let outPath=resolve("evalDataResults",prefix,path,keys[keyNames[0]])
+  let results:{[path:string]:any}={}
+function saveResults(){
+    for(let p of Object.keys(results)){
+        fs.mkdirSync(dirname(p), { recursive: true })
+        fs.writeFileSync(p,JSON.stringify(results[p],undefined,2))
+    }
+  
 
-    fs.mkdirSync(outPath, { recursive: true })
+}
+
+function createResults(prefix:string, path:string, keyNames:string[], keys:{[key:string]:string}, val:any){
+    let outPath=resolve("evalDataResults",prefix,path,keys[keyNames[0]],keys[keyNames[1]])+".json"
+    
     let obj={}
-    if(fs.existsSync(resolve(outPath,keys[keyNames[1]])+".json")){
-        obj=JSON.parse(fs.readFileSync(resolve(outPath,keys[keyNames[1]]+".json"),"utf-8"))
+    if(outPath in results){
+        obj=results[outPath]
     }
     obj[keys[keyNames[2]]]=val;
-    fs.writeFileSync(resolve(outPath,keys[keyNames[1]]+".json"),JSON.stringify(obj,undefined,2))
-
+    results[outPath]=obj;   
 }
 
 function concatenateResultsPR(prefix: string, data:PR_Data_Entry[], filters: { [key: string]: { (d: PR_Data_Entry): boolean; }}, metrics:Mapper ) {
@@ -205,7 +234,7 @@ function concatenateResultsPR(prefix: string, data:PR_Data_Entry[], filters: { [
 
                 if (true) {
                     for( let folderKey of Object.keys(zipped)){
-                        saveResults(prefix,folderKey,zipped[folderKey],keys,res)
+                        createResults(prefix,folderKey,zipped[folderKey],keys,res)
                     }
          
                 }
@@ -213,7 +242,7 @@ function concatenateResultsPR(prefix: string, data:PR_Data_Entry[], filters: { [
             }
         }
     }
-
+saveResults()
   
 }
 function getTextRating(value:number, isNegativeTwoToTwo:boolean){
@@ -256,7 +285,7 @@ function likertData(){
         "Data clumps are a code smell that should be fixed.",
         "Using LLMs in software development can be helpful to improve code quality.",
         "The proposed refactoring maintains or improves the quality of the code.",
-        "The proposed refactoring has  adequately identified and preserved the original", "functionality and intent of the code.",
+        "The proposed refactoring has  adequately identified and preserved the original functionality and intent of the code.",
         "The name of the new extracted class(es), fields and methods are well-chosen.",
          "The location of the extracted class(es) are well-chosen.",
          "For how long have you been contributing to this project?",
@@ -297,6 +326,7 @@ function likertData(){
         meanRatingNullToFour:meanRatingNullToFour,
         meanRatingNegativeTwoToTwo:meanRatingNegativeTwoToTwo
     }
+    fs.mkdirSync("evalDataResults/PR", { recursive: true })
     fs.writeFileSync("evalDataResults/PR/likert.json",JSON.stringify({
        resultObj:resultObj
     },undefined,2))
@@ -306,7 +336,6 @@ function likertData(){
 
 if (require.main === module) {
  likertData()
-    throw "swda"
     main()
 }
 

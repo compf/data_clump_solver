@@ -83,7 +83,7 @@ export const data: PR_Data = {
         comments: `Data clumps can be a code smell, but only if it breaks principles - sometimes you can have data clumps that actually do not break any. Just because similar or the same data exists in different objects does not inherently constitute a problem - I asked ChatGPT for an example here (paraphrasing):
 Consider the classes WeatherReport and FinancialStatement: both could have the following fields: LocalDate date, String location, double value (and any additional fields). These fields could be considered a 'data clump' by your definition but have vastly different applications and contexts. Can you extract these values in a meaningful way? Sure! Should you? Probably not - sharing these fields (even if it's through composition and not inheritence) would limit or hinder maintenance if any of these objects evolve in the future.
 I believe it would be straightforward to come up with a counter-example where extracting fields from two rather similar objects that have the same (or almost the same) context is beneficial, so I'm not going to do that.`,
-        keywords: [-RefactoringNotWorthIt, -IntentionalDesignChoice, -IntentionalDesignChoice]
+        keywords: [-RefactoringNotWorthIt, -IntentionalDesignChoice]
       },
       {
         scale: StronglyAgree,
