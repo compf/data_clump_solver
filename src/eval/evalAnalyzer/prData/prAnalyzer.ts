@@ -340,8 +340,8 @@ export async function analyzePRErrors() {
     for (let url of Object.keys(data)) {
         results[url]=[]
         let repoData = getRepoDataFromUrl(url)
-        url = "https://www.github.com/compf/" + repoData.repo
-        let retriever = new CloneObtainingStepHandler({ url: url, alwaysClone: false })
+        let changedUrl = "https://www.github.com/compf/" + repoData.repo
+        let retriever = new CloneObtainingStepHandler({ url: changedUrl, alwaysClone: false })
         let context = await retriever.handle(PipeLineStep.CodeObtaining, new DataClumpRefactoringContext(), null)
         let git = simpleGit(context.getProjectPath())
 
@@ -355,8 +355,11 @@ export async function analyzePRErrors() {
         for (let c of errorCommits ?? []) {
             await git.checkout(c)
             let validationResult = await validator.validate(context);
-            results[url].push(  validationResult);
-            fs.writeFileSync("stuff/pr_errors.json", JSON.stringify(validationResult, undefined, 2))
+            results[url].push(  {
+                commit: c,
+                validationResult: validationResult
+            });
+            fs.writeFileSync("stuff/pr_errors.json", JSON.stringify(results, undefined, 2))
             console.log(validationResult.errors)
         }
 

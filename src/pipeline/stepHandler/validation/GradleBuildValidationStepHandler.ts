@@ -5,7 +5,7 @@ import fs from "fs";
 import { relative } from "path";
 export class GradleBuildValidationStepHandler extends ValidationStepHandler {
   validate(context: DataClumpRefactoringContext): Promise<ValidationResult>  {
-    let args=["build"]
+    let args=["clean","build"]
     if(this.args.skipTests){
         args.push("-x")
         args.push("test")
@@ -20,7 +20,7 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
            return Promise.resolve({success:true,errors:[]})
        }
        else {
-              return Promise.resolve( {success:false, errors: parseGradle(runResult.stderr.toString())})
+              return Promise.resolve( {success:false, errors: parseGradle(runResult.stderr.toString()),raw:runResult.stderr.toString()})
                
             }
        }
