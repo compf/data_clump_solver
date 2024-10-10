@@ -1,0 +1,91 @@
+{
+    "refactorings": {
+        "store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
+            {
+                "fromLine": 134,
+                "toLine": 134,
+                "oldContent": "    private BrokerConfig brokerConfig;",
+                "newContent": ""
+            },
+            {
+                "fromLine": 157,
+                "toLine": 201,
+                "oldContent": "    public BrokerStatsManager(BrokerConfig brokerConfig) {\n        this.brokerConfig = brokerConfig;\n        this.enableQueueStat = brokerConfig.isEnableDetailStat();\n        initScheduleService();\n        this.clusterName = brokerConfig.getBrokerClusterName();\n        init();\n    }\n\n    public BrokerStatsManager(String clusterName, boolean enableQueueStat) {\n        this.clusterName = clusterName;\n        this.enableQueueStat = enableQueueStat;\n        initScheduleService();\n        init();\n    }",
+                "newContent": "    public BrokerStatsManager(ConfigSet configSet) {\n        this.enableQueueStat = configSet.isEnableQueueStat();\n        initScheduleService(configSet.getBrokerConfig());\n        this.clusterName = configSet.getClusterName();\n        init();\n    }"
+            }
+        ],
+        "store/src/test/java/org/apache/rocketmq/store/stats/BrokerStatsManagerTest.java": [
+            {
+                "fromLine": 87,
+                "toLine": 87,
+                "oldContent": "        brokerStatsManager = new BrokerStatsManager(CLUSTER_NAME, true);",
+                "newContent": "        brokerStatsManager = new BrokerStatsManager(new ConfigSet(CLUSTER_NAME, true));"
+            }
+        ],
+        "broker/src/test/java/org/apache/rocketmq/broker/processor/EndTransactionProcessorTest.java": [
+            {
+                "fromLine": 57,
+                "toLine": 57,
+                "oldContent": "        brokerController = new BrokerController(new BrokerConfig(), new NettyServerConfig(), new NettyClientConfig(),\n            new MessageStoreConfig(), null);",
+                "newContent": "        brokerController = new BrokerController(new ConfigSet(new BrokerConfig(), new NettyServerConfig(), new NettyClientConfig(),\n            new MessageStoreConfig()), null);"
+            },
+            {
+                "fromLine": 78,
+                "toLine": 78,
+                "oldContent": "        Mockito.when(brokerController.getBrokerConfig()).thenReturn(brokerConfig);",
+                "newContent": ""
+            }
+        ],
+        "broker/src/test/java/org/apache/rocketmq/broker/schedule/ScheduleMessageServiceTest.java": [
+            {
+                "fromLine": 75,
+                "toLine": 75,
+                "oldContent": "        brokerController = Mockito.mock(BrokerController.class);",
+                "newContent": "        brokerController = Mockito.mock(BrokerController.class, Mockito.withSettings().useConstructor(new ConfigSet(new BrokerConfig(), new NettyServerConfig(), new NettyClientConfig(), new MessageStoreConfig())).defaultAnswer(Mockito.CALLS_REAL_METHODS));"
+            },
+            {
+                "fromLine": 80,
+                "toLine": 80,
+                "oldContent": "        Mockito.when(brokerController.getBrokerConfig()).thenReturn(brokerConfig);",
+                "newContent": ""
+            },
+            {
+                "fromLine": 82,
+                "toLine": 82,
+                "oldContent": "        Mockito.when(brokerController.getBrokerStatsManager()).thenReturn(manager);",
+                "newContent": ""
+            }
+        ],
+        "tools/src/main/java/org/apache/rocketmq/tools/command/export/ExportMetricsCommand.java": [
+            {
+                "fromLine": 244,
+                "toLine": 244,
+                "oldContent": "    private Map<String, Object> getRuntimeVersion(DefaultMQAdminExt defaultMQAdminExt,\n        SubscriptionGroupWrapper subscriptionGroupWrapper) {",
+                "newContent": "    private Map<String, Object> getRuntimeVersion(DefaultMQAdminExt defaultMQAdminExt,\n        SubscriptionGroupWrapper subscriptionGroupWrapper, String clusterName) {"
+            },
+            {
+                "fromLine": 261,
+                "toLine": 261,
+                "oldContent": "    private Map<String, Object> getRuntimeEnv(KVTable kvTable, Properties properties) {",
+                "newContent": "    private Map<String, Object> getRuntimeEnv(KVTable kvTable, Properties properties, String clusterName) {"
+            },
+            {
+                "fromLine": 270,
+                "toLine": 270,
+                "oldContent": "    private Map<String, Object> getRuntimeQuota(KVTable kvTable, DefaultMQAdminExt defaultMQAdminExt, String brokerAddr,",
+                "newContent": "    private Map<String, Object> getRuntimeQuota(KVTable kvTable, DefaultMQAdminExt defaultMQAdminExt, String brokerAddr, String clusterName,"
+            }
+        ],
+        "tools/src/main/java/org/apache/rocketmq/tools/command/stats/StatsAllSubCommand.java": [
+            {
+                "fromLine": 72,
+                "toLine": 72,
+                "oldContent": "    public static void printTopicDetail(final DefaultMQAdminExt admin, final String topic, final boolean activeTopic)",
+                "newContent": "    public static void printTopicDetail(final DefaultMQAdminExt admin, final String topic, final boolean activeTopic, final String clusterName)"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "store/src/main/java/org/apache/rocketmq/store/stats/ConfigSet.java": "package org.apache.rocketmq.store.stats;\n\nimport org.apache.rocketmq.broker.BrokerConfig;\nimport org.apache.rocketmq.remoting.netty.NettyClientConfig;\nimport org.apache.rocketmq.remoting.netty.NettyServerConfig;\nimport org.apache.rocketmq.store.config.MessageStoreConfig;\n\npublic class ConfigSet {\n    private String clusterName;\n    private boolean enableQueueStat;\n    private BrokerConfig brokerConfig;\n    private NettyServerConfig nettyServerConfig;\n    private NettyClientConfig nettyClientConfig;\n    private MessageStoreConfig messageStoreConfig;\n\n    public ConfigSet(BrokerConfig brokerConfig, NettyServerConfig nettyServerConfig, NettyClientConfig nettyClientConfig,\n                     MessageStoreConfig messageStoreConfig) {\n        this.clusterName = brokerConfig.getBrokerClusterName();\n        this.enableQueueStat = brokerConfig.isEnableDetailStat();\n        this.brokerConfig = brokerConfig;\n        this.nettyServerConfig = nettyServerConfig;\n        this.nettyClientConfig = nettyClientConfig;\n        this.messageStoreConfig = messageStoreConfig;\n    }\n\n    public ConfigSet(String clusterName, boolean enableQueueStat) {\n        this.clusterName = clusterName;\n        this.enableQueueStat = enableQueueStat;\n    }\n\n    public String getClusterName() {\n        return this.clusterName;\n    }\n\n    public boolean isEnableQueueStat() {\n        return this.enableQueueStat;\n    }\n\n    // Getters for other configurations...\n}\n"
+    }
+}

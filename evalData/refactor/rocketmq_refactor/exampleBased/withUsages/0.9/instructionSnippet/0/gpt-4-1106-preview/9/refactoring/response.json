@@ -1,0 +1,126 @@
+{
+    "refactorings": {
+        "store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
+            {
+                "fromLine": 16,
+                "toLine": 42,
+                "oldContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\nimport org.apache.rocketmq.common.statistics.StatisticsItem;\nimport org.apache.rocketmq.common.statistics.StatisticsItemFormatter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;\nimport org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;\nimport org.apache.rocketmq.common.statistics.StatisticsKindMeta;\nimport org.apache.rocketmq.common.statistics.StatisticsManager;\nimport org.apache.rocketmq.common.stats.MomentStatsItemSet;\nimport org.apache.rocketmq.common.stats.Stats;\nimport org.apache.rocketmq.common.stats.StatsItem;\nimport org.apache.rocketmq.common.stats.StatsItemSet;\nimport org.apache.rocketmq.common.topic.TopicValidator;\nimport org.apache.rocketmq.common.utils.ThreadUtils;\nimport org.apache.rocketmq.logging.org.slf4j.Logger;\nimport org.apache.rocketmq.logging.org.slf4j.LoggerFactory;\n",
+                "newContent": " */\npackage org.apache.rocketmq.store.stats;\n\nimport java.util.HashMap;\nimport java.util.concurrent.ScheduledExecutorService;\nimport org.apache.commons.lang3.tuple.Pair;\nimport org.apache.rocketmq.common.BrokerConfig;\nimport org.apache.rocketmq.common.ThreadFactoryImpl;\nimport org.apache.rocketmq.common.UtilAll;\nimport org.apache.rocketmq.common.constant.LoggerName;\nimport org.apache.rocketmq.common.statistics.StatisticsItem;\nimport org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;\nimport org.apache.rocketmq.common.stats.MomentStatsItemSet;\nimport org.apache.rocketmq.common.stats.StatsItem;\nimport org.apache.rocketmq.common.topic.TopicValidator;\nimport org.apache.rocketmq.common.utils.ThreadUtils;\nimport org.apache.rocketmq.logging.org.slf4j.Logger;\nimport org.apache.rocketmq.logging.org.slf4j.LoggerFactory;\n"
+            },
+            {
+                "fromLine": 44,
+                "toLine": 62,
+                "oldContent": "\n    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;\n    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;\n    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;\n    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;\n    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;\n\n    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;\n\n    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;\n    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;\n    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;\n    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;\n    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;\n    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;\n    // For commercial\n    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;\n    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;\n    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;\n    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;\n    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;\n    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 165,
+                "toLine": 202,
+                "oldContent": "    public void init() {\n\n        ...\n        if (enableQueueStat) {\n            this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));\n            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));\n        }\n        ...\n        this.statsTable.put(Stats.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS, new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE, new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS, new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE, ...\n        ...\n        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES, new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES, new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE, new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE, new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS, new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES, new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES, ...\n",
+                "newContent": "    public void init() {\n\n        ...\n        if (enableQueueStat) {\n            this.statsTable.put(queueStatsConstants.QUEUE_PUT_NUMS, new StatsItemSet(queueStatsConstants.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));\n            this.statsTable.put(queueStatsConstants.QUEUE_PUT_SIZE, new StatsItemSet(queueStatsConstants.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));\n            this.statsTable.put(queueStatsConstants.QUEUE_GET_NUMS, new StatsItemSet(queueStatsConstants.QUEUE_GET_NUMS, this.scheduledExecutorService, log));\n        }\n        ...\n        this.statsTable.put(queueStatsConstants.BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));\n        this.statsTable.put(queueStatsConstants.GROUP_GET_FROM_DISK_NUMS, new StatsItemSet(queueStatsConstants.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(queueStatsConstants.GROUP_GET_FROM_DISK_SIZE, new StatsItemSet(queueStatsConstants.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));\n        this.statsTable.put(queueStatsConstants.BROKER_GET_FROM_DISK_NUMS, new StatsItemSet(queueStatsConstants.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));\n        this.statsTable.put(queueStatsConstants.BROKER_GET_FROM_DISK_SIZE, ...\n        ...\n        this.statsTable.put(queueStatsConstants.COMMERCIAL_SEND_TIMES, new StatsItemSet(queueStatsConstants.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(queueStatsConstants.COMMERCIAL_RCV_TIMES, new StatsItemSet(queueStatsConstants.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(queueStatsConstants.COMMERCIAL_SEND_SIZE, new StatsItemSet(queueStatsConstants.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(queueStatsConstants.COMMERCIAL_RCV_SIZE, new StatsItemSet(queueStatsConstants.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(queueStatsConstants.COMMERCIAL_RCV_EPOLLS, new StatsItemSet(queueStatsConstants.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(queueStatsConstants.COMMERCIAL_SNDBCK_TIMES, new StatsItemSet(queueStatsConstants.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));\n        this.statsTable.put(queueStatsConstants.COMMERCIAL_PERM_FAILURES, ...\n"
+            },
+            {
+                "fromLine": 332,
+                "toLine": 343,
+                "oldContent": "    public void onTopicDeleted(final String topic) {\n        this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);\n\n        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n        }\n        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n",
+                "newContent": "    public void onTopicDeleted(final String topic) {\n        this.statsTable.get(queueStatsConstants.TOPIC_PUT_NUMS).delValue(topic);\n\n        if (enableQueueStat) {\n            this.statsTable.get(queueStatsConstants.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n        }\n        this.statsTable.get(queueStatsConstants.GROUP_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(queueStatsConstants.GROUP_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(queueStatsConstants.QUEUE_GET_NUMS).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(queueStatsConstants.QUEUE_GET_SIZE).delValueByPrefixKey(topic, \"@\");\n        this.statsTable.get(queueStatsConstants.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, \"@\");\n"
+            },
+            {
+                "fromLine": 349,
+                "toLine": 356,
+                "oldContent": "    public void onGroupDeleted(final String group) {\n        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueBySuffixKey(group, \"@\");\n\n        if (enableQueueStat) {\n            this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueBySuffixKey(group, \"@\");\n        }\n        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, \"@\");\n",
+                "newContent": "    public void onGroupDeleted(final String group) {\n        this.statsTable.get(queueStatsConstants.GROUP_GET_NUMS).delValueBySuffixKey(group, \"@\");\n\n        if (enableQueueStat) {\n            this.statsTable.get(queueStatsConstants.QUEUE_GET_NUMS).delValueBySuffixKey(group, \"@\");\n        }\n        this.statsTable.get(queueStatsConstants.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, \"@\");\n"
+            },
+            {
+                "fromLine": 418,
+                "toLine": 418,
+                "oldContent": "    public void incTopicPutNums(final String topic) {",
+                "newContent": "    public void incTopicPutNums(final String topic) {\n        // Use the `statsKeyBuilder` to build the stats key"
+            },
+            {
+                "fromLine": 422,
+                "toLine": 422,
+                "oldContent": "    public void incTopicPutNums(final String topic, int num, int times) {",
+                "newContent": "    public void incTopicPutNums(final String topic, int num, int times) {\n        // Use the `statsKeyBuilder` to build the stats key"
+            },
+            {
+                "fromLine": 426,
+                "toLine": 426,
+                "oldContent": "    public void incTopicPutSize(final String topic, final int size) {",
+                "newContent": "    public void incTopicPutSize(final String topic, final int size) {\n        // Use the `statsKeyBuilder` to build the stats key"
+            },
+            {
+                "fromLine": 431,
+                "toLine": 431,
+                "oldContent": "        final String statsKey = buildStatsKey(topic, group);",
+                "newContent": "        // Use the `statsKeyBuilder` and `groupPrefixDecorator` to build the stats key\n        final String statsKey = statsKeyBuilder.buildStatsKeyWithGroupPrefix(topic, group);"
+            },
+            {
+                "fromLine": 490,
+                "toLine": 490,
+                "oldContent": "        final String statsKey = buildStatsKey(topic, group);",
+                "newContent": "        // Use the `statsKeyBuilder` and `groupPrefixDecorator` to build the stats key\n        final String statsKey = statsKeyBuilder.buildStatsKeyWithGroupPrefix(topic, group);"
+            },
+            {
+                "fromLine": 515,
+                "toLine": 515,
+                "oldContent": "    public void incBrokerPutNums() {",
+                "newContent": "    public void incBrokerPutNums() {\n        // No usage of the topic key here, so no changes"
+            },
+            {
+                "fromLine": 519,
+                "toLine": 519,
+                "oldContent": "    public void incBrokerPutNums(final String topic, final int incValue) {",
+                "newContent": "    public void incBrokerPutNums(final String topic, final int incValue) {\n        // Use the `statsKeyBuilder` to build the stats key"
+            },
+            {
+                "fromLine": 524,
+                "toLine": 524,
+                "oldContent": "    public void incBrokerGetNums(final String topic, final int incValue) {",
+                "newContent": "    public void incBrokerGetNums(final String topic, final int incValue) {\n        // Use the `statsKeyBuilder` to build the stats key"
+            },
+            {
+                "fromLine": 576,
+                "toLine": 576,
+                "oldContent": "        final String statsKey = buildStatsKey(topic, group);",
+                "newContent": "        // Use the `statsKeyBuilder` and `groupPrefixDecorator` to build the stats key\n        final String statsKey = statsKeyBuilder.buildStatsKeyWithGroupPrefix(topic, group);"
+            },
+            {
+                "fromLine": 581,
+                "toLine": 581,
+                "oldContent": "        final String statsKey = buildStatsKey(topic, group);",
+                "newContent": "        // Use the `statsKeyBuilder` and `groupPrefixDecorator` to build the stats key\n        final String statsKey = statsKeyBuilder.buildStatsKeyWithGroupPrefix(topic, group);"
+            },
+            {
+                "fromLine": 627,
+                "toLine": 627,
+                "oldContent": "        final long... incValues) {",
+                "newContent": "        final long... incValues) {\n        // No usage of the topic key here, so no changes"
+            },
+            {
+                "fromLine": 634,
+                "toLine": 634,
+                "oldContent": "        final long... incValues) {",
+                "newContent": "        final long... incValues) {\n        // No usage of the topic key here, so no changes"
+            },
+            {
+                "fromLine": 704,
+                "toLine": 708,
+                "oldContent": "        StringBuffer strBuilder = new StringBuffer();\n        strBuilder.append(owner).append(sep);\n        strBuilder.append(instanceId).append(sep);\n        strBuilder.append(topic).append(sep);\n        strBuilder.append(group).append(sep);",
+                "newContent": "// Use the `statsKeyBuilder` and `groupSuffixDecorator` to build the stats key\n        final String statsKey = statsKeyBuilder.buildStatsKeyWithGroupSuffix(topic, owner, instanceId, group);"
+            }
+        ],
+        "common/src/main/java/org/apache/rocketmq/common/stats/Stats.java": [
+            {
+                "fromLine": 20,
+                "toLine": 41,
+                "oldContent": "\n    public static final String QUEUE_PUT_NUMS = \"QUEUE_PUT_NUMS\";\n    public static final String QUEUE_PUT_SIZE = \"QUEUE_PUT_SIZE\";\n    public static final String QUEUE_GET_NUMS = \"QUEUE_GET_NUMS\";\n    public static final String QUEUE_GET_SIZE = \"QUEUE_GET_SIZE\";\n    public static final
+    {
+                "fromLine": 20,
+                "toLine": 45,
+                "oldContent": "\n    public static final String QUEUE_PUT_NUMS = \"QUEUE_PUT_NUMS\";\n    public static final String QUEUE_PUT_SIZE = \"QUEUE_PUT_SIZE\";\n    public static final String QUEUE_GET_NUMS = \"QUEUE_GET_NUMS\";\n    public static final String QUEUE_GET_SIZE = \"QUEUE_GET_SIZE\";\n    public static final String TOPIC_PUT_NUMS = \"TOPIC_PUT_NUMS\";\n    public static final String TOPIC_PUT_SIZE = \"TOPIC_PUT_SIZE\";\n    public static final String GROUP_GET_NUMS = \"GROUP_GET_NUMS\";\n    public static final String GROUP_GET_SIZE = \"GROUP_GET_SIZE\";\n    public static final String SNDBCK_PUT_NUMS = \"SNDBCK_PUT_NUMS\";\n    public static final String BROKER_PUT_NUMS = \"BROKER_PUT_NUMS\";\n    public static final String BROKER_GET_NUMS = \"BROKER_GET_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_NUMS = \"GROUP_GET_FROM_DISK_NUMS\";\n    public static final String GROUP_GET_FROM_DISK_SIZE = \"GROUP_GET_FROM_DISK_SIZE\";\n    public static final String BROKER_GET_FROM_DISK_NUMS = \"BROKER_GET_FROM_DISK_NUMS\";\n    public static final String BROKER_GET_FROM_DISK_SIZE = \"BROKER_GET_FROM_DISK_SIZE\";\n    public static final String COMMERCIAL_SEND_TIMES = \"COMMERCIAL_SEND_TIMES\";\n    public static final String COMMERCIAL_SNDBCK_TIMES = \"COMMERCIAL_SNDBCK_TIMES\";\n    public static final String COMMERCIAL_RCV_TIMES = \"COMMERCIAL_RCV_TIMES\";\n    public static final String COMMERCIAL_RCV_EPOLLS = \"COMMERCIAL_RCV_EPOLLS\";\n    public static final String COMMERCIAL_SEND_SIZE = \"COMMERCIAL_SEND_SIZE\";\n    public static final String COMMERCIAL_RCV_SIZE = \"COMMERCIAL_RCV_SIZE\";\n",
+                "newContent": ""
+            }
+        
+        
+    

@@ -25,6 +25,7 @@ import { LanguageServerAPI } from "../util/languageServer/LanguageServerAPI";
 import { FilterOrMetric } from "../util/filterUtils/SingleItemFilter";
 import { DataClumpSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpSizeMetric";
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
+import { loadExistingContext } from "../context/ExistingContextLoader";
 export type RefactorInstance = Instance & {
 includeUsages:string
 
@@ -41,7 +42,7 @@ export class RefactorEval extends BaseEvaluator {
         return false;
     }
     getNumDataClumpsPerBlock(): number {
-        return 2;
+        return 1;
     }
     getCriteria(): FilterOrMetric[] {
         return [
@@ -101,8 +102,15 @@ export class RefactorEval extends BaseEvaluator {
     }
     async getUsageInformation(context:RelevantLocationsContext):Promise<RelevantLocationsContext>{
         registerFromName("EclipseLSP_API",LanguageServerAPI.name,{})
-        let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
-        context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
+        let ctx=loadExistingContext(PipeLineStep.ReferenceFinding,context)
+        if(ctx==null){
+            let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
+            context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
+        }
+        else{
+            context=ctx as RelevantLocationsContext
+        }
+       
         return context;
     }
     

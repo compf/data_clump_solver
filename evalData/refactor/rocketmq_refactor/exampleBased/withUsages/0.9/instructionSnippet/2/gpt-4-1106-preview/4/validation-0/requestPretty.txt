@@ -1,0 +1,1549 @@
+messages:
+[
+	content:"
+	
+	I will provide you code snippets of one or more Java  files.
+	
+	Refactor all data clumps in the respective files.
+	To do this, replace the method parameters or fields of all data clump variables by a reference to the extracted class, and update all usages accordingly.
+	Also provide the content of all extracted classes.
+	If possible, the extracted classes should not be just mere data classes but contain additional functionality to increase readability and usability.
+	
+	
+	 Examples of data clump are provided below.
+	## Examples
+	/* 
+	    These examples show data clumps and how they might be refactored
+	    Imports are missing so these examples would not compile
+	*/
+	// ### example 5#########################
+	//'method parameters to method parameters' data clump
+	class Example1A {
+	
+	    // both methods share at least 3 parameters, so we can extract those 3
+	    // parameters into a class
+	
+	    public static String buildServiceKey(String path, String group, String version) {
+	        int length = path == null ? 0 : path.length();
+	        length += group == null ? 0 : group.length();
+	        length += version == null ? 0 : version.length();
+	        length += 2;
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(group)) {
+	            buf.append(group).append('/');
+	        }
+	        buf.append(path);
+	        if (StringUtils.isNotEmpty(version)) {
+	            buf.append(':').append(version);
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(String path, String group, String version, String prefix) {
+	        return prefix + buildServiceKey(path, group, version);
+	    }
+	
+	}
+	
+	// ## refactored ##################################
+	class KeyData {
+	    private String path;
+	    private String group;
+	    private String version;
+	
+	    KeyData(String path, String group, String version) {
+	        this.path = path;
+	        this.group = group;
+	        this.version = version;
+	    }
+	
+	    public String getPath() {
+	        return path;
+	    }
+	
+	    public String getGroup() {
+	        return group;
+	    }
+	
+	    public String getVersion() {
+	        return version;
+	    }
+	
+	    public int getLength() {
+	        return path == null ? 0
+	                : path.length() + group == null ? 0 : group.length() + version == null ? 0 : version.length() + 2;
+	    }
+	
+	}
+	
+	class Example1A {
+	
+	    public static String buildServiceKey(KeyData keyData) {
+	        int length = keyData.getLength();
+	        StringBuilder buf = new StringBuilder(length);
+	        if (StringUtils.isNotEmpty(keyData.getGroup())) {
+	            buf.append(keyData.getGroup()).append('/');
+	        }
+	        buf.append(keyData.getPath());
+	        if (StringUtils.isNotEmpty(keyData.getVersion())) {
+	            buf.append(':').append(keyData.getVersion());
+	        }
+	        return buf.toString().intern();
+	    }
+	
+	    public static String buildKey(KeyData keyData, String prefix) {
+	        return prefix + buildServiceKey(keyData);
+	    }
+	}
+	// #### example 5 end ##################################
+	
+	//
+	
+	// ## example 2 ##################################
+	// 'fields to fields' data clump
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a class
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+				
+				int state = node.getId();
+				states.add(state);
+				successors.put(state, new ArrayList<Integer>());
+				labels.put(state, new ArrayList<Label>())
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + successors.get(state) + ", Labels: "
+	                    + labels.get(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## refactored ##################################
+	
+	class StateGraphData {
+	    private List<Integer> states;
+	    private Map<Integer, List<Integer>> successors;
+	    private Map<Integer, List<Label>> labels;
+	
+	    StateGraphData() {
+	        this.states = new ArrayList<Integer>();
+	        this.successors = new HashMap<Integer, List<Integer>>();
+	        this.labels = new HashMap<Integer, List<Label>>();
+	    }
+	
+	    public List<Integer> getStates() {
+	        return states;
+	    }
+	
+	    public Map<Integer, List<Integer>> getSuccessors(int state) {
+	        return successors.get(state);
+	    }
+	
+	    public Map<Integer, List<Label>> getLabels(int state) {
+	        return labels.get(state);
+	    }
+	
+	    public void addState(int state) {
+	        states.add(state);
+	        successors.put(state, new ArrayList<Integer>());
+	        labels.put(state, new ArrayList<Label>());
+	    }
+	
+	}
+	
+	class Example2A {
+	
+	    // both classes share at least 3 fields, so we can extract those 3 fields into a
+	    // class
+	    private StateGraphData stateGraphData;
+	    private SmPLMethodCFG cfg;
+	
+	    void init() {
+	        for (ControlFlowNode node : cfg.vertexSet()) {
+	
+	            stateGraphData.addState(node.getId());
+	        }
+	    }
+	
+	}
+	
+	// Example2B.java
+	class Example2B {
+	    private StateGraphData stateGraphData;
+	    private Map<Integer, String> stateDescriptions;
+	
+	    void print() {
+	        for (int state : states) {
+	            System.out.println("State: " + state + ", Successors: " + stateGraphData.getSuccessor(state) + ", Labels: "
+	                    + stateGraphData.getLabel(state) + ", Description: " + stateDescriptions.get(state));
+	        }
+	    }
+	}
+	// ## example 2 end ##################################
+	
+	// ## example 3 ##################################
+	// 'parameters to fields' data clump
+	class Example3A {
+	    boolean validate(String methodName, Class<?>[] parameterTypes, Object[] arguments) {
+	        return parameterTypes.length == arguments.length;
+	    }
+	}
+	
+	// Example3B.java
+	class Example3B {
+	
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private String methodName;
+	
+	    private Class<?>[] parameterTypes;
+	
+	    private Object[] arguments;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	
+	}
+	
+	// ## refactored ##################################
+	class MethodCallData {
+	    public String methodName;
+	    public Class<?>[] parameterTypes;
+	    public Object[] arguments;
+	
+	    public boolean isValid() {
+	        return parameterTypes.length == arguments.length;
+	    }
+	
+	}
+	
+	class Example3A {
+	    boolean validate(MethodCallData methodCallData) {
+	        return methodCallData.isValid();
+	    }
+	}
+	
+	class Example3B {
+	    private URL consumerUrl;
+	
+	    private List<URL> urls;
+	
+	    private URL url;
+	
+	    private MethodCallData methodCallData;
+	
+	    private InetSocketAddress localAddress;
+	
+	    private InetSocketAddress remoteAddress;
+	}
+	// ## example 3 end ##################################
+	
+	// ## example 4 ##################################
+	class Example4A {
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        writer.incrementNumberReturned();
+	        writer.setAxisOrder(CRS.getAxisOrder(featureCrs));
+	    }
+	}
+	
+	// Example4B.java
+	class Example4B extends Example4A {
+	     // This pair of methods do not constitute a data clump even if signature is copied because
+	    // the method is overridden and therefore must have the same paremeters
+	    @Override
+	    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+	            throws IOException {
+	        root.reset();
+	        super.beforeEvaluation(writer, root, feature);
+	    }
+	   
+	}
+	// ## example 4 end ##################################
+	
+	## Examples end
+	
+	
+	Use the following JSON format for the output:
+	
+	## JSON
+	
+	{
+	    "refactorings":{
+	        // for each refactored file
+	        "file1Path": [
+	            // for each change in the file performed by you. Try to group changes of neighboring lines
+	            {
+	                "fromLine": "<the fromLine>",
+	                "toLine":"<the toLine>",
+	                "oldContent": "the old content of the changed lines",
+	                "newContent": "the new content of the changed lines"
+	            },
+	            //...
+	        ]
+	    },
+	    "extractedClasses":{
+	          // for each extracted class
+	        "extractedClassPath1": "full content of the newly extracted class 1 ",
+	        //...
+	    }
+	}
+	
+	## END JSON
+	
+		
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			16",
+			toLine:"			70",
+			content:"
+			 */
+			package org.apache.rocketmq.store.stats;
+			
+			import java.util.HashMap;
+			import java.util.concurrent.ScheduledExecutorService;
+			import org.apache.commons.lang3.tuple.Pair;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.ThreadFactoryImpl;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.statistics.StatisticsItem;
+			import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+			import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+			import org.apache.rocketmq.common.statistics.StatisticsManager;
+			import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.common.stats.StatsItem;
+			import org.apache.rocketmq.common.stats.StatsItemSet;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.common.utils.ThreadUtils;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			
+			public class BrokerStatsManager {
+			
+			    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;
+			    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+			    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+			    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+			    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+			    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+			
+			    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+			
+			    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+			    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+			    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+			    // For commercial
+			    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+			    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+			    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+			    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+			    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+						
+",
+,
+			fromLine:"			107",
+			toLine:"			114",
+			content:"
+			    public static final String RT = "RT";
+			    public static final String INNER_RT = "INNER_RT";
+			
+			    @Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+			    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+			    // Pull Message Latency
+			    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+						
+",
+,
+			fromLine:"			163",
+			toLine:"			190",
+			content:"
+			    }
+			
+			    public void init() {
+			        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,
+			            scheduledExecutorService, log);
+			
+			        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,
+			            scheduledExecutorService, log);
+			
+			        if (enableQueueStat) {
+			            this.statsTable.put(Stats.QUEUE_PUT_NUMS, new StatsItemSet(Stats.QUEUE_PUT_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_PUT_SIZE, new StatsItemSet(Stats.QUEUE_PUT_SIZE, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_NUMS, new StatsItemSet(Stats.QUEUE_GET_NUMS, this.scheduledExecutorService, log));
+			            this.statsTable.put(Stats.QUEUE_GET_SIZE, new StatsItemSet(Stats.QUEUE_GET_SIZE, this.scheduledExecutorService, log));
+			        }
+			        this.statsTable.put(Stats.TOPIC_PUT_NUMS, new StatsItemSet(Stats.TOPIC_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.TOPIC_PUT_SIZE, new StatsItemSet(Stats.TOPIC_PUT_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_NUMS, new StatsItemSet(Stats.GROUP_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_SIZE, new StatsItemSet(Stats.GROUP_GET_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_ACK_NUMS, new StatsItemSet(GROUP_ACK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(GROUP_CK_NUMS, new StatsItemSet(GROUP_CK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_LATENCY, new StatsItemSet(Stats.GROUP_GET_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(TOPIC_PUT_LATENCY, new StatsItemSet(TOPIC_PUT_LATENCY, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.SNDBCK_PUT_NUMS, new StatsItemSet(Stats.SNDBCK_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(DLQ_PUT_NUMS, new StatsItemSet(DLQ_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_PUT_NUMS, new StatsItemSet(Stats.BROKER_PUT_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_NUMS, new StatsItemSet(Stats.BROKER_GET_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_ACK_NUMS, new StatsItemSet(BROKER_ACK_NUMS, this.scheduledExecutorService, log));			
+",
+,
+			fromLine:"			193",
+			toLine:"			222",
+			content:"
+			            new StatsItemSet(BROKER_GET_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC,
+			            new StatsItemSet(BROKER_PUT_NUMS_WITHOUT_SYSTEM_TOPIC, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.GROUP_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.GROUP_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_NUMS,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_NUMS, this.scheduledExecutorService, log));
+			        this.statsTable.put(Stats.BROKER_GET_FROM_DISK_SIZE,
+			            new StatsItemSet(Stats.BROKER_GET_FROM_DISK_SIZE, this.scheduledExecutorService, log));
+			
+			        this.statsTable.put(SNDBCK2DLQ_TIMES,
+			            new StatsItemSet(SNDBCK2DLQ_TIMES, this.scheduledExecutorService, DLQ_STAT_LOG));
+			
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SEND_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_SEND_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_SIZE,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_SIZE, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_RCV_EPOLLS,
+			            new StatsItemSet(Stats.COMMERCIAL_RCV_EPOLLS, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_SNDBCK_TIMES,
+			            new StatsItemSet(Stats.COMMERCIAL_SNDBCK_TIMES, this.commercialExecutor, COMMERCIAL_LOG));
+			        this.statsTable.put(Stats.COMMERCIAL_PERM_FAILURES,
+			            new StatsItemSet(Stats.COMMERCIAL_PERM_FAILURES, this.commercialExecutor, COMMERCIAL_LOG));
+						
+",
+,
+			fromLine:"			330",
+			toLine:"			345",
+			content:"
+			    }
+			
+			    public void onTopicDeleted(final String topic) {
+			        this.statsTable.get(Stats.TOPIC_PUT_NUMS).delValue(topic);
+			        this.statsTable.get(Stats.TOPIC_PUT_SIZE).delValue(topic);
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).delValueByPrefixKey(topic, "@");
+			        }
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueByPrefixKey(topic, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueByInfixKey(topic, "@");
+			        this.momentStatsItemSetFallSize.delValueByInfixKey(topic, "@");			
+",
+,
+			fromLine:"			347",
+			toLine:"			358",
+			content:"
+			    }
+			
+			    public void onGroupDeleted(final String group) {
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).delValueBySuffixKey(group, "@");
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).delValueBySuffixKey(group, "@");
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).delValueBySuffixKey(group, "@");
+			        }
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).delValueBySuffixKey(group, "@");
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).delValueBySuffixKey(group, "@");
+			        this.momentStatsItemSetFallSize.delValueBySuffixKey(group, "@");			
+",
+,
+			fromLine:"			361",
+			toLine:"			365",
+			content:"
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), 1, 1);
+			        }			
+",
+,
+			fromLine:"			367",
+			toLine:"			371",
+			content:"
+			
+			    public void incQueuePutNums(final String topic, final Integer queueId, int num, int times) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_NUMS).addValue(buildStatsKey(topic, queueId), num, times);
+			        }			
+",
+,
+			fromLine:"			373",
+			toLine:"			377",
+			content:"
+			
+			    public void incQueuePutSize(final String topic, final Integer queueId, final int size) {
+			        if (enableQueueStat) {
+			            this.statsTable.get(Stats.QUEUE_PUT_SIZE).addValue(buildStatsKey(topic, queueId), size, 1);
+			        }			
+",
+,
+			fromLine:"			380",
+			toLine:"			384",
+			content:"
+			    public void incQueueGetNums(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_NUMS).addValue(statsKey, incValue, 1);
+			        }			
+",
+,
+			fromLine:"			387",
+			toLine:"			391",
+			content:"
+			    public void incQueueGetSize(final String group, final String topic, final Integer queueId, final int incValue) {
+			        if (enableQueueStat) {
+			            final String statsKey = buildStatsKey(topic, queueId, group);
+			            this.statsTable.get(Stats.QUEUE_GET_SIZE).addValue(statsKey, incValue, 1);
+			        }			
+",
+,
+			fromLine:"			416",
+			toLine:"			433",
+			content:"
+			    }
+			
+			    public void incTopicPutNums(final String topic) {
+			        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, 1, 1);
+			    }
+			
+			    public void incTopicPutNums(final String topic, int num, int times) {
+			        this.statsTable.get(Stats.TOPIC_PUT_NUMS).addValue(topic, num, times);
+			    }
+			
+			    public void incTopicPutSize(final String topic, final int size) {
+			        this.statsTable.get(Stats.TOPIC_PUT_SIZE).addValue(topic, size, 1);
+			    }
+			
+			    public void incGroupGetNums(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.GROUP_GET_NUMS).addValue(statsKey, incValue, 1);
+			    }			
+",
+,
+			fromLine:"			488",
+			toLine:"			492",
+			content:"
+			
+			    public void incGroupGetSize(final String group, final String topic, final int incValue) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.GROUP_GET_SIZE).addValue(statsKey, incValue, 1);
+			    }			
+",
+,
+			fromLine:"			498",
+			toLine:"			502",
+			content:"
+			        } else {
+			            statsKey = buildStatsKey(topic, group);
+			        }
+			        this.statsTable.get(Stats.GROUP_GET_LATENCY).addRTValue(statsKey, incValue, 1);
+			    }			
+",
+,
+			fromLine:"			513",
+			toLine:"			526",
+			content:"
+			    }
+			
+			    public void incBrokerPutNums() {
+			        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(1);
+			    }
+			
+			    public void incBrokerPutNums(final String topic, final int incValue) {
+			        this.statsTable.get(Stats.BROKER_PUT_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+			        incBrokerPutNumsWithoutSystemTopic(topic, incValue);
+			    }
+			
+			    public void incBrokerGetNums(final String topic, final int incValue) {
+			        this.statsTable.get(Stats.BROKER_GET_NUMS).getAndCreateStatsItem(this.clusterName).getValue().add(incValue);
+			        this.incBrokerGetNumsWithoutSystemTopic(topic, incValue);			
+",
+,
+			fromLine:"			574",
+			toLine:"			583",
+			content:"
+			
+			    public void incSendBackNums(final String group, final String topic) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        this.statsTable.get(Stats.SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);
+			    }
+			
+			    public double tpsGroupGetNums(final String group, final String topic) {
+			        final String statsKey = buildStatsKey(topic, group);
+			        return this.statsTable.get(Stats.GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();
+			    }			
+",
+,
+			fromLine:"			622",
+			toLine:"			629",
+			content:"
+			        this.statsTable.get(key).addValue(statsKey, incValue, 1);
+			    }
+			
+			    public void incAccountValue(final String statType, final String owner, final String instanceId, final String topic,
+			        final String group, final String msgType,
+			        final long... incValues) {
+			        final String key = buildAccountStatKey(owner, instanceId, topic, group, msgType);
+			        this.accountStatManager.inc(statType, key, incValues);			
+",
+,
+			fromLine:"			632",
+			toLine:"			636",
+			content:"
+			    public void incAccountValue(final String statType, final String owner, final String instanceId, final String topic,
+			        final String group, final String msgType, final String flowlimitThreshold,
+			        final long... incValues) {
+			        final String key = buildAccountStatKey(owner, instanceId, topic, group, msgType, flowlimitThreshold);
+			        this.accountStatManager.inc(statType, key, incValues);			
+",
+,
+			fromLine:"			697",
+			toLine:"			710",
+			content:"
+			        return strBuilder.toString();
+			    }
+			
+			    public String buildAccountStatKey(final String owner, final String instanceId,
+			        final String topic, final String group,
+			        final String msgType, String flowlimitThreshold) {
+			        final String sep = "|";
+			        StringBuffer strBuilder = new StringBuffer();
+			        strBuilder.append(owner).append(sep);
+			        strBuilder.append(instanceId).append(sep);
+			        strBuilder.append(topic).append(sep);
+			        strBuilder.append(group).append(sep);
+			        strBuilder.append(msgType).append(sep);
+			        strBuilder.append(flowlimitThreshold);			
+",
+,
+
+		],
+		common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+		[
+			fromLine:"			16",
+			toLine:"			47",
+			content:"
+			 */
+			package org.apache.rocketmq.common.stats;
+			
+			public class Stats {
+			
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			}			
+",
+,
+
+		],
+		store/src/test/java/org/apache/rocketmq/store/stats/BrokerStatsManagerTest.java:
+		[
+			fromLine:"			17",
+			toLine:"			40",
+			content:"
+			
+			package org.apache.rocketmq.store.stats;
+			
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.junit.After;
+			import org.junit.Assert;
+			import org.junit.Before;
+			import org.junit.Test;
+			
+			import static org.apache.rocketmq.common.stats.Stats.BROKER_PUT_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.GROUP_GET_FALL_SIZE;
+			import static org.apache.rocketmq.common.stats.Stats.GROUP_GET_FALL_TIME;
+			import static org.apache.rocketmq.common.stats.Stats.GROUP_GET_LATENCY;
+			import static org.apache.rocketmq.common.stats.Stats.GROUP_GET_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.GROUP_GET_SIZE;
+			import static org.apache.rocketmq.common.stats.Stats.QUEUE_GET_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.QUEUE_GET_SIZE;
+			import static org.apache.rocketmq.common.stats.Stats.QUEUE_PUT_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.QUEUE_PUT_SIZE;
+			import static org.apache.rocketmq.common.stats.Stats.SNDBCK_PUT_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.TOPIC_PUT_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.TOPIC_PUT_SIZE;
+			import static org.assertj.core.api.Assertions.assertThat;
+						
+",
+,
+			fromLine:"			66",
+			toLine:"			72",
+			content:"
+			    public void testIncQueuePutNums() {
+			        brokerStatsManager.incQueuePutNums(TOPIC, QUEUE_ID);
+			        String statsKey = brokerStatsManager.buildStatsKey(TOPIC, String.valueOf(QUEUE_ID));
+			        assertThat(brokerStatsManager.getStatsItem(QUEUE_PUT_NUMS, statsKey).getTimes().doubleValue()).isEqualTo(1L);
+			        brokerStatsManager.incQueuePutNums(TOPIC, QUEUE_ID, 2, 2);
+			        assertThat(brokerStatsManager.getStatsItem(QUEUE_PUT_NUMS, statsKey).getValue().doubleValue()).isEqualTo(3L);
+			    }			
+",
+,
+			fromLine:"			75",
+			toLine:"			79",
+			content:"
+			    public void testIncQueuePutSize() {
+			        brokerStatsManager.incQueuePutSize(TOPIC, QUEUE_ID, 2);
+			        String statsKey = brokerStatsManager.buildStatsKey(TOPIC, String.valueOf(QUEUE_ID));
+			        assertThat(brokerStatsManager.getStatsItem(QUEUE_PUT_SIZE, statsKey).getValue().doubleValue()).isEqualTo(2L);
+			    }			
+",
+,
+			fromLine:"			82",
+			toLine:"			86",
+			content:"
+			    public void testIncQueueGetNums() {
+			        brokerStatsManager.incQueueGetNums(GROUP_NAME, TOPIC, QUEUE_ID, 1);
+			        final String statsKey = brokerStatsManager.buildStatsKey(brokerStatsManager.buildStatsKey(TOPIC, String.valueOf(QUEUE_ID)), GROUP_NAME);
+			        assertThat(brokerStatsManager.getStatsItem(QUEUE_GET_NUMS, statsKey).getValue().doubleValue()).isEqualTo(1L);
+			    }			
+",
+,
+			fromLine:"			89",
+			toLine:"			93",
+			content:"
+			    public void testIncQueueGetSize() {
+			        brokerStatsManager.incQueueGetSize(GROUP_NAME, TOPIC, QUEUE_ID, 1);
+			        final String statsKey = brokerStatsManager.buildStatsKey(brokerStatsManager.buildStatsKey(TOPIC, String.valueOf(QUEUE_ID)), GROUP_NAME);
+			        assertThat(brokerStatsManager.getStatsItem(QUEUE_GET_SIZE, statsKey).getValue().doubleValue()).isEqualTo(1L);
+			    }			
+",
+,
+			fromLine:"			95",
+			toLine:"			101",
+			content:"
+			    @Test
+			    public void testIncTopicPutNums() {
+			        brokerStatsManager.incTopicPutNums(TOPIC);
+			        assertThat(brokerStatsManager.getStatsItem(TOPIC_PUT_NUMS, TOPIC).getTimes().doubleValue()).isEqualTo(1L);
+			        brokerStatsManager.incTopicPutNums(TOPIC, 2, 2);
+			        assertThat(brokerStatsManager.getStatsItem(TOPIC_PUT_NUMS, TOPIC).getValue().doubleValue()).isEqualTo(3L);
+			    }			
+",
+,
+			fromLine:"			103",
+			toLine:"			107",
+			content:"
+			    @Test
+			    public void testIncTopicPutSize() {
+			        brokerStatsManager.incTopicPutSize(TOPIC, 2);
+			        assertThat(brokerStatsManager.getStatsItem(TOPIC_PUT_SIZE, TOPIC).getValue().doubleValue()).isEqualTo(2L);
+			    }			
+",
+,
+			fromLine:"			110",
+			toLine:"			114",
+			content:"
+			    public void testIncGroupGetNums() {
+			        brokerStatsManager.incGroupGetNums(GROUP_NAME, TOPIC, 1);
+			        String statsKey = brokerStatsManager.buildStatsKey(TOPIC, GROUP_NAME);
+			        assertThat(brokerStatsManager.getStatsItem(GROUP_GET_NUMS, statsKey).getValue().doubleValue()).isEqualTo(1L);
+			    }			
+",
+,
+			fromLine:"			117",
+			toLine:"			121",
+			content:"
+			    public void testIncGroupGetSize() {
+			        brokerStatsManager.incGroupGetSize(GROUP_NAME, TOPIC, 1);
+			        String statsKey = brokerStatsManager.buildStatsKey(TOPIC, GROUP_NAME);
+			        assertThat(brokerStatsManager.getStatsItem(GROUP_GET_SIZE, statsKey).getValue().doubleValue()).isEqualTo(1L);
+			    }			
+",
+,
+			fromLine:"			124",
+			toLine:"			128",
+			content:"
+			    public void testIncGroupGetLatency() {
+			        brokerStatsManager.incGroupGetLatency(GROUP_NAME, TOPIC, 1, 1);
+			        String statsKey = String.format("%d@%s@%s", 1, TOPIC, GROUP_NAME);
+			        assertThat(brokerStatsManager.getStatsItem(GROUP_GET_LATENCY, statsKey).getValue().doubleValue()).isEqualTo(1L);
+			    }			
+",
+,
+			fromLine:"			130",
+			toLine:"			134",
+			content:"
+			    @Test
+			    public void testIncBrokerPutNums() {
+			        brokerStatsManager.incBrokerPutNums();
+			        assertThat(brokerStatsManager.getStatsItem(BROKER_PUT_NUMS, CLUSTER_NAME).getValue().doubleValue()).isEqualTo(1L);
+			    }			
+",
+,
+			fromLine:"			150",
+			toLine:"			165",
+			content:"
+			
+			        brokerStatsManager.onTopicDeleted(TOPIC);
+			
+			        Assert.assertNull(brokerStatsManager.getStatsItem(TOPIC_PUT_NUMS, TOPIC));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(TOPIC_PUT_SIZE, TOPIC));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(QUEUE_PUT_NUMS, TOPIC + "@" + QUEUE_ID));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(QUEUE_PUT_SIZE, TOPIC + "@" + QUEUE_ID));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_SIZE, TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_NUMS, TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(QUEUE_GET_SIZE, TOPIC + "@" + QUEUE_ID + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(QUEUE_GET_NUMS, TOPIC + "@" + QUEUE_ID + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(SNDBCK_PUT_NUMS, TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_LATENCY, "1@" + TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_FALL_SIZE, "1@" + TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_FALL_TIME, "1@" + TOPIC + "@" + GROUP_NAME));
+			    }			
+",
+,
+			fromLine:"			177",
+			toLine:"			188",
+			content:"
+			
+			        brokerStatsManager.onGroupDeleted(GROUP_NAME);
+			
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_SIZE, TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_NUMS, TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(QUEUE_GET_SIZE, TOPIC + "@" + QUEUE_ID + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(QUEUE_GET_NUMS, TOPIC + "@" + QUEUE_ID + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(SNDBCK_PUT_NUMS, TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_LATENCY, "1@" + TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_FALL_SIZE, "1@" + TOPIC + "@" + GROUP_NAME));
+			        Assert.assertNull(brokerStatsManager.getStatsItem(GROUP_GET_FALL_TIME, "1@" + TOPIC + "@" + GROUP_NAME));
+			    }			
+",
+,
+
+		],
+		broker/src/test/java/org/apache/rocketmq/broker/processor/EndTransactionProcessorTest.java:
+		[
+			fromLine:"			16",
+			toLine:"			56",
+			content:"
+			 */
+			package org.apache.rocketmq.broker.processor;
+			
+			import io.netty.channel.ChannelHandlerContext;
+			import org.apache.rocketmq.broker.BrokerController;
+			import org.apache.rocketmq.broker.transaction.OperationResult;
+			import org.apache.rocketmq.broker.transaction.TransactionMetrics;
+			import org.apache.rocketmq.broker.transaction.TransactionalMessageService;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.message.MessageAccessor;
+			import org.apache.rocketmq.common.message.MessageConst;
+			import org.apache.rocketmq.common.message.MessageExt;
+			import org.apache.rocketmq.common.message.MessageExtBrokerInner;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.common.sysflag.MessageSysFlag;
+			import org.apache.rocketmq.remoting.exception.RemotingCommandException;
+			import org.apache.rocketmq.remoting.netty.NettyClientConfig;
+			import org.apache.rocketmq.remoting.netty.NettyServerConfig;
+			import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+			import org.apache.rocketmq.remoting.protocol.RequestCode;
+			import org.apache.rocketmq.remoting.protocol.ResponseCode;
+			import org.apache.rocketmq.remoting.protocol.header.EndTransactionRequestHeader;
+			import org.apache.rocketmq.store.AppendMessageResult;
+			import org.apache.rocketmq.store.AppendMessageStatus;
+			import org.apache.rocketmq.store.MessageStore;
+			import org.apache.rocketmq.store.PutMessageResult;
+			import org.apache.rocketmq.store.PutMessageStatus;
+			import org.apache.rocketmq.store.config.MessageStoreConfig;
+			import org.junit.Before;
+			import org.junit.Test;
+			import org.junit.runner.RunWith;
+			import org.mockito.Mock;
+			import org.mockito.Spy;
+			import org.mockito.junit.MockitoJUnitRunner;
+			
+			import java.nio.charset.StandardCharsets;
+			
+			import static org.assertj.core.api.Assertions.assertThat;
+			import static org.mockito.ArgumentMatchers.any;
+			import static org.mockito.Mockito.when;
+						
+",
+,
+			fromLine:"			102",
+			toLine:"			108",
+			content:"
+			        RemotingCommand request = createEndTransactionMsgCommand(MessageSysFlag.TRANSACTION_COMMIT_TYPE, false);
+			        RemotingCommand response = endTransactionProcessor.processRequest(handlerContext, request);
+			        assertThat(response.getCode()).isEqualTo(ResponseCode.SUCCESS);
+			        assertThat(brokerController.getBrokerStatsManager().getStatsItem(Stats.BROKER_PUT_NUMS, brokerController.getBrokerConfig().getBrokerClusterName()).getValue().sum()).isEqualTo(1);
+			        assertThat(brokerController.getBrokerStatsManager().getStatsItem(Stats.TOPIC_PUT_NUMS, TOPIC).getValue().sum()).isEqualTo(1L);
+			        assertThat(brokerController.getBrokerStatsManager().getStatsItem(Stats.TOPIC_PUT_SIZE, TOPIC).getValue().sum()).isEqualTo(1L);
+			    }			
+",
+,
+			fromLine:"			115",
+			toLine:"			121",
+			content:"
+			        RemotingCommand request = createEndTransactionMsgCommand(MessageSysFlag.TRANSACTION_COMMIT_TYPE, true);
+			        RemotingCommand response = endTransactionProcessor.processRequest(handlerContext, request);
+			        assertThat(response.getCode()).isEqualTo(ResponseCode.SUCCESS);
+			        assertThat(brokerController.getBrokerStatsManager().getStatsItem(Stats.BROKER_PUT_NUMS, brokerController.getBrokerConfig().getBrokerClusterName()).getValue().sum()).isEqualTo(1);
+			        assertThat(brokerController.getBrokerStatsManager().getStatsItem(Stats.TOPIC_PUT_NUMS, TOPIC).getValue().sum()).isEqualTo(1L);
+			        assertThat(brokerController.getBrokerStatsManager().getStatsItem(Stats.TOPIC_PUT_SIZE, TOPIC).getValue().sum()).isEqualTo(1L);
+			    }			
+",
+,
+
+		],
+		broker/src/test/java/org/apache/rocketmq/broker/schedule/ScheduleMessageServiceTest.java:
+		[
+			fromLine:"			17",
+			toLine:"			62",
+			content:"
+			
+			package org.apache.rocketmq.broker.schedule;
+			
+			import java.io.File;
+			import java.lang.reflect.Field;
+			import java.net.InetAddress;
+			import java.net.InetSocketAddress;
+			import java.net.SocketAddress;
+			import java.net.UnknownHostException;
+			import java.nio.ByteBuffer;
+			import java.util.HashMap;
+			import java.util.List;
+			import java.util.Map;
+			import java.util.Random;
+			import java.util.UUID;
+			import java.util.concurrent.ConcurrentHashMap;
+			import java.util.concurrent.ConcurrentMap;
+			import java.util.concurrent.TimeUnit;
+			import org.apache.rocketmq.broker.BrokerController;
+			import org.apache.rocketmq.broker.failover.EscapeBridge;
+			import org.apache.rocketmq.broker.util.HookUtils;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.message.MessageDecoder;
+			import org.apache.rocketmq.common.message.MessageExt;
+			import org.apache.rocketmq.common.message.MessageExtBrokerInner;
+			import org.apache.rocketmq.store.ConsumeQueueExt;
+			import org.apache.rocketmq.store.DefaultMessageStore;
+			import org.apache.rocketmq.store.GetMessageResult;
+			import org.apache.rocketmq.store.GetMessageStatus;
+			import org.apache.rocketmq.store.MessageArrivingListener;
+			import org.apache.rocketmq.store.PutMessageResult;
+			import org.apache.rocketmq.store.config.MessageStoreConfig;
+			import org.apache.rocketmq.store.stats.BrokerStatsManager;
+			import org.junit.After;
+			import org.junit.Before;
+			import org.junit.Test;
+			import org.mockito.Mockito;
+			
+			import static org.apache.rocketmq.common.stats.Stats.BROKER_PUT_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.TOPIC_PUT_NUMS;
+			import static org.apache.rocketmq.common.stats.Stats.TOPIC_PUT_SIZE;
+			import static org.assertj.core.api.Assertions.assertThat;
+			import static org.junit.Assert.assertTrue;
+			import static org.junit.Assert.assertEquals;
+						
+",
+,
+			fromLine:"			196",
+			toLine:"			200",
+			content:"
+			    public void testDeliverDelayedMessageTimerTask() throws Exception {
+			        assertThat(messageStore.getMessageStoreConfig().isEnableScheduleMessageStats()).isTrue();
+			
+			        assertThat(messageStore.getBrokerStatsManager().getStatsItem(TOPIC_PUT_NUMS, topic)).isNull();
+						
+",
+,
+			fromLine:"			226",
+			toLine:"			232",
+			content:"
+			        assertThat(messageResult.getStatus()).isEqualTo(GetMessageStatus.FOUND);
+			
+			        // get the stats change
+			        assertThat(messageStore.getBrokerStatsManager().getStatsItem(BROKER_PUT_NUMS, brokerConfig.getBrokerClusterName()).getValue().sum()).isEqualTo(1);
+			        assertThat(messageStore.getBrokerStatsManager().getStatsItem(TOPIC_PUT_NUMS, topic).getValue().sum()).isEqualTo(1L);
+			        assertThat(messageStore.getBrokerStatsManager().getStatsItem(TOPIC_PUT_SIZE, topic).getValue().sum()).isEqualTo(messageResult.getBufferTotalSize());
+						
+",
+,
+
+		],
+		tools/src/main/java/org/apache/rocketmq/tools/command/export/ExportMetricsCommand.java:
+		[
+			fromLine:"			16",
+			toLine:"			49",
+			content:"
+			 */
+			package org.apache.rocketmq.tools.command.export;
+			
+			import com.alibaba.fastjson.JSON;
+			import java.util.HashMap;
+			import java.util.HashSet;
+			import java.util.Map;
+			import java.util.Properties;
+			import java.util.Set;
+			import org.apache.commons.cli.CommandLine;
+			import org.apache.commons.cli.Option;
+			import org.apache.commons.cli.Options;
+			import org.apache.rocketmq.client.exception.MQBrokerException;
+			import org.apache.rocketmq.client.exception.MQClientException;
+			import org.apache.rocketmq.common.MQVersion;
+			import org.apache.rocketmq.common.MixAll;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.remoting.RPCHook;
+			import org.apache.rocketmq.remoting.exception.RemotingException;
+			import org.apache.rocketmq.remoting.protocol.body.BrokerStatsData;
+			import org.apache.rocketmq.remoting.protocol.body.ClusterInfo;
+			import org.apache.rocketmq.remoting.protocol.body.Connection;
+			import org.apache.rocketmq.remoting.protocol.body.ConsumerConnection;
+			import org.apache.rocketmq.remoting.protocol.body.KVTable;
+			import org.apache.rocketmq.remoting.protocol.body.SubscriptionGroupWrapper;
+			import org.apache.rocketmq.remoting.protocol.body.TopicConfigSerializeWrapper;
+			import org.apache.rocketmq.remoting.protocol.route.BrokerData;
+			import org.apache.rocketmq.remoting.protocol.subscription.SubscriptionGroupConfig;
+			import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
+			import org.apache.rocketmq.tools.command.SubCommand;
+			import org.apache.rocketmq.tools.command.SubCommandException;
+			import org.apache.rocketmq.tools.command.stats.StatsAllSubCommand;
+						
+",
+,
+			fromLine:"			184",
+			toLine:"			188",
+			content:"
+			
+			        try {
+			            transStatsData = defaultMQAdminExt.viewBrokerStatsData(brokerAddr,
+			                Stats.TOPIC_PUT_NUMS,
+			                TopicValidator.RMQ_SYS_TRANS_HALF_TOPIC);			
+",
+,
+			fromLine:"			192",
+			toLine:"			196",
+			content:"
+			        BrokerStatsData scheduleStatsData = null;
+			        try {
+			            scheduleStatsData = defaultMQAdminExt.viewBrokerStatsData(brokerAddr,
+			                Stats.TOPIC_PUT_NUMS, TopicValidator.RMQ_SYS_SCHEDULE_TOPIC);
+			        } catch (MQClientException e) {			
+",
+,
+
+		],
+		tools/src/main/java/org/apache/rocketmq/tools/command/stats/StatsAllSubCommand.java:
+		[
+			fromLine:"			17",
+			toLine:"			39",
+			content:"
+			
+			package org.apache.rocketmq.tools.command.stats;
+			
+			import org.apache.commons.cli.CommandLine;
+			import org.apache.commons.cli.Option;
+			import org.apache.commons.cli.Options;
+			import org.apache.rocketmq.client.exception.MQBrokerException;
+			import org.apache.rocketmq.client.exception.MQClientException;
+			import org.apache.rocketmq.common.MixAll;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.remoting.RPCHook;
+			import org.apache.rocketmq.remoting.exception.RemotingException;
+			import org.apache.rocketmq.remoting.protocol.admin.ConsumeStats;
+			import org.apache.rocketmq.remoting.protocol.body.BrokerStatsData;
+			import org.apache.rocketmq.remoting.protocol.body.GroupList;
+			import org.apache.rocketmq.remoting.protocol.body.TopicList;
+			import org.apache.rocketmq.remoting.protocol.route.BrokerData;
+			import org.apache.rocketmq.remoting.protocol.route.TopicRouteData;
+			import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
+			import org.apache.rocketmq.tools.command.SubCommand;
+			import org.apache.rocketmq.tools.command.SubCommandException;
+						
+",
+,
+			fromLine:"			52",
+			toLine:"			56",
+			content:"
+			            String masterAddr = bd.getBrokerAddrs().get(MixAll.MASTER_ID);
+			            if (masterAddr != null) {
+			                try {
+			                    BrokerStatsData bsd = admin.viewBrokerStatsData(masterAddr, Stats.TOPIC_PUT_NUMS, topic);
+			                    inTPS += bsd.getStatsMinute().getTps();			
+",
+,
+			fromLine:"			71",
+			toLine:"			75",
+			content:"
+			                    if (masterAddr != null) {
+			                        try {
+			                            String statsKey = String.format("%s@%s", topic, group);
+			                            BrokerStatsData bsd = admin.viewBrokerStatsData(masterAddr, Stats.GROUP_GET_NUMS, statsKey);
+			                            outTPS += bsd.getStatsMinute().getTps();			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+			[
+				fromLine:"				16",
+				toLine:"				70",
+				oldContent:"
+				deprecated constants from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				107",
+				toLine:"				114",
+				oldContent:"
+				public static final String RT = "RT";
+				    public static final String INNER_RT = "INNER_RT";
+				
+				    @Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+				    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+				    // Pull Message Latency
+				    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+								
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				163",
+				toLine:"				190",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				193",
+				toLine:"				222",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+				use instance variables instead of deprecated constants where possible.				
+",
+,
+				fromLine:"				330",
+				toLine:"				345",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				347",
+				toLine:"				358",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				361",
+				toLine:"				365",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				367",
+				toLine:"				371",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				373",
+				toLine:"				377",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				380",
+				toLine:"				384",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				387",
+				toLine:"				391",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				416",
+				toLine:"				433",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				488",
+				toLine:"				492",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				498",
+				toLine:"				502",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				513",
+				toLine:"				526",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				574",
+				toLine:"				583",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				622",
+				toLine:"				629",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				632",
+				toLine:"				636",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				697",
+				toLine:"				710",
+				oldContent:"
+				deprecated constants usage from Stats.				
+",
+				newContent:"
+								
+",
+,
+
+			],
+			common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+			[
+				fromLine:"				16",
+				toLine:"				47",
+				oldContent:"
+				public class Stats ...				
+",
+				newContent:"
+				refactor to use an Enum for topic names				
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					/org/apache/rocketmq/common/stats/TopicStats.java:"
+			public enum TopicStats {
+			    QUEUE_PUT_NUMS("QUEUE_PUT_NUMS"),
+			    QUEUE_PUT_SIZE("QUEUE_PUT_SIZE"),
+			    QUEUE_GET_NUMS("QUEUE_GET_NUMS"),
+			    QUEUE_GET_SIZE("QUEUE_GET_SIZE"),
+			    TOPIC_PUT_NUMS("TOPIC_PUT_NUMS"),
+			    TOPIC_PUT_SIZE("TOPIC_PUT_SIZE"),
+			    GROUP_GET_NUMS("GROUP_GET_NUMS"),
+			    GROUP_GET_SIZE("GROUP_GET_SIZE"),
+			    SNDBCK_PUT_NUMS("SNDBCK_PUT_NUMS"),
+			    BROKER_PUT_NUMS("BROKER_PUT_NUMS"),
+			    BROKER_GET_NUMS("BROKER_GET_NUMS"),
+			    GROUP_GET_FROM_DISK_NUMS("GROUP_GET_FROM_DISK_NUMS"),
+			    GROUP_GET_FROM_DISK_SIZE("GROUP_GET_FROM_DISK_SIZE"),
+			    BROKER_GET_FROM_DISK_NUMS("BROKER_GET_FROM_DISK_NUMS"),
+			    BROKER_GET_FROM_DISK_SIZE("BROKER_GET_FROM_DISK_SIZE"),
+			    COMMERCIAL_SEND_TIMES("COMMERCIAL_SEND_TIMES"),
+			    COMMERCIAL_SNDBCK_TIMES("COMMERCIAL_SNDBCK_TIMES"),
+			    COMMERCIAL_RCV_TIMES("COMMERCIAL_RCV_TIMES"),
+			    COMMERCIAL_RCV_EPOLLS("COMMERCIAL_RCV_EPOLLS"),
+			    COMMERCIAL_SEND_SIZE("COMMERCIAL_SEND_SIZE"),
+			    COMMERCIAL_RCV_SIZE("COMMERCIAL_RCV_SIZE"),
+			    COMMERCIAL_PERM_FAILURES("COMMERCIAL_PERM_FAILURES"),
+			    GROUP_GET_FALL_SIZE("GROUP_GET_FALL_SIZE"),
+			    GROUP_GET_FALL_TIME("GROUP_GET_FALL_TIME"),
+			    GROUP_GET_LATENCY("GROUP_GET_LATENCY");
+			
+			    private final String topic;
+			
+			    TopicStats(String topic) {
+			        this.topic = topic;
+			    }
+			
+			    public String getTopic() {
+			        return topic;
+			    }
+			}			
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.5.1:compile (default-compile) on project rocketmq-store: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[159,61] cannot find symbol
+	[ERROR]   symbol:   variable GROUP_GET_FALL_SIZE
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[162,61] cannot find symbol
+	[ERROR]   symbol:   variable GROUP_GET_FALL_TIME
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[225,21] cannot find symbol
+	[ERROR]   symbol:   variable RT
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[226,21] cannot find symbol
+	[ERROR]   symbol:   variable INNER_RT
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[231,13] cannot find symbol
+	[ERROR]   symbol:   variable RT
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] /root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:[231,17] cannot find symbol
+	[ERROR]   symbol:   variable INNER_RT
+	[ERROR]   location: class org.apache.rocketmq.store.stats.BrokerStatsManager
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :rocketmq-store
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/rocketmq_refactor/store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			16",
+			toLine:"			42",
+			content:"
+			 */
+			package org.apache.rocketmq.store.stats;
+			
+			import java.util.HashMap;
+			import java.util.concurrent.ScheduledExecutorService;
+			import org.apache.commons.lang3.tuple.Pair;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.ThreadFactoryImpl;
+			import org.apache.rocketmq.common.UtilAll;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.statistics.StatisticsItem;
+			import org.apache.rocketmq.common.statistics.StatisticsItemFormatter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledIncrementPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemScheduledPrinter;
+			import org.apache.rocketmq.common.statistics.StatisticsItemStateGetter;
+			import org.apache.rocketmq.common.statistics.StatisticsKindMeta;
+			import org.apache.rocketmq.common.statistics.StatisticsManager;
+			import org.apache.rocketmq.common.stats.MomentStatsItemSet;
+			import org.apache.rocketmq.common.stats.Stats;
+			import org.apache.rocketmq.common.stats.StatsItem;
+			import org.apache.rocketmq.common.stats.StatsItemSet;
+			import org.apache.rocketmq.common.topic.TopicValidator;
+			import org.apache.rocketmq.common.utils.ThreadUtils;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+						
+",
+,
+			fromLine:"			157",
+			toLine:"			164",
+			content:"
+			
+			    public void init() {
+			        momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE,
+			            scheduledExecutorService, log);
+			
+			        momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME,
+			            scheduledExecutorService, log);
+						
+",
+,
+			fromLine:"			223",
+			toLine:"			233",
+			content:"
+			        StatisticsItemFormatter formatter = new StatisticsItemFormatter();
+			        accountStatManager.setBriefMeta(new Pair[] {
+			            Pair.of(RT, new long[][] {{50, 50}, {100, 10}, {1000, 10}}),
+			            Pair.of(INNER_RT, new long[][] {{10, 10}, {100, 10}, {1000, 10}})});
+			        String[] itemNames = new String[] {
+			            MSG_NUM, SUCCESS_MSG_NUM, FAILURE_MSG_NUM, COMMERCIAL_MSG_NUM,
+			            SUCCESS_REQ_NUM, FAILURE_REQ_NUM,
+			            MSG_SIZE, SUCCESS_MSG_SIZE, FAILURE_MSG_SIZE,
+			            RT, INNER_RT};
+			        this.accountStatManager.addStatisticsKindMeta(createStatisticsKindMeta(
+			            ACCOUNT_SEND, itemNames, this.accountExecutor, formatter, ACCOUNT_LOG, ACCOUNT_STAT_INVERTAL));			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+
+],
+model:"
+gpt-4-1106-preview
+",
+response_format:
+{
+	type:"
+	json_object	
+",
+
+}
+temperature:"0.9",

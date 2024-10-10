@@ -1,0 +1,24 @@
+{
+    "refactorings": {
+        "store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java": [
+            {
+                "fromLine": 272,
+                "toLine": 272,
+                "oldContent": "    private final StatisticsManager accountStatManager = new StatisticsManager();",
+                "newContent": "    private final AccountStatsManager accountStatManager = new AccountStatsManager();"
+            },
+            {
+                "fromLine": 117,
+                "toLine": 117,
+                "oldContent": "        this.accountStatManager.setStatisticsItemStateGetter(new StatisticsItemStateGetter() {",
+                "newContent": "        this.accountStatManager.setOnlineChecker();"
+            },
+            {
+                "fromLine": 118,
+                "toLine": 151,
+                "oldContent": "            @Override\n            public boolean online(StatisticsItem item) {\n                String[] strArr = null;\n                try {\n                    strArr = splitAccountStatKey(item.getStatObject());\n                } catch (Exception e) {\n                    log.warn(\"parse account stat key failed, key: {}\", item.getStatObject());\n                    return false;\n                }\n\n                // TODO ugly\n                if (strArr == null || strArr.length < 4) {\n                    return false;\n                }\n\n                String instanceId = strArr[1];\n                String topic = strArr[2];\n                String group = strArr[3];\n\n                String kind = item.getStatKind();\n                if (ACCOUNT_SEND.equals(kind) || ACCOUNT_SEND_REJ.equals(kind)) {\n                    return producerStateGetter.online(instanceId, group, topic);\n                } else if (ACCOUNT_RCV.equals(kind) || ACCOUNT_SEND_BACK.equals(kind) || ACCOUNT_SEND_BACK_TO_DLQ.equals(kind) || ACCOUNT_REV_REJ.equals(kind)) {\n                    return consumerStateGetter.online(instanceId, group, topic);\n                }\n                return false;\n            }\n        });",
+                "newContent": ""
+            }
+        ]
+    }
+}

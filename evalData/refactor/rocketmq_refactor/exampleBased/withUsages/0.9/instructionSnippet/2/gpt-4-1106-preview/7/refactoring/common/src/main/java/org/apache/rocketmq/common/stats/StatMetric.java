@@ -1,0 +1,1 @@
+The full content of the new StatMetric enum definition, encapsulating the original constant definitions and providing additional functionality if needed.

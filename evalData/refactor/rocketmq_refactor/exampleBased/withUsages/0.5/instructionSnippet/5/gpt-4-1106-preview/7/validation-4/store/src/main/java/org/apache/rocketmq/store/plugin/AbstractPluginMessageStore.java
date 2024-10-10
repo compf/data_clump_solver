@@ -1,0 +1,368 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+public abstract class AbstractPluginMessageStore implements MessageStore {
+    protected MessageStore next = null;
+    protected MessageStorePluginContext context;
+
+    public AbstractPluginMessageStore(MessageStorePluginContext context, MessageStore next) {
+        this.next = next;
+        this.context = context;
+    }
+
+    @Override
+    public long getEarliestMessageTime() {
+        return next.getEarliestMessageTime();
+    }
+
+    @Override
+    public long lockTimeMills() {
+        return next.lockTimeMills();
+    }
+
+    @Override
+    public boolean isOSPageCacheBusy() {
+        return next.isOSPageCacheBusy();
+    }
+
+    @Override
+    public boolean isTransientStorePoolDeficient() {
+        return next.isTransientStorePoolDeficient();
+    }
+
+    @Override
+    public boolean load() {
+        return next.load();
+    }
+
+    @Override
+    public void start() throws Exception {
+        next.start();
+    }
+
+    @Override
+    public void shutdown() {
+        next.shutdown();
+    }
+
+    @Override
+    public void destroy() {
+        next.destroy();
+    }
+
+    @Override
+    public PutMessageResult putMessage(MessageExtBrokerInner msg) {
+        return next.putMessage(msg);
+    }
+
+    @Override
+    public CompletableFuture<PutMessageResult> asyncPutMessage(MessageExtBrokerInner msg) {
+        return next.asyncPutMessage(msg);
+    }
+
+    @Override
+    public CompletableFuture<PutMessageResult> asyncPutMessages(MessageExtBatch messageExtBatch) {
+        return next.asyncPutMessages(messageExtBatch);
+    }
+
+    @Override
+    public GetMessageResult getMessage(String group, String topic, int queueId, long offset,
+        int maxMsgNums, final MessageFilter messageFilter) {
+        return next.getMessage(group, topic, queueId, offset, maxMsgNums, messageFilter);
+    }
+
+    @Override
+    public CompletableFuture<GetMessageResult> getMessageAsync(String group, String topic,
+        int queueId, long offset, int maxMsgNums, MessageFilter messageFilter) {
+        return next.getMessageAsync(group, topic, queueId, offset, maxMsgNums, messageFilter);
+    }
+
+    @Override
+    public long getMaxOffsetInQueue(String topic, int queueId) {
+        return next.getMaxOffsetInQueue(topic, queueId);
+    }
+
+    @Override
+    public long getMaxOffsetInQueue(String topic, int queueId, boolean committed) {
+        return next.getMaxOffsetInQueue(topic, queueId, committed);
+    }
+
+    @Override
+    public long getMinOffsetInQueue(String topic, int queueId) {
+        return next.getMinOffsetInQueue(topic, queueId);
+    }
+
+    @Override
+    public long getCommitLogOffsetInQueue(String topic, int queueId, long consumeQueueOffset) {
+        return next.getCommitLogOffsetInQueue(topic, queueId, consumeQueueOffset);
+    }
+
+    @Override
+    public long getOffsetInQueueByTime(String topic, int queueId, long timestamp) {
+        return next.getOffsetInQueueByTime(topic, queueId, timestamp);
+    }
+
+    @Override
+    public MessageExt lookMessageByOffset(long commitLogOffset) {
+        return next.lookMessageByOffset(commitLogOffset);
+    }
+
+    @Override
+    public SelectMappedBufferResult selectOneMessageByOffset(long commitLogOffset) {
+        return next.selectOneMessageByOffset(commitLogOffset);
+    }
+
+    @Override
+    public SelectMappedBufferResult selectOneMessageByOffset(long commitLogOffset, int msgSize) {
+        return next.selectOneMessageByOffset(commitLogOffset, msgSize);
+    }
+
+    @Override
+    public String getRunningDataInfo() {
+        return next.getRunningDataInfo();
+    }
+
+    @Override
+    public HashMap<String, String> getRuntimeInfo() {
+        return next.getRuntimeInfo();
+    }
+
+    @Override
+    public long getMaxPhyOffset() {
+        return next.getMaxPhyOffset();
+    }
+
+    @Override
+    public long getMinPhyOffset() {
+        return next.getMinPhyOffset();
+    }
+
+    @Override
+    public long getEarliestMessageTime(String topic, int queueId) {
+        return next.getEarliestMessageTime(topic, queueId);
+    }
+
+    @Override
+    public CompletableFuture<Long> getEarliestMessageTimeAsync(String topic, int queueId) {
+        return next.getEarliestMessageTimeAsync(topic, queueId);
+    }
+
+    @Override
+    public long getMessageStoreTimeStamp(String topic, int queueId, long consumeQueueOffset) {
+        return next.getMessageStoreTimeStamp(topic, queueId, consumeQueueOffset);
+    }
+
+    @Override
+    public CompletableFuture<Long> getMessageStoreTimeStampAsync(String topic, int queueId,
+        long consumeQueueOffset) {
+        return next.getMessageStoreTimeStampAsync(topic, queueId, consumeQueueOffset);
+    }
+
+    @Override
+    public long getMessageTotalInQueue(String topic, int queueId) {
+        return next.getMessageTotalInQueue(topic, queueId);
+    }
+
+    @Override
+    public SelectMappedBufferResult getCommitLogData(long offset) {
+        return next.getCommitLogData(offset);
+    }
+
+    @Override
+    public boolean appendToCommitLog(long startOffset, byte[] data, int dataStart, int dataLength) {
+        return next.appendToCommitLog(startOffset, data, dataStart, dataLength);
+    }
+
+    @Override
+    public void executeDeleteFilesManually() {
+        next.executeDeleteFilesManually();
+    }
+
+    @Override
+    public QueryMessageResult queryMessage(String topic, String key, int maxNum, long begin,
+        long end) {
+        return next.queryMessage(topic, key, maxNum, begin, end);
+    }
+
+    @Override
+    public CompletableFuture<QueryMessageResult> queryMessageAsync(String topic, String key,
+        int maxNum, long begin, long end) {
+        return next.queryMessageAsync(topic, key, maxNum, begin, end);
+    }
+
+    @Override
+    public long now() {
+        return next.now();
+    }
+
+    @Override
+    public int deleteTopics(final Set<String> deleteTopics) {
+        return next.deleteTopics(deleteTopics);
+    }
+
+    @Override
+    public int cleanUnusedTopic(final Set<String> retainTopics) {
+        return next.cleanUnusedTopic(retainTopics);
+    }
+
+    @Override
+    public void cleanExpiredConsumerQueue() {
+        next.cleanExpiredConsumerQueue();
+    }
+
+    @Override
+    @Deprecated
+    public boolean checkInDiskByConsumeOffset(String topic, int queueId, long consumeOffset) {
+        return next.checkInDiskByConsumeOffset(topic, queueId, consumeOffset);
+    }
+
+    @Override
+    public boolean checkInMemByConsumeOffset(String topic, int queueId, long consumeOffset, int batchSize) {
+        return next.checkInMemByConsumeOffset(topic, queueId, consumeOffset, batchSize);
+    }
+
+    @Override
+    public boolean checkInStoreByConsumeOffset(String topic, int queueId, long consumeOffset) {
+        return next.checkInStoreByConsumeOffset(topic, queueId, consumeOffset);
+    }
+
+    @Override
+    public long dispatchBehindBytes() {
+        return next.dispatchBehindBytes();
+    }
+
+    @Override
+    public long flush() {
+        return next.flush();
+    }
+
+    @Override
+    public boolean resetWriteOffset(long phyOffset) {
+        return next.resetWriteOffset(phyOffset);
+    }
+
+    @Override
+    public long getConfirmOffset() {
+        return next.getConfirmOffset();
+    }
+
+    @Override
+    public void setConfirmOffset(long phyOffset) {
+        next.setConfirmOffset(phyOffset);
+    }
+
+    @Override
+    public LinkedList<CommitLogDispatcher> getDispatcherList() {
+        return next.getDispatcherList();
+    }
+
+    @Override
+    public void addDispatcher(CommitLogDispatcher dispatcher) {
+        next.addDispatcher(dispatcher);
+    }
+
+    @Override
+    public ConsumeQueueInterface getConsumeQueue(String topic, int queueId) {
+
+        return next.isSyncDiskFlush();
+    }
+
+    @Override
+    public boolean isSyncMaster() {
+        return next.isSyncMaster();
+    }
+
+    @Override
+    public void assignOffset(MessageExtBrokerInner msg) throws RocksDBException {
+        next.assignOffset(msg);
+    }
+
+    @Override
+    public void increaseOffset(MessageExtBrokerInner msg, short messageNum) {
+        next.increaseOffset(msg, messageNum);
+    }
+
+    @Override
+    public List<PutMessageHook> getPutMessageHookList() {
+        return next.getPutMessageHookList();
+    }
+
+    @Override
+    public long getLastFileFromOffset() {
+        return next.getLastFileFromOffset();
+    }
+
+    @Override
+    public void setPhysicalOffset(long phyOffset) {
+        next.setPhysicalOffset(phyOffset);
+    }
+
+    @Override
+    public boolean isMappedFilesEmpty() {
+        return next.isMappedFilesEmpty();
+    }
+
+    @Override
+    public TimerMessageStore getTimerMessageStore() {
+        return next.getTimerMessageStore();
+    }
+
+    @Override
+    public void setTimerMessageStore(TimerMessageStore timerMessageStore) {
+        next.setTimerMessageStore(timerMessageStore);
+    }
+
+    @Override
+    public long getTimingMessageCount(String topic) {
+        return next.getTimingMessageCount(topic);
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return next.isShutdown();
+    }
+
+    @Override
+    public long estimateMessageCount(String topic, int queueId, long from, long to, MessageFilter filter) {
+        return next.estimateMessageCount(topic, queueId, from, to, filter);
+    }
+
+    @Override
+    public List<Pair<InstrumentSelector, ViewBuilder>> getMetricsView() {
+        return next.getMetricsView();
+    }
+
+    @Override
+    public void initMetrics(Meter meter, Supplier<AttributesBuilder> attributesBuilderSupplier) {
+        next.initMetrics(meter, attributesBuilderSupplier);
+    }
+
+    @Override
+    public void finishCommitLogDispatch() {
+        next.finishCommitLogDispatch();
+    }
+
+    @Override
+    public void recoverTopicQueueTable() {
+        next.recoverTopicQueueTable();
+    }
+
+    @Override
+    public void notifyMessageArriveIfNecessary(DispatchRequest dispatchRequest) {
+        next.notifyMessageArriveIfNecessary(dispatchRequest);
+    }
+}

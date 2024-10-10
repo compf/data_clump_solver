@@ -1,0 +1,1 @@
+/* Content of the newly extracted StatItem class */

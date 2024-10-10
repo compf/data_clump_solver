@@ -1,7 +1,7 @@
 import fs from "fs"
 import { GitHubService } from "../util/vcs/GitHubService"
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service"
-import { CodeObtainingContext, createDataClumpsTypeContext, DataClumpDetectorContext, DataClumpRefactoringContext, RelevantLocationsContext } from "../context/DataContext";
+import { CodeObtainingContext, createDataClumpsTypeContext, DataClumpDetectorContext, DataClumpRefactoringContext, RelevantLocationsContext, UsageFindingContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { resolve } from "path"
 import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
@@ -263,6 +263,8 @@ export class InterestingDataClumpContextBuilder {
     private criteria: FilterOrMetric[] = [];
     private numIterations = 100;
     private includeUsage:boolean;
+
+    private usgContext:UsageFindingContext=new UsageFindingContext({})
     constructor(criteria: FilterOrMetric[], numDataClumpContextPerBlock = 3, numIterations = 10, includeUsage:boolean) {
         this.criteria = criteria;
         this.numDataClumpContextPerBlock = numDataClumpContextPerBlock;
@@ -270,6 +272,9 @@ export class InterestingDataClumpContextBuilder {
         this.includeUsage=includeUsage
     }
     async run(initialContext: DataClumpDetectorContext): Promise<DataClumpDetectorContext> {
+        if(this.includeUsage){
+            this.usgContext=await this.getUsageInformation(initialContext)
+        }
         let currMin = Number.MAX_VALUE;
         let currMinContext: DataClumpDetectorContext | undefined = undefined;
         let allDataClumps = Object.values(initialContext.getDataClumpDetectionResult().data_clumps);
@@ -337,19 +342,36 @@ export class InterestingDataClumpContextBuilder {
 
         //fileNumberFilter.getAffectedFiles(context)
     }
-    async getUsageInformation(context:RelevantLocationsContext):Promise<RelevantLocationsContext>{
+    async getUsageInformation(context:DataClumpRefactoringContext):Promise<UsageFindingContext>{
         registerFromName("EclipseLSP_API",LanguageServerAPI.name,{})
-        let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
-        context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
-        return context;
+       
+        let ctx=loadExistingContext(PipeLineStep.ReferenceFinding,context)
+        if(ctx==null){
+            let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
+            context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
+        }
+        else{
+            context=ctx as RelevantLocationsContext
+        }
+       return context as UsageFindingContext
     }
     async getFiles(context:DataClumpRefactoringContext): Promise< Set<string>> {
-        if(this.includeUsage){
-           context= context.buildNewContext(await this.getUsageInformation(context as RelevantLocationsContext))
-        }
+
         let relContext=context as RelevantLocationsContext
         let lines:{[path:string]:Set<number>}={};     
         relContext.getRelevantLocations(lines)
+        let dcContext=context.getByType(DataClumpDetectorContext)!
+        if(this.includeUsage){
+            for(let dc of Object.values(dcContext.getDataClumpDetectionResult().data_clumps)){
+                let usages=this.usgContext.getUsages()[dc.key]
+                for(let usg of usages){
+                  if(usg.filePath.startsWith("/")){
+                    usg.filePath=usg.filePath.slice(0,usg.filePath.length-1)
+                  }
+                  lines[usg.filePath]=new Set();
+                }
+            }
+        }
         return new Set(Object.keys(lines));
     }
     async calcSize(dataClumps: DataClumpTypeContext[], context: DataClumpRefactoringContext): Promise<number> {
