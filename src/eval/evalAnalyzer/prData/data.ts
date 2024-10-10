@@ -38,7 +38,8 @@ import {
 
   ImportsIssues,
   InvalidPR,
-  DeveloperMustOverseeLLM
+  DeveloperMustOverseeLLM,
+  NoSetterNeeded
 } from "./structures";
 
 export const data: PR_Data = {
@@ -640,7 +641,7 @@ Also code is structured to suit the convenience of the original author or mainta
     state: "closed",
     merged: false,
     category: "detectAndRefactor",
-    generalComments: [RefactoringNotWorthIt],
+    generalComments: [-RefactoringNotWorthIt],
     reviewComments: [],
     size: 6,
     type: fields_to_fields_data_clump,
@@ -719,7 +720,7 @@ Also code is structured to suit the convenience of the original author or mainta
       +LLM_Useful,
       +Readability,
       -ClassName,
-      -ImportsIssues,
+      -NoSetterNeeded,
     ],
     size: 4,
     key:"parameters_to_parameters_data_clump-src/net/sourceforge/plantuml/activitydiagram3/ftile/Worm.java-net.sourceforge.plantuml.activitydiagram3.ftile.Worm/method/drawLine(net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.klimt.drawing.UGraphic ug, double x1, double y1, double x2, double y2, net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.utils.Direction direction)-net.sourceforge.plantuml.braille.BrailleGrid/method/line(double x1, double y1, double x2, double y2)-x1y1x2y2",
@@ -1021,6 +1022,7 @@ Overall, this is 100% overhead`,
       -StyleAdaption,
       -NotEnough,
       -DocumentationIssues,
+      -NoSetterNeeded
     ],
     generalCommentsRaw: [
       [

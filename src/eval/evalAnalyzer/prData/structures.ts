@@ -8,6 +8,7 @@ export const Performance = counter++;
 export const RefactoringNotWorthIt = counter++;
 export const LongLines = counter++;
 export const NotEnough = counter++;
+export const NoSetterNeeded=counter++;
 export const SmallerDataClump = counter++;
 export const LargerDataClump = counter++;
 export const OverEngineered = counter++;
