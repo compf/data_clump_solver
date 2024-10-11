@@ -26,15 +26,15 @@ export type DataClumpGuess = {
     fromFiltered: boolean
 }
 
-export type InstanceGeneratedData={
-    instance:Instance,
-    responsePaths:string[],
-    requestPaths:string[],
-    responsesParsed:any[]
-    fileContents:{[key:string]:string},
-    validationResults:number[],
-    gitDiff:DiffResult|null,
-    dataClumpDetectionResult:number|null
+export type InstanceGeneratedData = {
+    instance: Instance,
+    responsePaths: string[],
+    requestPaths: string[],
+    responsesParsed: any[]
+    fileContents: { [key: string]: string },
+    validationResults: number[],
+    gitDiff: DiffResult | null,
+    dataClumpDetectionResult: number | null
 
 }
 export abstract class EvalAnalyzer {
@@ -42,7 +42,7 @@ export abstract class EvalAnalyzer {
 
 
     abstract getMetrics(): EvalMetric[];
-    protected generatedData:{[key:string]:InstanceGeneratedData}={}
+    protected generatedData: { [key: string]: InstanceGeneratedData } = {}
     filter(instance: Instance, compareObject: any): boolean {
         for (let key in compareObject) {
             if (instance[key] != compareObject[key]) {
@@ -51,9 +51,15 @@ export abstract class EvalAnalyzer {
         }
         return true;
     }
-     parseLLMOutput(dirPath: string) {
-        let parsed = tryParseJSON(fs.readFileSync(dirPath + "/response.json", { encoding: "utf-8" }))??"{}"
+    parseLLMOutput(dirPath: string) {
+        let parsed = tryParseJSON(fs.readFileSync(dirPath + "/response.json", { encoding: "utf-8" })) ?? "{}"
         return parsed
+    }
+    createInstanceCombination(){
+        let comb=this.getEvaluator().createInstanceCombination()
+        comb.projectName=["argoumlrefactor","rocketmq_refactor"]
+        comb["includeUsages"]=["withUsages","noUsages"]
+        return comb
     }
 
 
@@ -76,30 +82,30 @@ export abstract class EvalAnalyzer {
         for (let url of urls) {
             let projectData = getRepoDataFromUrl(url)
             let context = (await (this.getEvaluator().initProject(url)))!
-            let git = simpleGit("cloned_projects/" + projectData.repo)   
-            let g = await git.checkout( "context");
+            let git = simpleGit("cloned_projects/" + projectData.repo)
+            let g = await git.checkout("context");
             result[projectData.repo] = context
         }
         return result
     }
-  
-    getClosingBrackets(path:string):string{
+
+    getClosingBrackets(path: string): string {
         return "}}}}}"
     }
-     loadGeneratedData(instance:Instance ,context:DataClumpRefactoringContext):Promise<InstanceGeneratedData>{
+    loadGeneratedData(instance: Instance, context: DataClumpRefactoringContext): Promise<InstanceGeneratedData> {
         let responsePaths: string[] = []
-        let filterContext = new FileFilteringContext([getInstancePath(["evalData"],"/",instance)+"/.*response.json"], [])
+        let filterContext = new FileFilteringContext([getInstancePath(["evalData"], "/", instance) + "/.*response.json"], [])
         getRelevantFilesRec("evalData", responsePaths, filterContext)
-        let requestPaths=responsePaths.map((p)=>p.replace("response.json","request.json"));
-        return  Promise.resolve({
-            instance:instance,
-            responsePaths:responsePaths,
-            responsesParsed:responsePaths.map((it)=>parseInvalidJSON(fs.readFileSync(it).toString(), this.getClosingBrackets(it))),
-            requestPaths:requestPaths,
-            fileContents:{},
-            validationResults:[],
-            gitDiff:null,
-            dataClumpDetectionResult:null
+        let requestPaths = responsePaths.map((p) => p.replace("response.json", "request.json"));
+        return Promise.resolve({
+            instance: instance,
+            responsePaths: responsePaths,
+            responsesParsed: responsePaths.map((it) => parseInvalidJSON(fs.readFileSync(it).toString(), this.getClosingBrackets(it))),
+            requestPaths: requestPaths,
+            fileContents: {},
+            validationResults: [],
+            gitDiff: null,
+            dataClumpDetectionResult: null
         })
 
     }
@@ -111,53 +117,53 @@ export abstract class EvalAnalyzer {
 
         let allCOntexts = await this.loadContext(urls)
         let repoNames = Object.keys(allCOntexts)
-        let subSetChecker=new SubSetChecker()
+        let subSetChecker = new SubSetChecker()
         let instancesPaths: string[] = []
         let filterContext = new FileFilteringContext([".*instance.json"], [])
         getRelevantFilesRec("evalData", instancesPaths, filterContext)
         let metrics = this.getMetrics()
 
         let instanceType = this.getEvaluator().createInstanceCombination().instanceType[0]
-        let instances:Instance[]=[]
+        let instances: Instance[] = []
         let newInstancePaths: string[] = []
-        
-        for(let p of instancesPaths){
-            let parsed=JSON.parse(fs.readFileSync(p, { encoding: "utf-8" }) as any)
-            if(filters.length==0){
+
+        for (let p of instancesPaths) {
+            let parsed = JSON.parse(fs.readFileSync(p, { encoding: "utf-8" }) as any)
+            if (filters.length == 0) {
                 instances.push(parsed)
                 newInstancePaths.push(p)
             }
-            else if(filters.some((f)=>subSetChecker.isSubset(parsed,f))){
+            else if (filters.some((f) => subSetChecker.isSubset(parsed, f))) {
                 instances.push(parsed);
                 newInstancePaths.push(p)
             }
         }
-        instancesPaths=newInstancePaths
-        
-        
+        instancesPaths = newInstancePaths
+
+
         let counter = 0
         let returnedInstances: Instance[] = []
 
-        for(let instance of instances){
-            if (instance.instanceType != instanceType  || !repoNames.includes(instance.projectName)) continue
-            this.generatedData[getInstancePath([],"/",instance)]=await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
+        for (let instance of instances) {
+            if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
+            this.generatedData[getInstancePath([], "/", instance)] = await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
         }
         FileIO.instance = new InstanceBasedFileIO();
 
         for (let instance of instances) {
-            
+
             (FileIO.instance as InstanceBasedFileIO).instance = instance
             let instancePath = dirname(instancesPaths[counter])
             instancePath = getFirstDirectory(instancePath)
             counter++
             let result = {}
-            if (instance.instanceType != instanceType  || !repoNames.includes(instance.projectName)) continue
-            let generated=this.generatedData[getInstancePath([],"/",instance)]
-            if(generated.instance.inputFormat){
-                (generated.instance as any).inputType=instance.inputFormat
+            if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
+            let generated = this.generatedData[getInstancePath([], "/", instance)]
+            if (generated.instance.inputFormat) {
+                (generated.instance as any).inputType = instance.inputFormat
             }
-            else if((generated.instance as any).inputType){
-                generated.instance.inputFormat=(instance as any).inputType
+            else if ((generated.instance as any).inputType) {
+                generated.instance.inputFormat = (instance as any).inputType
             }
             for (let m of metrics) {
                 let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName])
@@ -352,77 +358,82 @@ export function getBestFittingDataClump(context: DataClumpRefactoringContext, in
     return { score: maxValue, dataClump: maxDc, fromFiltered: fromFiltered, maxFails, maxMatches }
 }
 
-export class SubSetChecker{
+export class SubSetChecker {
 
- isSubset(superSet: any, subSet: any) {
-    for (let k of Object.keys(subSet)) {
-        if (!(k in superSet)) {
-            return false
+    isSubset(superSet: any, subSet: any) {
+        for (let k of Object.keys(subSet)) {
+            if (!(k in superSet)) {
+                return false
+            }
+            if (subSet[k] != superSet[k]) {
+                return false
+            }
         }
-        if (subSet[k] != superSet[k]) {
-            return false
-        }
-    }
-    return true
-}
-}
-
-function transpose(obj:any, indices:number[]){
-    let result={}
-    let values=[]
-
-    for(let k1 of Object.keys(obj)){
-        result[k1]={}
-        for(let k2 of Object.keys(obj[k1])){
-          
-        }
+        return true
     }
 }
 
-export function concatenateResults(prefix:string,compareObjects:any[],metrics:EvalMetric[],instances: Instance[], subSetChecker:SubSetChecker) {
+function transpose(obj: any, indices: number[]) {
     let result = {}
+    let values = []
+
+    for (let k1 of Object.keys(obj)) {
+        result[k1] = {}
+        for (let k2 of Object.keys(obj[k1])) {
+
+        }
+    }
+}
+
+export function concatenateResults(prefix: string, compareObjects: any[], metrics: EvalMetric[], instances: Instance[], subSetChecker: SubSetChecker) {
+    let result = {}
+    for(let inst of instances){
+        if(!inst["includeUsages"]){
+            inst["includeUsages"]="noUsages"
+        }
+    }
 
     for (let functionKey of Object.keys(statFunctions)) {
-        let f= statFunctions[functionKey]
+        let f = statFunctions[functionKey]
         result[functionKey] = {}
 
-        for (let metricKey of metrics.map((it) => it.getName())) { 
-           
-          
-           
+        for (let metricKey of metrics.map((it) => it.getName())) {
+
+
+
             result[functionKey][metricKey] = {}
             for (let cmp of compareObjects) {
-                let compareKey=Object.keys(cmp).map((it)=>it+ "= "+cmp[it]).join(" , ")
+                let compareKey = Object.keys(cmp).map((it) => it + "= " + cmp[it]).join(" , ")
                 let relevantInstances = instances.filter((it) => subSetChecker.isSubset(it, cmp))
-                if(relevantInstances.length==0){
+                if (relevantInstances.length == 0) {
                     continue
                 }
-                let res=f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
-                console.log(metricKey,cmp,res)
-                
-                if(true){      
-               result[functionKey][metricKey][compareKey] = res;
+                let res = f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
+                console.log(metricKey, cmp, res)
+
+                if (true) {
+                    result[functionKey][metricKey][compareKey] = res;
                 }
-               
+
             }
         }
     }
 
-    for(let functionKey of Object.keys(result)){
-        fs.mkdirSync("evalDataResults/"+prefix+"/"+functionKey,{recursive:true})
-        for(let metricKey of Object.keys(result[functionKey])){
-            fs.writeFileSync("evalDataResults/"+prefix+"/"+functionKey+"/"+metricKey+".json",JSON.stringify(result[functionKey][metricKey],undefined,2))
+    for (let functionKey of Object.keys(result)) {
+        fs.mkdirSync("evalDataResults/" + prefix + "/" + functionKey, { recursive: true })
+        for (let metricKey of Object.keys(result[functionKey])) {
+            fs.writeFileSync("evalDataResults/" + prefix + "/" + functionKey + "/" + metricKey + ".json", JSON.stringify(result[functionKey][metricKey], undefined, 2))
         }
     }
     return result;
 }
 export function mean(array: any[]) {
-    if(array.length==0){
+    if (array.length == 0) {
         return 0;
     }
     if (typeof (array[0]) == "number") {
         array = array.filter((it) => !isNaN(it))
-        if(array.length==0){
+        if (array.length == 0) {
             return 0;
         }
         return array.reduce((a, b) => a + b) / array.length
@@ -449,7 +460,7 @@ export function median(array: any[]) {
 }
 
 export function variance(array: any[]) {
-    array=array.filter((it)=>!isNaN(it as number))
+    array = array.filter((it) => !isNaN(it as number))
     let m = mean(array) as number
     let sum = 0;
     for (let a of array) {
@@ -462,13 +473,13 @@ export function variance(array: any[]) {
     }
     return sum / array.length
 }
-function groupedCount(array:any[]){
-    let result={}
-    for(let a of array){
-       if(!(a in result)){
-           result[a]=0
-       }
-         result[a]++
+function groupedCount(array: any[]) {
+    let result = {}
+    for (let a of array) {
+        if (!(a in result)) {
+            result[a] = 0
+        }
+        result[a]++
     }
     return result
 }
@@ -478,72 +489,79 @@ export const statFunctions = {
     "mean": mean,
     "median": median,
     "variance": variance,
-    "count": (a)=>a.reduce((a,b)=>a+b),
-    "groupedCount":groupedCount
+    "count": (a) => a.length,
+    "groupedCount": groupedCount
 }
 
 
-export function createCompareObjects(baseObjects:any): any[] {
+export function createCompareObjects(baseObjects: any): any[] {
     let result: any[] = []
     let combination = baseObjects
     for (let key1 of Object.keys(combination)) {
-        for(let v1 of combination[key1]){
-            let obj={}
-            obj[key1]=v1
+        for (let v1 of combination[key1]) {
+            let obj = {}
+            obj[key1] = v1
             result.push(obj)
         }
         for (let key2 of Object.keys(combination)) {
 
-            if(key1==key2){
+            if (key1 == key2) {
                 continue
             }
-            else if(key1=="iteration" || key2=="iteration"){
+            else if (key1 == "iteration" || key2 == "iteration") {
                 continue
             }
-            else{
-               for(let v1 of combination[key1]){
-                   for(let v2 of combination[key2]){
-                       let obj={}
-                       obj[key1]=v1
-                       obj[key2]=v2
-                       result.push(obj)
-                   }
-               }
+            else {
+                for (let v1 of combination[key1]) {
+                    for (let v2 of combination[key2]) {
+                        let obj = {}
+                        obj[key1] = v1
+                        obj[key2] = v2
+                        result.push(obj)
+                    }
+                }
             }
         }
 
-       
+
     }
     return result
 }
 
 export abstract class MultipleValuesMetric implements EvalMetric {
     func: { (arr: any[]): any };
-    name:string
-    constructor( f:{(arr:number[]):any}, name:string){
-        this.func=f
-        this.name=name
+    name: string
+    constructor(f: { (arr: number[]): any }, name: string) {
+        this.func = f
+        this.name = name
     }
-    abstract getPrefix():string;
+    abstract getPrefix(): string;
     getName(): string {
-        return this.getPrefix()+"_"+this.name
+        return this.getPrefix() + "_" + this.name
     }
-   async  eval(instance: any, context: DataClumpRefactoringContext):Promise<number> {
-        return this.func( await this.evalArray(instance, context))
+    async eval(instance: any, context: DataClumpRefactoringContext): Promise<number> {
+        return this.func(await this.evalArray(instance, context))
     }
     abstract evalArray(instance: any, context: DataClumpRefactoringContext): Promise<any[]>
-    
+
 }
 
-export class InvalidJsonMetric implements EvalMetric{
-   async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<any> {
-       let content=fs.readFileSync(instance.responsePaths[0]).toString()
-       let parsed=tryParseJSON(content)
+export class InvalidJsonMetric implements EvalMetric {
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<any> {
+        let notNull = 0
+        for (let i = 0; i < instance.responsePaths.length; i++) {
+            let content = fs.readFileSync(instance.responsePaths[i]).toString()
+            let parsed = tryParseJSON(content)
+            if (parsed != null) {
+                notNull++;
+            }
+        }
+        return notNull/instance.responsePaths.length;
 
-       return parsed==null?0:1;
+
     }
     getName(): string {
-       return "InvalidJSON"
+        return "InvalidJSON"
     }
-    
+
 }

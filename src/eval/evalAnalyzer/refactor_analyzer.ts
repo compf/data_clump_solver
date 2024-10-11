@@ -8,7 +8,7 @@ import simpleGit, { DiffResult } from "simple-git";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { PipeLineStep } from "../../pipeline/PipeLineStep";
 import { nop } from "../../util/Utils";
-import { get } from "axios";
+import { all, get } from "axios";
 import { DataClumpsTypeContext } from "data-clumps-type-context";
 
 class StubRefactorEval extends BaseEvaluator {
@@ -192,30 +192,29 @@ class CommentOutMetric implements EvalMetric {
         return count
     }
     async   eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
-        let branchedCommentLines = 0;
-        let branchedAllLines = 0;
-        let originalCommentLines = 0;
-        let originalAllLines = 0;
-        for (let f of Object.keys(instance.fileContents)) {
-            if (f.endsWith(".java")) {
-               if(fs.existsSync(resolve(context.getProjectPath(),f))){
-                let originalContent=fs.readFileSync(resolve(context.getProjectPath(), f), { encoding: "utf-8" }).split("\n")
-                originalCommentLines += this.countCommentLines(originalContent)
-                originalAllLines += originalContent.length
-
-               }
-                let fileContent = instance.fileContents[f].split("\n")
-                branchedCommentLines += this.countCommentLines(fileContent)
-                branchedAllLines += fileContent.length
+        let allCounter=0;
+        let emptyCounter=0;
+       for(let i =0;i<instance.responsesParsed.length;i++){
+        let obj=instance.responsesParsed[i];
+        if(obj.refactorings){
+            for(let arr of Object.values(obj.refactorings) ){
+                if(Array.isArray(arr)){
+                    for(let ch of arr as any[]){
+                        if(ch==null || ch.newContent==undefined || ch.newContent==null || ch.newContent==""){
+                            emptyCounter++;
+                        }
+                        allCounter++;
+                    }
+                }
+               
             }
         }
-        if (branchedAllLines == 0 || originalAllLines == 0) {
-            return 0
-        }
-
-       let branched=branchedCommentLines / branchedAllLines
-         let original=originalCommentLines / originalAllLines
-         return  original/branched;
+            
+       }
+       if(allCounter==0){
+        return 0;
+       }
+       return 1-emptyCounter/allCounter
 
 
     }

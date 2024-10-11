@@ -10,15 +10,26 @@ import { resolve } from "path";
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { tryParseJSON } from "../../util/Utils";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
+const reasons=[
+    "size" ,
+    "occurrence" ,
+    "affected_files" ,
+    "domain" ,
+    "other",
+]
 export class FilterAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new FilterEval();
     }
     getMetrics(): EvalMetric[] {
-        return [new PositionOnGroundTruthMetric(), new DataClumpSizeMetric(), new DataClumpOccurenceMetricEvalFilter(),
+        let metrics= [new PositionOnGroundTruthMetric(), new DataClumpSizeMetric(), new DataClumpOccurenceMetricEvalFilter(),
             new FieldsToFieldsMetric(), new ParametersToParametersMetric(),
             new InvalidJsonMetric()
         ];
+        for(let r of reasons){
+            metrics.push(new ReasonMetric(r))
+        }
+        return metrics
     }
 
     getName(): string {
@@ -200,4 +211,23 @@ class DataClumpOccurenceMetricEvalFilter implements EvalMetric{
      } 
  
  
+ }
+
+ class ReasonMetric implements EvalMetric{
+    constructor(private reason:string){
+
+    }
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<any> {
+         let obj=instance.responsesParsed[0]
+         if(obj!=null && obj!=undefined){
+            return obj.reason==this.reason?1:0;
+         }
+         else{
+            return 0;
+         }
+     }
+     getName(): string {
+         return "reason="+this.reason
+     }
+
  }
