@@ -10,8 +10,9 @@ export class GradleBuildValidationStepHandler extends ValidationStepHandler {
         args.push("-x")
         args.push("test")
     }
+    let cmd=this.args.useLocal?"./gradlew":"gradle"
     
-       let runResult= spawnSync("gradle",args,{cwd:context.getProjectPath()})
+       let runResult= spawnSync(cmd,args,{cwd:context.getProjectPath()})
        runResult.error
        const status=runResult.status
 

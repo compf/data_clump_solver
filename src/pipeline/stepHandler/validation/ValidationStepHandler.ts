@@ -10,7 +10,8 @@ export type ValidationInfo={
 }
 
 export type ValidationArgs={
-    skipTests:boolean
+    skipTests:boolean,
+    useLocal?:boolean
 }
 
 export abstract class ValidationStepHandler extends AbstractStepHandler {

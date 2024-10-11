@@ -8,7 +8,8 @@ export class MavenBuildValidationStepHandler extends ValidationStepHandler {
         if(this.args.skipTests){
             args.push("-DskipTests")
         }
-       let result= spawnSync("mvn",args,{cwd:context.getProjectPath()});
+        let cmd=this.args.useLocal?"./mvnw":"mvn"
+       let result= spawnSync(cmd,args,{cwd:context.getProjectPath()});
          if(result.status==0){
               return Promise.resolve({success:true,errors:[]});
          }

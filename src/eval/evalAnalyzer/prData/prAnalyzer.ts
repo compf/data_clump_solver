@@ -313,11 +313,12 @@ async function getDataclumpRefactoringCommit(git: SimpleGit): Promise<string> {
         return data_clump_commit[0].hash
     }
     else {
-        // console.log("could not find data clump",branches.all,log.all)
-        return ""
+         console.log("could not find data clump",branches.all,log.all)
+        throw "could not find data clump"
     }
 }
-async function getErrorCommit(git: SimpleGit): Promise<string[] | null> {
+let validAuthors=["tschoemaker","compf"]
+async function getErrorCommit(git: SimpleGit, repoName:string): Promise<string[] | null> {
     let branches = await git.branch()
     let errorBranches = branches.all.filter((it) => it.includes("with") && it.includes("error"))
     if (errorBranches.length == 0) {
@@ -328,40 +329,96 @@ async function getErrorCommit(git: SimpleGit): Promise<string[] | null> {
     let commits: string[] = []
     for (let b of errorBranches) {
         let c = await git.revparse(b)
+        let data=await git.show(c)
+        if(!validAuthors.some((it)=>data.includes(it))){
+            console.log("skipping",c)
+            console.log(data)
+            console.log("skipping",c)
+            fs.writeFileSync("stuff/reposWithNoError/"+repoName,data)
+        }
         commits.push(c)
     }
     return commits
     console.log(branches.all)
     console.log()
 }
-
-export async function analyzePRErrors() {
+async function validate(context, DataClumpRefactoringContext, url:string, errorCommits:string[], dataClumpCommit:string, git:SimpleGit) {
     let results = {}
+    if(fs.existsSync("stuff/pr_errors.json")){
+        results=JSON.parse(fs.readFileSync("stuff/pr_errors.json").toString())
+    }
+    if(url in results){
+        return
+    }
+    results[url]=[]
+    let validator = new AutomaticValidationStepHandler({ skipTests: true })
+    for (let c of errorCommits ?? []) {
+        await git.checkout(c)
+        let validationResult = await validator.validate(context);
+            results[url].push(  {
+                commit: c,
+                validationResult: validationResult
+            });
+            fs.writeFileSync("stuff/pr_errors.json", JSON.stringify(results, undefined, 2))
+        console.log(validationResult.errors)
+        
+    }
+    
+}
+async function gitDiffInfo(context, DataClumpRefactoringContext, url:string, errorCommits:string[], dataClumpCommit:string, git:SimpleGit){
+    let results = {}
+    if(fs.existsSync("stuff/pr_diff.json")){
+        results=JSON.parse(fs.readFileSync("stuff/pr_diff.json").toString())
+    }
+    if(url in results){
+        return
+    }
+    results[url]=[]
+    for (let c of errorCommits ?? []) {
+        let diff=await git.diffSummary([c,dataClumpCommit])
+        results[url].push({
+            commit:c,
+            diff:diff
+        })
+        
+        
+    }
+    fs.writeFileSync("stuff/pr_diff.json", JSON.stringify(results, undefined, 2))
+
+}
+function shallIgnore(url:string){
+    let diffResults=JSON.parse(fs.readFileSync("stuff/pr_diff.json").toString())
+    let errorResults=JSON.parse(fs.readFileSync("stuff/pr_errors.json").toString())
+    return url in diffResults && url in errorResults
+}
+export async function analyzePRData() {
+   
     for (let url of Object.keys(data)) {
+        if(shallIgnore(url)){
+            continue
+        }
+    
         results[url]=[]
         let repoData = getRepoDataFromUrl(url)
         let changedUrl = "https://www.github.com/compf/" + repoData.repo
         let retriever = new CloneObtainingStepHandler({ url: changedUrl, alwaysClone: false })
         let context = await retriever.handle(PipeLineStep.CodeObtaining, new DataClumpRefactoringContext(), null)
         let git = simpleGit(context.getProjectPath())
-
-        let errorCommits = await getErrorCommit(git)
-        let data_clumps = await getDataclumpRefactoringCommit(git)
+        let errorCommits = await getErrorCommit(git,repoData.repo)??[]
+        let dataClumpCommit = await getDataclumpRefactoringCommit(git)
+        console.log(url)
+        results[url]={
+            errorData:await validate(context, DataClumpRefactoringContext, url, errorCommits, dataClumpCommit, git),
+            diffData:await gitDiffInfo(context, DataClumpRefactoringContext, url, errorCommits, dataClumpCommit, git)
+        }
+        
         console.log(url)
         console.log("error", errorCommits)
-        console.log("data clump", data_clumps)
+        console.log("data clump", dataClumpCommit)
 
-        let validator = new AutomaticValidationStepHandler({ skipTests: true })
-        for (let c of errorCommits ?? []) {
-            await git.checkout(c)
-            let validationResult = await validator.validate(context);
-            results[url].push(  {
-                commit: c,
-                validationResult: validationResult
-            });
-            fs.writeFileSync("stuff/pr_errors.json", JSON.stringify(results, undefined, 2))
-            console.log(validationResult.errors)
-        }
+    
+        fs.rmdirSync(context.getProjectPath(), { recursive: true })
+
 
     }
 }
@@ -370,6 +427,6 @@ export async function analyzePRErrors() {
 if (require.main === module) {
     //likertData()
     //analyzeCommentData()
-    analyzePRErrors()
+    analyzePRData()
 }
 
