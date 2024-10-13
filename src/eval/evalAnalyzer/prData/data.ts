@@ -3,7 +3,7 @@ import {
   IntentionalDesignChoice,
   Complexity,
   RefactoringNotWorthIt,
-  
+
   Readability,
   parameters_to_parameters_data_clump,
   fields_to_fields_data_clump,
@@ -16,7 +16,7 @@ import {
   ExtractedClassLocation,
   LLM_Useful,
   ClassName,
-  
+
   OverEngineered,
   SameBaseClass,
   ExtractedClassShouldNotBePublic,
@@ -25,7 +25,7 @@ import {
   LicenseHeaderMissing,
   LLM_LegalIssues,
   LargerDataClump,
-  
+
   Neutral,
   ImprovedMaintainability,
   StronglyAgree,
@@ -426,7 +426,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
         scale: StronglyAgree
       },
       {
-        scale:StronglyAgree
+        scale: StronglyAgree
       },
       {
         scale: Disagree
@@ -475,7 +475,7 @@ Also code is structured to suit the convenience of the original author or mainta
         keywords: [-IntentionalDesignChoice]
       },
       {
-        scale:Agree
+        scale: Agree
       },
       {
         scale: Disagree,
@@ -524,7 +524,7 @@ Also code is structured to suit the convenience of the original author or mainta
     state: "closed",
     merged: true,
     size: 3,
-    key:"fields_to_fields_data_clump-liquibase-standard/src/main/java/liquibase/statement/core/UpdateStatement.java-liquibase.statement.core.UpdateStatement-liquibase.statement.core.AddAutoIncrementStatement-tableNamecatalogNameschemaName",
+    key: "fields_to_fields_data_clump-liquibase-standard/src/main/java/liquibase/statement/core/UpdateStatement.java-liquibase.statement.core.UpdateStatement-liquibase.statement.core.AddAutoIncrementStatement-tableNamecatalogNameschemaName",
 
     type: fields_to_fields_data_clump,
     category: "nameSuggestion",
@@ -571,7 +571,7 @@ Also code is structured to suit the convenience of the original author or mainta
     merged: false,
     size: 3,
     "key": "fields_to_fields_data_clump-data-prepper-expression/src/main/java/org/opensearch/dataprepper/expression/AddBinaryOperator.java-org.opensearch.dataprepper.expression.AddBinaryOperator-org.opensearch.dataprepper.expression.ArithmeticBinaryOperator-operandsToOperationMapdisplayNamesymbol",
-    
+
     type: fields_to_fields_data_clump,
     category: "detectAndRefactor",
     generalComments: [-NotEnough],
@@ -723,7 +723,7 @@ Also code is structured to suit the convenience of the original author or mainta
       -NoSetterNeeded,
     ],
     size: 4,
-    key:"parameters_to_parameters_data_clump-src/net/sourceforge/plantuml/activitydiagram3/ftile/Worm.java-net.sourceforge.plantuml.activitydiagram3.ftile.Worm/method/drawLine(net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.klimt.drawing.UGraphic ug, double x1, double y1, double x2, double y2, net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.utils.Direction direction)-net.sourceforge.plantuml.braille.BrailleGrid/method/line(double x1, double y1, double x2, double y2)-x1y1x2y2",
+    key: "parameters_to_parameters_data_clump-src/net/sourceforge/plantuml/activitydiagram3/ftile/Worm.java-net.sourceforge.plantuml.activitydiagram3.ftile.Worm/method/drawLine(net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.klimt.drawing.UGraphic ug, double x1, double y1, double x2, double y2, net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.utils.Direction direction)-net.sourceforge.plantuml.braille.BrailleGrid/method/line(double x1, double y1, double x2, double y2)-x1y1x2y2",
     type: parameters_to_parameters_data_clump,
     reviewComments: [],
     generalCommentsRaw: [
@@ -937,6 +937,7 @@ Overall, this is 100% overhead`,
     url: "https://github.com/micrometer-metrics/micrometer",
     state: "closed",
     merged: false,
+    "key": "fields_to_fields_data_clump-micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java-io.micrometer.core.instrument.binder.grpc.GrpcClientObservationContext-io.micrometer.core.instrument.binder.grpc.GrpcServerObservationContext-fullMethodNameserviceNamemethodNameauthoritymethodTypetrailersheadersstatusCode",
     category: "detectAndRefactor",
     size: 8,
     type: fields_to_fields_data_clump,
@@ -988,6 +989,8 @@ Overall, this is 100% overhead`,
     merged: true,
     manualChanges: true,
     size: 3,
+    "key": "parameters_to_parameters_data_clump-nullaway/src/main/java/com/uber/nullaway/handlers/Handler.java-com.uber.nullaway.handlers.Handler/method/castToNonNullArgumentPositionsForMethod(com.uber.nullaway.handlers.com.uber.nullaway.NullAway analysis, com.uber.nullaway.handlers.com.google.errorprone.VisitorState state, com.sun.tools.javac.code.Symbol$MethodSymbol methodSymbol, java.util.List<? extends com.sun.source.tree.ExpressionTree> actualParams, java.lang.Integer previousArgumentPosition)-com.uber.nullaway.handlers.StreamNullabilityPropagator/method/onMatchMethodInvocation(com.uber.nullaway.handlers.com.uber.nullaway.NullAway analysis, com.sun.source.tree.MethodInvocationTree tree, com.uber.nullaway.handlers.com.google.errorprone.VisitorState state, com.sun.tools.javac.code.Symbol$MethodSymbol methodSymbol)-analysisstatemethodSymbol",
+
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
     generalComments: [],
@@ -1109,6 +1112,8 @@ Overall, this is 100% overhead`,
     state: "closed",
     merged: false,
     size: 6,
+    "key": "fields_to_fields_data_clump-spock-core/src/main/java/org/spockframework/mock/runtime/MockObject.java-org.spockframework.mock.runtime.MockObject-org.spockframework.mock.runtime.MockConfiguration-globaltypeinstancenamedefaultResponseverified",
+
     type: fields_to_fields_data_clump,
     category: "filterManual",
     generalComments: [],
@@ -1156,6 +1161,8 @@ Overall, this is 100% overhead`,
     url: "https://github.com/projectlombok/lombok",
     state: "closed",
     merged: false,
+    "key": "parameters_to_parameters_data_clump-src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java-lombok.javac.handlers.HandleEqualsAndHashCode/method/generateMethods(lombok.javac.handlers.lombok.javac.JavacNode typeNode, lombok.javac.handlers.lombok.javac.JavacNode source, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, java.lang.Boolean callSuper, boolean whineIfExists, boolean cacheHashCode, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-lombok.javac.handlers.HandleEqualsAndHashCode/method/createEquals(lombok.javac.handlers.lombok.javac.JavacNode typeNode, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, boolean callSuper, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, boolean needsCanEqual, lombok.javac.handlers.lombok.javac.JavacNode source, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-typeNodesourcemembersfieldAccessonParam",
+
     type: parameters_to_parameters_data_clump,
     size: 8,
     category: "filterSnippet",
@@ -1192,6 +1199,8 @@ Overall, this is 100% overhead`,
     url: "https://github.com/bitcoinj/bitcoinj",
     state: "closed",
     merged: false,
+    "key": "parameters_to_parameters_data_clump-core/src/main/java/org/bitcoinj/core/Transaction.java-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutput output, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutPoint prevOut, org.bitcoinj.core.org.bitcoinj.script.Script scriptPubKey, org.bitcoinj.core.org.bitcoinj.base.Coin amount, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-sigKeysigHashanyoneCanPay",
+
     size: 5,
     type: parameters_to_parameters_data_clump,
 
@@ -1206,6 +1215,8 @@ Overall, this is 100% overhead`,
     state: "open",
     merged: false,
     size: 3,
+    "key": "fields_to_fields_data_clump-core/src/main/java/hudson/util/ProcessTree.java-hudson.util.ProcessTree.FreeBSD.FreeBSDProcess-hudson.util.ProcessTree.Linux.LinuxProcess-ppidargumentsenvVars",
+
     type: fields_to_fields_data_clump,
     category: "filterSnippet",
     generalComments: [-SameBaseClass],
@@ -1262,6 +1273,8 @@ Overall, this is 100% overhead`,
     url: "https://github.com/real-logic/aeron",
     state: "closed",
     merged: false,
+    "key": "parameters_to_parameters_data_clump-aeron-cluster/src/main/java/io/aeron/cluster/service/SnapshotTaker.java-io.aeron.cluster.service.SnapshotTaker/method/markEnd(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-io.aeron.cluster.service.SnapshotTaker/method/markBegin(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-snapshotTypeIdlogPositionleadershipTermIdsnapshotIndextimeUnitappVersion",
+
     size: 6,
     type: parameters_to_parameters_data_clump,
     category: "filterSnippet",
@@ -1284,6 +1297,8 @@ Overall, this is 100% overhead`,
     url: "https://github.com/Stirling-Tools/Stirling-PDF",
     state: "closed",
     merged: false,
+    "key": "parameters_to_parameters_data_clump-src/main/java/stirling/software/SPDF/controller/api/PdfOverlayController.java-stirling.software.SPDF.controller.api.PdfOverlayController/method/sequentialOverlay(java.util.Map<java.lang.Integer, java.lang.String> overlayGuide, java.io.File[] overlayFiles, int basePageCount, java.util.List<java.io.File> tempFiles)-stirling.software.SPDF.controller.api.PdfOverlayController/method/prepareOverlayGuide(int basePageCount, java.io.File[] overlayFiles, java.lang.String mode, int[] counts, java.util.List<java.io.File> tempFiles)-overlayFilesbasePageCounttempFiles",
+
     size: 5,
     type: parameters_to_parameters_data_clump,
     category: "filterSnippet",
@@ -1337,6 +1352,7 @@ Overall, this is 100% overhead`,
     merged: false,
     size: 6,
     type: parameters_to_parameters_data_clump,
+    "key": "parameters_to_parameters_data_clump-jOOQ-codegen/src/main/java/org/jooq/codegen/JavaGenerator.java-org.jooq.codegen.JavaGenerator/method/getType(org.jooq.codegen.org.jooq.meta.Database db, org.jooq.codegen.org.jooq.meta.SchemaDefinition schema, org.jooq.codegen.JavaWriter out, java.lang.String t, int p, int s, org.jooq.codegen.org.jooq.Name u, java.lang.String javaType, java.lang.String defaultType, org.jooq.codegen.org.jooq.codegen.GeneratorStrategy.Mode udtMode)-org.jooq.codegen.JavaGenerator/method/getType(org.jooq.codegen.org.jooq.meta.Database db, org.jooq.codegen.org.jooq.meta.SchemaDefinition schema, org.jooq.codegen.JavaWriter out, java.lang.String t, int p, int s, org.jooq.codegen.org.jooq.Name u, java.lang.String javaType, java.lang.String defaultType, org.jooq.codegen.org.jooq.codegen.GeneratorStrategy.Mode udtMode, org.jooq.codegen.org.jooq.meta.XMLTypeDefinition xmlType)-dbschemaouttpsujavaTypedefaultTypeudtMode",
 
     category: "filterSnippet",
     generalComments: [],
@@ -1361,6 +1377,8 @@ Overall, this is 100% overhead`,
     url: "https://github.com/junit-team/junit5",
     state: "closed",
     merged: true,
+    "key": "fields_to_fields_data_clump-junit-jupiter-engine/src/test/java/org/junit/jupiter/engine/extension/LifecycleMethodExecutionExceptionHandlerTests.java-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.RethrowExceptionHandler-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.UnrecoverableExceptionHandler-beforeEachCallsbeforeAllCallsafterEachCallsafterAllCalls",
+
     size: 4,
     type: parameters_to_parameters_data_clump,
     category: "filterSnippet",
@@ -1410,6 +1428,8 @@ Overall, this is 100% overhead`,
     url: "https://github.com/apache/logging-log4j2",
     state: "closed",
     merged: false,
+    "key": "parameters_to_parameters_data_clump-log4j-1.2-api/src/main/java/org/apache/log4j/builders/appender/SyslogAppenderBuilder.java-org.apache.log4j.builders.appender.SyslogAppenderBuilder/method/createAppender(java.lang.String name, org.apache.log4j.builders.appender.org.apache.log4j.config.Log4j1Configuration configuration, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, java.lang.String facility, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String syslogHost, java.lang.String level, org.apache.log4j.builders.appender.org.apache.logging.log4j.core.net.Protocol protocol, boolean header, boolean facilityPrinting)-org.apache.log4j.builders.appender.SocketAppenderBuilder/method/createAppender(java.lang.String name, java.lang.String host, int port, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String level, boolean immediateFlush, int reconnectDelayMillis, T configuration)-namelayoutfilterlevel",
+
     size: 4,
     likertData: [[
       {
@@ -1519,6 +1539,8 @@ Overall, this is 100% overhead`,
     state: "closed",
     merged: false,
     size: 6,
+    "key": "fields_to_fields_data_clump-core/src/main/java/org/apache/iceberg/FileMetadata.java-org.apache.iceberg.FileMetadata.Builder-org.apache.iceberg.DataFiles.Builder-isPartitionedspecIdspecvalueCountspartitionDatasplitOffsetsupperBoundssortOrderIdkeyMetadatacolumnSizesrecordCountlowerBoundsfilePathformatnullValueCountsfileSizeInBytesnanValueCounts",
+
     type: fields_to_fields_data_clump,
     category: "filterManual",
     generalComments: [
@@ -1559,6 +1581,8 @@ Overall, this is 100% overhead`,
     state: "open",
     merged: false,
     size: 3,
+    "key": "parameters_to_parameters_data_clump-core/src/main/java/com/google/errorprone/bugpatterns/DefaultCharset.java-com.google.errorprone.bugpatterns.DefaultCharset/method/guavaFileWriterFix(com.google.errorprone.bugpatterns.com.google.errorprone.VisitorState state, com.sun.source.tree.Tree fileArg, com.sun.source.tree.Tree toReplace, com.google.errorprone.bugpatterns.DefaultCharset$CharsetFix charset)-com.google.errorprone.bugpatterns.DefaultCharset/method/nioFileReaderFix(com.google.errorprone.bugpatterns.com.google.errorprone.VisitorState state, com.sun.source.tree.Tree arg, com.sun.source.tree.Tree toReplace, com.google.errorprone.bugpatterns.DefaultCharset$CharsetFix charset)-statetoReplacecharset",
+
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
     generalComments: [],
@@ -1571,6 +1595,8 @@ Overall, this is 100% overhead`,
     state: "open",
     merged: false,
     size: 4,
+    "key": "fields_to_fields_data_clump-core/src/main/java/com/datastrato/gravitino/meta/FilesetEntity.java-com.datastrato.gravitino.meta.FilesetEntity-com.datastrato.gravitino.listener.api.info.CatalogInfo-namecommentproperties",
+
     type: fields_to_fields_data_clump,
     category: "filterManual",
     generalComments: [-RefactoringNotWorthIt, -Readability],
@@ -1598,6 +1624,8 @@ Overall, this is 100% overhead`,
     state: "closed",
     merged: false,
     size: 5,
+    "key": "parameters_to_parameters_data_clump-src/main/java/io/vertx/core/http/impl/Http1xClientConnection.java-io.vertx.core.http.impl.Http1xClientConnection/method/createRequest(io.vertx.core.http.impl.io.vertx.core.http.HttpMethod method, java.lang.String uri, io.vertx.core.http.impl.MultiMap headerMap, java.lang.String authority, boolean chunked, io.vertx.core.http.impl.io.netty.buffer.ByteBuf buf, boolean end)-io.vertx.core.http.impl.Http1xClientConnection/method/beginRequest(io.vertx.core.http.impl.Http1xClientConnection$Stream stream, io.vertx.core.http.impl.HttpRequestHead request, boolean chunked, io.vertx.core.http.impl.io.netty.buffer.ByteBuf buf, boolean end, boolean connect, io.vertx.core.http.impl.io.vertx.core.internal.PromiseInternal<java.lang.Void> promise)-chunkedbufend",
+
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
     generalComments: [-InvalidPR],
@@ -1608,6 +1636,8 @@ Overall, this is 100% overhead`,
   "https://github.com/spring-io/initializr": {
     url: "https://github.com/spring-io/initializr",
     state: "closed",
+    "key": "fields_to_fields_data_clump-initializr-actuator/src/main/java/io/spring/initializr/actuate/stat/ProjectRequestDocument.java-io.spring.initializr.actuate.stat.ProjectRequestDocument-io.spring.initializr.web.project.ProjectRequest-groupIdartifactIdjavaVersiontypelanguagepackageNamepackaging",
+
     merged: false,
     size: 7,
     type: fields_to_fields_data_clump,
@@ -1630,6 +1660,8 @@ Overall, this is 100% overhead`,
   "https://github.com/AutoMQ/automq": {
     url: "https://github.com/AutoMQ/automq",
     state: "closed",
+    "key": "parameters_to_parameters_data_clump-core/src/main/java/kafka/autobalancer/goals/AbstractGoal.java-kafka.autobalancer.goals.AbstractGoal/method/trySwapPartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica srcReplica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup, java.util.Comparator<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaComparator, java.util.function.BiPredicate<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaBiPredicate)-kafka.autobalancer.goals.AbstractGoal/method/tryMovePartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica replica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup)-clustersrcBrokercandidatesgoalsByPriorityoptimizedGoalsgoalsByGroup",
+
     merged: true,
     size: 7,
     type: parameters_to_parameters_data_clump,
@@ -1659,6 +1691,8 @@ Overall, this is 100% overhead`,
   "https://github.com/thingsboard/thingsboard": {
     url: "https://github.com/thingsboard/thingsboard",
     state: "closed",
+    "key": "fields_to_fields_data_clump-common/queue/src/main/java/org/thingsboard/server/queue/provider/KafkaTbCoreQueueFactory.java-org.thingsboard.server.queue.provider.KafkaTbCoreQueueFactory-org.thingsboard.server.queue.provider.KafkaMonolithQueueFactory-transportApiSettingskafkaSettingsconsumerStatsServicetransportApiResponseAdminconsumerCountjsInvokeSettingsvcSettingsjsExecutorRequestAdminhousekeeperAdminvcAdmintransportNotificationSettingshousekeeperReprocessingAdmincoreAdminserviceInfoProviderjsExecutorResponseAdmintransportApiRequestAdmincoreSettingstopicServiceruleEngineSettingsnotificationAdminfwUpdatesAdmin",
+
     merged: false,
     size: 21,
     type: fields_to_fields_data_clump,
@@ -1679,6 +1713,8 @@ Overall, this is 100% overhead`,
     url: "https://github.com/OpenRefine/OpenRefine",
     state: "closed",
     merged: false,
+    "key": "fields_to_fields_data_clump-main/src/com/google/refine/browsing/facets/RangeFacet.java-com.google.refine.browsing.facets.RangeFacet-com.google.refine.browsing.facets.TimeRangeFacet-_blankCount_cellIndex_step_baseBlankCount_max_binsMINTO_baseErrorCountFROM_errorCountMAX_errorMessage_min_eval_baseBins",
+
     size: 3,
     type: fields_to_fields_data_clump,
     category: "filterSnippet",
@@ -1722,6 +1758,8 @@ Overall, this is 100% overhead`,
     state: "closed",
     merged: false,
     size: 6,
+    "key": "parameters_to_parameters_data_clump-src/main/java/org/apache/ibatis/executor/resultset/DefaultResultSetHandler.java-org.apache.ibatis.executor.resultset.DefaultResultSetHandler/method/applyConstructorAutomapping(org.apache.ibatis.executor.resultset.ResultSetWrapper rsw, org.apache.ibatis.executor.resultset.org.apache.ibatis.mapping.ResultMap resultMap, java.lang.String columnPrefix, java.lang.Class<?> resultType, java.util.List<java.lang.Class<?>> constructorArgTypes, java.util.List<java.lang.Object> constructorArgs, java.lang.reflect.Constructor<?> constructor)-org.apache.ibatis.executor.resultset.DefaultResultSetHandler/method/applyArgNameBasedConstructorAutoMapping(org.apache.ibatis.executor.resultset.ResultSetWrapper rsw, org.apache.ibatis.executor.resultset.org.apache.ibatis.mapping.ResultMap resultMap, java.lang.String columnPrefix, java.util.List<java.lang.Class<?>> constructorArgTypes, java.util.List<java.lang.Object> constructorArgs, java.lang.reflect.Constructor<?> constructor, boolean foundValues)-rswresultMapcolumnPrefixconstructorArgTypesconstructorArgsconstructor",
+
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
     generalComments: [-Performance, +Complexity, +Readability],
@@ -1754,6 +1792,8 @@ Overall, this is 100% overhead`,
     state: "closed",
     merged: true,
     size: 9,
+    "key": "fields_to_fields_data_clump-core/src/main/java/feign/SynchronousMethodHandler.java-feign.SynchronousMethodHandler-feign.AsynchronousMethodHandler-loggerrequestInterceptorsbuildTemplateFromArgstargetpropagationPolicymetadataretryerlogLeveloptions",
+
     type: fields_to_fields_data_clump,
     category: "filterManual",
     generalComments: [-NotEnough],

@@ -15,7 +15,7 @@ export async function loadData(){
         }
         url=url.replace(".com/"+repoData.owner,".com/compf")
         console.log(url)
-        let projectLoader=new CloneBasedProjectRetriever(url,true);
+        let projectLoader=new CloneBasedProjectRetriever(url,false);
         
         projectLoader.init();
 

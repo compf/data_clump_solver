@@ -16,6 +16,7 @@ export class CloneObtainingStepHandler extends AbstractStepHandler {
     }) {
         super();
         this.url=args.url;
+        this.alwaysClone=args.alwaysClone || false;
     }
     private url:string;
     private alwaysClone:boolean=false;

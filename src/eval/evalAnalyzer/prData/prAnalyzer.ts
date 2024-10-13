@@ -427,6 +427,7 @@ export async function analyzePRData() {
 if (require.main === module) {
     //likertData()
     //analyzeCommentData()
-    analyzePRData()
+    //analyzePRData()
+    loadData()
 }
 
