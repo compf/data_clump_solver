@@ -3,7 +3,7 @@ import { data } from "./data"
 import { detectAndRefactor, open, closed, fields_to_fields_data_clump, filterManual, filterSnippet, MAX_COUNTER_VALUE, nameSuggestion, parameters_to_parameters_data_clump, PR_Data, PR_Data_Entry, GenerializedCommentCategories, Disagree } from "./structures";
 import { loadData } from "./dataClumpDataLoader";
 import { makeUnique, nop } from "../../../util/Utils";
-import { concatenateResults, createCompareObjects, EvalAnalyzer, EvalMetric, mean, statFunctions, SubSetChecker } from "../base_analyzer";
+import {  createCompareObjects, EvalAnalyzer, EvalMetric, SubSetChecker } from "../base_analyzer";
 import { Arrayified } from "../../base_eval";
 import { dirname, resolve } from "path"
 import { getRepoDataFromUrl } from "../../../util/vcs/VCS_Service";
@@ -12,6 +12,7 @@ import { CloneObtainingStepHandler } from "../../../pipeline/stepHandler/codeObt
 import { AutomaticValidationStepHandler } from "../../../pipeline/stepHandler/validation/AutomaticValidationStepHandler";
 import { PipeLineStep } from "../../../pipeline/PipeLineStep";
 import { DataClumpRefactoringContext } from "../../../context/DataContext";
+import { concatenateResults, mean, MetricMapper } from "../utils";
 let structures = require("./structures")
 
 
@@ -48,7 +49,6 @@ function hasNegativeCommentCategory(cat: string, d: PR_Data_Entry): boolean {
 
 
 
-type Mapper = { [key: string]: { (instances: PR_Data_Entry[]): number[] } };
 async function analyzeCommentData() {
     let structures = require("./structures")
     let variables = Object.keys(structures).slice(0, MAX_COUNTER_VALUE - 1)
@@ -75,7 +75,7 @@ async function analyzeCommentData() {
     filters["type=" + fields_to_fields_data_clump] = (d) => d.type == fields_to_fields_data_clump
     filters["type=" + parameters_to_parameters_data_clump] = (d) => d.type == parameters_to_parameters_data_clump
 
-    let metrics: Mapper = {}
+    let metrics: MetricMapper = {}
 
 
 
@@ -123,95 +123,9 @@ async function analyzeCommentData() {
 
 
 
-    concatenateResultsPR("PR", Object.values(data), filters, metrics)
-}
-const permutator = (inputArr: any[]) => {
-    let result: any[] = [];
-
-    const permute = (arr, m = []) => {
-        if (arr.length === 0) {
-            result.push(m)
-        } else {
-            for (let i = 0; i < arr.length; i++) {
-                let curr = arr.slice();
-                let next = curr.splice(i, 1);
-                permute(curr.slice(), m.concat(next))
-            }
-        }
-    }
-
-    permute(inputArr)
-
-    return result;
-}
-let results: { [path: string]: any } = {}
-function saveResults() {
-    for (let p of Object.keys(results)) {
-        fs.mkdirSync(dirname(p), { recursive: true })
-        fs.writeFileSync(p, JSON.stringify(results[p], undefined, 2))
-    }
-
-
+    concatenateResults("PR", Object.values(data), filters, metrics)
 }
 
-function createResults(prefix: string, path: string, keyNames: string[], keys: { [key: string]: string }, val: any) {
-    let outPath = resolve("evalDataResults", prefix, path, keys[keyNames[0]], keys[keyNames[1]]) + ".json"
-
-    let obj = {}
-    if (outPath in results) {
-        obj = results[outPath]
-    }
-    obj[keys[keyNames[2]]] = val;
-    results[outPath] = obj;
-}
-
-function concatenateResultsPR(prefix: string, data: PR_Data_Entry[], filters: { [key: string]: { (d: PR_Data_Entry): boolean; } }, metrics: Mapper) {
-    let folderNames = ["Function", "Metric", "Filter"]
-    let keyNames = ["functionKey", "metricKey", "filterKey"]
-
-    let folderPermutations = permutator(folderNames)
-    let keyPermutations = permutator(keyNames)
-
-    let zipped: { [key: string]: string[] } = {}
-    for (let i = 0; i < folderPermutations.length; i++) {
-        zipped[folderPermutations[i].join("")] = keyPermutations[i]
-    }
-
-    for (let functionKey of Object.keys(statFunctions)) {
-        let f = statFunctions[functionKey]
-
-        for (let metricKey of Object.keys(metrics)) {
-
-
-
-            for (let filterKey of Object.keys(filters)) {
-                let keys = {
-                    functionKey: functionKey,
-                    metricKey: metricKey,
-                    filterKey: filterKey
-                }
-                let filter = filters[filterKey]
-                let relevantInstances = data.filter((it) => filter(it))
-                if (relevantInstances.length == 0) {
-                    continue
-                }
-                let mapped = metrics[metricKey](relevantInstances)
-                let res = f(mapped)
-                console.log(metricKey, filterKey, res)
-
-                if (true) {
-                    for (let folderKey of Object.keys(zipped)) {
-                        createResults(prefix, folderKey, zipped[folderKey], keys, res)
-                    }
-
-                }
-
-            }
-        }
-    }
-    saveResults()
-
-}
 function getTextRating(value: number, isNegativeTwoToTwo: boolean) {
     if (isNegativeTwoToTwo) {
         value += 2;
@@ -392,7 +306,7 @@ function shallIgnore(url:string){
     return url in diffResults && url in errorResults
 }
 export async function analyzePRData() {
-   
+   let results={}
     for (let url of Object.keys(data)) {
         if(shallIgnore(url)){
             continue

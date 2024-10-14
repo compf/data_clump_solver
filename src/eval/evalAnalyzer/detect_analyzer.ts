@@ -2,11 +2,12 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
-import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric, statFunctions, Surety } from "./base_analyzer";
+import { compareObjects, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric, Surety } from "./base_analyzer";
 import fs from "fs"
 import { debugOnNull, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
 import { DataClumpsTypeContext, Dictionary } from "data-clumps-type-context";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
+import { statFunctions } from "./utils";
 export class DetectAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new DetectEval();

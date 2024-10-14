@@ -14,6 +14,7 @@ import { CloneObtainingStepHandler } from "../../pipeline/stepHandler/codeObtain
 import { DataClumpsTypeContext, DataClumpTypeContext } from "data-clumps-type-context";
 import ts from "typescript";
 import simpleGit, { DiffResult } from "simple-git";
+import { concatenateResults, FilterMapper, MetricMapper, statFunctions } from "./utils";
 
 export type InstanceCombinationWithMetrics = InstanceCombination & {
     metricNames: string[]
@@ -34,7 +35,7 @@ export type InstanceGeneratedData = {
     fileContents: { [key: string]: string },
     validationResults: number[],
     gitDiff: DiffResult | null,
-    dataClumpDetectionResult: number | null
+    dataClumpDetectionResult: number | null,
 
 }
 export abstract class EvalAnalyzer {
@@ -145,14 +146,15 @@ export abstract class EvalAnalyzer {
         let returnedInstances: Instance[] = []
 
         for (let instance of instances) {
+            console.log("generating data" , instance)
             if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
             this.generatedData[getInstancePath([], "/", instance)] = await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
         }
         FileIO.instance = new InstanceBasedFileIO();
-
+        let allResults:{[key:string]:number}={}
         for (let instance of instances) {
-
-            (FileIO.instance as InstanceBasedFileIO).instance = instance
+            console.log("evaluating instance", instance);
+            (FileIO.instance as InstanceBasedFileIO).instance = instance;
             let instancePath = dirname(instancesPaths[counter])
             instancePath = getFirstDirectory(instancePath)
             counter++
@@ -168,7 +170,13 @@ export abstract class EvalAnalyzer {
             for (let m of metrics) {
                 let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName])
                 result[m.getName()] = metricResult
+                allResults[JSON.stringify(instance)+m.getName()]=metricResult
             }
+            instancePath=getInstancePath(["evalDataResults"],"/",instance)
+            fs.mkdirSync(instancePath, { recursive: true });
+            fs.writeFileSync(resolve(instancePath,"instanceWithMetrics.json"),JSON.stringify(instance,undefined,2));
+
+
             (instance as any).metrics = result
             //console.log("Finished instance", JSON.stringify(instance,undefined,2))
             returnedInstances.push(instance)
@@ -176,13 +184,37 @@ export abstract class EvalAnalyzer {
 
 
         }
+        let compareObjects =   Object.entries(createCompareObjects(this.createInstanceCombination()))
+      
+        let instanceFilters:FilterMapper={}
+        for(let cmp of compareObjects){
+            instanceFilters[cmp[0]]=((d)=>{
+                return Object.keys(cmp[1]).every((k)=>cmp[1][k]==d[k])
+            })
+        }
+        let relevantMetrics:MetricMapper={}
 
+        for(let m of metrics.map((it)=>it.getName())){
+            relevantMetrics[m]=(instances:Instance[])=>{
+                return instances.map((it)=>(it as any)["metrics"][m])
+        }
+    }
 
+       
 
+        /* = compareObjects.map((it) => {
+            return (d)=>{ 
+                return Object.keys(it[1]).every((k)=>it[1][k]==d[k])
+            }
+        });*/
+        
+        concatenateResults(this.getName(), returnedInstances,
+        instanceFilters,relevantMetrics)
         return returnedInstances
 
     }
 }
+
 export interface EvalMetric {
     eval(instance: any, context: DataClumpRefactoringContext): Promise<any>
     getName(): string
@@ -385,7 +417,7 @@ function transpose(obj: any, indices: number[]) {
     }
 }
 
-export function concatenateResults(prefix: string, compareObjects: any[], metrics: EvalMetric[], instances: Instance[], subSetChecker: SubSetChecker) {
+ function concatenateResults_(prefix: string, compareObjects: any[], metrics: EvalMetric[], instances: Instance[], subSetChecker: SubSetChecker) {
     let result = {}
     for(let inst of instances){
         if(!inst["includeUsages"]){
@@ -427,71 +459,9 @@ export function concatenateResults(prefix: string, compareObjects: any[], metric
     }
     return result;
 }
-export function mean(array: any[]) {
-    if (array.length == 0) {
-        return 0;
-    }
-    if (typeof (array[0]) == "number") {
-        array = array.filter((it) => !isNaN(it))
-        if (array.length == 0) {
-            return 0;
-        }
-        return array.reduce((a, b) => a + b) / array.length
-    }
-    else if (typeof (array[0]) == "object") {
-        console.log(array)
-        let result = {}
-        for (let key of Object.keys(array[0])) {
-            result[key] = mean(array.map((it) => it[key]))
-        }
-        return result;
-    }
-}
-
-export function median(array: any[]) {
-    array.sort((a, b) => a - b)
-    let mid = Math.floor(array.length / 2)
-    if (array.length % 2 == 0) {
-        return (array[mid - 1] + array[mid]) / 2
-    }
-    else {
-        return array[mid]
-    }
-}
-
-export function variance(array: any[]) {
-    array = array.filter((it) => !isNaN(it as number))
-    let m = mean(array) as number
-    let sum = 0;
-    for (let a of array) {
-        sum += (a - m) ** 2
-    }
-    if (isNaN(sum)) {
-        console.log(array)
-        console.log(m)
-        throw "invalid"
-    }
-    return sum / array.length
-}
-function groupedCount(array: any[]) {
-    let result = {}
-    for (let a of array) {
-        if (!(a in result)) {
-            result[a] = 0
-        }
-        result[a]++
-    }
-    return result
-}
 
 
-export const statFunctions = {
-    "mean": mean,
-    "median": median,
-    "variance": variance,
-    "count": (a) => a.length,
-    "groupedCount": groupedCount
-}
+
 
 
 export function createCompareObjects(baseObjects: any): any[] {
