@@ -98,7 +98,7 @@ export function parseMarkdown(context: DataClumpRefactoringContext, message: str
 
 }
 function findBestFittingLine(lines: string[], startLine: number, compareLine: string) {
-    let deltas = [0, 1, -1, 2, -2, 3, -3]
+    let deltas = [0, 1, -1, 2, -2, 3, -3,4,-4,5,-5,6,-6,7,-7,8,-8,9,-9,10,-10]
     for (let s of deltas) {
         let line = lines[startLine + s]
         if (line!=undefined) {

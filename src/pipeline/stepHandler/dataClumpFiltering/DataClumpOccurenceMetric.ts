@@ -21,7 +21,11 @@ export class DataClumpOccurenceMetric implements Metric {
             let occurences=0;
             let dectectorContext=context.getFirstByType(DataClumpDetectorContext)!
             let related= dectectorContext.getRelatedDataClumpKeys(data as DataClumpTypeContext)
-            return Promise.resolve(related.length);
+            if(related){
+                return Promise.resolve(related.length);
+
+            }
+            return Promise.resolve(0)
            
         }
        

@@ -136,6 +136,7 @@ export abstract class BaseEvaluator {
 
             fs.writeFileSync(resolve(projectDataFolder, "typeNameKeys.json"), JSON.stringify(typeNameKeys, null, 2));
             fs.writeFileSync(submittedDataClumpsPath, JSON.stringify(filtered.getDataClumpDetectionResult(), null, 2));
+            //throw "test"
         }
 
         return Promise.resolve(filtered);
@@ -290,8 +291,14 @@ export class InterestingDataClumpContextBuilder {
                 }
                 else {
                     let filter = filterOrMetric as SingleItemFilter;
-                    let filtered = allDataClumps.filter((it) => filter.shallRemain(it, initialContext))
+                    let filtered :DataClumpTypeContext[]=[]
+                    for(let d of allDataClumps){
+                        if(await filter.shallRemain(d,initialContext!)){
+                            filtered.push(d)
+                        }
+                    }
                     filtered = await ranker.rank(new RandomRanker(), filtered, initialContext) as DataClumpTypeContext[]
+                    currDataClumps.push(...filtered)
                 }
             }
             let size = await this.calcSize(currDataClumps, initialContext);
@@ -349,6 +356,7 @@ export class InterestingDataClumpContextBuilder {
         if(ctx==null){
             let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
             context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
+            context.serialize()
         }
         else{
             context=ctx as RelevantLocationsContext
@@ -376,8 +384,10 @@ export class InterestingDataClumpContextBuilder {
     }
     async calcSize(dataClumps: DataClumpTypeContext[], context: DataClumpRefactoringContext): Promise<number> {
         let limitedContext=createDataClumpsTypeContext({});
+        let dcContext=context.getFirstByType(DataClumpDetectorContext)!
        
-        for(let dc of dataClumps){
+        for(let dc of Object.values( dcContext.getDataClumpDetectionResult().data_clumps)){
+            if(dataClumps.some((it)=> dcContext.createDataTypeNameClumpKey(it)==dcContext.createDataTypeNameClumpKey(dc)))
             limitedContext.data_clumps[dc.key]=dc;
         }
         let limitedDcContext=context.buildNewContext(new DataClumpDetectorContext(limitedContext))

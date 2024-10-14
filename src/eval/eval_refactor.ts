@@ -26,6 +26,8 @@ import { FilterOrMetric } from "../util/filterUtils/SingleItemFilter";
 import { DataClumpSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpSizeMetric";
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
 import { loadExistingContext } from "../context/ExistingContextLoader";
+import { ByTypesFilter } from "../util/filterUtils/ByTypesFilter";
+import { ByDataClumpTypeFilter } from "../util/filterUtils/ByDataClumpTypeFilter";
 export type RefactorInstance = Instance & {
 includeUsages:string
 
@@ -42,12 +44,12 @@ export class RefactorEval extends BaseEvaluator {
         return false;
     }
     getNumDataClumpsPerBlock(): number {
-        return 1;
+        return 3;
     }
     getCriteria(): FilterOrMetric[] {
         return [
-            new DataClumpSizeMetric({normalize:false}),
-            new RandomRanker()
+            new RandomRanker(),
+            new ByDataClumpTypeFilter({type:"parameters_to_parameters_data_clump"})
         ]
     }
     simplifyInstance(instance: RefactorInstance): RefactorInstance {
@@ -74,8 +76,9 @@ export class RefactorEval extends BaseEvaluator {
             inputFormat: [
             
                 
-                "instructionSnippet",
-                    "instruction"
+             
+                    "instruction",
+                    "instructionSnippet"
             ],
             iteration: Array.from({length: 10}, (x, i) => i),
             margin: [0, 1, 2, 5, 10],
@@ -90,7 +93,7 @@ export class RefactorEval extends BaseEvaluator {
             result.includeUsages=["withUsages"] as any
         }
         else{
-            result.includeUsages=["noUsages"] as any
+            result.includeUsages=[] as any
         }
         return result
     }
@@ -103,7 +106,7 @@ export class RefactorEval extends BaseEvaluator {
     async getUsageInformation(context:RelevantLocationsContext):Promise<RelevantLocationsContext>{
         registerFromName("EclipseLSP_API",LanguageServerAPI.name,{})
         let ctx=loadExistingContext(PipeLineStep.ReferenceFinding,context)
-        if(ctx==null){
+        if(true){
             let usageFinder=new LanguageServerReferenceStepHandler({apiName:"EclipseLSP_API", useExistingReferences:true, apiArgs:{}});
             context=(await usageFinder.handle(PipeLineStep.ReferenceFinding,context,{}))  as RelevantLocationsContext
         }
@@ -183,6 +186,7 @@ export class RefactorEval extends BaseEvaluator {
         multiValidationHandler.afterValidationStep = async (attempt: number) => {
             await git.add("-A")
             await git.commit(getCurrLabel())
+            await git.addTag(getInstancePath([], "-", instance)+"-"+getCurrLabel(),)
 
         }
 
@@ -202,6 +206,8 @@ export class RefactorEval extends BaseEvaluator {
         writeFileSync("errors.txt",res.raw??"")
         await git.add("-A")
         await git.commit("refactoring")
+        await git.addTag(getInstancePath([], "-", instance)+"-refactor")
+
         context = context.buildNewContext(await stubOutputHandler.chooseProposal(context));
 
         let count = await multiValidationHandler.getValidationCount(context);
@@ -213,7 +219,7 @@ export class RefactorEval extends BaseEvaluator {
         await git.checkout("context")
         writeFileSync("validation_count.json", JSON.stringify(count, null, 2))
         console.log("Validation count", count);
-        //waitSync(1000)
+        waitSync(1000)
     }
 
 }

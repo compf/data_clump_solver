@@ -33,7 +33,7 @@ export class FilterAnalyzer extends EvalAnalyzer {
     }
 
     getName(): string {
-        return "Filter"
+        return "filter"
     }
 }
 export class PositionOnGroundTruthMetric implements EvalMetric {

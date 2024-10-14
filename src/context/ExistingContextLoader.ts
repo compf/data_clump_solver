@@ -87,6 +87,10 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     let data = JSON.parse(fs.readFileSync(getContextSerializationPath(tempContext, context)).toString())
                     return context.buildNewContext(new UsageFindingContext(data))
                 }
+                else if(fs.existsSync("stuff/usageFindingContext.json")){
+                    let data = JSON.parse(fs.readFileSync("stuff/usageFindingContext.json").toString())
+                    return context.buildNewContext(new UsageFindingContext(data))
+                }
 
                 return null;
             }

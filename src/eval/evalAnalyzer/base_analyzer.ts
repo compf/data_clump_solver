@@ -114,7 +114,18 @@ export abstract class EvalAnalyzer {
     async performRawAnalysis(urls: string[], filters: any[]) {
         //disableCloning()
 
-
+        let allCompareObjects =  (createCompareObjects(this.createInstanceCombination()))
+        let compareObjects:{[k:string]:any}={};
+        for(let c of allCompareObjects){
+            let k=Object.entries(c).map((it)=>it[0]+"="+it[1]).join(",")
+            compareObjects[k]=c
+        }
+        let instanceFilters:FilterMapper={}
+        for(let cmp of Object.entries(compareObjects)){
+            instanceFilters[cmp[0]]=((d)=>{
+                return Object.keys(cmp[1]).every((k)=>cmp[1][k]==d[k])
+            })
+        }
 
         let allCOntexts = await this.loadContext(urls)
         let repoNames = Object.keys(allCOntexts)
@@ -174,24 +185,19 @@ export abstract class EvalAnalyzer {
             }
             instancePath=getInstancePath(["evalDataResults"],"/",instance)
             fs.mkdirSync(instancePath, { recursive: true });
+            (instance as any).metrics = result
+
             fs.writeFileSync(resolve(instancePath,"instanceWithMetrics.json"),JSON.stringify(instance,undefined,2));
 
 
-            (instance as any).metrics = result
             //console.log("Finished instance", JSON.stringify(instance,undefined,2))
             returnedInstances.push(instance)
             nop();
 
 
         }
-        let compareObjects =   Object.entries(createCompareObjects(this.createInstanceCombination()))
       
-        let instanceFilters:FilterMapper={}
-        for(let cmp of compareObjects){
-            instanceFilters[cmp[0]]=((d)=>{
-                return Object.keys(cmp[1]).every((k)=>cmp[1][k]==d[k])
-            })
-        }
+        
         let relevantMetrics:MetricMapper={}
 
         for(let m of metrics.map((it)=>it.getName())){

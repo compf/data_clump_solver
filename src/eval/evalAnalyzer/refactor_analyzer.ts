@@ -32,7 +32,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
         return {}
     }
     getName(): string {
-        return "Refactor"
+        return "refactor"
     }
     originalFiles: { [key: string]: string } = {}
     newFiles: { [key: string]: boolean } = {}

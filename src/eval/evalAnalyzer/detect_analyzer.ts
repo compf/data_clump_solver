@@ -28,7 +28,7 @@ export class DetectAnalyzer extends EvalAnalyzer {
         return result;
     }
     getName(): string {
-        return "Detect"
+        return "detect"
     }
 }
 

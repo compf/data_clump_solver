@@ -148,8 +148,7 @@ function groupedCount(array: any[]) {
 }
 export const statFunctions = {
     "mean": mean,
-    "median": median,
-    "variance": variance,
     "count": (a) => a.length,
-    "groupedCount": groupedCount
+    "groupedCount": groupedCount,
+    raw:(a)=>a
 }
