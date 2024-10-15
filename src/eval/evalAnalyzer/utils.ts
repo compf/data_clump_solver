@@ -21,6 +21,17 @@ const permutator = (inputArr: any[]) => {
     return result;
 }
 let results: { [path: string]: any } = {}
+function furtherFormatJSon(jsonString:string){
+    let splitted=jsonString.split("\n")
+    for(let i=1;i<splitted.length;i++){
+       let furtherSplitted1=splitted[i-1].split("=")[0]
+       let furtherSplitted2=splitted[i].split("=")[0]
+       if(furtherSplitted1!=furtherSplitted2){
+        splitted[i-1]+="\n"
+       }
+    }
+    return splitted.join("\n")
+}
 function saveResults() {
     for (let p of Object.keys(results)) {
         fs.mkdirSync(dirname(p), { recursive: true })
@@ -74,6 +85,9 @@ export function concatenateResults(prefix: string, data: any[], filters:FilterMa
                 }
                 let mapped = metrics[metricKey](relevantInstances)
                 let res = f(mapped)
+                if(!isNaN(res)){
+                    res=Math.round(res*100)/100
+                }
                 console.log(metricKey, filterKey, res)
 
                 if (true) {
@@ -100,6 +114,9 @@ export function mean(array: any[]) {
             return 0;
         }
         return array.reduce((a, b) => a + b) / array.length
+    }
+    else if(array[0]==null){
+        return null;
     }
     else if (typeof (array[0]) == "object") {
         console.log(array)

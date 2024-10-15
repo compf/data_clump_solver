@@ -56,10 +56,10 @@ export abstract class EvalAnalyzer {
         let parsed = tryParseJSON(fs.readFileSync(dirPath + "/response.json", { encoding: "utf-8" })) ?? "{}"
         return parsed
     }
-    createInstanceCombination(){
-        let comb=this.getEvaluator().createInstanceCombination()
-        comb.projectName=["argoumlrefactor","rocketmq_refactor"]
-        comb["includeUsages"]=["withUsages","noUsages"]
+    createInstanceCombination() {
+        let comb = this.getEvaluator().createInstanceCombination()
+        comb.projectName = ["argoumlrefactor", "rocketmq_refactor"]
+        comb["includeUsages"] = ["withUsages", "noUsages"]
         return comb
     }
 
@@ -113,17 +113,28 @@ export abstract class EvalAnalyzer {
     abstract getName(): string
     async performRawAnalysis(urls: string[], filters: any[]) {
         //disableCloning()
+        let metrics = this.getMetrics()
 
-        let allCompareObjects =  (createCompareObjects(this.createInstanceCombination()))
-        let compareObjects:{[k:string]:any}={};
-        for(let c of allCompareObjects){
-            let k=Object.entries(c).map((it)=>it[0]+"="+it[1]).join(",")
-            compareObjects[k]=c
+        let relevantMetrics: MetricMapper = {}
+
+        for (let m of metrics.map((it) => it.getName())) {
+            relevantMetrics[m] = (instances: Instance[]) => {
+                return instances.map((it) => (it as any)["metrics"][m])
+            }
         }
-        let instanceFilters:FilterMapper={}
-        for(let cmp of Object.entries(compareObjects)){
-            instanceFilters[cmp[0]]=((d)=>{
-                return Object.keys(cmp[1]).every((k)=>cmp[1][k]==d[k])
+        let allCompareObjects = (createCompareObjects(this.createInstanceCombination()))
+        let compareObjects: { [k: string]: any } = {};
+        for (let c of allCompareObjects) {
+                let k = Object.entries(c).map((it) => it[0] + "=" + it[1]).join(",")
+                compareObjects[k] = c
+            
+          
+
+        }
+        let instanceFilters: FilterMapper = {}
+        for (let cmp of Object.entries(compareObjects)) {
+            instanceFilters[cmp[0]] = ((d) => {
+                return Object.keys(cmp[1]).every((k) => cmp[1][k] == d[k])
             })
         }
 
@@ -133,7 +144,6 @@ export abstract class EvalAnalyzer {
         let instancesPaths: string[] = []
         let filterContext = new FileFilteringContext([".*instance.json"], [])
         getRelevantFilesRec("evalData", instancesPaths, filterContext)
-        let metrics = this.getMetrics()
 
         let instanceType = this.getEvaluator().createInstanceCombination().instanceType[0]
         let instances: Instance[] = []
@@ -155,14 +165,32 @@ export abstract class EvalAnalyzer {
 
         let counter = 0
         let returnedInstances: Instance[] = []
-
-        for (let instance of instances) {
-            console.log("generating data" , instance)
-            if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
-            this.generatedData[getInstancePath([], "/", instance)] = await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
+        const redo = false;
+        if (redo) {
+            for (let instance of instances) {
+                console.log("generating data", instance)
+                if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
+                this.generatedData[getInstancePath([], "/", instance)] = await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
+            }
         }
+        else {
+            for (let instance of instances) {
+            if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
+
+                let instancePath = getInstancePath(["evalData"], "/", instance)
+
+
+                instance["metrics"] = JSON.parse(fs.readFileSync(resolve(instancePath, "instanceWithMetrics.json")).toString())["metrics"]
+                returnedInstances.push(instance)
+            }
+            concatenateResults(this.getName(), returnedInstances,
+            instanceFilters, relevantMetrics)
+        return returnedInstances
+            return instances
+        }
+
         FileIO.instance = new InstanceBasedFileIO();
-        let allResults:{[key:string]:number}={}
+        let allResults: { [key: string]: number } = {}
         for (let instance of instances) {
             console.log("evaluating instance", instance);
             (FileIO.instance as InstanceBasedFileIO).instance = instance;
@@ -181,13 +209,13 @@ export abstract class EvalAnalyzer {
             for (let m of metrics) {
                 let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName])
                 result[m.getName()] = metricResult
-                allResults[JSON.stringify(instance)+m.getName()]=metricResult
+                allResults[JSON.stringify(instance) + m.getName()] = metricResult
             }
-            instancePath=getInstancePath(["evalDataResults"],"/",instance)
+            instancePath = getInstancePath(["evalData"], "/", instance)
             fs.mkdirSync(instancePath, { recursive: true });
             (instance as any).metrics = result
 
-            fs.writeFileSync(resolve(instancePath,"instanceWithMetrics.json"),JSON.stringify(instance,undefined,2));
+            fs.writeFileSync(resolve(instancePath, "instanceWithMetrics.json"), JSON.stringify(instance, undefined, 2));
 
 
             //console.log("Finished instance", JSON.stringify(instance,undefined,2))
@@ -196,26 +224,20 @@ export abstract class EvalAnalyzer {
 
 
         }
-      
+
+
         
-        let relevantMetrics:MetricMapper={}
 
-        for(let m of metrics.map((it)=>it.getName())){
-            relevantMetrics[m]=(instances:Instance[])=>{
-                return instances.map((it)=>(it as any)["metrics"][m])
-        }
-    }
 
-       
 
         /* = compareObjects.map((it) => {
             return (d)=>{ 
                 return Object.keys(it[1]).every((k)=>it[1][k]==d[k])
             }
         });*/
-        
+
         concatenateResults(this.getName(), returnedInstances,
-        instanceFilters,relevantMetrics)
+            instanceFilters, relevantMetrics)
         return returnedInstances
 
     }
@@ -423,11 +445,11 @@ function transpose(obj: any, indices: number[]) {
     }
 }
 
- function concatenateResults_(prefix: string, compareObjects: any[], metrics: EvalMetric[], instances: Instance[], subSetChecker: SubSetChecker) {
+function concatenateResults_(prefix: string, compareObjects: any[], metrics: EvalMetric[], instances: Instance[], subSetChecker: SubSetChecker) {
     let result = {}
-    for(let inst of instances){
-        if(!inst["includeUsages"]){
-            inst["includeUsages"]="noUsages"
+    for (let inst of instances) {
+        if (!inst["includeUsages"]) {
+            inst["includeUsages"] = "noUsages"
         }
     }
 
@@ -532,7 +554,7 @@ export class InvalidJsonMetric implements EvalMetric {
                 notNull++;
             }
         }
-        return notNull/instance.responsePaths.length;
+        return notNull / instance.responsePaths.length;
 
 
     }
