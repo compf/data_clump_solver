@@ -88,7 +88,6 @@ export function concatenateResults(prefix: string, data: any[], filters:FilterMa
                 if(!isNaN(res)){
                     res=Math.round(res*100)/100
                 }
-                console.log(metricKey, filterKey, res)
 
                 if (true) {
                     for (let folderKey of Object.keys(zipped)) {
@@ -105,26 +104,21 @@ export function concatenateResults(prefix: string, data: any[], filters:FilterMa
 }
 
 export function mean(array: any[]) {
+    if(!Array.isArray(array)){
+        return null;
+    }
     if (array.length == 0) {
-        return 0;
+        return null;
     }
     if (typeof (array[0]) == "number") {
         array = array.filter((it) => !isNaN(it))
         if (array.length == 0) {
-            return 0;
+            return null;
         }
         return array.reduce((a, b) => a + b) / array.length
     }
-    else if(array[0]==null){
-        return null;
-    }
-    else if (typeof (array[0]) == "object") {
-        console.log(array)
-        let result = {}
-        for (let key of Object.keys(array[0])) {
-            result[key] = mean(array.map((it) => it[key]))
-        }
-        return result;
+    else {
+        return null
     }
 }
 
@@ -163,9 +157,46 @@ function groupedCount(array: any[]) {
     }
     return result
 }
+function sum(array:any[]){
+    if(!Array.isArray(array) || array.length==0){
+        return null;
+    }
+    let m= array.reduce((a,b)=>a+b)
+   
+    return m
+}
+
+function max(array:any[]){
+    if(!Array.isArray(array)){
+        return null;
+    }
+    let m=0;
+    for(let a of array){
+        if(a>m){
+            m=a;
+        }
+    }
+    return m
+}
+
+function min(array:any[]){
+    if(!Array.isArray(array)){
+        return null;
+    }
+    let m=10000000;
+    for(let a of array){
+        if(a<m){
+            m=a;
+        }
+    }
+    return m
+}
 export const statFunctions = {
     "mean": mean,
-    "count": (a) => a.length,
-    "groupedCount": groupedCount,
-    raw:(a)=>a
+    "count": (a) =>a==null ? a : a.length,
+    "sum":sum,
+
+    "max":max,
+    "min":min,
+    "raw": (a) => a
 }

@@ -32,12 +32,12 @@ export class DetectAnalyzer extends EvalAnalyzer {
     }
 }
 
-export class SuretyMetric implements EvalMetric {
+ class SuretyMetric implements EvalMetric {
     async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext):Promise<any> {
         console.log("Instance: " + JSON.stringify(instance))
         let parsed = instance.responsesParsed[0]
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
-            return 0;
+            return null;
         }
         let byLLM = parsed.data_clumps
 
@@ -66,50 +66,7 @@ export class SuretyMetric implements EvalMetric {
 
         console.log(counters)
         console.log()
-
-
-        /*let inGTButNotInLLM
-        =0
-        let inLLMButNotInGT=0
-        let all=0
-
-        for(let p of Object.keys(pathLineMapGTUnFiltered)){
-            if(!(p in pathLineMapGT)){
-               continue;
-            }
-            let linesLLM=pathLineMapLLm[p] ?? new Set()
-            let linesGT=pathLineMapGT[p]
-            let linesGTUnFiltered=pathLineMapGTUnFiltered[p]
-
-            for(let l of linesGTUnFiltered){
-
-                if (linesGT.has(l) && !linesLLM.has(l)){
-                    inGTButNotInLLM++
-                    //console.log("False Negative: "+p+":"+l)
-                }
-                else if(!linesGT.has(l) && linesLLM.has(l)){
-                    inLLMButNotInGT++
-                    //console.log("False Positive: "+p+":"+l)
-                }
-                else if (linesGT.has(l)){
-                    //console.log("True Positive: "+p+":"+l)
-                }
-                all++
-            }
-           
-        }
-        console.log("Instance: "+JSON.stringify(instance))
-        console.log("Sensitivity: "+(1-inGTButNotInLLM/all)*100,"%")
-        console.log("Specifity: "+(1-inLLMButNotInGT/all)*100,"%")
-        console.log()*/
-
-
-
-
-
-        //console.log(byLLM)
-        //console.log(context)
-        let result = counters.match + 0.75 * counters.prettySure - 0.75 * counters.prettyUnsure - counters.miss
+        let result = counters.match + 0.75 * counters.prettySure - 1.25 * counters.prettyUnsure - 2*counters.miss
         return result
     }
     createPathLineMap(dataClump: DataClumpTypeContext[]) {
@@ -185,7 +142,7 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
    async  eval(instance: any, context: DataClumpRefactoringContext) :Promise<any> {
         let parsed=getDataClumpTypeContext(instance)
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
-            return 0;
+            return null;
         }
         let counters: { match: number, miss: number } = { match: 0, miss: 0 }
         if ("data_clumps" in parsed) {

@@ -4,6 +4,7 @@ import fs from "fs"
 import path from "path";
 import {createHash} from "crypto"
 import { FileIO } from "./FileIO";
+const { jsonrepair } = require('jsonrepair')
 export const MiniMatchConf = { dot: true, matchBase: true,debug:false };
   /** 
 * Recursively traverse through the directory and find all relavant files
@@ -325,6 +326,16 @@ export function parseInvalidJSON(jsonString:string, closingBrackets:string){
     
    let result=loadProcessedInvalidJSON(jsonString)
     let original=jsonString
+    /*if(result==null){
+        let repaired=jsonrepair(jsonString)
+        if(typeof(repaired)=="string"){
+            return null
+        }
+        return repaired
+    }
+    else{
+        return result;
+    }*/
     let counter=0
     while(result==null && jsonString.length>0){
         jsonString=jsonString.slice(0,jsonString.length-1)

@@ -95,10 +95,10 @@ export abstract class EvalAnalyzer {
     }
     loadGeneratedData(instance: Instance, context: DataClumpRefactoringContext): Promise<InstanceGeneratedData> {
         let responsePaths: string[] = []
-        let filterContext = new FileFilteringContext([getInstancePath(["evalData"], "/", instance) + "/.*response.json"], [])
-        getRelevantFilesRec("evalData", responsePaths, filterContext)
+        let filterContext = new FileFilteringContext( [".*response.json"], [])
+        getRelevantFilesRec(getInstancePath(["evalData"], "/", instance) , responsePaths, filterContext)
         let requestPaths = responsePaths.map((p) => p.replace("response.json", "request.json"));
-        return Promise.resolve({
+        let res= Promise.resolve({
             instance: instance,
             responsePaths: responsePaths,
             responsesParsed: responsePaths.map((it) => parseInvalidJSON(fs.readFileSync(it).toString(), this.getClosingBrackets(it))),
@@ -108,6 +108,7 @@ export abstract class EvalAnalyzer {
             gitDiff: null,
             dataClumpDetectionResult: null
         })
+        return res;
 
     }
     abstract getName(): string
@@ -165,10 +166,11 @@ export abstract class EvalAnalyzer {
 
         let counter = 0
         let returnedInstances: Instance[] = []
-        const redo = false;
+        const redo = true;
         if (redo) {
             for (let instance of instances) {
-                console.log("generating data", instance)
+            if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
+
                 if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
                 this.generatedData[getInstancePath([], "/", instance)] = await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
             }
@@ -192,7 +194,6 @@ export abstract class EvalAnalyzer {
         FileIO.instance = new InstanceBasedFileIO();
         let allResults: { [key: string]: number } = {}
         for (let instance of instances) {
-            console.log("evaluating instance", instance);
             (FileIO.instance as InstanceBasedFileIO).instance = instance;
             let instancePath = dirname(instancesPaths[counter])
             instancePath = getFirstDirectory(instancePath)
@@ -469,7 +470,6 @@ function concatenateResults_(prefix: string, compareObjects: any[], metrics: Eva
                     continue
                 }
                 let res = f(relevantInstances.map((it) => (it as any).metrics[metricKey]))
-                console.log(metricKey, cmp, res)
 
                 if (true) {
                     result[functionKey][metricKey][compareKey] = res;
@@ -559,7 +559,7 @@ export class InvalidJsonMetric implements EvalMetric {
 
     }
     getName(): string {
-        return "InvalidJSON"
+        return "ValidJSON"
     }
 
 }
