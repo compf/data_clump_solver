@@ -1,0 +1,98 @@
+{"refactorings":{
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java": [
+    {
+      "fromLine": 113,
+      "toLine": 123,
+      "oldContent": "IPage<WorkflowInstance> queryWorkflowInstanceListPaging(Page<WorkflowInstance> page,\n                                                            @Param(\"projectCode\") Long projectCode,\n                                                            WorkflowExecutionQuery workflowExecutionQuery);",
+      "newContent": "IPage<WorkflowInstance> queryWorkflowInstanceListPaging(Page<WorkflowInstance> page,\n                                                            @Param(\"projectCode\") Long projectCode,\n                                                            @Param(\"workflowDefinitionCode\") Long workflowDefinitionCode,\n                                                            @Param(\"searchVal\") String searchVal,\n                                                            @Param(\"executorName\") String executorName,\n                                                            @Param(\"states\") int[] statusArray,\n                                                            @Param(\"host\") String host,\n                                                            @Param(\"startTime\") Date startTime,\n                                                            @Param(\"endTime\") Date endTime);"
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java":[
+    {
+      "fromLine": 45,
+      "toLine": 45,
+      "oldContent": "@TableField(value = \"title\")",
+      "newContent": ""
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java":[
+    {
+      "fromLine": 71,
+      "toLine": 89,
+      "oldContent": "    /**\n     * set the process name with process define version and timestamp\n     *\n     * @param workflowDefinition processDefinition\n     */\n    public WorkflowInstance(WorkflowDefinition workflowDefinition) {\n        this.workflowDefinition = workflowDefinition;\n        // todo: the name is not unique\n        this.name = String.join(\"-\",\n                workflowDefinition.getName(),\n                String.valueOf(workflowDefinition.getVersion()),\n                DateUtils.getCurrentTimeStamp());\n    }",
+      "newContent": ""
+    },
+    {
+      "fromLine": 104,
+      "toLine": 112,
+      "oldContent": "    /**\n     * set state with desc\n     * @param state\n     * @param stateDesc\n     */\n    public void setStateWithDesc(WorkflowExecutionStatus state, String stateDesc) {\n        this.setState(state);\n        if (StringUtils.isEmpty(this.getStateHistory())) {\n            stateDescList = new ArrayList<>();\n        } else if (stateDescList == null) {\n            stateDescList = JSONUtils.toList(this.getStateHistory(), StateDesc.class);\n        }\n        stateDescList.add(new StateDesc(new Date(), state, stateDesc));\n        this.setStateHistory(JSONUtils.toJsonString(stateDescList));\n    }",
+      "newContent": ""
+    },
+    {
+      "fromLine": 114,
+      "toLine": 133,
+      "oldContent": "    @Data\n    @NoArgsConstructor\n    @AllArgsConstructor\n    public static class StateDesc {\n\n        Date time;\n        WorkflowExecutionStatus state;\n        String desc;\n    }\n}",
+      "newContent": "}"
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java":[
+    {
+      "fromLine": 55,
+      "toLine": 71,
+      "oldContent": "    public WorkflowTaskRelation(String name,\n                                int workflowDefinitionVersion,\n                                long projectCode,\n                                long workflowDefinitionCode,\n                                long preTaskCode,\n                                int preTaskVersion,\n                                long postTaskCode,\n                                int postTaskVersion,\n                                ConditionType conditionType,\n                                String conditionParams) {\n        this.name = name;\n        this.workflowDefinitionVersion = workflowDefinitionVersion;\n        this.projectCode = projectCode;\n        this.workflowDefinitionCode = workflowDefinitionCode;\n        this.preTaskCode = preTaskCode;\n        this.preTaskVersion = preTaskVersion;\n        this.postTaskCode = postTaskCode;\n        this.postTaskVersion = postTaskVersion;\n        this.conditionType = conditionType;\n        this.conditionParams = conditionParams;\n\n        Date now = new Date();\n        this.createTime = now;\n        this.updateTime = now;\n    }\n\n    public WorkflowTaskRelation(WorkflowTaskRelationLog processTaskRelationLog) {\n        this.name = processTaskRelationLog.getName();\n        this.workflowDefinitionVersion = processTaskRelationLog.getWorkflowDefinitionVersion();\n        this.projectCode = processTaskRelationLog.getProjectCode();\n        this.workflowDefinitionCode = processTaskRelationLog.getWorkflowDefinitionCode();\n        this.preTaskCode = processTaskRelationLog.getPreTaskCode();\n        this.preTaskVersion = processTaskRelationLog.getPreTaskVersion();\n        this.postTaskCode = processTaskRelationLog.getPostTaskCode();\n        this.postTaskVersion = processTaskRelationLog.getPostTaskVersion();\n        this.conditionType = processTaskRelationLog.getConditionType();\n        this.conditionParams = processTaskRelationLog.getConditionParams();\n\n        this.createTime = processTaskRelationLog.getCreateTime();\n        this.updateTime = new Date();\n    }\n",
+      "newContent": ""
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java":[
+    {
+      "fromLine": 24,
+      "toLine": 36,
+      "oldContent": "public class WorkflowTaskRelationLog extends WorkflowTaskRelation {\n\n    private int operator;\n\n    private Date operateTime;\n\n    public WorkflowTaskRelationLog() {\n        super();\n    }\n\n    public WorkflowTaskRelationLog(WorkflowTaskRelation workflowTaskRelation) {\n        super();\n        this.setName(workflowTaskRelation.getName());\n        this.setWorkflowDefinitionCode(workflowTaskRelation.getWorkflowDefinitionCode());\n        this.setWorkflowDefinitionVersion(workflowTaskRelation.getWorkflowDefinitionVersion());\n        this.setProjectCode(workflowTaskRelation.getProjectCode());\n        this.setPreTaskCode(workflowTaskRelation.getPreTaskCode());\n        this.setPreTaskVersion(workflowTaskRelation.getPreTaskVersion());\n        this.setPostTaskCode(workflowTaskRelation.getPostTaskCode());\n        this.setPostTaskVersion(workflowTaskRelation.getPostTaskVersion());\n        this.setConditionType(workflowTaskRelation.getConditionType());\n        this.setConditionParams(workflowTaskRelation.getConditionParams());\n        this.setCreateTime(workflowTaskRelation.getCreateTime());\n        this.setUpdateTime(workflowTaskRelation.getUpdateTime());\n    }",
+      "newContent": "public class WorkflowTaskRelationLog extends WorkflowTaskRelation {\n\n    private int operator;\n\n    private Date operateTime;\n\n    public WorkflowTaskRelationLog() {\n        super();\n    }\n\n    public WorkflowTaskRelationLog(WorkflowTaskRelation workflowTaskRelation) {\n        super(workflowTaskRelation.getName(),\n                workflowTaskRelation.getWorkflowDefinitionVersion(),\n                workflowTaskRelation.getProjectCode(),\n                workflowTaskRelation.getWorkflowDefinitionCode(),\n                workflowTaskRelation.getPreTaskCode(),\n                workflowTaskRelation.getPreTaskVersion(),\n                workflowTaskRelation.getPostTaskCode(),\n                workflowTaskRelation.getPostTaskVersion(),\n                workflowTaskRelation.getConditionType(),\n                workflowTaskRelation.getConditionParams());\n        this.operator = workflowTaskRelation.getOperator();\n        this.operateTime = workflowTaskRelation.getOperateTime();\n    }"
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/WorkerGroupUtils.java":[
+    {
+      "fromLine": 32,
+      "toLine": 32,
+      "oldContent": "        String addrList = workerGroup.getAddrList();",
+      "newContent": "        String addrList = workerGroup.getAddressList();"
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/repository/impl/SessionDaoImpl.java":[
+    {
+      "fromLine": 33,
+      "toLine": 33,
+      "oldContent": "        mybatisMapper.delete(new QueryWrapper<>(Session.builder().userId(userId).build()));",
+      "newContent": "        mybatisMapper.delete(new QueryWrapper<>(new Session(userId)));"
+    },
+    {
+      "fromLine": 39,
+      "toLine": 39,
+      "oldContent": "        return mybatisMapper.selectList(new QueryWrapper<>(Session.builder().userId(userId).build()));",
+      "newContent": "        return mybatisMapper.selectList(new QueryWrapper<>(new Session(userId)));"
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java":[
+    {
+      "fromLine": 27,
+      "toLine": 33,
+      "oldContent": "        requireNonNull(pluginDefine.getPluginName(), \"pluginName is null\");\n        requireNonNull(pluginDefine.getPluginType(), \"pluginType is null\");\n\n        PluginDefine currPluginDefine =\n                pluginDefineMapper.queryByNameAndType(pluginDefine.getPluginName(), pluginDefine.getPluginType());",
+      "newContent": "        requireNonNull(pluginDefine.getName(), \"pluginName is null\");\n        requireNonNull(pluginDefine.getType(), \"pluginType is null\");\n\n        PluginDefine currPluginDefine =\n                pluginDefineMapper.queryByNameAndType(pluginDefine.getName(), pluginDefine.getType());"
+    },
+    {
+      "fromLine": 35,
+      "toLine": 37,
+      "oldContent": "        if (currPluginDefine == null) {\n            try {\n                if (pluginDefineMapper.insert(pluginDefine) == 1 && pluginDefine.getId() != null) {",
+      "newContent": "        if (currPluginDefine == null) {\n            try {\n                if (pluginDefineMapper.insert(pluginDefine) == 1 && pluginDefine.getId() != 0) {"
+    }
+  ],
+  "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java":[
+    {
+      "fromLine": 29,
+      "toLine": 49,
+      "oldContent": "    public WorkflowDefinitionLog() {\n        super();\n    }\n\n    public WorkflowDefinitionLog(WorkflowDefinition workflowDefinition) {\n        this.setCode(workflowDefinition.getCode());\n        this.setName(workflowDefinition.getName());\n        this.setVersion(workflowDefinition.getVersion());\n        this.setReleaseState(workflowDefinition.getReleaseState());\n        this.setProjectCode(workflowDefinition.getProjectCode());\n        this.setDescription(workflowDefinition.getDescription());\n        this.setGlobalParams(workflowDefinition.getGlobalParams());\n        this.setGlobalParamList(workflowDefinition.getGlobalParamList());\n        this.setGlobalParamMap(workflowDefinition.getGlobalParamMap());\n        this.setCreateTime(workflowDefinition.getCreateTime());\n        this.setUpdateTime(workflowDefinition.getUpdateTime());\n        this.setFlag(workflowDefinition.getFlag());\n        this.setUserId(workflowDefinition.getUserId());\n        this.setUserName(workflowDefinition.getUserName());\n        this.setProjectName(workflowDefinition.getProjectName());\n        this.setLocations(workflowDefinition.getLocations());\n        this.setScheduleReleaseState(workflowDefinition.getScheduleReleaseState());\n        this.setTimeout(workflowDefinition.getTimeout());\n        this.setModifyBy(workflowDefinition.getModifyBy());\n        this.setWarningGroupId(workflowDefinition.getWarningGroupId());\n        this.setExecutionType(workflowDefinition.getExecutionType());\n    }",
+      "newContent": "    public WorkflowDefinitionLog() {\n        super();\n    }\n\n    public WorkflowDefinitionLog(WorkflowDefinition workflowDefinition) {\n        super(workflowDefinition.getCode(),\n                workflowDefinition.getName(),\n                workflowDefinition.getVersion(),\n                workflowDefinition.getReleaseState(),\n                workflowDefinition.getProjectCode(),\n                workflowDefinition.getDescription(),\n                workflowDefinition.getGlobalParams(),\n                workflowDefinition.getGlobalParamList(),\n                workflowDefinition.getCreateTime(),\n                workflowDefinition.getUpdateTime(),\n                workflowDefinition.getFlag(),\n                workflowDefinition.getUserId(),\n                workflowDefinition.getUserName(),\n                workflowDefinition.getProjectName(),\n                workflowDefinition.getLocations(),\n                workflowDefinition.getScheduleReleaseState(),\n                workflowDefinition.getTimeout(),\n                workflowDefinition.getModifyBy(),\n                workflowDefinition.getWarningGroupId(),\n                workflowDefinition.getExecutionType());\n    }"
+    }
+  ]
+}}

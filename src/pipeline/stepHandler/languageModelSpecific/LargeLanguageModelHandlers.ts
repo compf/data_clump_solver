@@ -46,10 +46,13 @@ export class SystemInstructionHandler extends SimpleInstructionHandler {
 
 export class AllFilesHandler extends LargeLanguageModelHandler {
     protected allFiles: string[] = []
+    static processed=new Set<string>
     protected counter: number = 0;
+    protected sendNewFiles=false;
     fileFilteringContext: FileFilteringContext | null = null;
-    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+    preCheck(context:DataClumpRefactoringContext){
         this.counter = 0
+        this.sendNewFiles=true;
         let usageContext = context.getRelevantLocation();
         if (usageContext == null) {
             throw new Error("Usage context not found")
@@ -60,6 +63,37 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
         let messages: string[] = []
         for (let file of Object.keys(pathLinesMap)) {
             file = resolve(context.getProjectPath(), file)
+            if(AllFilesHandler.processed.has(file)){
+                continue;
+            }
+            else{
+                this.sendNewFiles=false;
+            }
+            let name = file
+            messages.push(this.getMessage(name, context))
+            this.counter++;
+
+        }
+    }
+    handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+        this.counter = 0
+        this.sendNewFiles=true;
+        let usageContext = context.getRelevantLocation();
+        if (usageContext == null) {
+            throw new Error("Usage context not found")
+        }
+        let pathLinesMap: { [key: string]: Set<number> } = {}
+        usageContext.getRelevantLocations(pathLinesMap)
+
+        let messages: string[] = []
+        for (let file of Object.keys(pathLinesMap)) {
+            file = resolve(context.getProjectPath(), file)
+            if(AllFilesHandler.processed.has(file)){
+                continue;
+            }
+            else{
+                this.sendNewFiles=false;
+            }
             let name = file
             messages.push(this.getMessage(name, context))
             this.counter++;
@@ -82,6 +116,22 @@ export class AllFilesHandler extends LargeLanguageModelHandler {
     }
 
 
+}
+
+export class AllFilesWithErrorHandler extends AllFilesHandler{
+     async handle(context: DataClumpRefactoringContext, api: AbstractLanguageModel, templateResolver: LanguageModelTemplateResolver): Promise<ChatMessage[]> {
+        if(context.getByType(ValidationContext)){
+        await super.preCheck(context) 
+           let handler= new SimpleInstructionHandler({ instructionPath: "chatGPT_templates/validation/current_state.template" })
+            if(this.sendNewFiles){
+                let messages:ChatMessage[]=[]
+                messages.push(...await handler.handle(context,api,templateResolver))
+                messages.push(... await super.handle(context,api,templateResolver))
+                return messages
+            }
+         }
+         return super.handle(context,api,templateResolver)
+     }
 }
 
 export class AllAST_FilesHandler extends AllFilesHandler {

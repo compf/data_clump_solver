@@ -29,7 +29,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
         createdContexts.add(ValidationContext.name);
     }
     private validator: ValidationStepHandler;
-    private handlers: LargeLanguageModelHandler[]
+    public handlers: LargeLanguageModelHandler[]
     public doTestRun=false;
     public afterValidationStep?:{(nr:number):Promise<void>}
     async getValidationCount(context: DataClumpRefactoringContext): Promise<{

@@ -9,6 +9,7 @@ import { ChatMessage } from "../../../util/languageModel/AbstractLanguageModel";
 import { getRelevantFilesRec, nop, parseInvalidJSON, tryParseJSON, tryParseJSONWithSlice, writeFileSync } from "../../../util/Utils";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { FileIO } from "../../../util/FileIO";
+import { AllFilesHandler } from "./LargeLanguageModelHandlers";
 
 export function parsePath(filePath: string, context: DataClumpRefactoringContext) {
 
@@ -98,10 +99,10 @@ export function parseMarkdown(context: DataClumpRefactoringContext, message: str
 
 }
 function findBestFittingLine(lines: string[], startLine: number, compareLine: string) {
-    let deltas = [0, 1, -1, 2, -2, 3, -3,4,-4,5,-5,6,-6,7,-7,8,-8,9,-9,10,-10]
+    let deltas = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8, 9, -9, 10, -10]
     for (let s of deltas) {
         let line = lines[startLine + s]
-        if (line!=undefined) {
+        if (line != undefined) {
             if (line.trim() == compareLine.trim()) {
                 return startLine + s
             }
@@ -118,7 +119,7 @@ function concatenateNewContentArrayLength(array: string[], start: number) {
 }
 function getIndentation(line: string) {
     let result = "";
-    if(line==undefined)return ""
+    if (line == undefined) return ""
     for (let c of line) {
         if (c == " " || c == "\t") {
             result += c
@@ -132,10 +133,10 @@ function getIndentation(line: string) {
 
 export function parse_piecewise_output_from_file(refactoredPath: string, fileContent: string, content: any): string {
     let fileContentSplitted = fileContent.split("\n")
-    let oldFileContent=fileContent
-    let foundOriginal=false;
-    let faultyInstance=false;
-    let oldContentNewContentDiff:string[]=[];
+    let oldFileContent = fileContent
+    let foundOriginal = false;
+    let faultyInstance = false;
+    let oldContentNewContentDiff: string[] = [];
 
     for (let change of content.refactorings[refactoredPath]) {
         let start = change.fromLine
@@ -145,27 +146,27 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         let newContent = change.newContent
         let oldContent = change.oldContent
-        if(typeof(newContent)!="string"){
+        if (typeof (newContent) != "string") {
             continue;
         }
         let index = fileContent.indexOf(oldContent)
-        let oldIndex=index;
-        if(oldContent!="" && newContent!=oldContent && index!=-1){
-            oldContentNewContentDiff=[oldContent,newContent,start,fileContentSplitted.slice(start-6,start+6),
+        let oldIndex = index;
+        if (oldContent != "" && newContent != oldContent && index != -1) {
+            oldContentNewContentDiff = [oldContent, newContent, start, fileContentSplitted.slice(start - 6, start + 6),
                 index,
-                fileContent.slice(index,index+oldContent.length)
+                fileContent.slice(index, index + oldContent.length)
             ]
         }
         if (oldContent == undefined || newContent == undefined || change.fromLine == undefined || change.toLine == undefined) {
             continue;
         }
-        
-    
+
+
         //index=-1
-        const MIN_LENGTH=10
+        const MIN_LENGTH = 10
         console.log("change", change)
         const MAX_OFFSET = 5
-        if (index == -1 || oldContent.length<=MIN_LENGTH) {
+        if (index == -1 || oldContent.length <= MIN_LENGTH) {
             let newContentSplitted = newContent.split("\n")
             let oldContentSplitted = oldContent.split("\n")
             if (newContentSplitted.length > oldContentSplitted.length) {
@@ -173,26 +174,26 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
             }
             for (let i = 0; i < oldContentSplitted.length; i++) {
                 let otherIndex = findBestFittingLine(fileContentSplitted, start + i, oldContentSplitted[i])
-                if (otherIndex!=undefined) {
-                    let indentOld=getIndentation(fileContentSplitted[otherIndex])
-                    let indentNew=getIndentation(newContentSplitted[i])
-                    let indent=indentOld.length>indentNew.length?indentOld:indentNew;
-                    if(newContentSplitted[i]!=undefined){
-                        fileContentSplitted[otherIndex] = indent+newContentSplitted[i].trim()
+                if (otherIndex != undefined) {
+                    let indentOld = getIndentation(fileContentSplitted[otherIndex])
+                    let indentNew = getIndentation(newContentSplitted[i])
+                    let indent = indentOld.length > indentNew.length ? indentOld : indentNew;
+                    if (newContentSplitted[i] != undefined) {
+                        fileContentSplitted[otherIndex] = indent + newContentSplitted[i].trim()
                     }
-                    else{
-                        fileContentSplitted[otherIndex] = newContentSplitted[i]   
+                    else {
+                        fileContentSplitted[otherIndex] = newContentSplitted[i]
                     }
                     fileContent = fileContentSplitted.join("\n")
-                    
+
 
 
                 }
-                else if(oldIndex!=-1 && oldContent!=""){
-                    faultyInstance=true;
+                else if (oldIndex != -1 && oldContent != "") {
+                    faultyInstance = true;
                 }
 
-                
+
 
             }
             if (oldContentSplitted.length > newContentSplitted.length) {
@@ -218,30 +219,30 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         }
     }
-    if(faultyInstance){
+    if (faultyInstance) {
         trueCounter++;
-        let c=fs.readFileSync("stuff/interesting.txt").toString()
-        let instance=JSON.parse(JSON.stringify((FileIO.instance as any).instance))
-        let s=JSON.stringify(instance,undefined,2)
-        if(!c.includes(s)){
-            instance.diff=oldContentNewContentDiff
-            s=JSON.stringify(instance,undefined,2)
-            c+=",\n"+(s)
-            fs.writeFileSync("stuff/interesting.txt",c)
+        let c = fs.readFileSync("stuff/interesting.txt").toString()
+        let instance = JSON.parse(JSON.stringify((FileIO.instance as any).instance))
+        let s = JSON.stringify(instance, undefined, 2)
+        if (!c.includes(s)) {
+            instance.diff = oldContentNewContentDiff
+            s = JSON.stringify(instance, undefined, 2)
+            c += ",\n" + (s)
+            fs.writeFileSync("stuff/interesting.txt", c)
         }
-     
-        
+
+
     }
     allCounter++;
-    fs.writeFileSync("stuff/interesting_counter.txt", 
+    fs.writeFileSync("stuff/interesting_counter.txt",
 
-        JSON.stringify([trueCounter,allCounter,(trueCounter/allCounter*100)+"%"],undefined,2)
+        JSON.stringify([trueCounter, allCounter, (trueCounter / allCounter * 100) + "%"], undefined, 2)
     )
     return fileContent;
 
 }
-let allCounter=0;
-let trueCounter=0;
+let allCounter = 0;
+let trueCounter = 0;
 export function parse_piecewise_output(content: any, fullChat: ChatMessage[], context: DataClumpRefactoringContext, outputHandler: OutputHandler): string | null {
     let changes = {};
 
@@ -260,7 +261,7 @@ export function parse_piecewise_output(content: any, fullChat: ChatMessage[], co
                 continue;
             }
             let fileContent = fs.readFileSync(path, { encoding: "utf-8" })
-            fileContent=parse_piecewise_output_from_file(refactoredPath, fileContent, content)
+            fileContent = parse_piecewise_output_from_file(refactoredPath, fileContent, content)
             console.log(path)
             changes[path] = fileContent;
             if ("extractedClasses" in content) {
@@ -268,14 +269,14 @@ export function parse_piecewise_output(content: any, fullChat: ChatMessage[], co
 
                 for (let extractedClassPath of Object.keys(content.extractedClasses)) {
                     let outPath = resolve(context.getProjectPath(), extractedClassPath)
-                    let classContent=content.extractedClasses[extractedClassPath]
-                    if(Array.isArray(classContent)){
-                        classContent=classContent[0]
+                    let classContent = content.extractedClasses[extractedClassPath]
+                    if (Array.isArray(classContent)) {
+                        classContent = classContent[0]
                     }
-                    else if(typeof(classContent)=="object"){
+                    else if (typeof (classContent) == "object") {
                         continue;
                     }
-                    else if(extractedClassPath==""){
+                    else if (extractedClassPath == "") {
                         continue;
                     }
                     changes[outPath] = classContent
@@ -315,6 +316,18 @@ export async function parseChat(fullChat: ChatMessage[], step: PipeLineStepType 
                     }
                     else if (typeof (json) == "object" && ("refactorings" in json)) {
                         parse_piecewise_output(json, fullChat, context, outputHandler)
+                    }
+                    else {
+                        let changes = {}
+                        for (let p of Object.keys(json)) {
+                            let pAbs=resolve(context.getProjectPath(),p)
+                            changes[pAbs]=json[p]
+                            AllFilesHandler.processed.add(pAbs)
+                            
+
+                        }
+                        outputHandler.handleProposal(new ModifiedFilesProposal(changes, fullChat), context);
+
                     }
 
 
@@ -411,13 +424,13 @@ export class StubOutputHandler extends OutputHandler {
     handleProposal(proposal: Proposal, context: DataClumpRefactoringContext): void {
         if (this.apply)
             proposal.apply(context)
-        this.proposal = proposal 
+        this.proposal = proposal
 
     }
     chooseProposal(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
-        let output:ChatMessage[]=[]
-        if(this.proposal!=null){
-            output=this.proposal.getFullOutput()
+        let output: ChatMessage[] = []
+        if (this.proposal != null) {
+            output = this.proposal.getFullOutput()
         }
         return Promise.resolve(new LargeLanguageModelContext(output));
     }

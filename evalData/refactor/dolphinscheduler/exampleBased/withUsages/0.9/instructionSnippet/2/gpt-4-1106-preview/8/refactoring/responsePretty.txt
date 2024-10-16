@@ -1,0 +1,93 @@
+"{
+    "refactorings": {
+        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java": [
+            {
+                "fromLine": 17,
+                "toLine": 29,
+                "oldContent": "\npackage org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.api.utils.Result;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic interface ProjectParameterService {\n\n    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);\n\n    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);",
+                "newContent": "\npackage org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.api.utils.Result;\nimport org.apache.dolphinscheduler.dao.entity.User;\nimport org.apache.dolphinscheduler.api.dto.ProjectParameterDTO;\n\npublic interface ProjectParameterService {\n\n    Result createProjectParameter(User loginUser, long projectCode, ProjectParameterDTO parameter);\n\n    Result updateProjectParameter(User loginUser, long projectCode, long code, ProjectParameterDTO parameter);"
+            }
+        ],
+        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/ProjectParameterController.java": [
+            {
+                "fromLine": 67,
+                "toLine": 77,
+                "oldContent": "    @PostMapping()\n    @ResponseStatus(HttpStatus.CREATED)\n    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)\n    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {\n        return projectParameterService.createProjectParameter(loginUser, projectCode, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n    }",
+                "newContent": "    @PostMapping()\n    @ResponseStatus(HttpStatus.CREATED)\n    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)\n    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {\n        ProjectParameterDTO parameter = new ProjectParameterDTO(projectParameterName, projectParameterValue, projectParameterDataType);\n        return projectParameterService.createProjectParameter(loginUser, projectCode, parameter);\n    }"
+            },
+            {
+                "fromLine": 86,
+                "toLine": 97,
+                "oldContent": "    @PutMapping(value = \"/{code}\")\n    @ResponseStatus(HttpStatus.OK)\n    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)\n    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {\n        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n    }",
+                "newContent": "    @PutMapping(value = \"/{code}\")\n    @ResponseStatus(HttpStatus.OK)\n    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)\n    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {\n        ProjectParameterDTO parameter = new ProjectParameterDTO(projectParameterName, projectParameterValue, projectParameterDataType);\n        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, parameter);\n    }"
+            }
+        ],
+        "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/controller/ProjectParameterControllerTest.java": [
+            {
+                "fromLine": 48,
+                "toLine": 54,
+                "oldContent": "    public void testCreateProjectParameter() {\n        User loginUser = getGeneralUser();\n\n        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.any(),\n                Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.createProjectParameter(loginUser, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "    public void testCreateProjectParameter() {\n        User loginUser = getGeneralUser();\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n\n        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.createProjectParameter(loginUser, 1, parameter);\n    }"
+            },
+            {
+                "fromLine": 59,
+                "toLine": 65,
+                "oldContent": "    public void testUpdateProjectParameter() {\n        User loginUser = getGeneralUser();\n\n        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),\n                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, \"key\", \"value\",\n                DataType.LONG.name());",
+                "newContent": "    public void testUpdateProjectParameter() {\n        User loginUser = getGeneralUser();\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.LONG.name());\n\n        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),\n                Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, parameter);\n    }"
+            }
+        ],
+        "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/service/ProjectParameterServiceTest.java": [
+            {
+                "fromLine": 77,
+                "toLine": 81,
+                "oldContent": "        // PERMISSION DENIED\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "        // PERMISSION DENIED\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+            },
+            {
+                "fromLine": 90,
+                "toLine": 94,
+                "oldContent": "        try (MockedStatic<CodeGenerateUtils> ignored = Mockito.mockStatic(CodeGenerateUtils.class)) {\n            when(CodeGenerateUtils.genCode()).thenThrow(CodeGenerateUtils.CodeGenerateException.class);\n\n            result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                    DataType.VARCHAR.name());",
+                "newContent": "        try (MockedStatic<CodeGenerateUtils> ignored = Mockito.mockStatic(CodeGenerateUtils.class)) {\n            when(CodeGenerateUtils.genCode()).thenThrow(CodeGenerateUtils.CodeGenerateException.class);\n\n            ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n            result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+            },
+            {
+                "fromLine": 98,
+                "toLine": 102,
+                "oldContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectMapper.queryByCode(projectCode)).thenReturn(getProject(projectCode));\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectMapper.queryByCode(projectCode)).thenReturn(getProject(projectCode));\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+            },
+            {
+                "fromLine": 105,
+                "toLine": 109,
+                "oldContent": "        // INSERT DATA ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key1\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "        // INSERT DATA ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key1\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+            },
+            {
+                "fromLine": 123,
+                "toLine": 127,
+                "oldContent": "        // NO PERMISSION\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "        // NO PERMISSION\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+            },
+            {
+                "fromLine": 134,
+                "toLine": 138,
+                "oldContent": "        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(true);\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(true);\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+            },
+            {
+                "fromLine": 141,
+                "toLine": 145,
+                "oldContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(getProjectParameter());\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(getProjectParameter());\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+            },
+            {
+                "fromLine": 148,
+                "toLine": 152,
+                "oldContent": "        // PROJECT_UPDATE_ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1);\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key1\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "        // PROJECT_UPDATE_ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1;\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key1\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+            }
+        ]
+    },
+    "extractedClasses": {
+        "org/apache/dolphinscheduler/api/dto/ProjectParameterDTO.java": "package org.apache.dolphinscheduler.api.dto;\n\npublic class ProjectParameterDTO {\n\n    private String projectParameterName;\n    private String projectParameterValue;\n    private String projectParameterDataType;\n\n    public ProjectParameterDTO(String projectParameterName, String projectParameterValue, String projectParameterDataType) {\n        this.projectParameterName = projectParameterName;\n        this.projectParameterValue = projectParameterValue;\n        this.projectParameterDataType = projectParameterDataType;\n    }\n\n    public String getProjectParameterName() {\n        return projectParameterName;\n    }\n\n    public String getProjectParameterValue() {\n        return projectParameterValue;\n    }\n\n    public String getProjectParameterDataType() {\n        return projectParameterDataType;\n    }\n\n    // Include additional methods such as validation or conversion logic if applicable\n}\n"
+    }
+}"

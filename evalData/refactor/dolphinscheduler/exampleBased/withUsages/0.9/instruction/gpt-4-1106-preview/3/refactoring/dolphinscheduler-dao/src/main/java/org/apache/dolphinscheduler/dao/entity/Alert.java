@@ -1,0 +1,106 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.dolphinscheduler.dao.entity;
+
+import org.apache.dolphinscheduler.common.enums.AlertStatus;
+import org.apache.dolphinscheduler.common.enums.AlertType;
+import org.apache.dolphinscheduler.common.enums.WarningType;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName("t_ds_alert")
+public class Alert {
+
+    @TableId(value = "id", type = IdType.AUTO)
+    private final Integer id;
+
+    @TableField(value = "sign")
+    private final String sign;
+
+    @TableField(value = "title")
+    private final String title;
+
+    @TableField(value = "content")
+    private final String content;
+
+    @TableField(value = "alert_status")
+    private final AlertStatus alertStatus;
+
+    @TableField(value = "warning_type")
+    private final WarningType warningType;
+
+    @TableField(value = "log")
+    private final String log;
+
+    @TableField("alertgroup_id")
+    private final Integer alertGroupId;
+
+    @TableField("create_time")
+    private final Date createTime;
+
+    @TableField("update_time")
+    private final Date updateTime;
+
+    @TableField("project_code")
+    private final Long projectCode;
+
+    @TableField("workflow_definition_code")
+    private final Long workflowDefinitionCode;
+
+    @TableField("workflow_instance_id")
+    private final Integer workflowInstanceId;
+
+    @TableField("alert_type")
+    private final AlertType alertType;
+
+    @TableField(exist = false)
+    private final Map<String, Object> info;
+
+}
+    public Alert(String sign, String title, String content, AlertStatus alertStatus, WarningType warningType, String log, Integer alertGroupId, Date createTime, Date updateTime, Long projectCode, Long workflowDefinitionCode, Integer workflowInstanceId, AlertType alertType, Map<String, Object> info) {
+        this.sign = sign;
+        this.title = title;
+        this.content = content;
+        this.alertStatus = alertStatus;
+        this.warningType = warningType;
+        this.log = log;
+        this.alertGroupId = alertGroupId;
+        this.createTime = createTime;
+        this.updateTime = updateTime;
+        this.projectCode = projectCode;
+        this.workflowDefinitionCode = workflowDefinitionCode;
+        this.workflowInstanceId = workflowInstanceId;
+        this.alertType = alertType;
+        this.info = info;
+    }

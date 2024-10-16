@@ -1,0 +1,97 @@
+"{
+    "refactorings": {
+        "/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/AlertDao.java": [
+            {
+                "fromLine": 91,
+                "toLine": 101,
+                "oldContent": "    \n            return 0;\n        }\n\n        String sign = generateSign(alert);\n        alert.setSign(sign);\n        int count = alertMapper.insert(alert);\n        log.info(\"add alert to db , alert: {}\", alert);\n        return count;\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 109,
+                "toLine": 118,
+                "oldContent": "     */\n    public int updateAlert(AlertStatus alertStatus, String log, int id) {\n        Alert alert = new Alert();\n        alert.setId(id);\n        alert.setAlertStatus(alertStatus);\n        alert.setUpdateTime(new Date());\n        alert.setLog(log);\n        return alertMapper.updateById(alert);\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 129,
+                "toLine": 131,
+                "oldContent": "                .orElse(\"\");\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 140,
+                "toLine": 157,
+                "oldContent": "     */\n    public int addAlertSendStatus(AlertStatus sendStatus, String log, int alertId, int alertPluginInstanceId) {\n        AlertSendStatus alertSendStatus = new AlertSendStatus();\n        alertSendStatus.setAlertId(alertId);\n        alertSendStatus.setAlertPluginInstanceId(alertPluginInstanceId);\n        alertSendStatus.setSendStatus(sendStatus);\n        alertSendStatus.setLog(log);\n        alertSendStatus.setCreateTime(new Date());\n        return alertSendStatusMapper.insert(alertSendStatus);\n    }\n\n    public int insertAlertSendStatus(List<AlertSendStatus> alertSendStatuses) {\n        if (CollectionUtils.isEmpty(alertSendStatuses)) {\n            return 0;\n        }\n        return alertSendStatusMapper.batchInsert(alertSendStatuses);\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 163,
+                "toLine": 165,
+                "oldContent": "     */\n    public void sendServerStoppedAlert(String host, String serverType) {\n        ServerAlertContent serverStopAlertContent = ServerAlertContent.newBuilder().type(serverType)",
+                "newContent": ""
+            },
+            {
+                "fromLine": 168,
+                "toLine": 185,
+                "oldContent": "                .warningLevel(AlertWarnLevel.SERIOUS).build();\n        String content = JSONUtils.toJsonString(Lists.newArrayList(serverStopAlertContent));\n\n        Alert alert = new Alert();\n        alert.setTitle(\"Fault tolerance warning\");\n        alert.setWarningType(WarningType.FAILURE);\n        alert.setAlertStatus(AlertStatus.WAIT_EXECUTION);\n        alert.setCreateTime(new Date());\n        alert.setUpdateTime(new Date());\n        alert.setAlertType(AlertType.FAULT_TOLERANCE_WARNING);\n        alert.setSign(generateSign(alert));\n        // we use this method to avoid insert duplicate alert(issue #5525)\n        // we modified this method to optimize performance(issue #9174)\n        Date crashAlarmSuppressionStartTime = Date.from(\n                LocalDateTime.now().plusMinutes(-crashAlarmSuppression).atZone(ZoneId.systemDefault()).toInstant());\n        alertMapper.insertAlertWhenServerCrash(alert, crashAlarmSuppressionStartTime);\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 191,
+                "toLine": 197,
+                "oldContent": "     */\n    public void sendWorkflowTimeoutAlert(WorkflowInstance workflowInstance, ProjectUser projectUser) {\n        int alertGroupId = workflowInstance.getWarningGroupId();\n        Alert alert = new Alert();\n        List<WorkflowAlertContent> workflowAlertContentList = new ArrayList<>(1);\n        WorkflowAlertContent workflowAlertContent = WorkflowAlertContent.builder()\n                .projectCode(projectUser.getProjectCode())",
+                "newContent": ""
+            },
+            {
+                "fromLine": 210,
+                "toLine": 220,
+                "oldContent": "                .build();\n        workflowAlertContentList.add(workflowAlertContent);\n        String content = JSONUtils.toJsonString(workflowAlertContentList);\n        alert.setTitle(\"Workflow Timeout Warn\");\n        alert.setProjectCode(projectUser.getProjectCode());\n        alert.setWorkflowDefinitionCode(workflowInstance.getWorkflowDefinitionCode());\n        alert.setWorkflowInstanceId(workflowInstance.getId());\n        alert.setAlertType(AlertType.WORKFLOW_INSTANCE_TIMEOUT);\n        saveTaskTimeoutAlert(alert, content, alertGroupId);\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 222,
+                "toLine": 229,
+                "oldContent": "        alert.setWarningType(WarningType.FAILURE);\n        alert.setCreateTime(new Date());\n        alert.setUpdateTime(new Date());\n        String sign = generateSign(alert);\n        alert.setSign(sign);\n        alertMapper.insert(alert);\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 236,
+                "toLine": 238,
+                "oldContent": "     */\n    public void sendTaskTimeoutAlert(WorkflowInstance workflowInstance,\n                                     TaskInstance taskInstance,",
+                "newContent": ""
+            },
+            {
+                "fromLine": 240,
+                "toLine": 243,
+                "oldContent": "        Alert alert = new Alert();\n        List<WorkflowAlertContent> workflowAlertContentList = new ArrayList<>(1);\n        WorkflowAlertContent workflowAlertContent = WorkflowAlertContent.builder()\n                .projectCode(projectUser.getProjectCode())",
+                "newContent": ""
+            },
+            {
+                "fromLine": 256,
+                "toLine": 266,
+                "oldContent": "                .build();\n        workflowAlertContentList.add(workflowAlertContent);\n        String content = JSONUtils.toJsonString(workflowAlertContentList);\n        alert.setTitle(\"Task Timeout Warn\");\n        alert.setProjectCode(projectUser.getProjectCode());\n        alert.setWorkflowDefinitionCode(workflowInstance.getWorkflowDefinitionCode());\n        alert.setWorkflowInstanceId(workflowInstance.getId());\n        alert.setAlertType(AlertType.TASK_TIMEOUT);\n        saveTaskTimeoutAlert(alert, content, workflowInstance.getWarningGroupId());\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 269,
+                "toLine": 280,
+                "oldContent": "     */\n    public List<Alert> listPendingAlerts(int minAlertId) {\n        return alertMapper.listingAlertByStatus(minAlertId, AlertStatus.WAIT_EXECUTION.getCode(),\n                QUERY_ALERT_THRESHOLD);\n    }\n\n    public List<Alert> listAlerts(int workflowInstanceId) {\n        LambdaQueryWrapper<Alert> wrapper = new LambdaQueryWrapper<Alert>()\n                .eq(Alert::getWorkflowInstanceId, workflowInstanceId);\n        return alertMapper.selectList(wrapper);\n    }\n",
+                "newContent": ""
+            },
+            {
+                "fromLine": 286,
+                "toLine": 329,
+                "oldContent": "     */\n    public List<AlertPluginInstance> listInstanceByAlertGroupId(int alertGroupId) {\n        String alertInstanceIdsParam = alertGroupMapper.queryAlertGroupInstanceIdsById(alertGroupId);\n        if (!Strings.isNullOrEmpty(alertInstanceIdsParam)) {\n            String[] idsArray = alertInstanceIdsParam.split(\",\");\n            List<Integer> ids = Arrays.stream(idsArray)\n                    .map(s -> Integer.parseInt(s.trim()))\n                    .collect(Collectors.toList());\n            return alertPluginInstanceMapper.queryByIds(ids);\n        }\n        return null;\n    }\n\n    public AlertPluginInstanceMapper getAlertPluginInstanceMapper() {\n        return alertPluginInstanceMapper;\n    }\n\n    public void setAlertPluginInstanceMapper(AlertPluginInstanceMapper alertPluginInstanceMapper) {\n        this.alertPluginInstanceMapper = alertPluginInstanceMapper;\n    }\n\n    public AlertGroupMapper getAlertGroupMapper() {\n        return alertGroupMapper;\n    }\n\n    public void setAlertGroupMapper(AlertGroupMapper alertGroupMapper) {\n        this.alertGroupMapper = alertGroupMapper;\n    }\n\n    public void setCrashAlarmSuppression(Integer crashAlarmSuppression) {\n        this.crashAlarmSuppression = crashAlarmSuppression;\n    }\n\n    public void deleteByWorkflowInstanceId(Integer workflowInstanceId) {\n        if (workflowInstanceId == null) {\n            return;\n        }\n        List<Alert> alertList = alertMapper.selectByWorkflowInstanceId(workflowInstanceId);\n        if (CollectionUtils.isEmpty(alertList)) {\n            return;\n        }\n        alertMapper.deleteByWorkflowInstanceId(workflowInstanceId);\n        List<Integer> alertIds = alertList\n                .stream()",
+                "newContent": ""
+            },
+            {
+                "fromLine": 331,
+                "toLine": 334,
+                "oldContent": "                .collect(Collectors.toList());\n        alertSendStatusMapper.deleteByAlertIds(alertIds);\n    }\n}",
+                "newContent": ""
+            }
+        ]
+    },
+    "extractedClasses": {}
+}"
