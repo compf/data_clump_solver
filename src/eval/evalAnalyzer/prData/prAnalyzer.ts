@@ -49,7 +49,7 @@ function hasNegativeCommentCategory(cat: string, d: PR_Data_Entry): boolean {
 
 
 
-async function analyzeCommentData() {
+export async function analyzeCommentData() {
     let structures = require("./structures")
     let variables = Object.keys(structures).slice(0, MAX_COUNTER_VALUE - 1)
     let filters: { [key: string]: { (d: PR_Data_Entry): boolean; } } = {};
