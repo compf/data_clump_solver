@@ -8,19 +8,27 @@ import { resolve } from "path"
 import fs from "fs"
 import AdmZip from "adm-zip";
 export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
-    constructor(outPath: string) {
+    constructor(args:{outPath?: string}) {
         super()
-        this.outPath = outPath
+        this.outPath = args.outPath
     }
-    outPath: string
+    outPath?: string
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const ast_generator_path = resolve("src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/")
-        const ast_out_path = resolve(context.getProjectPath(),".data_clump_solver_data","astOut")
-       // fs.mkdirSync(ast_out_path)
+        
+        let outPath=this.outPath??resolve(context.getProjectPath(),".data_clump_solver_data","astOut")
         const ruleset_jar_location = resolve(ast_generator_path, "pmd-bin-7.0.0-rc3/lib/pmd-java-custom-1.0.0-SNAPSHOT.jar")
 
         applyIncludeExclude(context,ruleset_jar_location)
-        await ParserHelperJavaSourceCode.parseSourceCodeToAst(resolve(context.getProjectPath()), ast_out_path, ast_generator_path);
+        return this.analyzeSourceCodeFiles(context.getProjectPath(),outPath,context)
+        
+
+    }
+    async analyzeSourceCodeFiles(src_out_path:string,ast_out_path:string, context:DataClumpRefactoringContext):Promise<ASTBuildingContext>{
+        const ast_generator_path = resolve("src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/")
+       // fs.mkdirSync(ast_out_path)
+
+        await ParserHelperJavaSourceCode.parseSourceCodeToAst(ast_out_path, ast_out_path, ast_generator_path);
         let paths: string[] = []
         waitSync(100)
        
@@ -34,7 +42,6 @@ export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
 
         }
         return newContext
-
     }
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration]

@@ -322,11 +322,10 @@ function saveProcessedInvalidJson(jsonString,obj:any){
         return null;
     }
 }
-export function parseInvalidJSON(jsonString:string, closingBrackets:string){
-    
-   let result=loadProcessedInvalidJSON(jsonString)
-    let original=jsonString
-    /*if(result==null){
+export function parseUsingJsonRepair(jsonString:string){
+    let result=null
+    result=null
+    if(result==null){
         let repaired=jsonrepair(jsonString)
         if(typeof(repaired)=="string"){
             return null
@@ -335,18 +334,24 @@ export function parseInvalidJSON(jsonString:string, closingBrackets:string){
     }
     else{
         return result;
-    }*/
+    }
+}
+export function parseInvalidJSON(jsonString:string, closingBrackets:string){
+    
+   let result=tryParseJSONWithSlice(jsonString)
+    let original=jsonString
+
     let counter=0
     while(result==null && jsonString.length>0){
         jsonString=jsonString.slice(0,jsonString.length-1)
        // console.log()
         
-        console.log(counter++,jsonString)
+       // console.log(counter++,jsonString)
         for(let i=0;i<closingBrackets.length;i++){
             let temp=jsonString+closingBrackets.slice(undefined,i+1);
             result=tryParseJSON(temp)
             if(result!=null){
-                saveProcessedInvalidJson(original,result)
+                //saveProcessedInvalidJson(original,result)
                 return result;
 
             }

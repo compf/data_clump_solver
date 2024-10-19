@@ -14,8 +14,8 @@ import { AbstractLanguageModel, ChatMessage, MessageType, TokenStats } from "../
 import { ChatGPTInterface } from "../util/languageModel/ChatGPTInterface";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { StubInterface } from "../util/languageModel/StubInterface";
-import { getCurrLabel, getRelevantFilesRec, waitSync, writeFileSync } from "../util/Utils";
-import { resolve } from "path";
+import { getCurrLabel, getRelevantFilesRec, parseInvalidJSON, parseUsingJsonRepair, waitSync, writeFileSync } from "../util/Utils";
+import { basename, resolve } from "path";
 import fs from "fs"
 import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import { ValidationStepHandler } from "../pipeline/stepHandler/validation/ValidationStepHandler";
@@ -28,6 +28,7 @@ import { RandomRanker } from "../util/filterUtils/RandomRanker";
 import { loadExistingContext } from "../context/ExistingContextLoader";
 import { ByTypesFilter } from "../util/filterUtils/ByTypesFilter";
 import { ByDataClumpTypeFilter } from "../util/filterUtils/ByDataClumpTypeFilter";
+import { DataClumpDoctorASTGeneratorStep } from "../pipeline/stepHandler/astGeneration/DataClumpDoctorASTGeneratorStepHandler";
 export type RefactorInstance = Instance & {
     includeUsages: string
 
@@ -63,11 +64,11 @@ export class RefactorEval extends BaseEvaluator {
             instanceType: ["refactor"],
             model: ["gpt-4-1106-preview"],
             temperature: [
-              //  0.1
-                //,
-                0.5
-                //,
-                //0.9
+                0.1
+                ,
+            0.5
+                ,
+                0.9
                 ],
             instructionType: [
                 // "definitionBased",
@@ -78,9 +79,9 @@ export class RefactorEval extends BaseEvaluator {
 
 
 
-                //"instruction",
-                //"instructionSnippet",
-                "fullCode"
+                "instruction",
+                "instructionSnippet",
+                //"fullCode"
             ],
             iteration: Array.from({ length: 10 }, (x, i) => i),
             margin: [0, 1, 2, 5, 10],
@@ -206,8 +207,9 @@ export class RefactorEval extends BaseEvaluator {
         let reply = chat[chat.length - 1];
         let stubOutputHandler = new StubOutputHandler();
         stubOutputHandler.apply = true;
+        this.writeExtractedClasses(reply)
         context = context.buildNewContext(await parseChat(chat, PipeLineStep.Refactoring, context, stubOutputHandler));
-        let val = new MavenBuildValidationStepHandler({ skipTests: true })
+        let val =this.getValidationInstance()
         let res = await val.validate(context)
         writeFileSync("errors.txt", res.raw ?? "")
         await git.add("-A")
@@ -227,6 +229,24 @@ export class RefactorEval extends BaseEvaluator {
         console.log("Validation count", count);
         waitSync(1000)
         AllFilesHandler.processed.clear()
+    }
+
+    writeExtractedClasses(msg:ChatMessage){
+        let content=parseUsingJsonRepair(msg.messages[0])
+        let sourcePath=FileIO.instance.resolvePath("extractedClassesSource")
+        let astPath=FileIO.instance.resolvePath("extractedClassAST");
+        fs.mkdirSync(sourcePath)
+        if("extractedClasses" in content){
+           for(let p in content.extractedClasses){
+                let fName=basename(p)
+               
+                fs.writeFileSync(resolve(sourcePath,fName),content.extractedClasses[p])
+           }
+        }
+        let astGen=new DataClumpDoctorASTGeneratorStep({})
+        astGen.analyzeSourceCodeFiles(sourcePath,astPath,new DataClumpRefactoringContext())
+        fs.rmdirSync(sourcePath)
+        
     }
 
 }
@@ -319,7 +339,7 @@ class DummyValidationStep extends ValidationStepHandler {
 }
 
 if (require.main === module) {
-    const replay = false;
+    const replay = true;
     if (replay) {
         FileIO.instance = new DummyInstanceBasedIO()
         let refactorEval = new ReplayRefactorEvaluator();
