@@ -16,32 +16,36 @@ export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const ast_generator_path = resolve("src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/")
         
-        let outPath=this.outPath??resolve(context.getProjectPath(),".data_clump_solver_data","astOut")
+        let ast_out_path=this.outPath??resolve(context.getProjectPath(),".data_clump_solver_data","astOut")
         const ruleset_jar_location = resolve(ast_generator_path, "pmd-bin-7.0.0-rc3/lib/pmd-java-custom-1.0.0-SNAPSHOT.jar")
 
         applyIncludeExclude(context,ruleset_jar_location)
-        return this.analyzeSourceCodeFiles(context.getProjectPath(),outPath,context)
+        
+         this.analyzeSourceCodeFiles(context.getProjectPath(),ast_out_path,context)
+         let paths: string[] = []
+
+         getRelevantFilesRec(ast_out_path, paths, new FileFilteringContext([".*json"], []))
+
+
+         let newContext = context.buildNewContext(new ASTBuildingContext()) as ASTBuildingContext
+         for (let path of paths) {
+         
+             newContext.load(path)
+ 
+         }
+         return  newContext
         
 
     }
-    async analyzeSourceCodeFiles(src_out_path:string,ast_out_path:string, context:DataClumpRefactoringContext):Promise<ASTBuildingContext>{
+    async analyzeSourceCodeFiles(src_out_path:string,ast_out_path:string, context:DataClumpRefactoringContext):Promise<void>{
         const ast_generator_path = resolve("src/data-clumps-doctor/analyse/src/ignoreCoverage/astGenerator/")
        // fs.mkdirSync(ast_out_path)
 
-        await ParserHelperJavaSourceCode.parseSourceCodeToAst(ast_out_path, ast_out_path, ast_generator_path);
-        let paths: string[] = []
+        await ParserHelperJavaSourceCode.parseSourceCodeToAst(src_out_path, ast_out_path, ast_generator_path);
         waitSync(100)
        
-        getRelevantFilesRec(ast_out_path, paths, new FileFilteringContext(["*.json"], []))
-
-
-        let newContext = context.buildNewContext(new ASTBuildingContext()) as ASTBuildingContext
-        for (let path of paths) {
-        
-            newContext.load(path)
-
-        }
-        return newContext
+  
+    
     }
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.ASTGeneration]

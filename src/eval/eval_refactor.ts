@@ -1,4 +1,4 @@
-import simpleGit from "simple-git";
+import simpleGit, { SimpleGit } from "simple-git";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, LargeLanguageModelContext, RelevantLocationsContext, ValidationResult } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
@@ -148,6 +148,12 @@ export class RefactorEval extends BaseEvaluator {
             throw "Project does not compile"
         }
     }
+    async detectDataClump(git:SimpleGit, context:DataClumpRefactoringContext){
+        let detector = new DataClumpDoctorStepHandler({})
+        let ctx = await detector.handle(PipeLineStep.DataClumpDetection, context.getByType(CodeObtainingContext)!, undefined)
+        await git.add(["-f", ".data_clump_solver_data"])
+        await git.commit("added data clumps data")
+    }
     async analyzeInstance(instance: RefactorInstance, context: DataClumpRefactoringContext): Promise<void> {
         let git = simpleGit(context.getProjectPath())
         let g = await git.checkout("-B" + getInstancePath([], "-", instance))
@@ -193,7 +199,7 @@ export class RefactorEval extends BaseEvaluator {
         multiValidationHandler.afterValidationStep = async (attempt: number) => {
             await git.add("-A")
             await git.commit(getCurrLabel())
-            await git.addTag(getInstancePath([], "-", instance) + "-" + getCurrLabel(),)
+            await git.raw(["tag",getInstancePath([], "-", instance) + "-" + getCurrLabel(),"-f"])
 
         }
 
@@ -207,23 +213,20 @@ export class RefactorEval extends BaseEvaluator {
         let reply = chat[chat.length - 1];
         let stubOutputHandler = new StubOutputHandler();
         stubOutputHandler.apply = true;
-        this.writeExtractedClasses(reply)
+        await this.writeExtractedClasses(reply)
         context = context.buildNewContext(await parseChat(chat, PipeLineStep.Refactoring, context, stubOutputHandler));
         let val =this.getValidationInstance()
         let res = await val.validate(context)
         writeFileSync("errors.txt", res.raw ?? "")
         await git.add("-A")
         await git.commit("refactoring")
-        await git.addTag(getInstancePath([], "-", instance) + "-refactor")
+        await git.raw(["tag",getInstancePath([], "-", instance) + "-" + getCurrLabel(),"-f"])
 
         context = context.buildNewContext(await stubOutputHandler.chooseProposal(context));
 
         let count = await multiValidationHandler.getValidationCount(context);
 
-        let detector = new DataClumpDoctorStepHandler({})
-        let ctx = await detector.handle(PipeLineStep.DataClumpDetection, context.getByType(CodeObtainingContext)!, undefined)
-        await git.add(["-f", ".data_clump_solver_data"])
-        await git.commit("added data clumps data")
+        await this.detectDataClump(git,context)
         await git.checkout("context")
         writeFileSync("validation_count.json", JSON.stringify(count, null, 2))
         console.log("Validation count", count);
@@ -231,21 +234,28 @@ export class RefactorEval extends BaseEvaluator {
         AllFilesHandler.processed.clear()
     }
 
-    writeExtractedClasses(msg:ChatMessage){
+    async writeExtractedClasses(msg:ChatMessage){
         let content=parseUsingJsonRepair(msg.messages[0])
+        
         let sourcePath=FileIO.instance.resolvePath("extractedClassesSource")
-        let astPath=FileIO.instance.resolvePath("extractedClassAST");
-        fs.mkdirSync(sourcePath)
+        let astPath=FileIO.instance.resolvePath("extractedClassesAST");
+        fs.mkdirSync(sourcePath,{recursive:true})
+        fs.mkdirSync(astPath,{recursive:true})
+        if(content==null)return
         if("extractedClasses" in content){
            for(let p in content.extractedClasses){
                 let fName=basename(p)
+                let dest=resolve(sourcePath,fName);
+                if(fName!=""){
+                    fs.writeFileSync(resolve(sourcePath,fName),content.extractedClasses[p])
+
+                }
                
-                fs.writeFileSync(resolve(sourcePath,fName),content.extractedClasses[p])
            }
         }
         let astGen=new DataClumpDoctorASTGeneratorStep({})
-        astGen.analyzeSourceCodeFiles(sourcePath,astPath,new DataClumpRefactoringContext())
-        fs.rmdirSync(sourcePath)
+        await astGen.analyzeSourceCodeFiles(sourcePath,astPath,new DataClumpRefactoringContext())
+        fs.rmSync(sourcePath,{force:true,recursive:true})
         
     }
 
@@ -319,6 +329,9 @@ export class ReplayRefactorEvaluator extends RefactorEval {
     }
     async validateInstance(context: DataClumpRefactoringContext): Promise<void> {
 
+    }
+  async detectDataClump(git: SimpleGit, context: DataClumpRefactoringContext): Promise<void> {
+        
     }
 
     prepareLargeLanguageModelAPI(): void {

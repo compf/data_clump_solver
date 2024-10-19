@@ -323,14 +323,17 @@ function saveProcessedInvalidJson(jsonString,obj:any){
     }
 }
 export function parseUsingJsonRepair(jsonString:string){
-    let result=null
-    result=null
+    let result=tryParseJSON(jsonString)
     if(result==null){
-        let repaired=jsonrepair(jsonString)
-        if(typeof(repaired)=="string"){
-            return null
+        let repaired="{"
+        try{
+            repaired=jsonrepair(jsonString)
+
         }
-        return repaired
+        catch{
+            
+        }
+        return tryParseJSON(repaired)
     }
     else{
         return result;
