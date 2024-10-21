@@ -4,7 +4,7 @@ import { DataClumpLanguageModelFilter } from "../../pipeline/stepHandler/dataClu
 import { StubInterface } from "../../util/languageModel/StubInterface";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { FilterEval } from "../eval_filter";
-import { EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric } from "./base_analyzer";
+import { addDataClumpSpecificMetrics, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric } from "./base_analyzer";
 import fs from "fs"
 import { resolve } from "path";
 import { DataClumpTypeContext } from "data-clumps-type-context";
@@ -23,8 +23,7 @@ export class FilterAnalyzer extends EvalAnalyzer {
         return new FilterEval();
     }
     getMetrics(): EvalMetric[] {
-        let metrics= [ new DataClumpSizeMetric(), new DataClumpOccurenceMetricEvalFilter(),
-            new FieldsToFieldsMetric(), new ParametersToParametersMetric(),
+        let metrics= [
             new InvalidJsonMetric(), new SuretyMetric()
         ];
         for(let r of reasons){
@@ -33,12 +32,25 @@ export class FilterAnalyzer extends EvalAnalyzer {
        for(let fKey of Object.keys(statFunctions)){
         metrics.push(new PositionOnGroundTruthMetric(statFunctions[fKey],fKey))
        }
+       addDataClumpSpecificMetrics(metrics)
 
         return metrics
     }
 
     getName(): string {
         return "filter"
+    }
+     getDataClumps(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): DataClumpTypeContext[] {
+        let parsed = instance.responsesParsed[0]
+        if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
+            return [];
+        }
+
+       let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
+       if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
+              return []
+       }
+       return[bestFittingDataClump.dataClump]
     }
 }
 export class PositionOnGroundTruthMetric extends MultipleValuesMetric {
@@ -100,102 +112,7 @@ export class PositionOnGroundTruthMetric extends MultipleValuesMetric {
 
 }
 
-class DataClumpSizeMetric implements EvalMetric{
-   async  eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
-        let parsed=instance.responsesParsed[0]
-        if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
-            return null;
-        }
 
-       let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
-       if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
-              return null
-       }
-        let size=Object.values(bestFittingDataClump!.dataClump!.data_clump_data).length
-
-        return  size
-    }
-    getName(): string {
-        return "DataClumpSizeMetric";
-    } 
-
-
-}
-
-class DataClumpOccurenceMetricEvalFilter implements EvalMetric{
-    async  eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
-         let parsed=instance.responsesParsed[0]
-         if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
-             return null;
-         }
- 
-        let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
-        if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
-               return null
-        }
-        let dcOccurenceMetric=new DataClumpOccurenceMetric()
-         let size=await dcOccurenceMetric.evaluate(bestFittingDataClump.dataClump,context)
- 
-         return  size
-     }
-     getName(): string {
-         return "DataClumpOccurence";
-     } 
- 
- 
- }
-
- class FieldsToFieldsMetric implements EvalMetric{
-    async  eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
-         let parsed=instance.responsesParsed[0]
-         if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
-             return null;
-         }
- 
-        let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
-        if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
-               return null
-        }
-        
-         if(bestFittingDataClump.dataClump.from_method_name ==null && bestFittingDataClump.dataClump.to_method_name==null){
-            return 1
-         }
-         else{
-            return 0;
-         }
-     }
-     getName(): string {
-         return "FieldsToFieldsMetric";
-     } 
- 
- 
- }
-
- class ParametersToParametersMetric implements EvalMetric{
-    async  eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
-         let parsed=instance.responsesParsed[0]
-         if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
-             return null;
-         }
- 
-        let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
-        if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
-               return null
-        }
-        
-         if(bestFittingDataClump.dataClump.from_method_name !=null && bestFittingDataClump.dataClump.to_method_name!=null){
-            return 1
-         }
-         else{
-            return 0;
-         }
-     }
-     getName(): string {
-         return "ParametersToParametersMetric";
-     } 
- 
- 
- }
 
  class ReasonMetric implements EvalMetric{
     constructor(private reason:string){

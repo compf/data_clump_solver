@@ -15,6 +15,9 @@ import { DataClumpsTypeContext, DataClumpTypeContext } from "data-clumps-type-co
 import ts from "typescript";
 import simpleGit, { DiffResult } from "simple-git";
 import { concatenateResults, FilterMapper, MetricMapper, statFunctions } from "./utils";
+import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
+import { AffectedFileSizeMetric } from "../../pipeline/stepHandler/dataClumpFiltering/AffectedFileSizeMetric";
+import { AffectedFilesMetric } from "../../pipeline/stepHandler/dataClumpFiltering/AffectedFilesMetric";
 
 export type InstanceCombinationWithMetrics = InstanceCombination & {
     metricNames: string[]
@@ -93,6 +96,7 @@ export abstract class EvalAnalyzer {
     getClosingBrackets(path: string): string {
         return "}}}}}"
     }
+    abstract getDataClumps(instance:InstanceGeneratedData, context:DataClumpRefactoringContext):DataClumpTypeContext[];
     loadGeneratedData(instance: Instance, context: DataClumpRefactoringContext): Promise<InstanceGeneratedData> {
         let responsePaths: string[] = []
         let filterContext = new FileFilteringContext( [".*response.json"], [])
@@ -208,7 +212,7 @@ export abstract class EvalAnalyzer {
                 generated.instance.inputFormat = (instance as any).inputType
             }
             for (let m of metrics) {
-                let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName])
+                let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName],this)
                 result[m.getName()] = metricResult
                 allResults[JSON.stringify(instance) + m.getName()] = metricResult
             }
@@ -245,7 +249,7 @@ export abstract class EvalAnalyzer {
 }
 
 export interface EvalMetric {
-    eval(instance: any, context: DataClumpRefactoringContext): Promise<any>
+    eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?:EvalAnalyzer): Promise<any>
     getName(): string
 }
 
@@ -561,5 +565,149 @@ export class InvalidJsonMetric implements EvalMetric {
     getName(): string {
         return "ValidJSON"
     }
+
+}
+
+export abstract  class DataClumpBasedMetric implements EvalMetric{
+   async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer:EvalAnalyzer): Promise<any> {
+        let dataClumps=analyzer.getDataClumps(instance,context)
+        let values:number[]=[]
+        for(let dc of dataClumps){
+            values.push(await this.evaluateDataClump(dc,context))
+        }
+        return values;
+    }
+    abstract evaluateDataClump(dc:DataClumpTypeContext, context:DataClumpRefactoringContext):Promise<number>
+    abstract getName(): string;
+   
+    
+}
+
+export class DataClumpOccurenceMetricEval extends DataClumpBasedMetric{
+
+    async evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
+        let dcOccurenceMetric=new DataClumpOccurenceMetric()
+        let v =await dcOccurenceMetric.evaluate(dc,context.getFirstByType(DataClumpDetectorContext)!);
+        return v
+      
+    }
+    getName(): string {
+        return "DataClumpOccurence"
+    }
+}
+export class DataClumpSizeMetric extends DataClumpBasedMetric {
+
+   async  evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
+    if(dc.data_clump_data){
+        let res= Object.values(dc.data_clump_data).length
+        if(res>30){
+            nop();
+        }
+        return res
+    }
+       return null as any;
+    }
+     
+      getName(): string {
+          return "DataClumpSize"
+      }
+  
+  
+  }
+  
+
+  export class FieldToFieldMetric extends DataClumpBasedMetric{
+   async  evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
+        if(dc.from_method_name==null && dc.to_method_name==null){
+            return 1
+       }
+       else{
+            return 0
+       }
+    }
+   
+    
+    getName(): string {
+        return "FieldToField"
+    }
+}
+
+export class ParametersToParametersMetric extends DataClumpBasedMetric{
+    async evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
+        if(dc.from_method_name!=null && dc.to_method_name!=null){
+            return 1
+       }
+       else{
+            return 0
+       }
+    }
+   
+    getName(): string {
+        return "ParametersToParameters"
+    }
+}
+
+class PreferNonPublicModifierMetric extends DataClumpBasedMetric{
+    async evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
+        if(dc.data_clump_data){
+            let modifiers=Object.values(dc.data_clump_data)[0].modifiers
+            if(modifiers?.includes("PUBLIC")){
+                return 0
+            }
+            else{
+                return 1
+            }
+        }
+        return null as any
+        
+    }
+    getName(): string {
+        return "PreferNonPublic"
+    }
+}
+
+class PrimitiveTypesRatioMetric extends DataClumpBasedMetric{
+    async evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
+        let counter=0;
+        let allCounter=0;
+        if(dc.data_clump_data){
+            for(let data of Object.values(dc.data_clump_data)){
+                if(this.isPrimitive((data as any).displayedType)){
+                    counter++;
+                }
+                allCounter++
+            }
+        }
+        if(allCounter==0)return null as any
+        return counter/allCounter
+
+
+    }
+    isPrimitive(type:string){
+        return  type=="byte" || type=="short"|| type=="int"  || type=="long" || type=="boolean" || type=="String" || type=="char"
+    }
+    getName(): string {
+        return "PrimitiveTypes"
+    }
+}
+
+class AffectedFilesMetricEval extends DataClumpBasedMetric{
+     evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
+        let affectedFiles=new AffectedFilesMetric();
+        return affectedFiles.evaluate(dc,context)
+    }
+    getName(): string {
+        return "AffectedFiles"
+    }
+}
+
+export function addDataClumpSpecificMetrics(metrics:EvalMetric[]){
+    metrics.push(new DataClumpSizeMetric())
+    metrics.push(new DataClumpOccurenceMetricEval())
+    metrics.push(new ParametersToParametersMetric())
+    metrics.push(new FieldToFieldMetric())
+    metrics.push(new PreferNonPublicModifierMetric())
+    metrics.push(new PrimitiveTypesRatioMetric())
+    metrics.push(new AffectedFilesMetricEval())
 
 }

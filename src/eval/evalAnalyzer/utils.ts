@@ -84,6 +84,7 @@ export function concatenateResults(prefix: string, data: any[], filters:FilterMa
                     continue
                 }
                 let mapped = metrics[metricKey](relevantInstances)
+                mapped=mapped.flat()
                 let res = f(mapped)
                 if(!isNaN(res)){
                     res=Math.round(res*100)/100

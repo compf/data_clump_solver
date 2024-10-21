@@ -342,6 +342,7 @@ export function parseUsingJsonRepair(jsonString:string){
 export function parseInvalidJSON(jsonString:string, closingBrackets:string){
     
    let result=tryParseJSONWithSlice(jsonString)
+   return result
     let original=jsonString
 
     let counter=0
