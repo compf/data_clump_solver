@@ -317,6 +317,12 @@ export async function parseChat(fullChat: ChatMessage[], step: PipeLineStepType 
                     else if (typeof (json) == "object" && ("refactorings" in json)) {
                         parse_piecewise_output(json, fullChat, context, outputHandler)
                     }
+                    else if(typeof (json) == "object" && Object.values(json).length>0  && typeof(Object.values(json)[0])=="object"){
+                        json={
+                            refactorings:json
+                        }
+                        parse_piecewise_output(json, fullChat, context, outputHandler)
+                    }
                     else {
                         let changes = {}
                         for (let p of Object.keys(json)) {
@@ -409,6 +415,9 @@ export class ModifiedFilesProposal implements Proposal {
     private existingFiles: { [key: string]: string } = {}
     private newFiles: { [key: string]: boolean } = {}
     writeToFile(fullPath: string, content: string) {
+        if(Array.isArray(content)){
+            nop()
+        }
         fs.mkdirSync(path.dirname(fullPath), { recursive: true })
         fs.writeFileSync(fullPath, content)
     }

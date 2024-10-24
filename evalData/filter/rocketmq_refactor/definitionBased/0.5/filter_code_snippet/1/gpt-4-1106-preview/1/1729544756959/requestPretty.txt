@@ -1,0 +1,784 @@
+messages:
+[
+	content:"
+	
+	I will provide you Java code snippets that contain data clumps.
+	Choose one data clump that you think is most important and should be refactored.
+	
+	A data clump exists if
+	1) two methods (in the same or in different classes) have at least 3 common parameters
+	    and one of those methods does not override the other,
+	
+	or  
+	2) At least three fields in a class are common with the parameters of a method (in the same or in a different class),
+	
+	or
+	3) Two different classes have at least three common fields
+	
+	
+	You can use the metrics provided with each data clumps to assess the impact of a data clump, but also consider other factors.
+	Return the key of that data clump.
+	Justify your response. 
+	Use the following  output format in JSON:
+	
+	The "reason" attribute should be equal to as follows:
+	        "size" -> if you choose the data clump because of its large number of parameters/fields
+	        "occurrence" -> if you choose the data clump because it occurs very often and leads to much duplication
+	        "affected_files" -> if you choose this data clump because many files are affected by this data clump
+	        "domain" -> if you choose this data clump because the variables share a common domain so that extracting a class is a good idea
+	        "other" -> if none of the options above fits
+	
+	### JSON
+	{
+	    "key":"<key>",,
+	    "reason":"<as explained above>,
+	    "justification":"<Your justification which explains the 'reason' in more details>",
+	    "suggestedName":"<A suitable name for an extracted class if the data clumps variables were to be extracted>"
+	
+	}
+	
+	### END JSON	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			common/src/main/java/org/apache/rocketmq/common/stats/Stats.java:
+		[
+			fromLine:"			19",
+			toLine:"			48",
+			content:"
+			public class Stats {
+			
+			    public static final String QUEUE_PUT_NUMS = "QUEUE_PUT_NUMS";
+			    public static final String QUEUE_PUT_SIZE = "QUEUE_PUT_SIZE";
+			    public static final String QUEUE_GET_NUMS = "QUEUE_GET_NUMS";
+			    public static final String QUEUE_GET_SIZE = "QUEUE_GET_SIZE";
+			    public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
+			    public static final String TOPIC_PUT_SIZE = "TOPIC_PUT_SIZE";
+			    public static final String GROUP_GET_NUMS = "GROUP_GET_NUMS";
+			    public static final String GROUP_GET_SIZE = "GROUP_GET_SIZE";
+			    public static final String SNDBCK_PUT_NUMS = "SNDBCK_PUT_NUMS";
+			    public static final String BROKER_PUT_NUMS = "BROKER_PUT_NUMS";
+			    public static final String BROKER_GET_NUMS = "BROKER_GET_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_NUMS = "GROUP_GET_FROM_DISK_NUMS";
+			    public static final String GROUP_GET_FROM_DISK_SIZE = "GROUP_GET_FROM_DISK_SIZE";
+			    public static final String BROKER_GET_FROM_DISK_NUMS = "BROKER_GET_FROM_DISK_NUMS";
+			    public static final String BROKER_GET_FROM_DISK_SIZE = "BROKER_GET_FROM_DISK_SIZE";
+			    public static final String COMMERCIAL_SEND_TIMES = "COMMERCIAL_SEND_TIMES";
+			    public static final String COMMERCIAL_SNDBCK_TIMES = "COMMERCIAL_SNDBCK_TIMES";
+			    public static final String COMMERCIAL_RCV_TIMES = "COMMERCIAL_RCV_TIMES";
+			    public static final String COMMERCIAL_RCV_EPOLLS = "COMMERCIAL_RCV_EPOLLS";
+			    public static final String COMMERCIAL_SEND_SIZE = "COMMERCIAL_SEND_SIZE";
+			    public static final String COMMERCIAL_RCV_SIZE = "COMMERCIAL_RCV_SIZE";
+			    public static final String COMMERCIAL_PERM_FAILURES = "COMMERCIAL_PERM_FAILURES";
+			
+			    public static final String GROUP_GET_FALL_SIZE = "GROUP_GET_FALL_SIZE";
+			    public static final String GROUP_GET_FALL_TIME = "GROUP_GET_FALL_TIME";
+			    public static final String GROUP_GET_LATENCY = "GROUP_GET_LATENCY";
+			}
+						
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				25",
+			
+}
+			key:"			0",
+,
+
+		],
+		store/src/main/java/org/apache/rocketmq/store/stats/BrokerStatsManager.java:
+		[
+			fromLine:"			43",
+			toLine:"			71",
+			content:"
+			public class BrokerStatsManager {
+			
+			    @Deprecated public static final String QUEUE_PUT_NUMS = Stats.QUEUE_PUT_NUMS;
+			    @Deprecated public static final String QUEUE_PUT_SIZE = Stats.QUEUE_PUT_SIZE;
+			    @Deprecated public static final String QUEUE_GET_NUMS = Stats.QUEUE_GET_NUMS;
+			    @Deprecated public static final String QUEUE_GET_SIZE = Stats.QUEUE_GET_SIZE;
+			    @Deprecated public static final String TOPIC_PUT_NUMS = Stats.TOPIC_PUT_NUMS;
+			    @Deprecated public static final String TOPIC_PUT_SIZE = Stats.TOPIC_PUT_SIZE;
+			
+			    @Deprecated public static final String GROUP_GET_NUMS = Stats.GROUP_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_SIZE = Stats.GROUP_GET_SIZE;
+			
+			    @Deprecated public static final String SNDBCK_PUT_NUMS = Stats.SNDBCK_PUT_NUMS;
+			    @Deprecated public static final String BROKER_PUT_NUMS = Stats.BROKER_PUT_NUMS;
+			    @Deprecated public static final String BROKER_GET_NUMS = Stats.BROKER_GET_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_NUMS = Stats.GROUP_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String GROUP_GET_FROM_DISK_SIZE = Stats.GROUP_GET_FROM_DISK_SIZE;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_NUMS = Stats.BROKER_GET_FROM_DISK_NUMS;
+			    @Deprecated public static final String BROKER_GET_FROM_DISK_SIZE = Stats.BROKER_GET_FROM_DISK_SIZE;
+			    // For commercial
+			    @Deprecated public static final String COMMERCIAL_SEND_TIMES = Stats.COMMERCIAL_SEND_TIMES;
+			    @Deprecated public static final String COMMERCIAL_SNDBCK_TIMES = Stats.COMMERCIAL_SNDBCK_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_TIMES = Stats.COMMERCIAL_RCV_TIMES;
+			    @Deprecated public static final String COMMERCIAL_RCV_EPOLLS = Stats.COMMERCIAL_RCV_EPOLLS;
+			    @Deprecated public static final String COMMERCIAL_SEND_SIZE = Stats.COMMERCIAL_SEND_SIZE;
+			    @Deprecated public static final String COMMERCIAL_RCV_SIZE = Stats.COMMERCIAL_RCV_SIZE;
+			    @Deprecated public static final String COMMERCIAL_PERM_FAILURES = Stats.COMMERCIAL_PERM_FAILURES;
+			
+			    // Send message latency			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				25",
+			
+}
+			key:"			0",
+,
+			fromLine:"			108",
+			toLine:"			115",
+			content:"
+			    public static final String INNER_RT = "INNER_RT";
+			
+			    @Deprecated public static final String GROUP_GET_FALL_SIZE = Stats.GROUP_GET_FALL_SIZE;
+			    @Deprecated public static final String GROUP_GET_FALL_TIME = Stats.GROUP_GET_FALL_TIME;
+			    // Pull Message Latency
+			    @Deprecated public static final String GROUP_GET_LATENCY = Stats.GROUP_GET_LATENCY;
+			
+			    // Consumer Register Time			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				25",
+			
+}
+			key:"			0",
+,
+
+		],
+		client/src/main/java/org/apache/rocketmq/client/impl/consumer/DefaultLitePullConsumerImpl.java:
+		[
+			fromLine:"			79",
+			toLine:"			99",
+			content:"
+			public class DefaultLitePullConsumerImpl implements MQConsumerInner {
+			
+			    private static final Logger log = LoggerFactory.getLogger(DefaultLitePullConsumerImpl.class);
+			
+			    private final long consumerStartTimestamp = System.currentTimeMillis();
+			
+			    private final RPCHook rpcHook;
+			
+			    private final ArrayList<FilterMessageHook> filterMessageHookList = new ArrayList<>();
+			
+			    private volatile ServiceState serviceState = ServiceState.CREATE_JUST;
+			
+			    protected MQClientInstance mQClientFactory;
+			
+			    private PullAPIWrapper pullAPIWrapper;
+			
+			    private OffsetStore offsetStore;
+			
+			    private RebalanceImpl rebalanceImpl = new RebalanceLitePullImpl(this);
+			
+			    private enum SubscriptionType {			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				16",
+			
+}
+			key:"			26",
+,
+			fromLine:"			111",
+			toLine:"			123",
+			content:"
+			     * Delay some time when exception occur
+			     */
+			    private long pullTimeDelayMillsWhenException = 1000;
+			    /**
+			     * Flow control interval when message cache is full
+			     */
+			    private static final long PULL_TIME_DELAY_MILLS_WHEN_CACHE_FLOW_CONTROL = 50;
+			    /**
+			     * Flow control interval when broker return flow control
+			     */
+			    private static final long PULL_TIME_DELAY_MILLS_WHEN_BROKER_FLOW_CONTROL = 20;
+			    /**
+			     * Delay some time when suspend pull service			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				16",
+			
+}
+			key:"			26",
+,
+			fromLine:"			148",
+			toLine:"			154",
+			content:"
+			    private long consumeRequestFlowControlTimes = 0L;
+			
+			    private long queueFlowControlTimes = 0L;
+			
+			    private long queueMaxSpanFlowControlTimes = 0L;
+			
+			    private long nextAutoCommitDeadline = -1L;			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				16",
+			
+}
+			key:"			26",
+,
+			fromLine:"			156",
+			toLine:"			164",
+			content:"
+			    private final MessageQueueLock messageQueueLock = new MessageQueueLock();
+			
+			    private final ArrayList<ConsumeMessageHook> consumeMessageHookList = new ArrayList<>();
+			
+			    // only for test purpose, will be modified by reflection in unit test.
+			    @SuppressWarnings("FieldMayBeFinal")
+			    private static boolean doNotUpdateTopicSubscribeInfoWhenSubscriptionChanged = false;
+			
+			    public DefaultLitePullConsumerImpl(final DefaultLitePullConsumer defaultLitePullConsumer, final RPCHook rpcHook) {			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				16",
+			
+}
+			key:"			26",
+,
+
+		],
+		client/src/main/java/org/apache/rocketmq/client/impl/consumer/DefaultMQPushConsumerImpl.java:
+		[
+			fromLine:"			99",
+			toLine:"			111",
+			content:"
+			     * Delay some time when exception occur
+			     */
+			    private long pullTimeDelayMillsWhenException = 3000;
+			    /**
+			     * Flow control interval when message cache is full
+			     */
+			    private static final long PULL_TIME_DELAY_MILLS_WHEN_CACHE_FLOW_CONTROL = 50;
+			    /**
+			     * Flow control interval when broker return flow control
+			     */
+			    private static final long PULL_TIME_DELAY_MILLS_WHEN_BROKER_FLOW_CONTROL = 20;
+			    /**
+			     * Delay some time when suspend pull service			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				16",
+			
+}
+			key:"			26",
+,
+			fromLine:"			114",
+			toLine:"			135",
+			content:"
+			    private static final long BROKER_SUSPEND_MAX_TIME_MILLIS = 1000 * 15;
+			    private static final long CONSUMER_TIMEOUT_MILLIS_WHEN_SUSPEND = 1000 * 30;
+			    private static final Logger log = LoggerFactory.getLogger(DefaultMQPushConsumerImpl.class);
+			    private final DefaultMQPushConsumer defaultMQPushConsumer;
+			    private final RebalanceImpl rebalanceImpl = new RebalancePushImpl(this);
+			    private final ArrayList<FilterMessageHook> filterMessageHookList = new ArrayList<>();
+			    private final long consumerStartTimestamp = System.currentTimeMillis();
+			    private final ArrayList<ConsumeMessageHook> consumeMessageHookList = new ArrayList<>();
+			    private final RPCHook rpcHook;
+			    private volatile ServiceState serviceState = ServiceState.CREATE_JUST;
+			    private MQClientInstance mQClientFactory;
+			    private PullAPIWrapper pullAPIWrapper;
+			    private volatile boolean pause = false;
+			    private boolean consumeOrderly = false;
+			    private MessageListener messageListenerInner;
+			    private OffsetStore offsetStore;
+			    private ConsumeMessageService consumeMessageService;
+			    private ConsumeMessageService consumeMessagePopService;
+			    private long queueFlowControlTimes = 0;
+			    private long queueMaxSpanFlowControlTimes = 0;
+			
+			    //10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				16",
+			
+}
+			key:"			26",
+,
+			fromLine:"			142",
+			toLine:"			146",
+			content:"
+			    // only for test purpose, will be modified by reflection in unit test.
+			    @SuppressWarnings("FieldMayBeFinal")
+			    private static boolean doNotUpdateTopicSubscribeInfoWhenSubscriptionChanged = false;
+			
+			    public DefaultMQPushConsumerImpl(DefaultMQPushConsumer defaultMQPushConsumer, RPCHook rpcHook) {			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				16",
+			
+}
+			key:"			26",
+,
+
+		],
+		common/src/main/java/org/apache/rocketmq/common/BrokerConfig.java:
+		[
+			fromLine:"			28",
+			toLine:"			36",
+			content:"
+			public class BrokerConfig extends BrokerIdentity {
+			
+			    private String brokerConfigPath = null;
+			
+			    private String rocketmqHome = System.getProperty(MixAll.ROCKETMQ_HOME_PROPERTY, System.getenv(MixAll.ROCKETMQ_HOME_ENV));
+			    @ImportantField
+			    private String namesrvAddr = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
+			
+			    /**			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+			fromLine:"			59",
+			toLine:"			63",
+			content:"
+			    private String messageStorePlugIn = "";
+			
+			    private static final int PROCESSOR_NUMBER = Runtime.getRuntime().availableProcessors();
+			    @ImportantField
+			    private String msgTraceTopicName = TopicValidator.RMQ_SYS_TRACE_TOPIC;			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+			fromLine:"			132",
+			toLine:"			136",
+			content:"
+			    private boolean transferMsgByHeap = true;
+			
+			    private String regionId = MixAll.DEFAULT_TRACE_REGION_ID;
+			    private int registerBrokerTimeoutMills = 24000;
+						
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+			fromLine:"			152",
+			toLine:"			156",
+			content:"
+			    private long startAcceptSendRequestTimeStamp = 0L;
+			
+			    private boolean traceOn = true;
+			
+			    // Switch of filter bit map calculation.			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+			fromLine:"			357",
+			toLine:"			375",
+			content:"
+			
+			    private int metricsOtelCardinalityLimit = 50 * 1000;
+			    private String metricsGrpcExporterTarget = "";
+			    private String metricsGrpcExporterHeader = "";
+			    private long metricGrpcExporterTimeOutInMills = 3 * 1000;
+			    private long metricGrpcExporterIntervalInMills = 60 * 1000;
+			    private long metricLoggingExporterIntervalInMills = 10 * 1000;
+			
+			    private int metricsPromExporterPort = 5557;
+			    private String metricsPromExporterHost = "";
+			
+			    // Label pairs in CSV. Each label follows pattern of Key:Value. eg: instance_id:xxx,uid:xxx
+			    private String metricsLabel = "";
+			
+			    private boolean metricsInDelta = false;
+			
+			    private long channelExpiredTimeout = 1000 * 120;
+			    private long subscriptionExpiredTimeout = 1000 * 60 * 10;
+						
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+
+		],
+		proxy/src/main/java/org/apache/rocketmq/proxy/config/ProxyConfig.java:
+		[
+			fromLine:"			42",
+			toLine:"			46",
+			content:"
+			    private final static Logger log = LoggerFactory.getLogger(LoggerName.PROXY_LOGGER_NAME);
+			    public final static String DEFAULT_CONFIG_FILE_NAME = "rmq-proxy.json";
+			    private static final int PROCESSOR_NUMBER = Runtime.getRuntime().availableProcessors();
+			    private static final String DEFAULT_CLUSTER_NAME = "DefaultCluster";
+						
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+			fromLine:"			74",
+			toLine:"			78",
+			content:"
+			    private long printThreadPoolStatusInMillis = Duration.ofSeconds(3).toMillis();
+			
+			    private String namesrvAddr = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
+			    private String namesrvDomain = "";
+			    private String namesrvDomainSubgroup = "";			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+			fromLine:"			94",
+			toLine:"			98",
+			content:"
+			    private int grpcThreadPoolNums = 16 + PROCESSOR_NUMBER * 2;
+			    private int grpcThreadPoolQueueCapacity = 100000;
+			    private String brokerConfigPath = ConfigurationManager.getProxyHome() + "/conf/broker.conf";
+			    /**
+			     * gRPC max message size			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+			fromLine:"			212",
+			toLine:"			236",
+			content:"
+			    private String metricCollectorAddress = "";
+			
+			    private String regionId = "";
+			
+			    private boolean traceOn = false;
+			
+			    private MetricsExporterType metricsExporterType = MetricsExporterType.DISABLE;
+			
+			    private String metricsGrpcExporterTarget = "";
+			    private String metricsGrpcExporterHeader = "";
+			    private long metricGrpcExporterTimeOutInMills = 3 * 1000;
+			    private long metricGrpcExporterIntervalInMills = 60 * 1000;
+			    private long metricLoggingExporterIntervalInMills = 10 * 1000;
+			
+			    private int metricsPromExporterPort = 5557;
+			    private String metricsPromExporterHost = "";
+			
+			    // Label pairs in CSV. Each label follows pattern of Key:Value. eg: instance_id:xxx,uid:xxx
+			    private String metricsLabel = "";
+			
+			    private boolean metricsInDelta = false;
+			
+			    private long channelExpiredTimeout = 1000 * 120;
+			
+			    // remoting			
+",
+			metrics:
+{
+							affected_files:"				2",
+				occurence:"				1",
+				size:"				15",
+			
+}
+			key:"			43",
+,
+
+		],
+		broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java:
+		[
+			fromLine:"			299",
+			toLine:"			303",
+			content:"
+			    }
+			
+			    public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {
+			        long brokerOffset = messageStore.getMaxOffsetInQueue(topic, queueId);
+			        if (brokerOffset < 0) {			
+",
+			metrics:
+{
+							affected_files:"				32",
+				occurence:"				60",
+				size:"				3",
+			
+}
+			key:"			59",
+,
+			fromLine:"			438",
+			toLine:"			442",
+			content:"
+			    }
+			
+			    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {
+			        long count = to - from;
+						
+",
+			metrics:
+{
+							affected_files:"				32",
+				occurence:"				60",
+				size:"				3",
+			
+}
+			key:"			59",
+,
+			fromLine:"			299",
+			toLine:"			303",
+			content:"
+			    }
+			
+			    public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {
+			        long brokerOffset = messageStore.getMaxOffsetInQueue(topic, queueId);
+			        if (brokerOffset < 0) {			
+",
+			metrics:
+{
+							affected_files:"				26",
+				occurence:"				29",
+				size:"				3",
+			
+}
+			key:"			67",
+,
+			fromLine:"			429",
+			toLine:"			433",
+			content:"
+			    }
+			
+			    public long getStoreTimeStamp(String topic, int queueId, long offset) {
+			        long storeTimeStamp = Long.MAX_VALUE;
+			        if (offset >= 0) {			
+",
+			metrics:
+{
+							affected_files:"				26",
+				occurence:"				29",
+				size:"				3",
+			
+}
+			key:"			67",
+,
+			fromLine:"			438",
+			toLine:"			442",
+			content:"
+			    }
+			
+			    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {
+			        long count = to - from;
+						
+",
+			metrics:
+{
+							affected_files:"				26",
+				occurence:"				29",
+				size:"				3",
+			
+}
+			key:"			67",
+,
+
+		],
+		broker/src/main/java/org/apache/rocketmq/broker/out/BrokerOuterAPI.java:
+		[
+			fromLine:"			329",
+			toLine:"			336",
+			content:"
+			
+			    public void sendHeartbeatViaDataVersion(
+			        final String clusterName,
+			        final String brokerAddr,
+			        final String brokerName,
+			        final Long brokerId,
+			        final int timeoutMillis,
+			        final DataVersion dataVersion,			
+",
+			metrics:
+{
+							affected_files:"				29",
+				occurence:"				38",
+				size:"				3",
+			
+}
+			key:"			63",
+,
+			fromLine:"			1304",
+			toLine:"			1308",
+			content:"
+			
+			    public Pair<RegisterBrokerToControllerResponseHeader, Set<Long>> registerBrokerToController(
+			        final String clusterName, final String brokerName, final Long brokerId, final String brokerAddress,
+			        final String controllerAddress) throws Exception {
+			        final RegisterBrokerToControllerRequestHeader requestHeader = new RegisterBrokerToControllerRequestHeader(clusterName, brokerName, brokerId, brokerAddress);			
+",
+			metrics:
+{
+							affected_files:"				29",
+				occurence:"				38",
+				size:"				3",
+			
+}
+			key:"			63",
+,
+
+		],
+		broker/src/main/java/org/apache/rocketmq/broker/failover/EscapeBridge.java:
+		[
+			fromLine:"			264",
+			toLine:"			268",
+			content:"
+			    }
+			
+			    public Pair<GetMessageStatus, MessageExt> getMessage(String topic, long offset, int queueId, String brokerName, boolean deCompressBody) {
+			        return getMessageAsync(topic, offset, queueId, brokerName, deCompressBody).join();
+			    }			
+",
+			metrics:
+{
+							affected_files:"				26",
+				occurence:"				29",
+				size:"				3",
+			
+}
+			key:"			67",
+,
+
+		],
+		example/src/main/java/org/apache/rocketmq/example/broadcast/PushConsumer.java:
+		[
+			fromLine:"			26",
+			toLine:"			32",
+			content:"
+			public class PushConsumer {
+			
+			    public static final String CONSUMER_GROUP = "please_rename_unique_group_name_1";
+			    public static final String DEFAULT_NAMESRVADDR = "127.0.0.1:9876";
+			    public static final String TOPIC = "TopicTest";
+			
+			    public static final String SUB_EXPRESSION = "TagA || TagC || TagD";			
+",
+			metrics:
+{
+							affected_files:"				8",
+				occurence:"				7",
+				size:"				3",
+			
+}
+			key:"			71",
+,
+
+		],
+		example/src/main/java/org/apache/rocketmq/example/namespace/PullConsumerWithNamespace.java:
+		[
+			fromLine:"			28",
+			toLine:"			34",
+			content:"
+			
+			    public static final String NAMESPACE = "InstanceTest";
+			    public static final String CONSUMER_GROUP = "cidTest";
+			    public static final String DEFAULT_NAMESRVADDR = "127.0.0.1:9876";
+			    public static final String TOPIC = "NAMESPACE_TOPIC";
+			
+			    private static final Map<MessageQueue, Long> OFFSET_TABLE = new HashMap<>();			
+",
+			metrics:
+{
+							affected_files:"				8",
+				occurence:"				7",
+				size:"				3",
+			
+}
+			key:"			71",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+
+],
+model:"
+gpt-4-1106-preview
+",
+response_format:
+{
+	type:"
+	json_object	
+",
+
+}
+temperature:"0.5",

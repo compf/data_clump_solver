@@ -438,7 +438,7 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
             let additionalData = {
                 metrics: {
                     affected_files: await (resolveFromConcreteName("AffectedFilesMetric") as Metric).evaluate(dc, context),
-                    occurence: await (resolveFromConcreteName("DataClumpOccurenceMetric") as Metric).evaluate(dc, context),
+                    occurence: Math.round(Math.sqrt(await (resolveFromConcreteName("DataClumpOccurenceMetric") as Metric).evaluate(dc, context))),
                     size: await (resolveFromConcreteName("DataClumpSizeMetric") as Metric).evaluate(dc, context)
                 },
                 key: dc.key

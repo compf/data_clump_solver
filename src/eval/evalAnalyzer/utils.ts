@@ -45,7 +45,12 @@ function createResults(prefix: string, path: string, keyNames: string[], keys: {
     let outPath = resolve("evalDataResults", prefix, path, keys[keyNames[0]], keys[keyNames[1]]) + ".json"
 
     let obj = {}
-    if (outPath in results) {
+    if(fs.existsSync(outPath)){
+        let loaded=JSON.parse(fs.readFileSync(outPath).toString())
+        obj=loaded
+        results[outPath]=loaded
+    }
+    else if (outPath in results) {
         obj = results[outPath]
     }
     obj[keys[keyNames[2]]] = val;

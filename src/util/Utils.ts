@@ -328,6 +328,11 @@ export function parseUsingJsonRepair(jsonString:string){
         let repaired="{"
         try{
             repaired=jsonrepair(jsonString)
+            if(Array.isArray(repaired)){
+                repaired=repaired[0]
+                
+            }
+            return tryParseJSON(repaired);
 
         }
         catch{
@@ -342,7 +347,7 @@ export function parseUsingJsonRepair(jsonString:string){
 export function parseInvalidJSON(jsonString:string, closingBrackets:string){
     
    let result=tryParseJSONWithSlice(jsonString)
-   return result
+   return parseUsingJsonRepair(jsonString)
     let original=jsonString
 
     let counter=0

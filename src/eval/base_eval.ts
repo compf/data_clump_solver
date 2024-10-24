@@ -283,6 +283,7 @@ export class InterestingDataClumpContextBuilder {
         let shuffleRanker = new RankSampler({ differentDataClumps: true, strictSize: true, rankThreshold: allDataClumps.length });
         let iterationsNoImprovement = 0
         while (iterationsNoImprovement < this.numIterations) {
+            console.log("No improvement", iterationsNoImprovement, "curr min",currMin)
             allDataClumps = await shuffleRanker.rank(new RandomRanker(), allDataClumps, initialContext) as DataClumpTypeContext[]
             let currDataClumps: DataClumpTypeContext[] = [];
             for (let filterOrMetric of this.criteria) {

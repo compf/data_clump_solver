@@ -101,7 +101,7 @@ export class RefactorEval extends BaseEvaluator {
         return result
     }
     includeUsage(): boolean {
-        return false;
+        return true;
     }
     getBaseDirLabel(): string {
         return "refactoring"
@@ -109,7 +109,7 @@ export class RefactorEval extends BaseEvaluator {
     async getUsageInformation(context: RelevantLocationsContext): Promise<RelevantLocationsContext> {
         registerFromName("EclipseLSP_API", LanguageServerAPI.name, {})
         let ctx = loadExistingContext(PipeLineStep.ReferenceFinding, context)
-        if (true) {
+        if (ctx==null) {
             let usageFinder = new LanguageServerReferenceStepHandler({ apiName: "EclipseLSP_API", useExistingReferences: true, apiArgs: {} });
             context = (await usageFinder.handle(PipeLineStep.ReferenceFinding, context, {})) as RelevantLocationsContext
         }
@@ -241,7 +241,7 @@ export class RefactorEval extends BaseEvaluator {
         let astPath=FileIO.instance.resolvePath("extractedClassesAST");
         fs.mkdirSync(sourcePath,{recursive:true})
         fs.mkdirSync(astPath,{recursive:true})
-        if(content==null)return
+        if(content==null || content==undefined)return
         if("extractedClasses" in content){
            for(let p in content.extractedClasses){
                 let fName=basename(p)

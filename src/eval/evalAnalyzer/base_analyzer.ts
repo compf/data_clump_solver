@@ -1,6 +1,6 @@
 import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../context/DataContext";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
-import { getRelevantFilesRec, nop, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
+import { getRelevantFilesRec, nop, parseInvalidJSON, parseUsingJsonRepair, tryParseJSON } from "../../util/Utils";
 import { BaseEvaluator, disableCloning, getInstancePath, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import fs from "fs"
@@ -92,6 +92,7 @@ export abstract class EvalAnalyzer {
         }
         return result
     }
+     log=fs.readFileSync("stuff/log").toString()
 
     getClosingBrackets(path: string): string {
         return "}}}}}"
@@ -105,7 +106,7 @@ export abstract class EvalAnalyzer {
         let res= Promise.resolve({
             instance: instance,
             responsePaths: responsePaths,
-            responsesParsed: responsePaths.map((it) => parseInvalidJSON(fs.readFileSync(it).toString(), this.getClosingBrackets(it))),
+            responsesParsed: responsePaths.map((it) => parseUsingJsonRepair(fs.readFileSync(it).toString())),
             requestPaths: requestPaths,
             fileContents: {},
             validationResults: [],
@@ -198,6 +199,7 @@ export abstract class EvalAnalyzer {
         FileIO.instance = new InstanceBasedFileIO();
         let allResults: { [key: string]: number } = {}
         for (let instance of instances) {
+           
             (FileIO.instance as InstanceBasedFileIO).instance = instance;
             let instancePath = dirname(instancesPaths[counter])
             instancePath = getFirstDirectory(instancePath)
@@ -212,7 +214,15 @@ export abstract class EvalAnalyzer {
                 generated.instance.inputFormat = (instance as any).inputType
             }
             for (let m of metrics) {
-                let metricResult = await m.eval(generated, allCOntexts[(instance as any).projectName],this)
+                let metricResult = null as any as number;
+                try{
+                    metricResult=await m.eval(generated, allCOntexts[(instance as any).projectName],this)
+
+                }
+                catch{
+                    this.log+=JSON.stringify(generated.instance,undefined,2)+"\n\n"
+                   fs.writeFileSync("stuff/log",this.log)
+                }
                 result[m.getName()] = metricResult
                 allResults[JSON.stringify(instance) + m.getName()] = metricResult
             }

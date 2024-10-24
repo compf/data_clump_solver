@@ -32,12 +32,13 @@ export class RefactorAnalyzer extends EvalAnalyzer {
             new EmptyResponseMetric(), new NoInterpretableChangesMetric(),new RichClassMetric(), new HarmlessErrorCategoryMetric()
         ];
         addDataClumpSpecificMetrics(metrics)
+        metrics=[new RichClassMetric()]
         return metrics
     }
     getDataClumps(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): DataClumpTypeContext[] {
         let dataClumps:DataClumpTypeContext[]=[]
         for(let resp of instance.responsesParsed)
-            if(resp.refactorings){
+            if(resp?.refactorings){
                 for(let p in resp.refactorings){
                     let refact=resp.refactorings[p]
                     for(let ref of refact){
@@ -65,26 +66,10 @@ export class RefactorAnalyzer extends EvalAnalyzer {
     getName(): string {
         return "refactor"
     }
-    originalFiles: { [key: string]: string } = {}
-    newFiles: { [key: string]: boolean } = {}
-    async loadOriginalFile(path: string, context: DataClumpRefactoringContext) {
-        if (path in this.newFiles) {
-            return
-        }
-        if (!(path in this.originalFiles)) {
-            let git = simpleGit(context.getProjectPath())
-            let g = await git.checkout("context", ["-f"])
 
-            if (fs.existsSync(resolve(context.getProjectPath(), path))) {
-                this.originalFiles[path] = fs.readFileSync(resolve(context.getProjectPath(), path), { encoding: "utf-8" })
-            }
-            else {
-                this.newFiles[path] = true
-            }
-        }
-    }
     async loadGeneratedData(instance: Instance, context: DataClumpRefactoringContext): Promise<InstanceGeneratedData> {
         console.log(instance)
+        return super.loadGeneratedData(instance,context)
         let git = simpleGit(context.getProjectPath())
 
         let data = await super.loadGeneratedData(instance, context)
@@ -110,16 +95,9 @@ export class RefactorAnalyzer extends EvalAnalyzer {
   
         let g1 = await git.diffSummary([branchName, "context"])
         data.gitDiff = g1
-        for (let f of g1.files) {
-            await  this.loadOriginalFile(f.file, context)
-         }
-        
+  
  
-         for (let f of g1.files) {
-             if (f.file.endsWith(".java") && fs.existsSync(resolve(context.getProjectPath(), f.file))) {
-                 data.fileContents[f.file] = fs.readFileSync(resolve(context.getProjectPath(), f.file), { encoding: "utf-8" })
-             }
-         }
+
        
         
     
@@ -225,9 +203,12 @@ class CommentOutMetric implements EvalMetric {
     async   eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext) {
         let allCounter=0;
         let emptyCounter=0;
+        if(instance.responsePaths.length<=0)return null as any;
+
        for(let i =0;i<instance.responsesParsed.length;i++){
         let obj=instance.responsesParsed[i];
-        if(obj.refactorings){
+        if(!(obj))continue;
+        if(obj?.refactorings){
             for(let arr of Object.values(obj.refactorings) ){
                 if(Array.isArray(arr)){
                     for(let ch of arr as any[]){
@@ -261,7 +242,8 @@ class RichClassMetric implements EvalMetric{
     async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<number> {
         let  counter=0;
         let allCounter=0
-       let astPath=resolve(basename(instance.responsePaths[0]),"extractedClassesAST")
+        if(instance.responsePaths.length<=0)return null as any;
+       let astPath=resolve(dirname(instance.responsePaths[0]),"extractedClassesAST")
        if(!fs.existsSync(astPath)){
         return 0;
        }
@@ -297,8 +279,10 @@ class EmptyResponseMetric implements EvalMetric{
     async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<any> {
         let counter=0;
         let allCounter=0;
+        if(instance.responsePaths.length<=0)return null as any;
+
         for(let obj of instance.responsesParsed){
-            if(obj.refactorings){
+            if(obj?.refactorings){
                 if(Object.keys(obj.refactorings).length==0){
                     counter++;
                 }
@@ -324,6 +308,7 @@ class NoInterpretableChangesMetric implements EvalMetric{
        let git=simpleGit(context.getProjectPath())
        let counter=0;
        let allCounter=0;
+       if(instance.responsePaths.length<=0)return null as any;
 
        for(let suff of suffixes){
             if(index>=instance.responsesParsed.length)break;
@@ -340,7 +325,7 @@ class NoInterpretableChangesMetric implements EvalMetric{
             for(let p of Object.keys(instance.responsesParsed[index]?.refactorings??[])){
                 let path=resolve(context.getProjectPath(),p)
                 let fileContent=fs.readFileSync(path).toString();
-                for(let ref of instance.responsesParsed[index]?.refactorings[p] ){
+                for(let ref of instance.responsesParsed[index]?.refactorings[p]??[] ){
                     let dummy={
                         refactorings:{}
                     };
@@ -370,6 +355,7 @@ class HarmlessErrorCategoryMetric implements EvalMetric{
         let harmlessErrorCounter=0;
         let allErrors=0;
         let harmless=["cannot find symbol"]
+        if(instance.responsePaths.length<=0)return null as any;
 
         for(let  respPath of instance.responsePaths){
             let path=resolve(basename(respPath),"errors.txt")

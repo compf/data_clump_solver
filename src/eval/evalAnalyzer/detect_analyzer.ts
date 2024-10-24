@@ -28,6 +28,9 @@ export class DetectAnalyzer extends EvalAnalyzer {
     }
     getDataClumps(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): DataClumpTypeContext[] {
         let parsed=getDataClumpTypeContext(instance)
+        if(Array.isArray(parsed)){
+            parsed=parsed[0]
+        }
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0 || parsed.data_clumps==undefined) {
             return [];
         }
@@ -51,8 +54,11 @@ export class DetectAnalyzer extends EvalAnalyzer {
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
             return null;
         }
+        if(Array.isArray(parsed)){
+            parsed=parsed[0]
+        }
         let byLLM = parsed.data_clumps
-
+        
 
         const THRESHOLD_MATCH = 0.9
         const THRESHOLD_MISS = 0.2

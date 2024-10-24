@@ -33,7 +33,7 @@ export class FilterAnalyzer extends EvalAnalyzer {
         metrics.push(new PositionOnGroundTruthMetric(statFunctions[fKey],fKey))
        }
        addDataClumpSpecificMetrics(metrics)
-
+       //metrics=[new ReasonMetric("domain")]
         return metrics
     }
 
@@ -124,7 +124,11 @@ export class PositionOnGroundTruthMetric extends MultipleValuesMetric {
             return obj.reason==this.reason?1:0;
          }
          else{
-            return null;
+            let text=fs.readFileSync(instance.responsePaths[0]).toString();
+            if(text.includes("\""+this.reason+"\"")){
+                return 1;
+            }
+            return 0;
          }
      }
      getName(): string {
