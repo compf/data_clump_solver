@@ -4,7 +4,7 @@ import { DataClumpLanguageModelFilter } from "../../pipeline/stepHandler/dataClu
 import { StubInterface } from "../../util/languageModel/StubInterface";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { FilterEval } from "../eval_filter";
-import { addDataClumpSpecificMetrics, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric } from "./base_analyzer";
+import { addDataClumpSpecificMetrics, DataClumpBasedMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric } from "./base_analyzer";
 import fs from "fs"
 import { resolve } from "path";
 import { DataClumpTypeContext } from "data-clumps-type-context";
@@ -23,15 +23,14 @@ export class FilterAnalyzer extends EvalAnalyzer {
         return new FilterEval();
     }
     getMetrics(): EvalMetric[] {
-        let metrics= [
+        let metrics:EvalMetric[]= [
             new InvalidJsonMetric(), new SuretyMetric()
         ];
         for(let r of reasons){
             metrics.push(new ReasonMetric(r))
         }
-       for(let fKey of Object.keys(statFunctions)){
-        metrics.push(new PositionOnGroundTruthMetric(statFunctions[fKey],fKey))
-       }
+        metrics.push(new PositionOnGroundTruthMetric());
+  
        addDataClumpSpecificMetrics(metrics)
        //metrics=[new ReasonMetric("domain")]
         return metrics
@@ -53,37 +52,30 @@ export class FilterAnalyzer extends EvalAnalyzer {
        return[bestFittingDataClump.dataClump]
     }
 }
-export class PositionOnGroundTruthMetric extends MultipleValuesMetric {
-  
-    async evalArray(instance:InstanceGeneratedData,context: DataClumpRefactoringContext):Promise<any> {
+export class PositionOnGroundTruthMetric extends DataClumpBasedMetric {
 
-        let filterResults = JSON.parse(fs.readFileSync(resolve("evalData/filter",(instance.instance).projectName,"basicMetrics.json"), { encoding: "utf-8" }).toString())
+private instance?:InstanceGeneratedData
+    eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer: EvalAnalyzer): Promise<any> {
+        this.instance=instance
+        return super.eval(instance,context,analyzer)
+    }
+    async  evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext):Promise<any> {
+
+        let filterResults = JSON.parse(fs.readFileSync(resolve("evalData/filter",(this.instance!.instance).projectName,"basicMetrics.json"), { encoding: "utf-8" }).toString())
         let llm = new DataClumpLanguageModelFilter({ handlers: [] } as any)
         for(let f of Object.keys(filterResults)){
             filterResults[f]=filterResults[f].map((it)=>it.name)
         }
         let withNumericIds = llm.simplifyKeys(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
         context = context.buildNewContext(new DataClumpDetectorContext(withNumericIds));
-        let parsed=instance.responsesParsed[0]
-        if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
-            return null
-        }
-        let bestFittingDataClump=getBestFittingDataClump(context,[parsed.key,parsed.justification])
-        let k=bestFittingDataClump!.dataClump?.key
-        if(k==undefined || k==null){
-            return null
-        }
-        
 
 
 
-        let dc = context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult().data_clumps[k];
         if(dc==undefined || dc==null){
             return null
         }
         let key = (context as DataClumpDetectorContext).createDataTypeNameClumpKey(dc)
         let indices={}
-        let reason=parsed.reason
         for (let fKey of Object.keys(filterResults) ) {
             let items=filterResults[fKey]
             let index=items.indexOf(key)
@@ -106,7 +98,7 @@ export class PositionOnGroundTruthMetric extends MultipleValuesMetric {
         }
         return values
     }
-    getPrefix(): string {
+    getName(): string {
         return "PositionOnGroundTruthMetric";
     }
 

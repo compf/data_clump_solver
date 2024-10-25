@@ -47,14 +47,14 @@ function createResults(prefix: string, path: string, keyNames: string[], keys: {
     let obj = {}
     if(fs.existsSync(outPath)){
         let loaded=JSON.parse(fs.readFileSync(outPath).toString())
-        obj=loaded
-        results[outPath]=loaded
+      
+        Object.assign(obj,loaded)
     }
-    else if (outPath in results) {
-        obj = results[outPath]
+ if (outPath in results) {
+    Object.assign(obj,results[outPath])
     }
     obj[keys[keyNames[2]]] = val;
-    results[outPath] = obj;
+    results[outPath]=obj
 }
 export type MetricMapper = { [key: string]: { (instances: any):number[] } };
 export type FilterMapper = { [key: string]: { (d: any): boolean } };
@@ -116,8 +116,8 @@ export function mean(array: any[]) {
     if (array.length == 0) {
         return null;
     }
-    if (typeof (array[0]) == "number") {
-        array = array.filter((it) => !isNaN(it))
+    if (array.some((it)=>it!=null)) {
+        array = array.filter((it) => it!=null)
         if (array.length == 0) {
             return null;
         }

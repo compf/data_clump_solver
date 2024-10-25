@@ -164,7 +164,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         //index=-1
         const MIN_LENGTH = 10
-        console.log("change", change)
+        //console.log("change", change)
         const MAX_OFFSET = 5
         if (index == -1 || oldContent.length <= MIN_LENGTH) {
             let newContentSplitted = newContent.split("\n")

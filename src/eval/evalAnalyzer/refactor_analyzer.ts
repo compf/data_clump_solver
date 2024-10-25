@@ -1,4 +1,4 @@
-import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
+import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, getContextSerializationBasePath, getContextSerializationPath } from "../../context/DataContext";
 import { BaseEvaluator, getInstancePath, Instance, InstanceCombination } from "../base_eval";
 import { RefactorEval } from "../eval_refactor";
 import { addDataClumpSpecificMetrics, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric } from "./base_analyzer";
@@ -7,11 +7,12 @@ import fs from "fs"
 import simpleGit, { DiffResult } from "simple-git";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { PipeLineStep } from "../../pipeline/PipeLineStep";
-import { nop } from "../../util/Utils";
+import { makeUnique, nop } from "../../util/Utils";
 import { all, get } from "axios";
 import { DataClumpsTypeContext, DataClumpTypeContext } from "data-clumps-type-context";
 import { AST_Class } from "../../context/AST_Type";
 import { parse_piecewise_output_from_file } from "../../pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { loadExistingContext } from "../../context/ExistingContextLoader";
 
 class StubRefactorEval extends BaseEvaluator {
     analyzeInstance(instance: Instance, context: DataClumpRefactoringContext): Promise<void> {
@@ -32,20 +33,27 @@ export class RefactorAnalyzer extends EvalAnalyzer {
             new EmptyResponseMetric(), new NoInterpretableChangesMetric(),new RichClassMetric(), new HarmlessErrorCategoryMetric()
         ];
         addDataClumpSpecificMetrics(metrics)
-        metrics=[new RichClassMetric()]
+      //  metrics=[new RichClassMetric()]
         return metrics
     }
     getDataClumps(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): DataClumpTypeContext[] {
         let dataClumps:DataClumpTypeContext[]=[]
-        for(let resp of instance.responsesParsed)
+        if(instance.handledDataClumps){
+            return instance.handledDataClumps
+        }
+        for(let resp of instance.responsesParsed){
             if(resp?.refactorings){
                 for(let p in resp.refactorings){
                     let refact=resp.refactorings[p]
                     for(let ref of refact){
-                        let dc=getBestFittingDataClump(context,ref.oldContent)
+                        if((!(ref.oldContent)) || typeof(ref.oldContent)!="string")continue;
+                        let splitted=ref.oldContent.split("\n")
+                        for(let line of splitted){
+                        let dc=getBestFittingDataClump(context,line)
                         if(dc.dataClump){
                             let surety=evaluateBestFittingDataClump(context,dc.dataClump)
                             if(surety=="match" || surety=="prettySure"){
+                              //  console.log("line",line,"matched to", dc.dataClump.key)
                                 dataClumps.push(dc.dataClump)
                             }
                         }
@@ -53,9 +61,12 @@ export class RefactorAnalyzer extends EvalAnalyzer {
 
                     }
                 }
+                }
 
             }
-        
+        }
+        dataClumps=makeUnique(dataClumps)
+            instance.handledDataClumps=dataClumps
             return dataClumps
     
         
@@ -68,8 +79,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
     }
 
     async loadGeneratedData(instance: Instance, context: DataClumpRefactoringContext): Promise<InstanceGeneratedData> {
-        console.log(instance)
-        return super.loadGeneratedData(instance,context)
+        //return super.loadGeneratedData(instance,context)
         let git = simpleGit(context.getProjectPath())
 
         let data = await super.loadGeneratedData(instance, context)
@@ -85,13 +95,12 @@ export class RefactorAnalyzer extends EvalAnalyzer {
         }
         let branchName=getInstancePath([], "-", instance)
         let branches=await (await git.branch()).all.filter((it)=>it==branchName);
-        console.log(branches)
         if(branches.length==0){
             branchName="origin/"+branchName
         }
         let g = await git.checkout(branchName, ["-f"])
         let branchedContext = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), ".data_clump_solver_data", "dataClumpDetectorContext.json")).toString()) as DataClumpsTypeContext
-        data.dataClumpDetectionResult = branchedContext.report_summary.amount_data_clumps
+        data.dataClumpDetectionResult = (branchedContext?.report_summary?.fields_to_fields_data_clump!+branchedContext?.report_summary?.parameters_to_parameters_data_clump!)!
   
         let g1 = await git.diffSummary([branchName, "context"])
         data.gitDiff = g1
@@ -140,6 +149,19 @@ class FailureCountMetric implements EvalMetric {
 }
 
 class RemovedDataClumpsMetric implements EvalMetric {
+    private initial?:number;
+    private async getInitial(context:DataClumpRefactoringContext):Promise<number>{
+        if(this.initial){
+            return this.initial;
+        }
+        else{
+            let g=simpleGit(context.getProjectPath())
+            await g.checkout("context")
+            let ctx=JSON.parse(fs.readFileSync(resolve(context.getProjectPath(),".data_clump_solver_data/dataClumpDetectorContext.json")).toString()) as DataClumpsTypeContext
+            this.initial=ctx.report_summary.fields_to_fields_data_clump!+ctx.report_summary.parameters_to_parameters_data_clump!;
+            return this.initial
+        }
+    }
     async   eval(instance:InstanceGeneratedData,context: DataClumpRefactoringContext){
 
         let invalidMetric=new FailureCountMetric()
@@ -148,9 +170,11 @@ class RemovedDataClumpsMetric implements EvalMetric {
         }
 
         let originalContext = context.getFirstByType(DataClumpDetectorContext)!
-        let branchedContext =instance.dataClumpDetectionResult!
+        let afterRefactoring =instance.dataClumpDetectionResult!
+        let initial=await this.getInitial(context)
 
-        let removed = originalContext.getDataClumpDetectionResult().report_summary.amount_data_clumps! - branchedContext
+        let removed = initial - afterRefactoring
+        removed=Math.max(removed,0)
         return removed
     }
     getName(): string {
@@ -164,6 +188,7 @@ class GitChangesMetric implements EvalMetric {
         let insertions = 0;
         let deletions = 0;
         let files = 0;
+        if(!(g1))return null;
         for (let f of g1.files) {
             if (f.file.endsWith(".java")) {
                 let obj = f as any
@@ -245,28 +270,32 @@ class RichClassMetric implements EvalMetric{
         if(instance.responsePaths.length<=0)return null as any;
        let astPath=resolve(dirname(instance.responsePaths[0]),"extractedClassesAST")
        if(!fs.existsSync(astPath)){
-        return 0;
+        return null as any;
        }
+       let isRich=false;
        for(let p of fs.readdirSync(astPath)){
-        let obj=JSON.parse(fs.readFileSync(resolve(astPath,p)).toString())
-        let isRich=this.isRichClass(obj as AST_Class)
-        counter+=(isRich?1:0)
-        allCounter++;
+        let obj=JSON.parse(fs.readFileSync(resolve(astPath,p)).toString());
+         isRich = isRich || this.isRichClass(obj as AST_Class);
        }
-       if(allCounter==0)return 0;
-       return counter/allCounter;
+       
+       return isRich ?1:0
     }
     isRichClass(astClass:AST_Class):boolean{
+
         for(let method of Object.values(astClass.methods)){
+            
+            let b=false;
             if(method.parameters.length>1){
-                return true;
+                b=true;
             }
             else if(method.name.startsWith("get") || method.name.startsWith("set")){
-                return false;
+                b=false;
             }
             else{
-                return true
+               b= true;
             }
+            console.log(method.name,method.parameters.map((it)=>it.type+" "+it.name),b)
+            return b;
 
         }
         return false;
@@ -324,6 +353,7 @@ class NoInterpretableChangesMetric implements EvalMetric{
         }
             for(let p of Object.keys(instance.responsesParsed[index]?.refactorings??[])){
                 let path=resolve(context.getProjectPath(),p)
+                if(!fs.existsSync(path))continue;
                 let fileContent=fs.readFileSync(path).toString();
                 for(let ref of instance.responsesParsed[index]?.refactorings[p]??[] ){
                     let dummy={
@@ -358,7 +388,7 @@ class HarmlessErrorCategoryMetric implements EvalMetric{
         if(instance.responsePaths.length<=0)return null as any;
 
         for(let  respPath of instance.responsePaths){
-            let path=resolve(basename(respPath),"errors.txt")
+            let path=resolve(dirname(respPath),"errors.txt")
             if(fs.existsSync(path)){
                 let lines=fs.readFileSync(path).toString().split("\ņ")
                 for(let line of lines){
@@ -372,6 +402,7 @@ class HarmlessErrorCategoryMetric implements EvalMetric{
             }
             
         }
+        if(allErrors==0)return 0;
         return harmlessErrorCounter/allErrors
         
     }

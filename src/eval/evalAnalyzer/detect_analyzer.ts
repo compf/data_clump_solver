@@ -2,7 +2,7 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
-import { addDataClumpSpecificMetrics, compareObjects, DataClumpBasedMetric, DataClumpSizeMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, MultipleValuesMetric, Surety } from "./base_analyzer";
+import { addDataClumpSpecificMetrics, compareObjects, DataClumpBasedMetric, DataClumpSizeMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, Surety } from "./base_analyzer";
 import fs from "fs"
 import { debugOnNull, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";

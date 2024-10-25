@@ -1,4 +1,4 @@
-import { CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../../context/DataContext";
+import { CodeObtainingContext, createDataClumpsTypeContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext, RelevantLocationsContext } from "../../context/DataContext";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
 import { getRelevantFilesRec, nop, parseInvalidJSON, parseUsingJsonRepair, tryParseJSON } from "../../util/Utils";
 import { BaseEvaluator, disableCloning, getInstancePath, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
@@ -39,6 +39,7 @@ export type InstanceGeneratedData = {
     validationResults: number[],
     gitDiff: DiffResult | null,
     dataClumpDetectionResult: number | null,
+    handledDataClumps?:DataClumpTypeContext[]
 
 }
 export abstract class EvalAnalyzer {
@@ -61,7 +62,7 @@ export abstract class EvalAnalyzer {
     }
     createInstanceCombination() {
         let comb = this.getEvaluator().createInstanceCombination()
-        comb.projectName = ["argoumlrefactor", "rocketmq_refactor"]
+        comb.projectName = ["argoumlrefactor", "rocketmq_refactor","dolphinscheduler"]
         comb["includeUsages"] = ["withUsages", "noUsages"]
         return comb
     }
@@ -85,9 +86,22 @@ export abstract class EvalAnalyzer {
         let result = {}
         for (let url of urls) {
             let projectData = getRepoDataFromUrl(url)
-            let context = (await (this.getEvaluator().initProject(url)))!
+            let loadedContextFiltered = (await (this.getEvaluator().initProject(url)))! as RelevantLocationsContext
+            let loadedContextUnfiltered=loadedContextFiltered.getFirstByType(DataClumpDetectorContext)
             let git = simpleGit("cloned_projects/" + projectData.repo)
             let g = await git.checkout("context");
+
+            let context:DataClumpRefactoringContext=new CodeObtainingContext(loadedContextFiltered.getProjectPath())
+            let paths:{[key:string]:Set<number>}={}
+            let typeContext=createDataClumpsTypeContext({})
+            loadedContextFiltered.getRelevantLocations(paths)
+            for(let dc of Object.values(loadedContextUnfiltered!.getDataClumpDetectionResult().data_clumps)){
+                if(dc.from_file_path in paths || dc.to_file_path in paths){
+                    typeContext.data_clumps[dc.key]=dc;
+                }
+            }
+            context=context.buildNewContext((new DataClumpDetectorContext(typeContext)))
+            context=context.buildNewContext(new DataClumpDetectorContext(loadedContextFiltered.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult()))
             result[projectData.repo] = context
         }
         return result
@@ -172,8 +186,12 @@ export abstract class EvalAnalyzer {
         let counter = 0
         let returnedInstances: Instance[] = []
         const redo = true;
+        const numberInstances=instances.length
+        let logCounter=0;
         if (redo) {
             for (let instance of instances) {
+                console.log("Initialize instance data",(logCounter++)/numberInstances*100)
+
             if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
 
                 if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
@@ -198,7 +216,9 @@ export abstract class EvalAnalyzer {
 
         FileIO.instance = new InstanceBasedFileIO();
         let allResults: { [key: string]: number } = {}
+        logCounter=0;
         for (let instance of instances) {
+            console.log("Evaluate instance data",(logCounter++)/numberInstances*100);
            
             (FileIO.instance as InstanceBasedFileIO).instance = instance;
             let instancePath = dirname(instancesPaths[counter])
@@ -213,13 +233,18 @@ export abstract class EvalAnalyzer {
             else if ((generated.instance as any).inputType) {
                 generated.instance.inputFormat = (instance as any).inputType
             }
+            let times={}
             for (let m of metrics) {
                 let metricResult = null as any as number;
                 try{
+                    let startTime=Date.now()
                     metricResult=await m.eval(generated, allCOntexts[(instance as any).projectName],this)
+                    let elapsed=Date.now()-startTime;
+                    times[m.getName()]=elapsed;
+                    //fs.writeFileSync("stuff/times.json",JSON.stringify(times,undefined,2))
 
                 }
-                catch{
+                catch(ex){
                     this.log+=JSON.stringify(generated.instance,undefined,2)+"\n\n"
                    fs.writeFileSync("stuff/log",this.log)
                 }
@@ -285,8 +310,11 @@ export function getProbabilityCorrectDataClump(input: any, compare: DataClumpTyp
 
         ]
         for (let data of Object.values(compare.data_clump_data)) {
-            relevantValues.push(data.name)
-            relevantValues.push(data.type)
+            if(data.name.length>1 && data.type.length>1){
+                relevantValues.push(data.name)
+                relevantValues.push(data.type)
+            }
+           
         }
         let matches: string[] = []
         let all = relevantValues.length
@@ -540,23 +568,7 @@ export function createCompareObjects(baseObjects: any): any[] {
     return result
 }
 
-export abstract class MultipleValuesMetric implements EvalMetric {
-    func: { (arr: any[]): any };
-    name: string
-    constructor(f: { (arr: number[]): any }, name: string) {
-        this.func = f
-        this.name = name
-    }
-    abstract getPrefix(): string;
-    getName(): string {
-        return this.getPrefix() + "_" + this.name
-    }
-    async eval(instance: any, context: DataClumpRefactoringContext): Promise<number> {
-        return this.func(await this.evalArray(instance, context))
-    }
-    abstract evalArray(instance: any, context: DataClumpRefactoringContext): Promise<any[]>
 
-}
 
 export class InvalidJsonMetric implements EvalMetric {
     async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<any> {
@@ -568,6 +580,7 @@ export class InvalidJsonMetric implements EvalMetric {
                 notNull++;
             }
         }
+        if(instance.responsePaths.length==0)return 0;
         return notNull / instance.responsePaths.length;
 
 
