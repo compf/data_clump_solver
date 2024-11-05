@@ -130,8 +130,9 @@ function getIndentation(line: string) {
     }
     return result
 }
+export type ChangeType="None"|"ReplaceText"|"SpecificLine"|"SpecificLineAll"|"NoneButReplace"
 
-export function parse_piecewise_output_from_file(refactoredPath: string, fileContent: string, content: any): string {
+export function parse_piecewise_output_from_file(refactoredPath: string, fileContent: string, content: any, changeCallBack?:{(changeType:ChangeType,change:any, newContent:string)}): string {
     let fileContentSplitted = fileContent.split("\n")
     let oldFileContent = fileContent
     let foundOriginal = false;
@@ -167,6 +168,8 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
         //console.log("change", change)
         const MAX_OFFSET = 5
         if (index == -1 || oldContent.length <= MIN_LENGTH) {
+            let allLinesChanged=true;
+            let anyLineChanged=false;
             let newContentSplitted = newContent.split("\n")
             let oldContentSplitted = oldContent.split("\n")
             if (newContentSplitted.length > oldContentSplitted.length) {
@@ -175,6 +178,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
             for (let i = 0; i < oldContentSplitted.length; i++) {
                 let otherIndex = findBestFittingLine(fileContentSplitted, start + i, oldContentSplitted[i])
                 if (otherIndex != undefined) {
+                    anyLineChanged=true;
                     let indentOld = getIndentation(fileContentSplitted[otherIndex])
                     let indentNew = getIndentation(newContentSplitted[i])
                     let indent = indentOld.length > indentNew.length ? indentOld : indentNew;
@@ -191,6 +195,10 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
                 }
                 else if (oldIndex != -1 && oldContent != "") {
                     faultyInstance = true;
+                    allLinesChanged=false;
+                }
+                else{
+                    allLinesChanged=false;
                 }
 
 
@@ -203,12 +211,33 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
 
             fileContent = fileContentSplitted.join("\n")
+            if(allLinesChanged){
+                changeCallBack?.call(undefined,"SpecificLineAll",change,fileContent)
+            }
+            else{
+                if(anyLineChanged){
+                    changeCallBack?.call(undefined,"SpecificLine",change,fileContent)
+
+                }
+                else{
+                    if(index==-1){
+                        changeCallBack?.call(undefined,"None",change,fileContent)
+
+                    }
+                    else{
+                        changeCallBack?.call(undefined,"NoneButReplace",change,fileContent)
+
+                    }
+
+                }
+            }
 
 
         }
         else {
             if (oldContent != "") {
                 fileContent = fileContent.replaceAll(oldContent, newContent)
+                changeCallBack?.call(undefined,"ReplaceText",change,fileContent)
                 fileContentSplitted = fileContent.split("\n")
 
 
@@ -219,7 +248,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         }
     }
-    if (faultyInstance) {
+    if (false) {
         trueCounter++;
         let c = fs.readFileSync("stuff/interesting.txt").toString()
         let instance = JSON.parse(JSON.stringify((FileIO.instance as any).instance))
@@ -234,10 +263,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
     }
     allCounter++;
-    fs.writeFileSync("stuff/interesting_counter.txt",
-
-        JSON.stringify([trueCounter, allCounter, (trueCounter / allCounter * 100) + "%"], undefined, 2)
-    )
+    
     return fileContent;
 
 }
@@ -387,7 +413,10 @@ export class ModifiedFilesProposal implements Proposal {
         let modifiedFiles = this.modifiedFiles;
         for (let p of Object.keys(modifiedFiles)) {
             let content = modifiedFiles[p]
-            writeFileSync(path.relative(context.getProjectPath(), p), content)
+            if(typeof(content)!="string"){
+                content=content+""
+            }
+           // writeFileSync(path.relative(context.getProjectPath(), p), content)
 
             p = resolve(context.getProjectPath(), p);
             if (!(p in this.existingFiles) && fs.existsSync(p)) {

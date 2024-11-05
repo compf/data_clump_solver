@@ -4,7 +4,7 @@ import { DataClumpLanguageModelFilter } from "../../pipeline/stepHandler/dataClu
 import { StubInterface } from "../../util/languageModel/StubInterface";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { FilterEval } from "../eval_filter";
-import { addDataClumpSpecificMetrics, DataClumpBasedMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric } from "./base_analyzer";
+import { addDataClumpSpecificMetrics, DataClumpBasedMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric, logMetric } from "./base_analyzer";
 import fs from "fs"
 import { resolve } from "path";
 import { DataClumpTypeContext } from "data-clumps-type-context";
@@ -96,6 +96,10 @@ private instance?:InstanceGeneratedData
                 values.push(UNKNOWN_DATA_CLUMP)
             }
         }
+        logMetric(this,{
+            positions:values,
+            key
+        })
         return values
     }
     getName(): string {
@@ -141,6 +145,9 @@ private instance?:InstanceGeneratedData
        if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
               return null
        }
+       logMetric(this,
+        bestFittingDataClump
+       )
        return bestFittingDataClump.score
         
     }

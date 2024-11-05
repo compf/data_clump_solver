@@ -285,7 +285,7 @@ export class DirectoryBasedFilesHandler extends LargeLanguageModelHandler implem
 enum ExtractionDirection { Up, Down, UpAndDown }
 
 export class CodeSnippetHandler extends LargeLanguageModelHandler {
-    private additionalMargin = 0
+    protected additionalMargin = 0
     private includeHeader = true;
     generateLines(centerLine: number, margin: number, extractionDirection: ExtractionDirection, lines: Set<number>) {
         let start = extractionDirection == ExtractionDirection.Up || extractionDirection == ExtractionDirection.UpAndDown ? centerLine - margin : centerLine;
@@ -413,7 +413,7 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
             }
             for (let line of lines) {
                 pathLinesMap[dc.from_file_path].add(line)
-                this.generateLines(line, 2, ExtractionDirection.UpAndDown, pathLinesMap[dc.from_file_path])
+                this.generateLines(line, this.additionalMargin, ExtractionDirection.UpAndDown, pathLinesMap[dc.from_file_path])
 
             }
 
@@ -426,7 +426,7 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
             }
             for (let line of lines) {
                 pathLinesMap[dc.to_file_path].add(line)
-                this.generateLines(line, 2, ExtractionDirection.UpAndDown, pathLinesMap[dc.to_file_path])
+                this.generateLines(line, this.additionalMargin, ExtractionDirection.UpAndDown, pathLinesMap[dc.to_file_path])
             }
 
             if (!(dc.from_file_path in allBlocks)) {
@@ -436,11 +436,11 @@ export class DataClumpCodeSnippetHandler extends CodeSnippetHandler {
                 allBlocks[dc.to_file_path] = []
             }
             let additionalData = {
-                metrics: {
+               /* metrics: {
                     affected_files: await (resolveFromConcreteName("AffectedFilesMetric") as Metric).evaluate(dc, context),
                     occurence: Math.round(Math.sqrt(await (resolveFromConcreteName("DataClumpOccurenceMetric") as Metric).evaluate(dc, context))),
                     size: await (resolveFromConcreteName("DataClumpSizeMetric") as Metric).evaluate(dc, context)
-                },
+                },*/
                 key: dc.key
 
             }

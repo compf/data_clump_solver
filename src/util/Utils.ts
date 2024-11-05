@@ -344,12 +344,11 @@ export function parseUsingJsonRepair(jsonString:string){
         return result;
     }
 }
-export function parseInvalidJSON(jsonString:string, closingBrackets:string){
+export function parseInvalidJSON(jsonString:string, closingBrackets?:string){
     
    let result=tryParseJSONWithSlice(jsonString)
    return parseUsingJsonRepair(jsonString)
-    let original=jsonString
-
+    /*let original=jsonString
     let counter=0
     while(result==null && jsonString.length>0){
         jsonString=jsonString.slice(0,jsonString.length-1)
@@ -367,7 +366,7 @@ export function parseInvalidJSON(jsonString:string, closingBrackets:string){
         }
         
     }
-    return result;
+    return result;*/
     
 }
 

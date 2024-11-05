@@ -320,6 +320,9 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
         }
         
     }
+    update(){
+        this.setDataClumpDetectionResult(this.getDataClumpDetectionResult())
+    }
     getRelevantLocations(lines:{[path:string]:Set<number>}):void {
         for(let dc of Object.values(this.currDataClumpDetectionResult.data_clumps)){
             if (!(dc.from_file_path in lines)){
@@ -336,6 +339,9 @@ export class DataClumpDetectorContext extends DataClumpRefactoringContext implem
             }
             
         }
+    }
+    getDataClumps(){
+        return Object.values(this.getDataClumpDetectionResult().data_clumps)
     }
     isFiltered() {
         return false;
@@ -547,10 +553,12 @@ export class UsageFindingContext extends DataClumpRefactoringContext implements 
                     lines[usg.filePath]=new Set<number>();
                 }
                
-                lines[usg.filePath].add(usg.range.startLine)
+                lines[usg.filePath].add(usg.range.startLine+1)
             }
            
         }
+        (this.previousContext as RelevantLocationsContext).getRelevantLocations(lines)
+        nop()
     }
     serialize(path?: string | undefined): void {
         const usedPath=this.getSerializationPath()

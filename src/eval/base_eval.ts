@@ -72,6 +72,9 @@ export abstract class BaseEvaluator {
     includeUsage():boolean{
         return false;
     }
+    filterFiles(context:DataClumpDetectorContext):DataClumpDetectorContext{
+        return context
+    }
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url)
 
@@ -131,7 +134,7 @@ export abstract class BaseEvaluator {
             filtered = originalDcContext.buildNewContext(new DataClumpDetectorContext(JSON.parse(fs.readFileSync(submittedDataClumpsPath).toString()))) as DataClumpDetectorContext
         }
         else {
-            filtered = await builder.run(originalDcContext);
+            filtered = await builder.run(this.filterFiles(originalDcContext));
             let typeNameKeys = Object.values(filtered.getDataClumpDetectionResult().data_clumps).map((it) => filtered.createDataTypeNameClumpKey(it)).sort()
 
             fs.writeFileSync(resolve(projectDataFolder, "typeNameKeys.json"), JSON.stringify(typeNameKeys, null, 2));
@@ -213,7 +216,7 @@ export abstract class BaseEvaluator {
         return 5;
     }
     getBaseDirLabel(){
-        return Date.now().toString()
+        return "initial"
     }
     getNumberIterations(): number {
         return 1000;

@@ -8,7 +8,7 @@ export abstract class FileIO{
     }
     writeFileSync(path:string,data:string):void{
         path=this.resolvePath(path)
-
+        if(data)
         fs.writeFileSync(path,data)
     }
 

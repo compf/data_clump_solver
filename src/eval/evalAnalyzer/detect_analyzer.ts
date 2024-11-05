@@ -2,12 +2,13 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
-import { addDataClumpSpecificMetrics, compareObjects, DataClumpBasedMetric, DataClumpSizeMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, Surety } from "./base_analyzer";
+import { addDataClumpSpecificMetrics, compareObjects, DataClumpBasedMetric, DataClumpSizeMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, logMetric, Surety } from "./base_analyzer";
 import fs from "fs"
 import { debugOnNull, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 import { statFunctions } from "./utils";
 import { DataClumpsTypeContext } from "data-clumps-type-context";
+import { isOptionalChain } from "typescript";
 export class DetectAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new DetectEval();
@@ -85,6 +86,10 @@ export class DetectAnalyzer extends EvalAnalyzer {
         console.log(counters)
         console.log()
         let result = counters.match + 0.75 * counters.prettySure - 1.25 * counters.prettyUnsure - 2*counters.miss
+        logMetric(this,{
+            result,
+            counters
+        })
         return result
     }
     createPathLineMap(dataClump: DataClumpTypeContext[]) {
@@ -154,6 +159,11 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
             counters.miss = 1
         }
         this.checkCorrectness(parsed, counters)
+        logMetric(this,{
+            counters,
+            parsed
+        }
+        )
         return counters.match / (counters.match + counters.miss)
     }
     checkCorrectness(byLLM: any, counters: { match: number, miss: number }) {
@@ -162,7 +172,7 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
             this.checkCorrectnessDataClumpOuter(v,counters)
         }
     }
-    checkCorrectnessData(byLLM: any, counters: { match: number, miss: number }, template:any, notRelevant:string[]) {
+    checkCorrectnessData(byLLM: any, counters: { match: number, miss: number }, template:any, notRelevant:string[],optional:string[]) {
        if(byLLM==null || byLLM==undefined){
             counters.miss++
             return
@@ -171,10 +181,11 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
             if (notRelevant.includes(key)) {
                 continue;
             }
-            if (key in byLLM && typeof byLLM[key] == typeof template[key]) {
+            if (key in byLLM && typeof byLLM[key] == typeof template[key] || optional.includes(key) && (byLLM[key]==null || byLLM[key]==undefined) ) {
                 counters.match++
             }
             else {
+               
                 counters.miss++
             }
         }
@@ -190,6 +201,7 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
                 counters.match++
             }
             else {
+               
                 counters.miss++
             }
             result.push(byLLM[key])
@@ -201,7 +213,11 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
 
         let example=this.exampleDataClump()
         let notRelevantKeys=["type", "probability","key","data_clump_type"]
-        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys)
+        let optional=[ "from_method_name",
+            "from_method_key",
+            "to_method_key",
+            "to_method_name"]
+        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys,optional)
         let toCheck=this.checkCorrectnessKey(byLLM.data_clump_data,counters)
         for(let dcData of toCheck){
             this.checkCorrectnessLayerDataClumpInner(dcData,counters)
@@ -211,12 +227,12 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
     }
    
     checkCorrectnessLayerDataClumpInner(byLLM: any, counters: { match: number, miss: number }) {
-        let notRelevantKeys=["key","probability"]
+        let notRelevantKeys=["key","probability","modifiers"]
         let example=Object.values(this.exampleDataClump().data_clump_data)[0]
-        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys)
+        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys,[])
         this.checkCorrectnessDataClumpPosition(byLLM.position,counters)
 
-        this.checkCorrectnessData(byLLM.to_variable,counters,example.to_variable,notRelevantKeys)
+        this.checkCorrectnessData(byLLM.to_variable,counters,example.to_variable,notRelevantKeys,[])
         this.checkCorrectnessDataClumpPosition(byLLM.to_variable?.position,counters)
     }
     checkCorrectnessDataClumpPosition(byLLM: any, counters: { match: number, miss: number }) {
@@ -226,7 +242,7 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
         }
         let example = Object.values(this.exampleDataClump().data_clump_data)[0].position
         let notRelevantKeys=["endLine","endColumn"]
-        this.checkCorrectnessData(byLLM, counters, example,notRelevantKeys)
+        this.checkCorrectnessData(byLLM, counters, example,notRelevantKeys,[])
     }
 
 
@@ -238,13 +254,13 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
             "from_file_path": "src\\main\\java\\org\\example\\MathUser.java",
             "from_class_or_interface_name": "MathUser",
             "from_class_or_interface_key": "org.example.MathUser",
-            "from_method_name": null,
-            "from_method_key": null,
+            "from_method_name": "",
+            "from_method_key": "",
             "to_file_path": "src\\main\\java\\org\\example\\MathStuff.java",
             "to_class_or_interface_key": "org.example.MathStuff",
             "to_class_or_interface_name": "MathStuff",
-            "to_method_key": null,
-            "to_method_name": null,
+            "to_method_key": "",
+            "to_method_name": "",
             "data_clump_type": "fields_to_fields_data_clump",
             "data_clump_data": {
                 "org.example.MathUser/memberField/exponent": {

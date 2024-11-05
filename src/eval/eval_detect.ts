@@ -12,7 +12,7 @@ import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { RankSampler } from "../util/filterUtils/Ranker";
 import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
-import { writeFileSync } from "../util/Utils";
+import { waitSync, writeFileSync } from "../util/Utils";
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
 import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
 import {resolve} from "path"
@@ -57,6 +57,7 @@ export class DetectEval extends BaseEvaluator{
         }
          let reply=await api.sendMessages(true)
          writeFileSync("detectResult.json", JSON.stringify(reply, null, 2));
+         waitSync(60*1000)
     }
     getNumDataClumpsPerBlock(): number {
         return 3
@@ -107,6 +108,7 @@ export class DetectEval extends BaseEvaluator{
         console.log(url);
         if(this.combineDetectorAST){
             let context=await super.initProject(url);
+           // if(1==1)throw "tes"
             if(context==null){
                 return null;
             }
@@ -145,7 +147,6 @@ class RelevantLocationCombiner extends DataClumpRefactoringContext implements Re
         this.dataClumps=dataClumps;
     }
     getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
-        console.log(this.ast)
     let astResult: {[path: string]: Set<number> }={}
     let dataClumpResult: {[path: string]: Set<number> }={}
     this.ast.getRelevantLocations(astResult)
