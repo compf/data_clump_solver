@@ -32,7 +32,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
         let metrics = [new FailureCountMetric(), new RemainingAttemptCountMetric(), new RemovedDataClumpsMetric(), new GitChangesMetric(), new CommentOutMetric(), new InvalidJsonMetric(),
         new EmptyResponseMetric(), new ResponseSizeDecrease(), new RichClassMetric(), new HarmlessErrorCategoryMetric()
         ];
-        addDataClumpSpecificMetrics(metrics)
+       
         metrics.push(new ChangeTypeMetric("None"))
         metrics.push(new ChangeTypeMetric("ReplaceText"))
         metrics.push(new ChangeTypeMetric("SpecificLine"))
@@ -41,7 +41,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
 
        // metrics=[new ResponseSizeDecrease()]
 
-
+       addDataClumpSpecificMetrics(metrics)
         //  metrics=[new RichClassMetric()]
         return metrics
     }
@@ -351,7 +351,7 @@ class EmptyResponseMetric implements EvalMetric {
         return 1 - counter / allCounter
     }
     getName(): string {
-        return "EmptyResponse"
+        return "NonEmptyResponse"
     }
 
 }
@@ -431,7 +431,7 @@ class ChangeTypeMetric implements EvalMetric {
         return counter / allCounter
     }
     getName(): string {
-        return "ChangeType=" + this.changeType
+        return "InstructionChangeType=" + this.changeType
     }
 
 }
@@ -472,7 +472,7 @@ class HarmlessErrorCategoryMetric implements EvalMetric {
 
     }
     getName(): string {
-        return "HarmlessErrorCategory"
+        return "ReferenceErrorOnly"
     }
 
 }

@@ -3,7 +3,7 @@ import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClump
 import { getRelevantFilesRec, nop, parseInvalidJSON, parseUsingJsonRepair, tryParseJSON } from "../../util/Utils";
 import { BaseEvaluator, disableCloning, getInstancePath, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
 import { DetectEval } from "../eval_detect";
-import fs from "fs"
+import fs, { Stats } from "fs"
 import { resolve, dirname } from "path"
 import { CloneBasedProjectRetriever } from "../project_list_retriever";
 import { getRepoDataFromUrl } from "../../util/vcs/VCS_Service";
@@ -35,6 +35,7 @@ export type InstanceGeneratedData = {
     instance: Instance,
     responsePaths: string[],
     requestPaths: string[],
+    statsPaths:string[],
     responsesParsed: any[]
     fileContents: { [key: string]: string },
     validationResults: number[],
@@ -120,11 +121,13 @@ export abstract class EvalAnalyzer {
         let filterContext = new FileFilteringContext([".*response.json"], [])
         getRelevantFilesRec(getInstancePath(["evalData"], "/", instance), responsePaths, filterContext)
         let requestPaths = responsePaths.map((p) => p.replace("response.json", "request.json"));
+        let statsPaths=responsePaths.map((p) => p.replace("response.json", "stats.json"));
         let res = Promise.resolve({
             instance: instance,
             responsePaths: responsePaths,
             responsesParsed: responsePaths.map((it) => parseInvalidJSON(fs.readFileSync(it).toString())),
             requestPaths: requestPaths,
+            statsPaths:statsPaths,
             fileContents: {},
             validationResults: [],
             gitDiff: null,
@@ -190,8 +193,9 @@ export abstract class EvalAnalyzer {
         let returnedInstances: Instance[] = []
         const numberInstances = instances.length
         let logCounter = 0;
-        if (fs.existsSync("stuff/generated.json")) {
-            this.generatedData = JSON.parse(fs.readFileSync("stuff/generated.json").toString())
+        let generatedPath="stuff/generated_"+this.getName()+".json"
+        if (fs.existsSync(generatedPath)) {
+            this.generatedData = JSON.parse(fs.readFileSync(generatedPath).toString())
         }
         else {
             for (let instance of instances) {
@@ -202,7 +206,7 @@ export abstract class EvalAnalyzer {
 
                 this.generatedData[getInstancePath([], "/", instance)] = await this.loadGeneratedData(instance, allCOntexts[(instance as any).projectName])
             }
-            fs.writeFileSync("stuff/generated.json", JSON.stringify(this.generatedData))
+            fs.writeFileSync(generatedPath, JSON.stringify(this.generatedData))
 
 
         }
@@ -221,6 +225,7 @@ export abstract class EvalAnalyzer {
             counter++
             let result = {}
             if (instance.instanceType != instanceType || !repoNames.includes(instance.projectName)) continue
+            console.log(getInstancePath([], "/", instance),instance)
             let generated = this.generatedData[getInstancePath([], "/", instance)]
             if (generated.instance.inputFormat) {
                 (generated.instance as any).inputType = instance.inputFormat
@@ -777,5 +782,47 @@ export function addDataClumpSpecificMetrics(metrics: EvalMetric[]) {
     metrics.push(new PreferNonPublicModifierMetric())
     metrics.push(new PrimitiveTypesRatioMetric())
     metrics.push(new AffectedFilesMetricEval())
+    metrics.push(new TimeMetric())
+    metrics.push(new TokenMetric())
 
+
+}
+type StatTemplate={
+    "completion_tokens": number,
+    "prompt_tokens": number,
+    "total_tokens": number,
+    "elapsedTime": number
+}
+class TimeMetric implements EvalMetric{
+    getName(): string {
+        return "Time"
+    }
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?: EvalAnalyzer): Promise<any> {
+        let result:number[]=[]
+        
+        for(let s of instance.statsPaths){
+            let stat=JSON.parse(fs.readFileSync(s).toString()) as StatTemplate
+            result.push(stat.elapsedTime/1000)
+
+        }
+        return result
+    }
+}
+class TokenMetric implements EvalMetric{
+    getName(): string {
+        return "Price"
+    }
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?: EvalAnalyzer): Promise<any> {
+        let result:number[]=[]
+        const INPUT_PRICE=0.01;
+        const OUTPUT_PRICE=0.03
+        
+        for(let s of instance.statsPaths){
+            let stat=JSON.parse(fs.readFileSync(s).toString()) as StatTemplate
+            let price=INPUT_PRICE*stat.prompt_tokens/1000+OUTPUT_PRICE*stat.completion_tokens/1000
+            result.push(price)
+
+        }
+        return result
+    }
 }

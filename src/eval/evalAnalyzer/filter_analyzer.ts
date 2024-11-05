@@ -88,19 +88,19 @@ private instance?:InstanceGeneratedData
         let s=0;
         let values:number[]=[]
         const UNKNOWN_DATA_CLUMP=1000
+        let min=50000;
         for(let v of Object.values(indices)){
+            if(v as number < min){
+                min=v as number;
+            }
             if(v!=-1){
-                values.push(v as number)
             }
             else{
-                values.push(UNKNOWN_DATA_CLUMP)
+               min=UNKNOWN_DATA_CLUMP
             }
         }
-        logMetric(this,{
-            positions:values,
-            key
-        })
-        return values
+        
+        return min
     }
     getName(): string {
         return "PositionOnGroundTruthMetric";
@@ -128,7 +128,7 @@ private instance?:InstanceGeneratedData
          }
      }
      getName(): string {
-         return "reason="+this.reason
+         return "RefactoringReason="+this.reason
      }
 
  }

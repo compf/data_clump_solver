@@ -4,62 +4,65 @@ import { BaseEvaluator, Instance } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import { addDataClumpSpecificMetrics, compareObjects, DataClumpBasedMetric, DataClumpSizeMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, logMetric, Surety } from "./base_analyzer";
 import fs from "fs"
+import { resolve } from "path"
 import { debugOnNull, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 import { statFunctions } from "./utils";
 import { DataClumpsTypeContext } from "data-clumps-type-context";
 import { isOptionalChain } from "typescript";
+import simpleGit from "simple-git";
+import { EvalDetectSyn } from "../eval_detect_syn";
 export class DetectAnalyzer extends EvalAnalyzer {
     getEvaluator(): BaseEvaluator {
         return new DetectEval();
     }
     getMetrics(): EvalMetric[] {
-        let result:EvalMetric[] = [
+        let result: EvalMetric[] = [
             new SuretyMetric(),
             new NumberOfDataClumpsDetected(),
             new OutputFormatCorrectnessMetric(),
             new InvalidJsonMetric()
         ]
         addDataClumpSpecificMetrics(result)
-        
+
         return result;
     }
     getName(): string {
         return "detect"
     }
     getDataClumps(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): DataClumpTypeContext[] {
-        let parsed=getDataClumpTypeContext(instance)
-        if(Array.isArray(parsed)){
-            parsed=parsed[0]
+        let parsed = getDataClumpTypeContext(instance)
+        if (Array.isArray(parsed)) {
+            parsed = parsed[0]
         }
-        if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0 || parsed.data_clumps==undefined) {
+        if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0 || parsed.data_clumps == undefined) {
             return [];
         }
-        let dataClumps:DataClumpTypeContext[]=[]
-        for(let dcOrigin of   Object.values(parsed.data_clumps)){
-            let dc=getBestFittingDataClump(context,dcOrigin)
-            if(dc.dataClump){
+        let dataClumps: DataClumpTypeContext[] = []
+        for (let dcOrigin of Object.values(parsed.data_clumps)) {
+            let dc = getBestFittingDataClump(context, dcOrigin)
+            if (dc.dataClump) {
                 dataClumps.push(dc.dataClump)
 
             }
         }
 
-       return dataClumps
+        return dataClumps
     }
 }
 
- class SuretyMetric implements EvalMetric {
-    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext):Promise<any> {
+class SuretyMetric implements EvalMetric {
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext): Promise<any> {
         console.log("Instance: " + JSON.stringify(instance))
         let parsed = instance.responsesParsed[0]
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
             return null;
         }
-        if(Array.isArray(parsed)){
-            parsed=parsed[0]
+        if (Array.isArray(parsed)) {
+            parsed = parsed[0]
         }
         let byLLM = parsed.data_clumps
-        
+
 
         const THRESHOLD_MATCH = 0.9
         const THRESHOLD_MISS = 0.2
@@ -85,8 +88,8 @@ export class DetectAnalyzer extends EvalAnalyzer {
 
         console.log(counters)
         console.log()
-        let result = counters.match + 0.75 * counters.prettySure - 1.25 * counters.prettyUnsure - 2*counters.miss
-        logMetric(this,{
+        let result = counters.match + 0.75 * counters.prettySure - 1.25 * counters.prettyUnsure - 2 * counters.miss
+        logMetric(this, {
             result,
             counters
         })
@@ -124,30 +127,30 @@ export class DetectAnalyzer extends EvalAnalyzer {
     }
 
 }
-class NumberOfDataClumpsDetected implements EvalMetric{
+class NumberOfDataClumpsDetected implements EvalMetric {
     async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?: EvalAnalyzer): Promise<any> {
-        let dataClumps=analyzer!.getDataClumps(instance,context).length
+        let dataClumps = analyzer!.getDataClumps(instance, context).length
         return dataClumps
 
     }
     getName(): string {
-       return "Number data clumps"
+        return "Number data clumps"
     }
-    
+
 }
-function getDataClumpTypeContext(instance:InstanceGeneratedData) :DataClumpsTypeContext{
-   
-    let parsed =instance.responsesParsed[0]
+function getDataClumpTypeContext(instance: InstanceGeneratedData): DataClumpsTypeContext {
+
+    let parsed = instance.responsesParsed[0]
     if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
-        return {data_clumps:{}} as any;
+        return { data_clumps: {} } as any;
     }
-    
+
     return parsed
 }
 
 class OutputFormatCorrectnessMetric implements EvalMetric {
-   async  eval(instance: any, context: DataClumpRefactoringContext) :Promise<any> {
-        let parsed=getDataClumpTypeContext(instance)
+    async eval(instance: any, context: DataClumpRefactoringContext): Promise<any> {
+        let parsed = getDataClumpTypeContext(instance)
         if (parsed == undefined || parsed == null || Object.keys(parsed).length == 0) {
             return null;
         }
@@ -159,7 +162,7 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
             counters.miss = 1
         }
         this.checkCorrectness(parsed, counters)
-        logMetric(this,{
+        logMetric(this, {
             counters,
             parsed
         }
@@ -167,32 +170,32 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
         return counters.match / (counters.match + counters.miss)
     }
     checkCorrectness(byLLM: any, counters: { match: number, miss: number }) {
-        let values=this.checkCorrectnessKey(byLLM,counters)
-        for(let v of values){
-            this.checkCorrectnessDataClumpOuter(v,counters)
+        let values = this.checkCorrectnessKey(byLLM, counters)
+        for (let v of values) {
+            this.checkCorrectnessDataClumpOuter(v, counters)
         }
     }
-    checkCorrectnessData(byLLM: any, counters: { match: number, miss: number }, template:any, notRelevant:string[],optional:string[]) {
-       if(byLLM==null || byLLM==undefined){
+    checkCorrectnessData(byLLM: any, counters: { match: number, miss: number }, template: any, notRelevant: string[], optional: string[]) {
+        if (byLLM == null || byLLM == undefined) {
             counters.miss++
             return
-       }
+        }
         for (let key of Object.keys(template)) {
             if (notRelevant.includes(key)) {
                 continue;
             }
-            if (key in byLLM && typeof byLLM[key] == typeof template[key] || optional.includes(key) && (byLLM[key]==null || byLLM[key]==undefined) ) {
+            if (key in byLLM && typeof byLLM[key] == typeof template[key] || optional.includes(key) && (byLLM[key] == null || byLLM[key] == undefined)) {
                 counters.match++
             }
             else {
-               
+
                 counters.miss++
             }
         }
     }
-    checkCorrectnessKey(byLLM: any, counters: { match: number, miss: number }):any[] {
-        let result:any[]=[]
-        if(byLLM==null || byLLM==undefined){
+    checkCorrectnessKey(byLLM: any, counters: { match: number, miss: number }): any[] {
+        let result: any[] = []
+        if (byLLM == null || byLLM == undefined) {
             counters.miss++
             return []
         }
@@ -201,48 +204,48 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
                 counters.match++
             }
             else {
-               
+
                 counters.miss++
             }
             result.push(byLLM[key])
         }
         return result
     }
-  
+
     checkCorrectnessDataClumpOuter(byLLM: any, counters: { match: number, miss: number }) {
 
-        let example=this.exampleDataClump()
-        let notRelevantKeys=["type", "probability","key","data_clump_type"]
-        let optional=[ "from_method_name",
+        let example = this.exampleDataClump()
+        let notRelevantKeys = ["type", "probability", "key", "data_clump_type"]
+        let optional = ["from_method_name",
             "from_method_key",
             "to_method_key",
             "to_method_name"]
-        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys,optional)
-        let toCheck=this.checkCorrectnessKey(byLLM.data_clump_data,counters)
-        for(let dcData of toCheck){
-            this.checkCorrectnessLayerDataClumpInner(dcData,counters)
+        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys, optional)
+        let toCheck = this.checkCorrectnessKey(byLLM.data_clump_data, counters)
+        for (let dcData of toCheck) {
+            this.checkCorrectnessLayerDataClumpInner(dcData, counters)
         }
-    
+
 
     }
-   
-    checkCorrectnessLayerDataClumpInner(byLLM: any, counters: { match: number, miss: number }) {
-        let notRelevantKeys=["key","probability","modifiers"]
-        let example=Object.values(this.exampleDataClump().data_clump_data)[0]
-        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys,[])
-        this.checkCorrectnessDataClumpPosition(byLLM.position,counters)
 
-        this.checkCorrectnessData(byLLM.to_variable,counters,example.to_variable,notRelevantKeys,[])
-        this.checkCorrectnessDataClumpPosition(byLLM.to_variable?.position,counters)
+    checkCorrectnessLayerDataClumpInner(byLLM: any, counters: { match: number, miss: number }) {
+        let notRelevantKeys = ["key", "probability", "modifiers"]
+        let example = Object.values(this.exampleDataClump().data_clump_data)[0]
+        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys, [])
+        this.checkCorrectnessDataClumpPosition(byLLM.position, counters)
+
+        this.checkCorrectnessData(byLLM.to_variable, counters, example.to_variable, notRelevantKeys, [])
+        this.checkCorrectnessDataClumpPosition(byLLM.to_variable?.position, counters)
     }
     checkCorrectnessDataClumpPosition(byLLM: any, counters: { match: number, miss: number }) {
-        if(byLLM==undefined || byLLM==null){
+        if (byLLM == undefined || byLLM == null) {
             counters.miss++
             return
         }
         let example = Object.values(this.exampleDataClump().data_clump_data)[0].position
-        let notRelevantKeys=["endLine","endColumn"]
-        this.checkCorrectnessData(byLLM, counters, example,notRelevantKeys,[])
+        let notRelevantKeys = ["endLine", "endColumn"]
+        this.checkCorrectnessData(byLLM, counters, example, notRelevantKeys, [])
     }
 
 
@@ -306,6 +309,58 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
 
 }
 
+export class DetectSynAnalyzer extends DetectAnalyzer {
+    getName(): string {
+        return "detectSyn"
+    }
+    getMetrics(): EvalMetric[] {
+        let metrics = super.getMetrics();
+        metrics.push(new SimilarVariableMetric("typo"))
+        metrics.push(new SimilarVariableMetric("synonym"))
+        metrics.push(new SimilarVariableMetric("type"))
+        return metrics
+    }
+    getEvaluator(): BaseEvaluator {
+        return new EvalDetectSyn()
+    }
+}
+let allChanges = {}
 
+class SimilarVariableMetric implements EvalMetric {
+    constructor(private cause: string) { }
+    getName(): string {
+        return "cause=" + this.cause;
+    }
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?: EvalAnalyzer): Promise<any> {
+        let dataClumps = Object.values( getDataClumpTypeContext(instance).data_clumps)
+        if (!(context.getProjectPath() in allChanges)) {
+            let git = simpleGit(context.getProjectPath())
+            await git.checkout("contextSyn")
+            allChanges[context.getProjectPath()] = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), "changes.json")).toString()).changes
+
+        }
+        let counter = 0;
+        let allCounter=0;
+        let changes = allChanges[context.getProjectPath()].filter((it)=>it.type==this.cause)
+        for (let dc of dataClumps) {
+            for (let c of changes) {
+                if (c.path == dc.from_file_path || c.path == dc.to_file_path) {
+                    let matches=Object.values(dc.data_clump_data).filter((it) => (it.name == changes.newName || 
+                    it.to_variable.name == c.newName) && it.name!=it.to_variable.name ||
+                    (it.type == c.newType || it.to_variable.type == c.newType) && it.type!=it.to_variable.type)
+
+                    if (matches.length>0) {
+                            counter++;
+
+                    }
+                    
+                }
+            }
+        }
+        return counter
+
+
+    }
+}
 
 
