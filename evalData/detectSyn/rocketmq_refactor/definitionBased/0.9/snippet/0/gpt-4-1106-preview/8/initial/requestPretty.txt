@@ -1,0 +1,356 @@
+messages:
+[
+	content:"
+	
+	I will provide you one or more Java code files .
+	Find all data clumps in the respective files.
+	
+	A data clump exists if
+	1) two methods (in the same or in different classes) have at least 3 common parameters
+	    and one of those methods does not override the other,
+	
+	or  
+	2) At least three fields in a class are common with the parameters of a method (in the same or in a different class),
+	
+	or
+	3) Two different classes have at least three common fields
+	
+	## OUTPUT FORMAT
+	Use the following JSON format for the output:
+	
+	{
+	   "data_clumps":{
+	        "unique_key":{
+	            "key": "a unique key that should be created. It must be same as the key 'unique_key' in the 'data_clumps' object",
+	            "from_file_path":"The path of the file where one part of the data clump is found",
+	            "from_class_or_interface_key":"The fully qualified name of the class or interface where one part of the data clump is found",
+	            "from_class_or_interface_name":"The name of the class or interface where one part of the data clump is found",
+	            
+	            "from_method_key":"The fully qualified name of the method where one part of the data clump is found. It may be 'null' if the data clump on this part is not found in a method",
+	            "from_method_name":"The name of the method where one part of the data clump is found. It may be 'null' if the data clump on this part is not found in a method",
+	
+	            "to_file_path":"The path of the file where the  other part of the data clump is found",
+	            "to_class_or_interface_key":"The fully qualified name of the class or interface where the  other part part of the data clump is found",
+	            "to_class_or_interface_name":"The name of the class or interface where the  other  part of the data clump is found",
+	            
+	            "to_method_key":"The fully qualified name of the method where the  other part part of the data clump is found. It may be 'null' if the data clump on this part is not found in a method",
+	            "to_method_name":"The name of the method where the  other  part of the data clump is found. It may be 'null' if the data clump on this part is not found in a method",
+	            "data_clump_data":{
+	                // for each data clump variable
+	                "other_unique_key":{
+	                    "key":"a unique key that should be created. It must be same as the key 'other_unique_key' in the 'data_clump_data' object",
+	                    "name": "The name of the data clump variable that exists on the one part of the data clump",
+	                    "type": "The type of the data clump variable that exists on the one part of the data clump",
+	                    "displayedType": "The  type of the data clump variable, as it appears in the source code, that exists on the one part of the data clump",
+	                    
+	                    "position": {
+	                        "startLine": "The line number of the  data clump variable on the one part of the data clump.This must be relative to the file",
+	                        "startColumn": "The column number of the data clump variable on the one part of the data clump"
+	                    },
+	                    "to_variable":{
+	                        "key":"a unique key that should be created.",
+	                        "name": "The name of the data clump variable that exists on the other part of the data clump",
+	                        "type": "The type of the data clump variable, as it appears in the source code, that exists on the other part of the data clump",
+	                        "position": {
+	                            "startLine": "The line number of the  data clump variable on the other part of the data clump. This must be relative to the file",
+	                            "startColumn": "The column number of the data clump variable on the other part of the data clump",
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	   }
+	}
+	
+	## END OUTPUT FORMAT
+		
+",
+	role:"
+	system	
+",
+,
+	content:
+{
+			remoting/src/main/java/org/apache/rocketmq/remoting/RemotingServer.java:
+		[
+			fromLine:"			16",
+			toLine:"			27",
+			content:"
+			 */
+			package org.apache.rocketmq.remoting;
+			
+			import io.netty.channel.Channel;
+			import java.util.concurrent.ExecutorService;
+			import org.apache.rocketmq.common.Pair;
+			import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
+			import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
+			import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
+			import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
+			import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+						
+",
+,
+			fromLine:"			30",
+			toLine:"			31",
+			content:"
+			    void registerProcessor(final int requestCode, final NettyRequestProcessor procesor,
+			        final ExecutorService executor);			
+",
+,
+			fromLine:"			45",
+			toLine:"			46",
+			content:"
+			    RemotingCommand invokeSync(final Channel channel, final RemotingCommand requst,
+			        final long timeoutMillis) throws InterruptedException, RemotingSendRequestException,			
+",
+,
+			fromLine:"			49",
+			toLine:"			50",
+			content:"
+			    void invokeAsync(final Channel channel, final RemotingCommand request, final long timeoutMillis,
+			        final InvokeCallback invokeCallback) throws InterruptedException,			
+",
+,
+			fromLine:"			53",
+			toLine:"			53",
+			content:"
+			    void invokeOneway(final Channel channel, final RemotingCommand request, final long timeoutMillis)			
+",
+,
+
+		],
+		remoting/src/main/java/org/apache/rocketmq/remoting/RemotingClient.java:
+		[
+			fromLine:"			16",
+			toLine:"			29",
+			content:"
+			 */
+			package org.apache.rocketmq.remoting;
+			
+			import java.util.List;
+			import java.util.concurrent.CompletableFuture;
+			import java.util.concurrent.ExecutorService;
+			import org.apache.rocketmq.remoting.exception.RemotingConnectException;
+			import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
+			import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
+			import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
+			import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
+			import org.apache.rocketmq.remoting.netty.ResponseFuture;
+			import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+						
+",
+,
+			fromLine:"			38",
+			toLine:"			39",
+			content:"
+			    RemotingCommand invokeSync(final String addr, final RemotingCommand request,
+			        final long timeoutMillis) throws InterruptedException, RemotingConnectException,			
+",
+,
+			fromLine:"			42",
+			toLine:"			43",
+			content:"
+			    void invokeAsync(final String addr, final RemotingCommand request, final long timeoutMillis,
+			        final InvokeCallback invokeCallback) throws InterruptedException, RemotingConnectException,			
+",
+,
+			fromLine:"			46",
+			toLine:"			46",
+			content:"
+			    void invokeOneway(final String addr, final RemotingCommand request, final int timeoutMillis)			
+",
+,
+			fromLine:"			50",
+			toLine:"			51",
+			content:"
+			    default CompletableFuture<RemotingCommand> invoke(final String addr, final RemotingCommand request,
+			        final long timeoutMillis) {			
+",
+,
+			fromLine:"			77",
+			toLine:"			78",
+			content:"
+			    void registerProcessor(final int requestCode, final NettyRequestProcessor processor,
+			        final ExecutorService executor);			
+",
+,
+
+		],
+		common/src/main/java/org/apache/rocketmq/common/stats/StatsSnapshot.java:
+		[
+			fromLine:"			17",
+			toLine:"			19",
+			content:"
+			
+			package org.apache.rocketmq.common.stats;
+						
+",
+,
+			fromLine:"			21",
+			toLine:"			22",
+			content:"
+			    private long sum;
+			    private double tps;			
+",
+,
+			fromLine:"			24",
+			toLine:"			25",
+			content:"
+			    private long times;
+			    private double avgpt;			
+",
+,
+
+		],
+		remoting/src/main/java/org/apache/rocketmq/remoting/protocol/body/BrokerStatsItem.java:
+		[
+			fromLine:"			17",
+			toLine:"			19",
+			content:"
+			
+			package org.apache.rocketmq.remoting.protocol.body;
+						
+",
+,
+			fromLine:"			21",
+			toLine:"			23",
+			content:"
+			    private long total;
+			    private double tps;
+			    private double avgpt;			
+",
+,
+
+		],
+		broker/src/main/java/org/apache/rocketmq/broker/metrics/ConsumerLagCalculator.java:
+		[
+			fromLine:"			16",
+			toLine:"			51",
+			content:"
+			 */
+			package org.apache.rocketmq.broker.metrics;
+			
+			import java.util.Map;
+			import java.util.Set;
+			import java.util.function.Consumer;
+			import java.util.stream.Collectors;
+			import org.apache.rocketmq.broker.BrokerController;
+			import org.apache.rocketmq.broker.client.ConsumerGroupInfo;
+			import org.apache.rocketmq.broker.client.ConsumerManager;
+			import org.apache.rocketmq.broker.filter.ConsumerFilterData;
+			import org.apache.rocketmq.broker.filter.ConsumerFilterManager;
+			import org.apache.rocketmq.broker.filter.ExpressionMessageFilter;
+			import org.apache.rocketmq.broker.offset.ConsumerOffsetManager;
+			import org.apache.rocketmq.broker.processor.PopBufferMergeService;
+			import org.apache.rocketmq.broker.processor.PopInflightMessageCounter;
+			import org.apache.rocketmq.broker.subscription.SubscriptionGroupManager;
+			import org.apache.rocketmq.broker.topic.TopicConfigManager;
+			import org.apache.rocketmq.common.BrokerConfig;
+			import org.apache.rocketmq.common.KeyBuilder;
+			import org.apache.rocketmq.common.MixAll;
+			import org.apache.rocketmq.common.Pair;
+			import org.apache.rocketmq.common.TopicConfig;
+			import org.apache.rocketmq.common.constant.LoggerName;
+			import org.apache.rocketmq.common.constant.PermName;
+			import org.apache.rocketmq.common.filter.ExpressionType;
+			import org.apache.rocketmq.logging.org.slf4j.Logger;
+			import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+			import org.apache.rocketmq.remoting.protocol.filter.FilterAPI;
+			import org.apache.rocketmq.remoting.protocol.heartbeat.ConsumeType;
+			import org.apache.rocketmq.remoting.protocol.heartbeat.SubscriptionData;
+			import org.apache.rocketmq.remoting.protocol.subscription.SimpleSubscriptionData;
+			import org.apache.rocketmq.remoting.protocol.subscription.SubscriptionGroupConfig;
+			import org.apache.rocketmq.store.DefaultMessageFilter;
+			import org.apache.rocketmq.store.MessageStore;
+						
+",
+,
+			fromLine:"			53",
+			toLine:"			61",
+			content:"
+			    private final BrokerConfig brokerConfig;
+			    private final TopicConfigManager topicConfigManager;
+			    private final ConsumerManager consumerManager;
+			    private final ConsumerOffsetManager offsetManager;
+			    private final ConsumerFilterManager consumerFilterManager;
+			    private final SubscriptionGroupManager subscriptionGroupManager;
+			    private final MessageStore messageStore;
+			    private final PopBufferMergeService popBufferMergeService;
+			    private final PopInflightMessageCounter popInflightMessageCounter;			
+",
+,
+			fromLine:"			63",
+			toLine:"			63",
+			content:"
+			    private static final Logger LOGGER = LoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);			
+",
+,
+			fromLine:"			275",
+			toLine:"			275",
+			content:"
+			    public Pair<Long, Long> getConsumerLagStats(String group, String topic, boolean isPop) {			
+",
+,
+			fromLine:"			301",
+			toLine:"			301",
+			content:"
+			    public Pair<Long, Long> getConsumerLagStats(String group, String topic, int queueId, boolean isPop) {			
+",
+,
+			fromLine:"			332",
+			toLine:"			332",
+			content:"
+			    public Pair<Long, Long> getInFlightMsgStats(String group, String topic, boolean isPop) {			
+",
+,
+			fromLine:"			358",
+			toLine:"			358",
+			content:"
+			    public Pair<Long, Long> getInFlightMsgStats(String group, String topic, int queueId, boolean isPop) {			
+",
+,
+			fromLine:"			387",
+			toLine:"			387",
+			content:"
+			    public long getAvailableMsgCount(String group, String topic, boolean isPop) {			
+",
+,
+			fromLine:"			406",
+			toLine:"			406",
+			content:"
+			    public long getAvailableMsgCount(String group, String topic, int queueId, boolean isPop) {			
+",
+,
+			fromLine:"			431",
+			toLine:"			431",
+			content:"
+			    public long getStoreTimeStamp(String topic, int queueId, long offset) {			
+",
+,
+			fromLine:"			440",
+			toLine:"			440",
+			content:"
+			    public long calculateMessageCount(String group, String topic, int queueId, long from, long to) {			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+
+],
+model:"
+gpt-4-1106-preview
+",
+response_format:
+{
+	type:"
+	json_object	
+",
+
+}
+temperature:"0.9",

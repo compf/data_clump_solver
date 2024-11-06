@@ -2,124 +2,119 @@
     "refactorings": {
         "dolphinscheduler-api-test/dolphinscheduler-api-test-case/src/test/java/org/apache/dolphinscheduler/api/test/pages/workflow/ExecutorPage.java": [
             {
-                "fromLine": 66,
-                "toLine": 76,
-                "oldContent": "public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {\n        Map<String, Object> params = new HashMap<>();\n        params.put(\"loginUser\", loginUser);\n        params.put(\"projectCode\", projectCode);\n        params.put(\"workflowInstanceId\", workflowInstanceId);",
-                "newContent": "public HttpResponse execute(ExecutionParameters executionParameters) {"
+                "fromLine": 67,
+                "toLine": 77,
+                "oldContent": "public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {\n        Map<String, Object> params = new HashMap<>();\n        params.put(\"loginUser\", loginUser);\n        params.put(\"projectCode\", projectCode);\n        params.put(\"workflowInstanceId\", workflowInstanceId);\n        params.put(\"executeType\", executeType);",
+                "newContent": "public HttpResponse execute(ExecutionParameters executionParameters) {\n        Map<String, Object> params = new HashMap<>();\n        params.put(\"loginUser\", executionParameters.getLoginUser());\n        params.put(\"projectCode\", executionParameters.getProjectCode());\n        params.put(\"workflowInstanceId\", executionParameters.getWorkflowInstanceId());\n        params.put(\"executeType\", executionParameters.getExecuteType());"
             },
             {
-                "fromLine": 80,
-                "toLine": 90,
-                "oldContent": "public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,\n                                    TaskDependType taskDependType) {\n        Map<String, Object> params = new HashMap<>();\n        params.put(\"loginUser\", loginUser);\n        params.put(\"workflowInstanceId\", workflowInstanceId);",
-                "newContent": "public HttpResponse executeTask(ExecutionParameters executionParameters, String startNodeList,\n                                    TaskDependType taskDependType) {"
+                "fromLine": 81,
+                "toLine": 91,
+                "oldContent": "public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,\n                                    TaskDependType taskDependType) {\n        Map<String, Object> params = new HashMap<>();\n        params.put(\"loginUser\", loginUser);\n        params.put(\"workflowInstanceId\", workflowInstanceId);\n        params.put(\"startNodeList\", startNodeList);",
+                "newContent": "public HttpResponse executeTask(TaskExecutionParameters taskExecutionParameters) {\n        Map<String, Object> params = new HashMap<>();\n        params.put(\"loginUser\", taskExecutionParameters.getLoginUser());\n        params.put(\"workflowInstanceId\", taskExecutionParameters.getWorkflowInstanceId());\n        params.put(\"startNodeList\", taskExecutionParameters.getStartNodeList());"
             }
         ],
         "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java": [
             {
-                "fromLine": 265,
-                "toLine": 281,
-                "oldContent": "IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              @Param(\"projectCode\") Long projectCode,\n                                                              @Param(\"workflowDefinitionCode\") Long workflowDefinitionCode,\n                                                              @Param(\"name\") String name,\n                                                              @Param(\"startTime\") String startTime,",
-                "newContent": "IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              WorkflowInstanceQueryParameters parameters,"
+                "fromLine": 266,
+                "toLine": 289,
+                "oldContent": "IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              @Param(\"projectCode\") Long projectCode,\n                                                              @Param(\"workflowDefinitionCode\") Long workflowDefinitionCode,\n                                                              @Param(\"name\") String name,\n                                                              @Param(\"startTime\") String startTime,\n                                                              @Param(\"endTime\") String endTime,\n                                                              @Param(\"state\") Integer state,\n                                                              @Param(\"host\") String host);",
+                "newContent": "IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              WorkflowInstanceQuery workflowInstanceQuery);"
             }
         ],
         "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java": [
             {
-                "fromLine": 37,
-                "toLine": 55,
-                "oldContent": "public class TaskInstance implements Serializable {\n\n    @TableId(value = \"id\", type = IdType.AUTO)\n    private Integer id;\n\n    private String name;\n\n    private String taskType;\n\n    private int workflowInstanceId;\n\n    private String workflowInstanceName;\n\n    private Long projectCode;\n\n    private long taskCode;\n\n    private int taskDefinitionVersion;",
-                "newContent": "public class TaskInstance implements Serializable {\n\n    @TableId(value = \"id\", type = IdType.AUTO)\n    private Integer id;\n\n    private TaskDefinitionKey taskDefinitionKey;"
-            },
-            {
-                "fromLine": 67,
-                "toLine": 77,
-                "oldContent": "private Date submitTime;\n\n    private Date startTime;\n\n    private Date endTime;\n\n    private String host;\n\n    private String executePath;\n\n    private String logPath;",
-                "newContent": "private TaskExecutionEnvironment taskExecutionEnvironment;"
-            },
-            {
-                "fromLine": 138,
-                "toLine": 148,
-                "oldContent": "private TaskExecuteType taskExecuteType;\n\n    private int testFlag;\n\n    public void init(String host, Date startTime, String executePath) {\n        this.host = host;\n        this.startTime = startTime;\n        this.executePath = executePath;\n    }\n",
-                "newContent": "private TaskExecuteType taskExecuteType;\n\n    private int testFlag;\n\n    public void init(TaskExecutionEnvironment taskExecutionEnvironment) {\n        this.taskExecutionEnvironment = taskExecutionEnvironment;\n    }\n"
+                "fromLine": 139,
+                "toLine": 149,
+                "oldContent": "public void init(String host, Date startTime, String executePath) {\n        this.host = host;\n        this.startTime = startTime;\n        this.executePath = executePath;\n    }",
+                "newContent": "public void init(TaskInitialization taskInitialization) {\n        this.host = taskInitialization.getHost();\n        this.startTime = taskInitialization.getStartTime();\n        this.executePath = taskInitialization.getExecutePath();\n    }"
             }
         ],
         "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java": [
             {
                 "fromLine": 17,
-                "toLine": 32,
-                "oldContent": "Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);\n\n    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);",
-                "newContent": "Result createProjectParameter(ProjectParameterInfo projectParameterInfo);\n\n    Result updateProjectParameter(ProjectParameterInfo projectParameterInfo);"
+                "toLine": 34,
+                "oldContent": "Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);",
+                "newContent": "Result createProjectParameter(ProjectParameterCreation projectParameterCreation);"
+            },
+            {
+                "fromLine": 17,
+                "toLine": 34,
+                "oldContent": "Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);",
+                "newContent": "Result updateProjectParameter(ProjectParameterUpdate projectParameterUpdate);"
             }
         ],
         "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/ProjectParameterController.java": [
             {
-                "fromLine": 64,
-                "toLine": 80,
+                "fromLine": 65,
+                "toLine": 81,
                 "oldContent": "public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {",
-                "newContent": "public Result createProjectParameter(ProjectParameterInfo projectParameterInfo) {"
+                "newContent": "public Result createProjectParameter(ProjectParameterCreation projectParameterCreation) {"
             },
             {
-                "fromLine": 83,
-                "toLine": 100,
+                "fromLine": 84,
+                "toLine": 101,
                 "oldContent": "public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @PathVariable(\"code\") Long code,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {",
-                "newContent": "public Result updateProjectParameter(ProjectParameterInfo projectParameterInfo) {"
+                "newContent": "public Result updateProjectParameter(ProjectParameterUpdate projectParameterUpdate) {"
             }
         ],
         "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/controller/ProjectParameterControllerTest.java": [
             {
-                "fromLine": 45,
-                "toLine": 68,
-                "oldContent": "Result result = projectParameterController.createProjectParameter(loginUser, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode());\n    }\n\n    @Test\n    public void testUpdateProjectParameter() {\n        User loginUser = getGeneralUser();\n\n        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),\n                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, \"key\", \"value\",\n                DataType.LONG.name());",
-                "newContent": "Result result = projectParameterController.createProjectParameter(new ProjectParameterInfo(loginUser, 1, \"key\", \"value\", DataType.VARCHAR.name()));\n        Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode());\n    }\n\n    @Test\n    public void testUpdateProjectParameter() {\n        User loginUser = getGeneralUser();\n\n        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.updateProjectParameter(new ProjectParameterInfo(loginUser, 1, 1L, \"key\", \"value\", DataType.LONG.name()));"
+                "fromLine": 46,
+                "toLine": 69,
+                "oldContent": "Result result = projectParameterController.createProjectParameter(loginUser, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
+                "newContent": "Result result = projectParameterController.createProjectParameter(new ProjectParameterCreation(loginUser, 1, \"key\", \"value\",\n                DataType.VARCHAR.name()));"
+            },
+            {
+                "fromLine": 46,
+                "toLine": 69,
+                "oldContent": "Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, \"key\", \"value\",\n                DataType.LONG.name());",
+                "newContent": "Result result = projectParameterController.updateProjectParameter(new ProjectParameterUpdate(loginUser, 1, 1L, \"key\", \"value\",\n                DataType.LONG.name()));"
             }
         ],
         "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/service/ProjectParameterServiceTest.java": [
             {
-                "fromLine": 74,
-                "toLine": 84,
+                "fromLine": 75,
+                "toLine": 85,
                 "oldContent": "Result result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "Result result = projectParameterService.createProjectParameter(new ProjectParameterInfo(loginUser, projectCode, \"key\", \"value\", DataType.VARCHAR.name()));"
+                "newContent": "Result result = projectParameterService.createProjectParameter(new ProjectParameterCreation(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name()));"
             },
             {
-                "fromLine": 87,
-                "toLine": 118,
+                "fromLine": 88,
+                "toLine": 119,
                 "oldContent": "result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                    DataType.VARCHAR.name());",
-                "newContent": "result = projectParameterService.createProjectParameter(new ProjectParameterInfo(loginUser, projectCode, \"key\", \"value\", DataType.VARCHAR.name()));"
+                "newContent": "result = projectParameterService.createProjectParameter(new ProjectParameterCreation(loginUser, projectCode, \"key\", \"value\",\n                    DataType.VARCHAR.name()));"
             },
             {
-                "fromLine": 120,
-                "toLine": 161,
+                "fromLine": 121,
+                "toLine": 162,
                 "oldContent": "Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "Result result = projectParameterService.updateProjectParameter(new ProjectParameterInfo(loginUser, projectCode, 1, \"key\", \"value\", DataType.VARCHAR.name()));"
+                "newContent": "Result result = projectParameterService.updateProjectParameter(new ProjectParameterUpdate(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name()));"
             }
         ],
         "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/SchedulerController.java": [
             {
-                "fromLine": 76,
-                "toLine": 95,
-                "oldContent": "public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,\n                                 @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                 @RequestParam(value = \"workflowDefinitionCode\") long workflowDefinitionCode,\n                                 @RequestParam(value = \"schedule\") String schedule,\n                                 @RequestParam(value = \"warningType\", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,",
-                "newContent": "public Result createSchedule(ScheduleCreationInfo scheduleCreationInfo) {"
+                "fromLine": 77,
+                "toLine": 96,
+                "oldContent": "public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,\n                                 @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                 @RequestParam(value = \"workflowDefinitionCode\") long workflowDefinitionCode,\n                                 @RequestParam(value = \"schedule\") String schedule,\n                                 @RequestParam(value = \"warningType\", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,\n                                 @RequestParam(value = \"warningGroupId\", required = false, defaultValue = DEFAULT_NOTIFY_GROUP_ID) int warningGroupId,\n                                 @RequestParam(value = \"failureStrategy\", required = false, defaultValue = DEFAULT_FAILURE_POLICY) FailureStrategy failureStrategy,\n                                 @RequestParam(value = \"workerGroup\", required = false, defaultValue = \"default\") String workerGroup,\n                                 @RequestParam(value = \"tenantCode\", required = false, defaultValue = \"default\") String tenantCode,\n                                 @RequestParam(value = \"environmentCode\", required = false, defaultValue = \"-1\") Long environmentCode,\n                                 @RequestParam(value = \"workflowInstancePriority\", required = false, defaultValue = DEFAULT_WORKFLOW_INSTANCE_PRIORITY) Priority workflowInstancePriority) {",
+                "newContent": "public Result createSchedule(ScheduleCreation scheduleCreation) {"
             },
             {
-                "fromLine": 116,
-                "toLine": 135,
-                "oldContent": "                                 @RequestParam(value = \"failureStrategy\", required = false, defaultValue = DEFAULT_FAILURE_POLICY) FailureStrategy failureStrategy,\n                                 @RequestParam(value = \"workerGroup\", required = false, defaultValue = \"default\") String workerGroup,\n                                 @RequestParam(value = \"tenantCode\", required = false, defaultValue = \"default\") String tenantCode,\n                                 @RequestParam(value = \"environmentCode\", required = false, defaultValue = \"-1\") Long environmentCode,\n                                 @RequestParam(value = \"workflowInstancePriority\", required = false, defaultValue = DEFAULT_WORKFLOW_INSTANCE_PRIORITY) Priority workflowInstancePriority) {\n        Map<String, Object> result = schedulerService.insertSchedule(\n                loginUser,\n                projectCode,\n                workflowDefinitionCode,\n                schedule,\n                warningType,\n                warningGroupId,\n                failureStrategy,\n                workflowInstancePriority,\n                workerGroup,\n                tenantCode,\n                environmentCode);",
-                "newContent": "                                 @RequestParam(value = \"environmentCode\", required = false, defaultValue = \"-1\") Long environmentCode) {\n        Map<String, Object> result = schedulerService.insertSchedule(scheduleCreationInfo);"
-            },
-            {
-                "fromLine": 303,
-                "toLine": 321,
+                "fromLine": 331,
+                "toLine": 354,
                 "oldContent": "public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,\n                                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                                         @PathVariable(value = \"code\") long workflowDefinitionCode,\n                                                         @RequestParam(value = \"schedule\") String schedule,\n                                                         @RequestParam(value = \"warningType\", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,\n                                                         @RequestParam(value = \"warningGroupId\", required = false) int warningGroupId,\n                                                         @RequestParam(value = \"failureStrategy\", required = false, defaultValue = \"END\") FailureStrategy failureStrategy,\n                                                         @RequestParam(value = \"workerGroup\", required = false, defaultValue = \"default\") String workerGroup,\n                                                         @RequestParam(value = \"tenantCode\", required = false, defaultValue = \"default\") String tenantCode,\n                                                         @RequestParam(value = \"environmentCode\", required = false, defaultValue = \"-1\") long environmentCode,\n                                                         @RequestParam(value = \"workflowInstancePriority\", required = false) Priority workflowInstancePriority) {",
-                "newContent": "public Result updateScheduleByWorkflowDefinitionCode(ScheduleUpdateInfo scheduleUpdateInfo) {"
+                "newContent": "public Result updateScheduleByWorkflowDefinitionCode(ScheduleUpdate scheduleUpdate) {"
             }
         ]
     },
     "extractedClasses": {
-        "org/apache/dolphinscheduler/api/test/pages/workflow/ExecutionParameters.java": "package org.apache.dolphinscheduler.api.test.pages.workflow;\n\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ExecutionParameters {\n    private User loginUser;\n    private long projectCode;\n    private int workflowInstanceId;\n\n    // Constructor, getters, and setters\n}",
-        "org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceQueryParameters.java": "package org.apache.dolphinscheduler.dao.mapper;\n\npublic class WorkflowInstanceQueryParameters {\n    private Long projectCode;\n    private Long workflowDefinitionCode;\n    private String name;\n    private String startTime;\n    private String endTime;\n\n    // Constructor, getters, and setters\n}",
-        "org/apache/dolphinscheduler/dao/entity/TaskDefinitionKey.java": "package org.apache.dolphinscheduler.dao.entity;\n\npublic class TaskDefinitionKey {\n    private String name;\n    private String taskType;\n    private int workflowInstanceId;\n    private String workflowInstanceName;\n    private Long projectCode;\n    private long taskCode;\n    private int taskDefinitionVersion;\n\n    // Constructor, getters, and setters\n}",
-        "org/apache/dolphinscheduler/dao/entity/TaskExecutionEnvironment.java": "package org.apache.dolphinscheduler.dao.entity;\n\nimport java.util.Date;\n\npublic class TaskExecutionEnvironment {\n    private Date submitTime;\n    private Date startTime;\n    private Date endTime;\n    private String host;\n    private String executePath;\n    private String logPath;\n\n    // Constructor, getters, and setters\n}",
-        "org/apache/dolphinscheduler/api/service/ProjectParameterInfo.java": "package org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ProjectParameterInfo {\n    private User loginUser;\n    private long projectCode;\n    private long code;\n    private String projectParameterName;\n    private String projectParameterValue;\n    private String projectParameterDataType;\n\n    // Constructor, getters, and setters\n}",
-        "org/apache/dolphinscheduler/api/controller/ScheduleCreationInfo.java": "package org.apache.dolphinscheduler.api.controller;\n\nimport org.apache.dolphinscheduler.common.enums.FailureStrategy;\nimport org.apache.dolphinscheduler.common.enums.Priority;\nimport org.apache.dolphinscheduler.common.enums.WarningType;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ScheduleCreationInfo {\n    private User loginUser;\n    private long projectCode;\n    private long workflowDefinitionCode;\n    private String schedule;\n    private WarningType warningType;\n    private int warningGroupId;\n    private FailureStrategy failureStrategy;\n    private Priority workflowInstancePriority;\n    private String workerGroup;\n    private String tenantCode;\n    private Long environmentCode;\n\n    // Constructor, getters, and setters\n}",
-        "org/apache/dolphinscheduler/api/controller/ScheduleUpdateInfo.java": "package org.apache.dolphinscheduler.api.controller;\n\nimport org.apache.dolphinscheduler.common.enums.FailureStrategy;\nimport org.apache.dolphinscheduler.common.enums.Priority;\nimport org.apache.dolphinscheduler.common.enums.WarningType;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ScheduleUpdateInfo {\n    private User loginUser;\n    private long projectCode;\n    private long workflowDefinitionCode;\n    private String schedule;\n    private WarningType warningType;\n    private int warningGroupId;\n    private FailureStrategy failureStrategy;\n    private Priority workflowInstancePriority;\n    private String workerGroup;\n    private String tenantCode;\n    private long environmentCode;\n\n    // Constructor, getters, and setters\n}"
+        "org/apache/dolphinscheduler/api/test/pages/workflow/ExecutionParameters.java": "package org.apache.dolphinscheduler.api.test.pages.workflow;\n\nimport org.apache.dolphinscheduler.api.enums.ExecuteType;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ExecutionParameters {\n    private User loginUser;\n    private long projectCode;\n    private int workflowInstanceId;\n    private ExecuteType executeType;\n\n    // Constructor, getters, and setters\n}",
+        "org/apache/dolphinscheduler/api/test/pages/workflow/TaskExecutionParameters.java": "package org.apache.dolphinscheduler.api.test.pages.workflow;\n\nimport org.apache.dolphinscheduler.common.enums.TaskDependType;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class TaskExecutionParameters {\n    private User loginUser;\n    private long projectCode;\n    private int workflowInstanceId;\n    private String startNodeList;\n    private TaskDependType taskDependType;\n\n    // Constructor, getters, and setters\n}",
+        "org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceQuery.java": "package org.apache.dolphinscheduler.dao.mapper;\n\nimport java.util.Date;\n\npublic class WorkflowInstanceQuery {\n    private Long projectCode;\n    private Long workflowDefinitionCode;\n    private String name;\n    private String startTime;\n    private String endTime;\n    private Integer state;\n    private String host;\n\n    // Constructor, getters, and setters\n}",
+        "org/apache/dolphinscheduler/dao/entity/TaskInitialization.java": "package org.apache.dolphinscheduler.dao.entity;\n\nimport java.util.Date;\n\npublic class TaskInitialization {\n    private String host;\n    private Date startTime;\n    private String executePath;\n\n    // Constructor, getters, and setters\n}",
+        "org/apache/dolphinscheduler/api/service/ProjectParameterCreation.java": "package org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ProjectParameterCreation {\n    private User loginUser;\n    private long projectCode;\n    private String projectParameterName;\n    private String projectParameterValue;\n    private String projectParameterDataType;\n\n    // Constructor, getters, and setters\n}",
+        "org/apache/dolphinscheduler/api/service/ProjectParameterUpdate.java": "package org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ProjectParameterUpdate {\n    private User loginUser;\n    private long projectCode;\n    private long code;\n    private String projectParameterName;\n    private String projectParameterValue;\n    private String projectParameterDataType;\n\n    // Constructor, getters, and setters\n}",
+        "org/apache/dolphinscheduler/api/controller/ScheduleCreation.java": "package org.apache.dolphinscheduler.api.controller;\n\nimport org.apache.dolphinscheduler.common.enums.FailureStrategy;\nimport org.apache.dolphinscheduler.common.enums.Priority;\nimport org.apache.dolphinscheduler.common.enums.WarningType;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ScheduleCreation {\n    private User loginUser;\n    private long projectCode;\n    private long workflowDefinitionCode;\n    private String schedule;\n    private WarningType warningType;\n    private int warningGroupId;\n    private FailureStrategy failureStrategy;\n    private Priority workflowInstancePriority;\n    private String workerGroup;\n    private String tenantCode;\n    private Long environmentCode;\n\n    // Constructor, getters, and setters\n}",
+        "org/apache/dolphinscheduler/api/controller/ScheduleUpdate.java": "package org.apache.dolphinscheduler.api.controller;\n\nimport org.apache.dolphinscheduler.common.enums.FailureStrategy;\nimport org.apache.dolphinscheduler.common.enums.Priority;\nimport org.apache.dolphinscheduler.common.enums.WarningType;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ScheduleUpdate {\n    private User loginUser;\n    private long projectCode;\n    private long workflowDefinitionCode;\n    private String schedule;\n    private WarningType warningType;\n    private int warningGroupId;\n    private FailureStrategy failureStrategy;\n    private Priority workflowInstancePriority;\n    private String workerGroup;\n    private String tenantCode;\n    private long environmentCode;\n\n    // Constructor, getters, and setters\n}"
     }
 }"

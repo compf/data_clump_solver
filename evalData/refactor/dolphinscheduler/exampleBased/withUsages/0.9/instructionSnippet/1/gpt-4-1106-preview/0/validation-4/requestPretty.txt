@@ -346,20 +346,20 @@ messages:
 						
 ",
 ,
-			fromLine:"			70",
-			toLine:"			72",
+			fromLine:"			71",
+			toLine:"			73",
 			content:"
-			    }
 			
-			    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {			
+			    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {
+			        Map<String, Object> params = new HashMap<>();			
 ",
 ,
-			fromLine:"			84",
-			toLine:"			86",
+			fromLine:"			85",
+			toLine:"			87",
 			content:"
-			    }
 			
-			    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,			
+			    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,
+			                                    TaskDependType taskDependType) {			
 ",
 ,
 
@@ -390,21 +390,32 @@ messages:
 						
 ",
 ,
-			fromLine:"			269",
-			toLine:"			272",
+			fromLine:"			270",
+			toLine:"			273",
 			content:"
-			     * @param page                  page
 			     * @param workflowDefinitionCode workflowDefinitionCode
 			     * @param name                  name
-			     * @param host                  host			
+			     * @param host                  host
+			     * @param startTime             startTime			
 ",
 ,
-			fromLine:"			275",
-			toLine:"			277",
+			fromLine:"			276",
+			toLine:"			281",
 			content:"
-			     * @return workflow instance IPage
 			     */
-			    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,			
+			    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,
+			                                                              @Param("projectCode") Long projectCode,
+			                                                              @Param("workflowDefinitionCode") Long workflowDefinitionCode,
+			                                                              @Param("name") String name,
+			                                                              @Param("startTime") String startTime,			
+",
+,
+			fromLine:"			283",
+			toLine:"			285",
+			content:"
+			                                                              @Param("state") Integer state,
+			                                                              @Param("host") String host);
+						
 ",
 ,
 
@@ -435,36 +446,36 @@ messages:
 						
 ",
 ,
-			fromLine:"			41",
-			toLine:"			43",
+			fromLine:"			42",
+			toLine:"			44",
 			content:"
-			    private Integer id;
 			
-			    private String name;			
+			    private String name;
+						
 ",
 ,
-			fromLine:"			49",
-			toLine:"			51",
+			fromLine:"			50",
+			toLine:"			52",
 			content:"
-			    private String workflowInstanceName;
 			
-			    private Long projectCode;			
+			    private Long projectCode;
+						
 ",
 ,
-			fromLine:"			71",
-			toLine:"			73",
+			fromLine:"			72",
+			toLine:"			74",
 			content:"
-			    private Date endTime;
 			
-			    private String host;			
+			    private String host;
+						
 ",
 ,
-			fromLine:"			142",
-			toLine:"			144",
+			fromLine:"			143",
+			toLine:"			145",
 			content:"
-			
 			    public void init(String host, Date startTime, String executePath) {
-			        this.host = host;			
+			        this.host = host;
+			        this.startTime = startTime;			
 ",
 ,
 
@@ -472,20 +483,26 @@ messages:
 		dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java:
 		[
 			fromLine:"			17",
-			toLine:"			28",
+			toLine:"			22",
 			content:"
 			
 			package org.apache.dolphinscheduler.api.service;
 			
 			import org.apache.dolphinscheduler.api.utils.Result;
 			import org.apache.dolphinscheduler.dao.entity.User;
-			
-			public interface ProjectParameterService {
+						
+",
+,
+			fromLine:"			24",
+			toLine:"			30",
+			content:"
 			
 			    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,
 			                                  String projectParameterValue, String projectParameterDataType);
 			
-			    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,			
+			    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,
+			                                  String projectParameterValue, String projectParameterDataType);
+						
 ",
 ,
 
@@ -532,38 +549,33 @@ messages:
 						
 ",
 ,
-			fromLine:"			68",
-			toLine:"			70",
+			fromLine:"			69",
+			toLine:"			77",
 			content:"
-			    @ResponseStatus(HttpStatus.CREATED)
 			    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)
-			    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			73",
-			toLine:"			76",
-			content:"
+			    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+			                                         @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                         @RequestParam("projectParameterName") String projectParameterName,
 			                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
 			                                         @RequestParam(value = "projectParameterDataType", defaultValue = "VARCHAR") String projectParameterDataType) {
 			        return projectParameterService.createProjectParameter(loginUser, projectCode, projectParameterName,
-			                projectParameterValue, projectParameterDataType);			
+			                projectParameterValue, projectParameterDataType);
+			    }			
 ",
 ,
-			fromLine:"			87",
-			toLine:"			89",
+			fromLine:"			88",
+			toLine:"			97",
 			content:"
-			    @ResponseStatus(HttpStatus.OK)
 			    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)
-			    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			93",
-			toLine:"			96",
-			content:"
+			    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+			                                         @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                         @PathVariable("code") Long code,
+			                                         @RequestParam("projectParameterName") String projectParameterName,
 			                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
 			                                         @RequestParam(value = "projectParameterDataType") String projectParameterDataType) {
 			        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, projectParameterName,
-			                projectParameterValue, projectParameterDataType);			
+			                projectParameterValue, projectParameterDataType);
+			    }			
 ",
 ,
 
@@ -595,24 +607,24 @@ messages:
 						
 ",
 ,
-			fromLine:"			49",
-			toLine:"			53",
+			fromLine:"			50",
+			toLine:"			54",
 			content:"
-			        User loginUser = getGeneralUser();
 			
 			        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.any(),
 			                Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());
-			        Result result = projectParameterController.createProjectParameter(loginUser, 1, "key", "value",			
+			        Result result = projectParameterController.createProjectParameter(loginUser, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			60",
-			toLine:"			64",
+			fromLine:"			61",
+			toLine:"			65",
 			content:"
-			        User loginUser = getGeneralUser();
 			
 			        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),
 			                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());
-			        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, "key", "value",			
+			        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, "key", "value",
+			                DataType.LONG.name());			
 ",
 ,
 
@@ -662,84 +674,84 @@ messages:
 						
 ",
 ,
-			fromLine:"			78",
-			toLine:"			80",
+			fromLine:"			79",
+			toLine:"			81",
 			content:"
-			        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))
 			                .thenReturn(false);
-			        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",			
+			        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			91",
-			toLine:"			93",
+			fromLine:"			92",
+			toLine:"			94",
 			content:"
-			            when(CodeGenerateUtils.genCode()).thenThrow(CodeGenerateUtils.CodeGenerateException.class);
 			
-			            result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",			
+			            result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",
+			                    DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			99",
-			toLine:"			101",
+			fromLine:"			100",
+			toLine:"			102",
 			content:"
-			        when(projectMapper.queryByCode(projectCode)).thenReturn(getProject(projectCode));
 			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
-			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",			
+			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			106",
-			toLine:"			108",
+			fromLine:"			107",
+			toLine:"			109",
 			content:"
-			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);
 			        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);
-			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",			
+			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			112",
-			toLine:"			114",
+			fromLine:"			113",
+			toLine:"			115",
 			content:"
-			        // SUCCESS
 			        when(projectParameterMapper.insert(Mockito.any())).thenReturn(1);
-			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",			
+			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			124",
-			toLine:"			126",
+			fromLine:"			125",
+			toLine:"			127",
 			content:"
-			        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))
 			                .thenReturn(false);
-			        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",			
+			        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			135",
-			toLine:"			137",
+			fromLine:"			136",
+			toLine:"			138",
 			content:"
-			                .thenReturn(true);
 			        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			142",
-			toLine:"			144",
+			fromLine:"			143",
+			toLine:"			145",
 			content:"
-			        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(getProjectParameter());
 			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			149",
-			toLine:"			151",
+			fromLine:"			150",
+			toLine:"			152",
 			content:"
-			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);
 			        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1);
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			155",
-			toLine:"			157",
+			fromLine:"			156",
+			toLine:"			158",
 			content:"
-			        // SUCCESS
 			        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(1);
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",
+			                DataType.LONG.name());			
 ",
 ,
 
@@ -797,10 +809,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			80",
-			toLine:"			91",
+			fromLine:"			81",
+			toLine:"			92",
 			content:"
-			     * create schedule
 			     *
 			     * @param loginUser login user
 			     * @param projectCode project code
@@ -811,20 +822,24 @@ messages:
 			     * @param failureStrategy failure strategy
 			     * @param workflowInstancePriority workflow instance priority
 			     * @param workerGroup worker group
-			     * @param tenantCode tenant code			
+			     * @param tenantCode tenant code
+			     * @return create result code			
 ",
 ,
-			fromLine:"			108",
-			toLine:"			110",
+			fromLine:"			109",
+			toLine:"			132",
 			content:"
-			    @ApiException(CREATE_SCHEDULE_ERROR)
 			    @OperatorLog(auditType = AuditType.SCHEDULE_CREATE)
-			    public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			120",
-			toLine:"			131",
-			content:"
+			    public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+			                                 @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                 @RequestParam(value = "workflowDefinitionCode") long workflowDefinitionCode,
+			                                 @RequestParam(value = "schedule") String schedule,
+			                                 @RequestParam(value = "warningType", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,
+			                                 @RequestParam(value = "warningGroupId", required = false, defaultValue = DEFAULT_NOTIFY_GROUP_ID) int warningGroupId,
+			                                 @RequestParam(value = "failureStrategy", required = false, defaultValue = DEFAULT_FAILURE_POLICY) FailureStrategy failureStrategy,
+			                                 @RequestParam(value = "workerGroup", required = false, defaultValue = "default") String workerGroup,
+			                                 @RequestParam(value = "tenantCode", required = false, defaultValue = "default") String tenantCode,
+			                                 @RequestParam(value = "environmentCode", required = false, defaultValue = "-1") Long environmentCode,
 			                                 @RequestParam(value = "workflowInstancePriority", required = false, defaultValue = DEFAULT_WORKFLOW_INSTANCE_PRIORITY) Priority workflowInstancePriority) {
 			        Map<String, Object> result = schedulerService.insertSchedule(
 			                loginUser,
@@ -836,13 +851,13 @@ messages:
 			                failureStrategy,
 			                workflowInstancePriority,
 			                workerGroup,
-			                tenantCode,			
+			                tenantCode,
+			                environmentCode);			
 ",
 ,
-			fromLine:"			307",
-			toLine:"			317",
+			fromLine:"			308",
+			toLine:"			318",
 			content:"
-			     * update workflow definition schedule
 			     *
 			     * @param loginUser login user
 			     * @param projectCode project code
@@ -852,25 +867,29 @@ messages:
 			     * @param warningGroupId warning group id
 			     * @param failureStrategy failure strategy
 			     * @param workerGroup worker group
-			     * @param workflowInstancePriority workflow instance priority			
+			     * @param workflowInstancePriority workflow instance priority
+			     * @return update result code			
 ",
 ,
-			fromLine:"			334",
-			toLine:"			336",
+			fromLine:"			335",
+			toLine:"			350",
 			content:"
-			    @ApiException(UPDATE_SCHEDULE_ERROR)
 			    @OperatorLog(auditType = AuditType.SCHEDULE_UPDATE)
-			    public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			345",
-			toLine:"			349",
-			content:"
+			    public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+			                                                         @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                                         @PathVariable(value = "code") long workflowDefinitionCode,
+			                                                         @RequestParam(value = "schedule") String schedule,
+			                                                         @RequestParam(value = "warningType", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,
+			                                                         @RequestParam(value = "warningGroupId", required = false) int warningGroupId,
+			                                                         @RequestParam(value = "failureStrategy", required = false, defaultValue = "END") FailureStrategy failureStrategy,
+			                                                         @RequestParam(value = "workerGroup", required = false, defaultValue = "default") String workerGroup,
+			                                                         @RequestParam(value = "tenantCode", required = false, defaultValue = "default") String tenantCode,
 			                                                         @RequestParam(value = "environmentCode", required = false, defaultValue = "-1") long environmentCode,
 			                                                         @RequestParam(value = "workflowInstancePriority", required = false) Priority workflowInstancePriority) {
 			        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(loginUser, projectCode,
 			                workflowDefinitionCode, schedule,
-			                warningType, warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode,			
+			                warningType, warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode,
+			                environmentCode);			
 ",
 ,
 
@@ -878,12 +897,16 @@ messages:
 		dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
 		[
 			fromLine:"			17",
-			toLine:"			29",
+			toLine:"			19",
 			content:"
 			
 			package org.apache.dolphinscheduler.plugin.task.api.model;
-			
-			public class TaskAlertInfo {
+						
+",
+,
+			fromLine:"			21",
+			toLine:"			30",
+			content:"
 			
 			    private String title;
 			
@@ -892,47 +915,48 @@ messages:
 			    private Integer alertGroupId;
 			
 			    public String getTitle() {
-			        return title;			
+			        return title;
+			    }			
 ",
 ,
-			fromLine:"			31",
-			toLine:"			33",
+			fromLine:"			32",
+			toLine:"			34",
 			content:"
-			
 			    public void setTitle(String title) {
-			        this.title = title;			
+			        this.title = title;
+			    }			
 ",
 ,
-			fromLine:"			35",
-			toLine:"			37",
+			fromLine:"			36",
+			toLine:"			38",
 			content:"
-			
 			    public String getContent() {
-			        return content;			
+			        return content;
+			    }			
 ",
 ,
-			fromLine:"			39",
-			toLine:"			41",
+			fromLine:"			40",
+			toLine:"			42",
 			content:"
-			
 			    public void setContent(String content) {
-			        this.content = content;			
+			        this.content = content;
+			    }			
 ",
 ,
-			fromLine:"			43",
-			toLine:"			45",
+			fromLine:"			44",
+			toLine:"			46",
 			content:"
-			
 			    public Integer getAlertGroupId() {
-			        return alertGroupId;			
+			        return alertGroupId;
+			    }			
 ",
 ,
-			fromLine:"			47",
-			toLine:"			49",
+			fromLine:"			48",
+			toLine:"			50",
 			content:"
-			
 			    public void setAlertGroupId(Integer alertGroupId) {
-			        this.alertGroupId = alertGroupId;			
+			        this.alertGroupId = alertGroupId;
+			    }			
 ",
 ,
 
@@ -965,552 +989,22 @@ messages:
 						
 ",
 ,
-			fromLine:"			50",
-			toLine:"			55",
+			fromLine:"			51",
+			toLine:"			56",
 			content:"
-			
 			    @TableField(value = "title")
 			    private String title;
 			
 			    @TableField(value = "content")
-			    private String content;			
-",
-,
-			fromLine:"			65",
-			toLine:"			67",
-			content:"
-			
-			    @TableField("alertgroup_id")
-			    private Integer alertGroupId;			
-",
-,
-
-		],
-	
-}
-	role:"
-	user	
-",
-,
-	content:"
-	{
-	    "refactorings": {
-	        "dolphinscheduler-api-test/dolphinscheduler-api-test-case/src/test/java/org/apache/dolphinscheduler/api/test/pages/workflow/ExecutorPage.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 34,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.api.test.pages.workflow;
-	
-	import org.apache.dolphinscheduler.api.enums.ExecuteType;
-	import org.apache.dolphinscheduler.api.test.core.Constants;
-	import org.apache.dolphinscheduler.api.test.entity.HttpResponse;
-	import org.apache.dolphinscheduler.api.test.utils.RequestClient;
-	import org.apache.dolphinscheduler.common.enums.FailureStrategy;
-	import org.apache.dolphinscheduler.common.enums.TaskDependType;
-	import org.apache.dolphinscheduler.common.enums.WarningType;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	
-	import java.util.HashMap;
-	import java.util.Map;
-	
-	import lombok.AllArgsConstructor;
-	import lombok.extern.slf4j.Slf4j;
-	",
-	                "newContent": "
-	package org.apache.dolphinscheduler.api.test.pages.workflow;
-	
-	import org.apache.dolphinscheduler.api.enums.ExecuteType;
-	import org.apache.dolphinscheduler.api.test.core.Constants;
-	import org.apache.dolphinscheduler.api.test.entity.HttpResponse;
-	import org.apache.dolphinscheduler.api.test.utils.RequestClient;
-	import org.apache.dolphinscheduler.common.enums.FailureStrategy;
-	import org.apache.dolphinscheduler.common.enums.TaskDependType;
-	import org.apache.dolphinscheduler.common.enums.WarningType;
-	
-	import java.util.HashMap;
-	import java.util.Map;
-	
-	import lombok.AllArgsConstructor;
-	import lombok.extern.slf4j.Slf4j;
-	"
-	            },
-	            {
-	                "fromLine": 70,
-	                "toLine": 72,
-	                "oldContent": "    }
-	
-	    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {",
-	                "newContent": "    }
-	
-	    public HttpResponse execute(ExecutionParameters executionParameters) {"
-	            },
-	            {
-	                "fromLine": 84,
-	                "toLine": 86,
-	                "oldContent": "    }
-	
-	    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,",
-	                "newContent": "    }
-	
-	    public HttpResponse executeTask(ExecutionParameters executionParameters,"
-	            }
-	        ],
-	        "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 35,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.dao.mapper;
-	
-	import org.apache.dolphinscheduler.common.enums.WorkflowExecutionStatus;
-	import org.apache.dolphinscheduler.dao.entity.ExecuteStatusCount;
-	import org.apache.dolphinscheduler.dao.entity.WorkflowInstance;
-	import org.apache.dolphinscheduler.dao.model.WorkflowInstanceStatusCountDto;
-	
-	import org.apache.ibatis.annotations.Param;
-	
-	import java.util.Collection;
-	import java.util.Date;
-	import java.util.List;
-	import java.util.Set;
-	
-	import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-	import com.baomidou.mybatisplus.core.metadata.IPage;
-	import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-	",
-	                "newContent": "
-	package org.apache.dolphinscheduler.dao.mapper;
-	
-	import org.apache.dolphinscheduler.common.enums.WorkflowExecutionStatus;
-	import org.apache.dolphinscheduler.dao.entity.ExecuteStatusCount;
-	import org.apache.dolphinscheduler.dao.entity.WorkflowInstance;
-	import org.apache.dolphinscheduler.dao.model.WorkflowInstanceStatusCountDto;
-	
-	import org.apache.ibatis.annotations.Param;
-	
-	import java.util.Collection;
-	import java.util.Date;
-	import java.util.List;
-	import java.util.Set;
-	
-	import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-	import com.baomidou.mybatisplus.core.metadata.IPage;
-	import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-	"
-	            }
-	        ],
-	        "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 35,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.dao.entity;
-	
-	import org.apache.dolphinscheduler.common.enums.Flag;
-	import org.apache.dolphinscheduler.common.enums.Priority;
-	import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
-	import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
-	
-	import java.io.Serializable;
-	import java.util.Date;
-	
-	import lombok.Data;
-	
-	import com.baomidou.mybatisplus.annotation.FieldStrategy;
-	import com.baomidou.mybatisplus.annotation.IdType;
-	import com.baomidou.mybatisplus.annotation.TableField;
-	import com.baomidou.mybatisplus.annotation.TableId;
-	import com.baomidou.mybatisplus.annotation.TableName;
-	",
-	                "newContent": "
-	package org.apache.dolphinscheduler.dao.entity;
-	
-	import org.apache.dolphinscheduler.common.enums.Flag;
-	import org.apache.dolphinscheduler.common.enums.Priority;
-	import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
-	import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
-	
-	import java.io.Serializable;
-	import java.util.Date;
-	
-	import lombok.Data;
-	
-	import com.baomidou.mybatisplus.annotation.FieldStrategy;
-	import com.baomidou.mybatisplus.annotation.IdType;
-	import com.baomidou.mybatisplus.annotation.TableField;
-	import com.baomidou.mybatisplus.annotation.TableId;
-	import com.baomidou.mybatisplus.annotation.TableName;
-	"
-	            }
-	        ],
-	        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 28,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.api.service;
-	
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	
-	public interface ProjectParameterService {
-	
-	    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,
-	                                  String projectParameterValue, String projectParameterDataType);
-	
-	    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,",
-	                "newContent": "
-	package org.apache.dolphinscheduler.api.service;
-	
-	import org.apache.dolphinscheduler.api.utils.Result;
-	
-	public interface ProjectParameterService {
-	
-	    Result createProjectParameter(ProjectParameterRequest parameterRequest);
-	
-	    Result updateProjectParameter(ProjectParameterRequest parameterRequest);"
-	            }
-	        ],
-	        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/ProjectParameterController.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 51,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.api.controller;
-	
-	import static org.apache.dolphinscheduler.api.enums.Status.CREATE_PROJECT_PARAMETER_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.DELETE_PROJECT_PARAMETER_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.QUERY_PROJECT_PARAMETER_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_PROJECT_PARAMETER_ERROR;
-	
-	import org.apache.dolphinscheduler.api.exceptions.ApiException;
-	import org.apache.dolphinscheduler.api.service.ProjectParameterService;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.constants.Constants;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
-	
-	import lombok.extern.slf4j.Slf4j;
-	
-	import org.springframework.beans.factory.annotation.Autowired;
-	import org.springframework.http.HttpStatus;
-	import org.springframework.web.bind.annotation.GetMapping;
-	import org.springframework.web.bind.annotation.PathVariable;
-	import org.springframework.web.bind.annotation.PostMapping;
-	import org.springframework.web.bind.annotation.PutMapping;
-	import org.springframework.web.bind.annotation.RequestAttribute;
-	import org.springframework.web.bind.annotation.RequestMapping;
-	import org.springframework.web.bind.annotation.RequestParam;
-	import org.springframework.web.bind.annotation.ResponseStatus;
-	import org.springframework.web.bind.annotation.RestController;
-	
-	import io.swagger.v3.oas.annotations.Operation;
-	import io.swagger.v3.oas.annotations.Parameter;
-	import io.swagger.v3.oas.annotations.Parameters;
-	import io.swagger.v3.oas.annotations.media.Schema;
-	import io.swagger.v3.oas.annotations.tags.Tag;
-	",
-	                "newContent": "
-	package org.apache.dolphinscheduler.api.controller;
-	
-	import static org.apache.dolphinscheduler.api.enums.Status.CREATE_PROJECT_PARAMETER_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.DELETE_PROJECT_PARAMETER_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.QUERY_PROJECT_PARAMETER_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_PROJECT_PARAMETER_ERROR;
-	
-	import org.apache.dolphinscheduler.api.exceptions.ApiException;
-	import org.apache.dolphinscheduler.api.service.ProjectParameterService;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.constants.Constants;
-	import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
-	
-	import lombok.extern.slf4j.Slf4j;
-	
-	import org.springframework.beans.factory.annotation.Autowired;
-	import org.springframework.http.HttpStatus;
-	import org.springframework.web.bind.annotation.GetMapping;
-	import org.springframework.web.bind.annotation.PathVariable;
-	import org.springframework.web.bind.annotation.PostMapping;
-	import org.springframework.web.bind.annotation.PutMapping;
-	import org.springframework.web.bind.annotation.RequestAttribute;
-	import org.springframework.web.bind.annotation.RequestMapping;
-	import org.springframework.web.bind.annotation.RequestParam;
-	import org.springframework.web.bind.annotation.ResponseStatus;
-	import org.springframework.web.bind.annotation.RestController;
-	
-	import io.swagger.v3.oas.annotations.Operation;
-	import io.swagger.v3.oas.annotations.Parameter;
-	import io.swagger.v3.oas.annotations.Parameters;
-	import io.swagger.v3.oas.annotations.media.Schema;
-	import io.swagger.v3.oas.annotations.tags.Tag;
-	"
-	            }
-	        ],
-	        "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/controller/ProjectParameterControllerTest.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 36,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.api.controller;
-	
-	import org.apache.dolphinscheduler.api.enums.Status;
-	import org.apache.dolphinscheduler.api.service.impl.ProjectParameterServiceImpl;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.enums.UserType;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
-	
-	import org.junit.jupiter.api.Assertions;
-	import org.junit.jupiter.api.Test;
-	import org.junit.jupiter.api.extension.ExtendWith;
-	import org.mockito.InjectMocks;
-	import org.mockito.Mock;
-	import org.mockito.Mockito;
-	import org.mockito.junit.jupiter.MockitoExtension;
-	import org.mockito.junit.jupiter.MockitoSettings;
-	import org.mockito.quality.Strictness;
-	",
-	                "newContent": "
-	package org.apache.dolphinscheduler.api.controller;
-	
-	import org.apache.dolphinscheduler.api.enums.Status;
-	import org.apache.dolphinscheduler.api.service.ProjectParameterService;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.enums.UserType;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
-	
-	import org.junit.jupiter.api.Assertions;
-	import org.junit.jupiter.api.Test;
-	import org.junit.jupiter.api.extension.ExtendWith;
-	import org.mockito.InjectMocks;
-	import org.mockito.Mock;
-	import org.mockito.Mockito;
-	import org.mockito.junit.jupiter.MockitoExtension;
-	import org.mockito.junit.jupiter.MockitoSettings;
-	import org.mockito.quality.Strictness;
-	"
-	            }
-	        ],
-	        "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/service/ProjectParameterServiceTest.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 54,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.api.service;
-	
-	import static org.apache.dolphinscheduler.api.utils.ServiceTestUtil.getGeneralUser;
-	import static org.junit.jupiter.api.Assertions.assertEquals;
-	import static org.junit.jupiter.api.Assertions.assertNotNull;
-	import static org.junit.jupiter.api.Assertions.assertNull;
-	import static org.mockito.ArgumentMatchers.any;
-	import static org.mockito.ArgumentMatchers.anyLong;
-	import static org.mockito.Mockito.when;
-	
-	import org.apache.dolphinscheduler.api.AssertionsHelper;
-	import org.apache.dolphinscheduler.api.enums.Status;
-	import org.apache.dolphinscheduler.api.service.impl.ProjectParameterServiceImpl;
-	import org.apache.dolphinscheduler.api.service.impl.ProjectServiceImpl;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.utils.CodeGenerateUtils;
-	import org.apache.dolphinscheduler.dao.entity.Project;
-	import org.apache.dolphinscheduler.dao.entity.ProjectParameter;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
-	import org.apache.dolphinscheduler.dao.mapper.ProjectParameterMapper;
-	import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
-	
-	import java.util.Collections;
-	
-	import org.junit.jupiter.api.Test;
-	import org.junit.jupiter.api.extension.ExtendWith;
-	import org.mockito.InjectMocks;
-	import org.mockito.Mock;
-	import org.mockito.MockedStatic;
-	import org.mockito.Mockito;
-	import org.mockito.junit.jupiter.MockitoExtension;
-	import org.mockito.junit.jupiter.MockitoSettings;
-	import org.mockito.quality.Strictness;
-	
-	import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-	",
-	                "newContent": "
-	package org.apache.dolphinscheduler.api.service;
-	
-	import static org.apache.dolphinscheduler.api.utils.ServiceTestUtil.getGeneralUser;
-	import static org.junit.jupiter.api.Assertions.assertEquals;
-	import static org.junit.jupiter.api.Assertions.assertNotNull;
-	import static org.junit.jupiter.api.Assertions.assertNull;
-	import static org.mockito.ArgumentMatchers.any;
-	import static org.mockito.Mockito.when;
-	
-	import org.apache.dolphinscheduler.api.AssertionsHelper;
-	import org.apache.dolphinscheduler.api.enums.Status;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.utils.CodeGenerateUtils;
-	import org.apache.dolphinscheduler.dao.entity.Project;
-	import org.apache.dolphinscheduler.dao.entity.ProjectParameter;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
-	import org.apache.dolphinscheduler.dao.mapper.ProjectParameterMapper;
-	import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
-	
-	import java.util.Collections;
-	
-	import org.junit.jupiter.api.Test;
-	import org.junit.jupiter.api.extension.ExtendWith;
-	import org.mockito.InjectMocks;
-	import org.mockito.Mock;
-	import org.mockito.MockedStatic;
-	import org.mockito.Mockito;
-	import org.mockito.junit.jupiter.MockitoExtension;
-	import org.mockito.junit.jupiter.MockitoSettings;
-	import org.mockito.quality.Strictness;
-	
-	import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-	"
-	            }
-	        ],
-	        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/SchedulerController.java": [
-	            {
-	                "fromLine": 17,
-	                "toLine": 62,
-	                "oldContent": "
-	package org.apache.dolphinscheduler.api.controller;
-	
-	import static org.apache.dolphinscheduler.api.enums.Status.CREATE_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.DELETE_SCHEDULE_BY_ID_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.OFFLINE_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.PREVIEW_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.PUBLISH_SCHEDULE_ONLINE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.QUERY_SCHEDULE_LIST_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.QUERY_SCHEDULE_LIST_PAGING_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.common.constants.Constants.SESSION_USER;
-	
-	import org.apache.dolphinscheduler.api.audit.OperatorLog;
-	import org.apache.dolphinscheduler.api.audit.enums.AuditType;
-	import org.apache.dolphinscheduler.api.enums.Status;
-	import org.apache.dolphinscheduler.api.exceptions.ApiException;
-	import org.apache.dolphinscheduler.api.service.SchedulerService;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.enums.FailureStrategy;
-	import org.apache.dolphinscheduler.common.enums.Priority;
-	import org.apache.dolphinscheduler.common.enums.WarningType;
-	import org.apache.dolphinscheduler.dao.entity.User;
-	import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
-	
-	import java.util.Map;
-	
-	import org.springframework.beans.factory.annotation.Autowired;
-	import org.springframework.http.HttpStatus;
-	import org.springframework.web.bind.annotation.DeleteMapping;
-	import org.springframework.web.bind.annotation.GetMapping;
-	import org.springframework.web.bind.annotation.PathVariable;
-	import org.springframework.web.bind.annotation.PostMapping;
-	import org.springframework.web.bind.annotation.PutMapping;
-	import org.springframework.web.bind.annotation.RequestAttribute;
-	import org.springframework.web.bind.annotation.RequestMapping;
-	import org.springframework.web.bind.annotation.RequestParam;
-	import org.springframework.web.bind.annotation.ResponseStatus;
-	import org.springframework.web.bind.annotation.RestController;
-	
-	import io.swagger.v3.oas.annotations.Operation;
-	import io.swagger.v3.oas.annotations.Parameter;
-	import io.swagger.v3.oas.annotations.Parameters;
-	import io.swagger.v3.oas.annotations.media.Schema;
-	import io.swagger.v3.oas.annotations.tags.Tag;
-	",
-	                "newContent": "
-	package org.apache.dolphinscheduler.api.controller;
-	
-	import static org.apache.dolphinscheduler.api.enums.Status.CREATE_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.DELETE_SCHEDULE_BY_ID_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.OFFLINE_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.PREVIEW_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.PUBLISH_SCHEDULE_ONLINE_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.QUERY_SCHEDULE_LIST_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.QUERY_SCHEDULE_LIST_PAGING_ERROR;
-	import static org.apache.dolphinscheduler.api.enums.Status.UPDATE_SCHEDULE_ERROR;
-	import static org.apache.dolphinscheduler.common.constants.Constants.SESSION_USER;
-	
-	import org.apache.dolphinscheduler.api.audit.OperatorLog;
-	import org.apache.dolphinscheduler.api.audit.enums.AuditType;
-	import org.apache.dolphinscheduler.api.enums.Status;
-	import org.apache.dolphinscheduler.api.exceptions.ApiException;
-	import org.apache.dolphinscheduler.api.service.ScheduleService;
-	import org.apache.dolphinscheduler.api.utils.Result;
-	import org.apache.dolphinscheduler.common.enums.FailureStrategy;
-	import org.apache.dolphinscheduler.common.enums.Priority;
-	import org.apache.dolphinscheduler.common.enums.WarningType;
-	
-	import java.util.Map;
-	
-	import org.springframework.beans.factory.annotation.Autowired;
-	import org.springframework.http.HttpStatus;
-	import org.springframework.web.bind.annotation.DeleteMapping;
-	import org.springframework.web.bind.annotation.GetMapping;
-	import org.springframework.web.bind.annotation.PathVariable;
-	import org.springframework.web.bind.annotation.PostMapping	
-",
-	role:"
-	assistant	
-",
-,
-	content:"
-	Correct the following errors. Use the same JSON format as in the initial refactoring.	
-",
-	role:"
-	user	
-",
-,
-	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-task-api: Compilation failure
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:[22,13] cannot find symbol
-	[ERROR]   symbol:   class AlertInfo
-	[ERROR]   location: class org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] 
-	[ERROR] -> [Help 1]
-	[ERROR] 
-	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-	[ERROR] 
-	[ERROR] For more information about the errors and possible solutions, please read the following articles:
-	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-	[ERROR] 
-	[ERROR] After correcting the problems, you can resume the build with the command
-	[ERROR]   mvn <args> -rf :dolphinscheduler-task-api
-		
-",
-	role:"
-	user	
-",
-,
-	content:"
-	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
-",
-	role:"
-	user	
-",
-,
-	content:
-{
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
-		[
-			fromLine:"			17",
-			toLine:"			19",
-			content:"
-			
-			package org.apache.dolphinscheduler.plugin.task.api.model;
+			    private String content;
 						
 ",
 ,
-			fromLine:"			21",
-			toLine:"			23",
+			fromLine:"			66",
+			toLine:"			68",
 			content:"
-			
-			    private AlertInfo alertInfo;
+			    @TableField("alertgroup_id")
+			    private Integer alertGroupId;
 						
 ",
 ,
@@ -1526,30 +1020,152 @@ messages:
 {
 			refactorings:
 {
-					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
+					dolphinscheduler-api-test/dolphinscheduler-api-test-case/src/test/java/org/apache/dolphinscheduler/api/test/pages/workflow/ExecutorPage.java:
 			[
-				fromLine:"				21",
-				toLine:"				23",
+
+			],
+			dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:
+			[
+
+			],
+			dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+			[
+				fromLine:"				42",
+				toLine:"				44",
 				oldContent:"
 				
-				    private AlertInfo alertInfo;
+				    private String name;
 								
 ",
 				newContent:"
+				    // Refactored Content: Consolidated into TaskInstanceDetails class				
+",
+,
+				fromLine:"				50",
+				toLine:"				52",
+				oldContent:"
 				
-				    private String title;
-				    private String content;
-				    private Integer alertGroupId;
+				    private Long projectCode;
+								
+",
+				newContent:"
 								
 ",
 ,
+				fromLine:"				72",
+				toLine:"				74",
+				oldContent:"
+				
+				    private String host;
+								
+",
+				newContent:"
+								
+",
+,
+				fromLine:"				143",
+				toLine:"				145",
+				oldContent:"
+				    public void init(String host, Date startTime, String executePath) {
+				        this.host = host;
+				        this.startTime = startTime;				
+",
+				newContent:"
+				    public void init(TaskInstanceDetails details, String executePath) {
+				        this.details = details;
+				        this.executePath = executePath;				
+",
+,
+
+			],
+			dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java:
+			[
+
+			],
+			dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/ProjectParameterController.java:
+			[
+
+			],
+			dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/controller/ProjectParameterControllerTest.java:
+			[
+
+			],
+			dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/service/ProjectParameterServiceTest.java:
+			[
+
+			],
+			dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/SchedulerController.java:
+			[
+
+			],
+			dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
+			[
+
+			],
+			dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:
+			[
 
 			],
 		
 }
 		extractedClasses:
 {
-				
+					org/apache/dolphinscheduler/dao/entity/TaskInstanceDetails.java:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			public class TaskInstanceDetails implements Serializable {
+			
+			    private String name;
+			    private Long projectCode;
+			    private String host;
+			    private Date startTime;
+			
+			    public TaskInstanceDetails(String name, Long projectCode, String host, Date startTime) {
+			        this.name = name;
+			        this.projectCode = projectCode;
+			        this.host = host;
+			        this.startTime = startTime;
+			    }
+			
+			    // Getters and setters
+			    public String getName() {
+			        return name;
+			    }
+			
+			    public void setName(String name) {
+			        this.name = name;
+			    }
+			
+			    public Long getProjectCode() {
+			        return projectCode;
+			    }
+			
+			    public void setProjectCode(Long projectCode) {
+			        this.projectCode = projectCode;
+			    }
+			
+			    public String getHost() {
+			        return host;
+			    }
+			
+			    public void setHost(String host) {
+			        this.host = host;
+			    }
+			
+			    public Date getStartTime() {
+			        return startTime;
+			    }
+			
+			    public void setStartTime(Date startTime) {
+			        this.startTime = startTime;
+			    }
+			}			
+",
+		
 }
 	
 }
@@ -1565,28 +1181,11 @@ messages:
 ",
 ,
 	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-dao: Compilation failure: Compilation failure: 
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:[51,13] cannot find symbol
-	[ERROR]   symbol:   class AlertInfo
-	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.Alert
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:[51,23] cannot find symbol
-	[ERROR]   symbol:   class AlertInfo
-	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.Alert
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:[38,1] cannot find symbol
-	[ERROR]   symbol:   class AlertInfo
-	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.Alert
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:[41,1] cannot find symbol
-	[ERROR]   symbol:   class AlertInfo
-	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.Alert
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:[39,1] cannot find symbol
-	[ERROR]   symbol:   class AlertInfo
-	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.Alert.AlertBuilder
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[143,22] cannot find symbol
-	[ERROR]   symbol:   class TaskInstanceInitialization
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-dao: Compilation failure
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[137,22] cannot find symbol
+	[ERROR]   symbol:   class TaskInstanceDetails
 	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.TaskInstance
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:[274,63] cannot find symbol
-	[ERROR]   symbol:   class WorkflowInstancePagingQuery
-	[ERROR]   location: interface org.apache.dolphinscheduler.dao.mapper.WorkflowInstanceMapper
+	[ERROR] 
 	[ERROR] -> [Help 1]
 	[ERROR] 
 	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
@@ -1612,50 +1211,7 @@ messages:
 ,
 	content:
 {
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:
-		[
-			fromLine:"			17",
-			toLine:"			42",
-			content:"
-			
-			package org.apache.dolphinscheduler.dao.entity;
-			
-			import org.apache.dolphinscheduler.common.enums.AlertStatus;
-			import org.apache.dolphinscheduler.common.enums.AlertType;
-			import org.apache.dolphinscheduler.common.enums.WarningType;
-			
-			import java.util.Date;
-			import java.util.HashMap;
-			import java.util.Map;
-			
-			import lombok.AllArgsConstructor;
-			import lombok.Builder;
-			import lombok.Data;
-			import lombok.NoArgsConstructor;
-			
-			import com.baomidou.mybatisplus.annotation.IdType;
-			import com.baomidou.mybatisplus.annotation.TableField;
-			import com.baomidou.mybatisplus.annotation.TableId;
-			import com.baomidou.mybatisplus.annotation.TableName;
-			
-			@Data
-			@Builder
-			@NoArgsConstructor
-			@AllArgsConstructor
-			@TableName("t_ds_alert")			
-",
-,
-			fromLine:"			50",
-			toLine:"			52",
-			content:"
-			
-			    private AlertInfo alertInfo;
-			    			
-",
-,
-
-		],
-		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
 		[
 			fromLine:"			17",
 			toLine:"			35",
@@ -1681,523 +1237,1552 @@ messages:
 						
 ",
 ,
-			fromLine:"			142",
-			toLine:"			144",
+			fromLine:"			136",
+			toLine:"			138",
 			content:"
 			
-			    public void init(TaskInstanceInitialization initialization) {
-			        this.host = initialization.getHost();			
+			    public void init(TaskInstanceDetails details, String executePath) {
+			        this.details = details;			
 ",
 ,
 
 		],
-		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+			[
+				fromLine:"				17",
+				toLine:"				35",
+				oldContent:"
+				
+				import org.apache.dolphinscheduler.common.enums.Flag;
+				import org.apache.dolphinscheduler.common.enums.Priority;
+				import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
+				import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
+				
+				import java.io.Serializable;
+				import java.util.Date;
+				
+				import lombok.Data;
+				
+				import com.baomidou.mybatisplus.annotation.FieldStrategy;
+				import com.baomidou.mybatisplus.annotation.IdType;
+				import com.baomidou.mybatisplus.annotation.TableField;
+				import com.baomidou.mybatisplus.annotation.TableId;
+				import com.baomidou.mybatisplus.annotation.TableName;				
+",
+				newContent:"
+				
+				import org.apache.dolphinscheduler.common.enums.Flag;
+				import org.apache.dolphinscheduler.common.enums.Priority;
+				import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
+				import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
+				import org.apache.dolphinscheduler.dao.entity.TaskInstanceDetails;
+				
+				import java.io.Serializable;
+				import java.util.Date;
+				
+				import lombok.Data;
+				
+				import com.baomidou.mybatisplus.annotation.FieldStrategy;
+				import com.baomidou.mybatisplus.annotation.IdType;
+				import com.baomidou.mybatisplus.annotation.TableField;
+				import com.baomidou.mybatisplus.annotation.TableId;
+				import com.baomidou.mybatisplus.annotation.TableName;				
+",
+,
+				fromLine:"				136",
+				toLine:"				138",
+				oldContent:"
+				
+				    public void init(TaskInstanceDetails details, String executePath) {
+				        this.details = details;				
+",
+				newContent:"
+				    public void init(TaskInstanceDetails details, String executePath) {
+				        this.details = details;
+				        this.executePath = executePath;				
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstanceDetails.java:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			public class TaskInstanceDetails implements Serializable {
+			
+			    private String name;
+			    private Long projectCode;
+			    private String host;
+			    private Date startTime;
+			
+			    public TaskInstanceDetails(String name, Long projectCode, String host, Date startTime) {
+			        this.name = name;
+			        this.projectCode = projectCode;
+			        this.host = host;
+			        this.startTime = startTime;
+			    }
+			
+			    // Getters and setters
+			    public String getName() {
+			        return name;
+			    }
+			
+			    public void setName(String name) {
+			        this.name = name;
+			    }
+			
+			    public Long getProjectCode() {
+			        return projectCode;
+			    }
+			
+			    public void setProjectCode(Long projectCode) {
+			        this.projectCode = projectCode;
+			    }
+			
+			    public String getHost() {
+			        return host;
+			    }
+			
+			    public void setHost(String host) {
+			        this.host = host;
+			    }
+			
+			    public Date getStartTime() {
+			        return startTime;
+			    }
+			
+			    public void setStartTime(Date startTime) {
+			        this.startTime = startTime;
+			    }
+			}			
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-dao: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[138,13] cannot find symbol
+	[ERROR]   symbol: variable details
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/TaskInstanceUtils.java:[33,30] cannot find symbol
+	[ERROR]   symbol:   method getName()
+	[ERROR]   location: variable source of type org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/TaskInstanceUtils.java:[37,37] cannot find symbol
+	[ERROR]   symbol:   method getProjectCode()
+	[ERROR]   location: variable source of type org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/TaskInstanceUtils.java:[47,30] cannot find symbol
+	[ERROR]   symbol:   method getHost()
+	[ERROR]   location: variable source of type org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/AlertDao.java:[257,39] cannot find symbol
+	[ERROR]   symbol:   method getName()
+	[ERROR]   location: variable taskInstance of type org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/AlertDao.java:[260,39] cannot find symbol
+	[ERROR]   symbol:   method getHost()
+	[ERROR]   location: variable taskInstance of type org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :dolphinscheduler-dao
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+		[
+			fromLine:"			17",
+			toLine:"			36",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import org.apache.dolphinscheduler.common.enums.Flag;
+			import org.apache.dolphinscheduler.common.enums.Priority;
+			import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
+			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
+			import org.apache.dolphinscheduler.dao.entity.TaskInstanceDetails;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			import lombok.Data;
+			
+			import com.baomidou.mybatisplus.annotation.FieldStrategy;
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableField;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+						
+",
+,
+			fromLine:"			137",
+			toLine:"			139",
+			content:"
+			    public void init(TaskInstanceDetails details, String executePath) {
+			        this.details = details;
+			        this.executePath = executePath;			
+",
+,
+
+		],
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/TaskInstanceUtils.java:
+		[
+			fromLine:"			17",
+			toLine:"			21",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.utils;
+			
+			import org.apache.dolphinscheduler.dao.entity.TaskInstance;
+						
+",
+,
+			fromLine:"			32",
+			toLine:"			34",
+			content:"
+			        target.setId(source.getId());
+			        target.setName(source.getName());
+			        target.setTaskType(source.getTaskType());			
+",
+,
+			fromLine:"			36",
+			toLine:"			38",
+			content:"
+			        target.setWorkflowInstanceName(source.getWorkflowInstanceName());
+			        target.setProjectCode(source.getProjectCode());
+			        target.setTaskCode(source.getTaskCode());			
+",
+,
+			fromLine:"			46",
+			toLine:"			48",
+			content:"
+			        target.setEndTime(source.getEndTime());
+			        target.setHost(source.getHost());
+			        target.setExecutePath(source.getExecutePath());			
+",
+,
+
+		],
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/AlertDao.java:
+		[
+			fromLine:"			17",
+			toLine:"			61",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao;
+			
+			import org.apache.dolphinscheduler.common.enums.AlertEvent;
+			import org.apache.dolphinscheduler.common.enums.AlertStatus;
+			import org.apache.dolphinscheduler.common.enums.AlertType;
+			import org.apache.dolphinscheduler.common.enums.AlertWarnLevel;
+			import org.apache.dolphinscheduler.common.enums.WarningType;
+			import org.apache.dolphinscheduler.common.utils.JSONUtils;
+			import org.apache.dolphinscheduler.dao.entity.Alert;
+			import org.apache.dolphinscheduler.dao.entity.AlertPluginInstance;
+			import org.apache.dolphinscheduler.dao.entity.AlertSendStatus;
+			import org.apache.dolphinscheduler.dao.entity.ProjectUser;
+			import org.apache.dolphinscheduler.dao.entity.ServerAlertContent;
+			import org.apache.dolphinscheduler.dao.entity.TaskInstance;
+			import org.apache.dolphinscheduler.dao.entity.WorkflowAlertContent;
+			import org.apache.dolphinscheduler.dao.entity.WorkflowInstance;
+			import org.apache.dolphinscheduler.dao.mapper.AlertGroupMapper;
+			import org.apache.dolphinscheduler.dao.mapper.AlertMapper;
+			import org.apache.dolphinscheduler.dao.mapper.AlertPluginInstanceMapper;
+			import org.apache.dolphinscheduler.dao.mapper.AlertSendStatusMapper;
+			
+			import org.apache.commons.codec.digest.DigestUtils;
+			import org.apache.commons.collections4.CollectionUtils;
+			import org.apache.commons.lang3.math.NumberUtils;
+			
+			import java.time.LocalDateTime;
+			import java.time.ZoneId;
+			import java.util.ArrayList;
+			import java.util.Arrays;
+			import java.util.Date;
+			import java.util.List;
+			import java.util.Optional;
+			import java.util.stream.Collectors;
+			
+			import lombok.extern.slf4j.Slf4j;
+			
+			import org.springframework.beans.factory.annotation.Autowired;
+			import org.springframework.beans.factory.annotation.Value;
+			import org.springframework.stereotype.Component;
+			
+			import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+			import com.google.common.base.Strings;
+			import com.google.common.collect.Lists;
+						
+",
+,
+			fromLine:"			256",
+			toLine:"			261",
+			content:"
+			                .taskCode(taskInstance.getTaskCode())
+			                .taskName(taskInstance.getName())
+			                .taskType(taskInstance.getTaskType())
+			                .taskStartTime(taskInstance.getStartTime())
+			                .taskHost(taskInstance.getHost())
+			                .event(AlertEvent.TIME_OUT)			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+			[
+				fromLine:"				137",
+				toLine:"				139",
+				oldContent:"
+				    public void init(TaskInstanceDetails details, String executePath) {
+				        this.details = details;
+				        this.executePath = executePath;				
+",
+				newContent:"
+				    public void init(String host, Date startTime, String executePath) {
+				        this.host = host;
+				        this.startTime = startTime;
+				        this.executePath = executePath;				
+",
+,
+
+			],
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/TaskInstanceUtils.java:
+			[
+				fromLine:"				32",
+				toLine:"				34",
+				oldContent:"
+				        target.setName(source.getName());
+				        target.setTaskType(source.getTaskType());				
+",
+				newContent:"
+				        target.setTaskType(source.getTaskType());				
+",
+,
+				fromLine:"				36",
+				toLine:"				38",
+				oldContent:"
+				        target.setProjectCode(source.getProjectCode());
+				        target.setTaskCode(source.getTaskCode());				
+",
+				newContent:"
+				        target.setTaskCode(source.getTaskCode());				
+",
+,
+				fromLine:"				46",
+				toLine:"				48",
+				oldContent:"
+				        target.setHost(source.getHost());
+				        target.setExecutePath(source.getExecutePath());				
+",
+				newContent:"
+				        target.setExecutePath(source.getExecutePath());				
+",
+,
+
+			],
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/AlertDao.java:
+			[
+				fromLine:"				256",
+				toLine:"				261",
+				oldContent:"
+				                .taskName(taskInstance.getName())
+				                .taskType(taskInstance.getTaskType())
+				                .taskStartTime(taskInstance.getStartTime())
+				                .taskHost(taskInstance.getHost())
+				                .event(AlertEvent.TIME_OUT)				
+",
+				newContent:"
+				                .taskType(taskInstance.getTaskType())
+				                .taskStartTime(taskInstance.getStartTime())
+				                .event(AlertEvent.TIME_OUT)				
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstanceDetails.java:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			public class TaskInstanceDetails implements Serializable {
+			
+			    private String name;
+			    private Long projectCode;
+			    private String host;
+			    private Date startTime;
+			
+			    public TaskInstanceDetails(String name, Long projectCode, String host, Date startTime) {
+			        this.name = name;
+			        this.projectCode = projectCode;
+			        this.host = host;
+			        this.startTime = startTime;
+			    }
+			
+			    // Getters and setters
+			    public String getName() {
+			        return name;
+			    }
+			
+			    public void setName(String name) {
+			        this.name = name;
+			    }
+			
+			    public Long getProjectCode() {
+			        return projectCode;
+			    }
+			
+			    public void setProjectCode(Long projectCode) {
+			        this.projectCode = projectCode;
+			    }
+			
+			    public String getHost() {
+			        return host;
+			    }
+			
+			    public void setHost(String host) {
+			        this.host = host;
+			    }
+			
+			    public Date getStartTime() {
+			        return startTime;
+			    }
+			
+			    public void setStartTime(Date startTime) {
+			        this.startTime = startTime;
+			    }
+			}			
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-dao: Compilation failure
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[138,13] cannot find symbol
+	[ERROR]   symbol: variable host
+	[ERROR] 
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :dolphinscheduler-dao
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+		[
+			fromLine:"			17",
+			toLine:"			36",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import org.apache.dolphinscheduler.common.enums.Flag;
+			import org.apache.dolphinscheduler.common.enums.Priority;
+			import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
+			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
+			import org.apache.dolphinscheduler.dao.entity.TaskInstanceDetails;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			import lombok.Data;
+			
+			import com.baomidou.mybatisplus.annotation.FieldStrategy;
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableField;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+						
+",
+,
+			fromLine:"			137",
+			toLine:"			139",
+			content:"
+			    public void init(String host, Date startTime, String executePath) {
+			        this.host = host;
+			        this.startTime = startTime;			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+			[
+				fromLine:"				137",
+				toLine:"				139",
+				oldContent:"
+				    public void init(String host, Date startTime, String executePath) {
+				        this.host = host;
+				        this.startTime = startTime;				
+",
+				newContent:"
+				    public void init(TaskInstanceDetails details, String executePath) {
+				        this.details = details;
+				        this.executePath = executePath;				
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstanceDetails.java:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			public class TaskInstanceDetails implements Serializable {
+			
+			    private String name;
+			    private Long projectCode;
+			    private String host;
+			    private Date startTime;
+			
+			    public TaskInstanceDetails(String name, Long projectCode, String host, Date startTime) {
+			        this.name = name;
+			        this.projectCode = projectCode;
+			        this.host = host;
+			        this.startTime = startTime;
+			    }
+			
+			    // Getters and setters
+			    public String getName() {
+			        return name;
+			    }
+			
+			    public void setName(String name) {
+			        this.name = name;
+			    }
+			
+			    public Long getProjectCode() {
+			        return projectCode;
+			    }
+			
+			    public void setProjectCode(Long projectCode) {
+			        this.projectCode = projectCode;
+			    }
+			
+			    public String getHost() {
+			        return host;
+			    }
+			
+			    public void setHost(String host) {
+			        this.host = host;
+			    }
+			
+			    public Date getStartTime() {
+			        return startTime;
+			    }
+			
+			    public void setStartTime(Date startTime) {
+			        this.startTime = startTime;
+			    }
+			}			
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-dao: Compilation failure
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[138,13] cannot find symbol
+	[ERROR]   symbol: variable details
+	[ERROR] 
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :dolphinscheduler-dao
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+		[
+			fromLine:"			17",
+			toLine:"			36",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import org.apache.dolphinscheduler.common.enums.Flag;
+			import org.apache.dolphinscheduler.common.enums.Priority;
+			import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
+			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
+			import org.apache.dolphinscheduler.dao.entity.TaskInstanceDetails;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			import lombok.Data;
+			
+			import com.baomidou.mybatisplus.annotation.FieldStrategy;
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableField;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+						
+",
+,
+			fromLine:"			137",
+			toLine:"			139",
+			content:"
+			    public void init(TaskInstanceDetails details, String executePath) {
+			        this.details = details;
+			        this.executePath = executePath;			
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:
+{
+			refactorings:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+			[
+				fromLine:"				137",
+				toLine:"				139",
+				oldContent:"
+				    public void init(TaskInstanceDetails details, String executePath) {
+				        this.details = details;
+				        this.executePath = executePath;				
+",
+				newContent:"
+				    // Error Correction: Revert previous changes
+				    public void init(String host, Date startTime, String executePath) {
+				        this.host = host;
+				        this.startTime = startTime;
+				        this.executePath = executePath;				
+",
+,
+
+			],
+		
+}
+		extractedClasses:
+{
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstanceDetails.java:"
+						
+",
+		
+}
+	
+}
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-dao: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[24,46] cannot access org.apache.dolphinscheduler.dao.entity.TaskInstanceDetails
+	[ERROR]   bad source file: /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstanceDetails.java
+	[ERROR]     file does not contain class org.apache.dolphinscheduler.dao.entity.TaskInstanceDetails
+	[ERROR]     Please remove or make sure it appears in the correct subdirectory of the sourcepath.
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[139,13] cannot find symbol
+	[ERROR]   symbol: variable host
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:[172,35] cannot find symbol
+	[ERROR]   symbol:   method getName()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:[173,50] cannot find symbol
+	[ERROR]   symbol:   method getVersion()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:[221,13] cannot find symbol
+	[ERROR]   symbol: method setState(org.apache.dolphinscheduler.common.enums.WorkflowExecutionStatus)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:[222,37] cannot find symbol
+	[ERROR]   symbol: method getStateHistory()
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:[225,50] cannot find symbol
+	[ERROR]   symbol: method getStateHistory()
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:[227,27] constructor StateDesc in class org.apache.dolphinscheduler.dao.entity.WorkflowInstance.StateDesc cannot be applied to given types;
+	[ERROR]   required: no arguments
+	[ERROR]   found:    java.util.Date,org.apache.dolphinscheduler.common.enums.WorkflowExecutionStatus,java.lang.String
+	[ERROR]   reason: actual and formal argument lists differ in length
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:[228,13] cannot find symbol
+	[ERROR]   symbol: method setStateHistory(java.lang.String)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[101,43] cannot find symbol
+	[ERROR]   symbol:   method getName()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[102,64] cannot find symbol
+	[ERROR]   symbol:   method getWorkflowDefinitionVersion()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[103,50] cannot find symbol
+	[ERROR]   symbol:   method getProjectCode()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[104,61] cannot find symbol
+	[ERROR]   symbol:   method getWorkflowDefinitionCode()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[105,50] cannot find symbol
+	[ERROR]   symbol:   method getPreTaskCode()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[106,53] cannot find symbol
+	[ERROR]   symbol:   method getPreTaskVersion()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[107,51] cannot find symbol
+	[ERROR]   symbol:   method getPostTaskCode()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[108,54] cannot find symbol
+	[ERROR]   symbol:   method getPostTaskVersion()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[109,52] cannot find symbol
+	[ERROR]   symbol:   method getConditionType()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[110,54] cannot find symbol
+	[ERROR]   symbol:   method getConditionParams()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:[112,49] cannot find symbol
+	[ERROR]   symbol:   method getCreateTime()
+	[ERROR]   location: variable processTaskRelationLog of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[35,9] no suitable constructor found for WorkflowTaskRelation(no arguments)
+	[ERROR]     constructor org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation.WorkflowTaskRelation(java.lang.String,int,long,long,long,int,long,int,org.apache.dolphinscheduler.common.enums.ConditionType,java.lang.String) is not applicable
+	[ERROR]       (actual and formal argument lists differ in length)
+	[ERROR]     constructor org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation.WorkflowTaskRelation(org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog) is not applicable
+	[ERROR]       (actual and formal argument lists differ in length)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[39,9] no suitable constructor found for WorkflowTaskRelation(no arguments)
+	[ERROR]     constructor org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation.WorkflowTaskRelation(java.lang.String,int,long,long,long,int,long,int,org.apache.dolphinscheduler.common.enums.ConditionType,java.lang.String) is not applicable
+	[ERROR]       (actual and formal argument lists differ in length)
+	[ERROR]     constructor org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation.WorkflowTaskRelation(org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelationLog) is not applicable
+	[ERROR]       (actual and formal argument lists differ in length)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[40,42] cannot find symbol
+	[ERROR]   symbol:   method getName()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[41,60] cannot find symbol
+	[ERROR]   symbol:   method getWorkflowDefinitionCode()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[42,63] cannot find symbol
+	[ERROR]   symbol:   method getWorkflowDefinitionVersion()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[43,49] cannot find symbol
+	[ERROR]   symbol:   method getProjectCode()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[44,49] cannot find symbol
+	[ERROR]   symbol:   method getPreTaskCode()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[45,52] cannot find symbol
+	[ERROR]   symbol:   method getPreTaskVersion()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[46,50] cannot find symbol
+	[ERROR]   symbol:   method getPostTaskCode()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[47,53] cannot find symbol
+	[ERROR]   symbol:   method getPostTaskVersion()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[48,51] cannot find symbol
+	[ERROR]   symbol:   method getConditionType()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[49,53] cannot find symbol
+	[ERROR]   symbol:   method getConditionParams()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[50,48] cannot find symbol
+	[ERROR]   symbol:   method getCreateTime()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:[51,48] cannot find symbol
+	[ERROR]   symbol:   method getUpdateTime()
+	[ERROR]   location: variable workflowTaskRelation of type org.apache.dolphinscheduler.dao.entity.WorkflowTaskRelation
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[41,9] constructor TaskDefinition in class org.apache.dolphinscheduler.dao.entity.TaskDefinition cannot be applied to given types;
+	[ERROR]   required: long,int
+	[ERROR]   found:    no arguments
+	[ERROR]   reason: actual and formal argument lists differ in length
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[45,9] constructor TaskDefinition in class org.apache.dolphinscheduler.dao.entity.TaskDefinition cannot be applied to given types;
+	[ERROR]   required: long,int
+	[ERROR]   found:    no arguments
+	[ERROR]   reason: actual and formal argument lists differ in length
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[46,36] cannot find symbol
+	[ERROR]   symbol:   method getCode()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[47,39] cannot find symbol
+	[ERROR]   symbol:   method getVersion()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[48,36] cannot find symbol
+	[ERROR]   symbol:   method getName()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[49,43] cannot find symbol
+	[ERROR]   symbol:   method getDescription()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[50,38] cannot find symbol
+	[ERROR]   symbol:   method getUserId()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[51,40] cannot find symbol
+	[ERROR]   symbol:   method getUserName()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[52,43] cannot find symbol
+	[ERROR]   symbol:   method getWorkerGroup()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[53,47] cannot find symbol
+	[ERROR]   symbol:   method getEnvironmentCode()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[54,43] cannot find symbol
+	[ERROR]   symbol:   method getProjectCode()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[55,43] cannot find symbol
+	[ERROR]   symbol:   method getProjectName()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[56,43] cannot find symbol
+	[ERROR]   symbol:   method getResourceIds()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[57,42] cannot find symbol
+	[ERROR]   symbol:   method getTaskParams()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[58,13] cannot find symbol
+	[ERROR]   symbol: method setTaskParamList(java.util.List<org.apache.dolphinscheduler.plugin.task.api.model.Property>)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[59,13] cannot find symbol
+	[ERROR]   symbol: method setTaskParamMap(java.util.Map<java.lang.String,java.lang.String>)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[60,44] cannot find symbol
+	[ERROR]   symbol:   method getTaskPriority()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[61,47] cannot find symbol
+	[ERROR]   symbol:   method getTaskExecuteType()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[62,53] cannot find symbol
+	[ERROR]   symbol:   method getTimeoutNotifyStrategy()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[63,40] cannot find symbol
+	[ERROR]   symbol:   method getTaskType()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[64,39] cannot find symbol
+	[ERROR]   symbol:   method getTimeout()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[65,41] cannot find symbol
+	[ERROR]   symbol:   method getDelayTime()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[66,43] cannot find symbol
+	[ERROR]   symbol:   method getTimeoutFlag()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[67,42] cannot find symbol
+	[ERROR]   symbol:   method getUpdateTime()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[68,42] cannot find symbol
+	[ERROR]   symbol:   method getCreateTime()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[69,49] cannot find symbol
+	[ERROR]   symbol:   method getFailRetryInterval()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[70,46] cannot find symbol
+	[ERROR]   symbol:   method getFailRetryTimes()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[71,36] cannot find symbol
+	[ERROR]   symbol:   method getFlag()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[72,39] cannot find symbol
+	[ERROR]   symbol:   method getIsCache()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[73,40] cannot find symbol
+	[ERROR]   symbol:   method getModifyBy()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[74,13] cannot find symbol
+	[ERROR]   symbol: method setCpuQuota(java.lang.Integer)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[75,13] cannot find symbol
+	[ERROR]   symbol: method setMemoryMax(java.lang.Integer)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:[76,47] cannot find symbol
+	[ERROR]   symbol:   method getTaskExecuteType()
+	[ERROR]   location: variable taskDefinition of type org.apache.dolphinscheduler.dao.entity.TaskDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/WorkerGroupUtils.java:[53,38] cannot find symbol
+	[ERROR]   symbol:   method getAddrList()
+	[ERROR]   location: variable workerGroup of type org.apache.dolphinscheduler.dao.entity.WorkerGroup
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/repository/impl/SessionDaoImpl.java:[41,56] cannot find symbol
+	[ERROR]   symbol:   method builder()
+	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.Session
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/repository/impl/SessionDaoImpl.java:[46,67] cannot find symbol
+	[ERROR]   symbol:   method builder()
+	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.Session
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[57,36] cannot find symbol
+	[ERROR]   symbol:   method getPluginName()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[58,36] cannot find symbol
+	[ERROR]   symbol:   method getPluginType()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[61,67] cannot find symbol
+	[ERROR]   symbol:   method getPluginName()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[61,97] cannot find symbol
+	[ERROR]   symbol:   method getPluginType()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[64,81] cannot find symbol
+	[ERROR]   symbol:   method getId()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[65,40] cannot find symbol
+	[ERROR]   symbol:   method getId()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[69,45] cannot find symbol
+	[ERROR]   symbol:   method getPluginName()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[69,75] cannot find symbol
+	[ERROR]   symbol:   method getPluginType()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[73,17] cannot find symbol
+	[ERROR]   symbol:   variable log
+	[ERROR]   location: class org.apache.dolphinscheduler.dao.PluginDao
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[74,86] cannot find symbol
+	[ERROR]   symbol:   method getPluginName()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[75,37] cannot find symbol
+	[ERROR]   symbol:   method getPluginType()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[79,49] cannot find symbol
+	[ERROR]   symbol:   method getPluginName()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[79,79] cannot find symbol
+	[ERROR]   symbol:   method getPluginType()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[83,45] cannot find symbol
+	[ERROR]   symbol:   method getPluginParams()
+	[ERROR]   location: variable currPluginDefine of type org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[83,77] cannot find symbol
+	[ERROR]   symbol:   method getPluginParams()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[84,56] cannot find symbol
+	[ERROR]   symbol:   method getUpdateTime()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[85,58] cannot find symbol
+	[ERROR]   symbol:   method getPluginParams()
+	[ERROR]   location: variable pluginDefine of type @lombok.NonNull org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:[88,32] cannot find symbol
+	[ERROR]   symbol:   method getId()
+	[ERROR]   location: variable currPluginDefine of type org.apache.dolphinscheduler.dao.entity.PluginDefine
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[35,9] constructor WorkflowDefinition in class org.apache.dolphinscheduler.dao.entity.WorkflowDefinition cannot be applied to given types;
+	[ERROR]   required: long,java.lang.String,long,java.lang.String,java.lang.String,java.lang.String,int,int
+	[ERROR]   found:    no arguments
+	[ERROR]   reason: actual and formal argument lists differ in length
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[38,73] constructor WorkflowDefinition in class org.apache.dolphinscheduler.dao.entity.WorkflowDefinition cannot be applied to given types;
+	[ERROR]   required: long,java.lang.String,long,java.lang.String,java.lang.String,java.lang.String,int,int
+	[ERROR]   found:    no arguments
+	[ERROR]   reason: actual and formal argument lists differ in length
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[39,40] cannot find symbol
+	[ERROR]   symbol:   method getCode()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[40,40] cannot find symbol
+	[ERROR]   symbol:   method getName()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[41,43] cannot find symbol
+	[ERROR]   symbol:   method getVersion()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[42,48] cannot find symbol
+	[ERROR]   symbol:   method getReleaseState()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[43,47] cannot find symbol
+	[ERROR]   symbol:   method getProjectCode()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[44,47] cannot find symbol
+	[ERROR]   symbol:   method getDescription()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[45,48] cannot find symbol
+	[ERROR]   symbol:   method getGlobalParams()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[46,51] cannot find symbol
+	[ERROR]   symbol:   method getGlobalParamList()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[47,13] cannot find symbol
+	[ERROR]   symbol: method setGlobalParamMap(java.util.Map<java.lang.String,java.lang.String>)
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:[48,46] cannot find symbol
+	[ERROR]   symbol:   method getCreateTime()
+	[ERROR]   location: variable workflowDefinition of type org.apache.dolphinscheduler.dao.entity.WorkflowDefinition
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :dolphinscheduler-dao
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
+		[
+			fromLine:"			17",
+			toLine:"			36",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import org.apache.dolphinscheduler.common.enums.Flag;
+			import org.apache.dolphinscheduler.common.enums.Priority;
+			import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
+			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
+			import org.apache.dolphinscheduler.dao.entity.TaskInstanceDetails;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			import lombok.Data;
+			
+			import com.baomidou.mybatisplus.annotation.FieldStrategy;
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableField;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+						
+",
+,
+			fromLine:"			138",
+			toLine:"			140",
+			content:"
+			    public void init(String host, Date startTime, String executePath) {
+			        this.host = host;
+			        this.startTime = startTime;			
+",
+,
+
+		],
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowInstance.java:
+		[
+			fromLine:"			17",
+			toLine:"			47",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import org.apache.dolphinscheduler.common.enums.CommandType;
+			import org.apache.dolphinscheduler.common.enums.FailureStrategy;
+			import org.apache.dolphinscheduler.common.enums.Flag;
+			import org.apache.dolphinscheduler.common.enums.Priority;
+			import org.apache.dolphinscheduler.common.enums.TaskDependType;
+			import org.apache.dolphinscheduler.common.enums.WarningType;
+			import org.apache.dolphinscheduler.common.enums.WorkflowExecutionStatus;
+			import org.apache.dolphinscheduler.common.utils.DateUtils;
+			import org.apache.dolphinscheduler.common.utils.JSONUtils;
+			
+			import org.apache.commons.lang3.StringUtils;
+			
+			import java.util.ArrayList;
+			import java.util.Date;
+			import java.util.List;
+			
+			import lombok.AllArgsConstructor;
+			import lombok.Builder;
+			import lombok.Data;
+			import lombok.NoArgsConstructor;
+			
+			import com.baomidou.mybatisplus.annotation.FieldStrategy;
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableField;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+			import com.google.common.base.Strings;
+						
+",
+,
+			fromLine:"			171",
+			toLine:"			174",
+			content:"
+			        this.name = String.join("-",
+			                workflowDefinition.getName(),
+			                String.valueOf(workflowDefinition.getVersion()),
+			                DateUtils.getCurrentTimeStamp());			
+",
+,
+			fromLine:"			220",
+			toLine:"			229",
+			content:"
+			    public void setStateWithDesc(WorkflowExecutionStatus state, String stateDesc) {
+			        this.setState(state);
+			        if (StringUtils.isEmpty(this.getStateHistory())) {
+			            stateDescList = new ArrayList<>();
+			        } else if (stateDescList == null) {
+			            stateDescList = JSONUtils.toList(this.getStateHistory(), StateDesc.class);
+			        }
+			        stateDescList.add(new StateDesc(new Date(), state, stateDesc));
+			        this.setStateHistory(JSONUtils.toJsonString(stateDescList));
+			    }			
+",
+,
+
+		],
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelation.java:
 		[
 			fromLine:"			17",
 			toLine:"			35",
 			content:"
 			
-			package org.apache.dolphinscheduler.dao.mapper;
+			package org.apache.dolphinscheduler.dao.entity;
 			
-			import org.apache.dolphinscheduler.common.enums.WorkflowExecutionStatus;
-			import org.apache.dolphinscheduler.dao.entity.ExecuteStatusCount;
-			import org.apache.dolphinscheduler.dao.entity.WorkflowInstance;
-			import org.apache.dolphinscheduler.dao.model.WorkflowInstanceStatusCountDto;
+			import org.apache.dolphinscheduler.common.enums.ConditionType;
+			import org.apache.dolphinscheduler.common.utils.JSONUtils;
 			
-			import org.apache.ibatis.annotations.Param;
-			
-			import java.util.Collection;
 			import java.util.Date;
-			import java.util.List;
-			import java.util.Set;
 			
-			import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-			import com.baomidou.mybatisplus.core.metadata.IPage;
-			import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+			import lombok.AllArgsConstructor;
+			import lombok.Builder;
+			import lombok.Data;
+			import lombok.NoArgsConstructor;
+			
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+			import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+			import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 						
 ",
 ,
-			fromLine:"			273",
-			toLine:"			275",
+			fromLine:"			100",
+			toLine:"			113",
 			content:"
-			     */
-			    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(WorkflowInstancePagingQuery pagingQuery,
-			                                                              @Param("projectCode") Long projectCode,			
+			    public WorkflowTaskRelation(WorkflowTaskRelationLog processTaskRelationLog) {
+			        this.name = processTaskRelationLog.getName();
+			        this.workflowDefinitionVersion = processTaskRelationLog.getWorkflowDefinitionVersion();
+			        this.projectCode = processTaskRelationLog.getProjectCode();
+			        this.workflowDefinitionCode = processTaskRelationLog.getWorkflowDefinitionCode();
+			        this.preTaskCode = processTaskRelationLog.getPreTaskCode();
+			        this.preTaskVersion = processTaskRelationLog.getPreTaskVersion();
+			        this.postTaskCode = processTaskRelationLog.getPostTaskCode();
+			        this.postTaskVersion = processTaskRelationLog.getPostTaskVersion();
+			        this.conditionType = processTaskRelationLog.getConditionType();
+			        this.conditionParams = processTaskRelationLog.getConditionParams();
+			
+			        this.createTime = processTaskRelationLog.getCreateTime();
+			        this.updateTime = new Date();			
 ",
 ,
 
 		],
-	
-}
-	role:"
-	user	
-",
-,
-	content:
-{
-			refactorings:
-{
-					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:
-			[
-				fromLine:"				50",
-				toLine:"				52",
-				oldContent:"
-				
-				    private AlertInfo alertInfo;
-				    				
-",
-				newContent:"
-				
-				    private String title;
-				    private String content;
-				    private Integer alertGroupId;
-								
-",
-,
-
-			],
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
-			[
-				fromLine:"				142",
-				toLine:"				144",
-				oldContent:"
-				
-				    public void init(TaskInstanceInitialization initialization) {
-				        this.host = initialization.getHost();				
-",
-				newContent:"
-				
-				    public void init(String host, Date startTime, String executePath) {
-				        this.host = host;				
-",
-,
-
-			],
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:
-			[
-				fromLine:"				273",
-				toLine:"				275",
-				oldContent:"
-				     */
-				    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(WorkflowInstancePagingQuery pagingQuery,
-				                                                              @Param("projectCode") Long projectCode,				
-",
-				newContent:"
-				     */
-				    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(@Param("page") Page<WorkflowInstance> page,
-				                                                              @Param("projectCode") Long projectCode,				
-",
-,
-
-			],
-		
-}
-		extractedClasses:
-{
-				
-}
-	
-}
-	role:"
-	assistant	
-",
-,
-	content:"
-	Correct the following errors. Use the same JSON format as in the initial refactoring.	
-",
-	role:"
-	user	
-",
-,
-	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-task-sql: Compilation failure: Compilation failure: 
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:[293,22] cannot find symbol
-	[ERROR]   symbol:   method setAlertGroupId(int)
-	[ERROR]   location: variable taskAlertInfo of type org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:[294,22] cannot find symbol
-	[ERROR]   symbol:   method setContent(java.lang.String)
-	[ERROR]   location: variable taskAlertInfo of type org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:[295,22] cannot find symbol
-	[ERROR]   symbol:   method setTitle(java.lang.String)
-	[ERROR]   location: variable taskAlertInfo of type org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] -> [Help 1]
-	[ERROR] 
-	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-	[ERROR] 
-	[ERROR] For more information about the errors and possible solutions, please read the following articles:
-	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-	[ERROR] 
-	[ERROR] After correcting the problems, you can resume the build with the command
-	[ERROR]   mvn <args> -rf :dolphinscheduler-task-sql
-		
-",
-	role:"
-	user	
-",
-,
-	content:"
-	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
-",
-	role:"
-	user	
-",
-,
-	content:
-{
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowTaskRelationLog.java:
 		[
 			fromLine:"			17",
-			toLine:"			62",
+			toLine:"			25",
 			content:"
 			
-			package org.apache.dolphinscheduler.plugin.task.sql;
+			package org.apache.dolphinscheduler.dao.entity;
 			
-			import org.apache.dolphinscheduler.common.utils.DateUtils;
-			import org.apache.dolphinscheduler.common.utils.JSONUtils;
-			import org.apache.dolphinscheduler.plugin.datasource.api.plugin.DataSourceClientProvider;
-			import org.apache.dolphinscheduler.plugin.datasource.api.plugin.DataSourceProcessorProvider;
-			import org.apache.dolphinscheduler.plugin.datasource.api.utils.DataSourceUtils;
-			import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
-			import org.apache.dolphinscheduler.plugin.task.api.SQLTaskExecutionContext;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskConstants;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskException;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.Direct;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.SqlType;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskTimeoutStrategy;
-			import org.apache.dolphinscheduler.plugin.task.api.model.Property;
-			import org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo;
-			import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
-			import org.apache.dolphinscheduler.plugin.task.api.parameters.SqlParameters;
-			import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
-			import org.apache.dolphinscheduler.spi.datasource.BaseConnectionParam;
-			import org.apache.dolphinscheduler.spi.enums.DbType;
+			import java.util.Date;
 			
-			import org.apache.commons.lang3.StringUtils;
+			import lombok.Data;
 			
-			import java.sql.Connection;
-			import java.sql.PreparedStatement;
-			import java.sql.ResultSet;
-			import java.sql.ResultSetMetaData;
-			import java.sql.SQLException;
-			import java.util.ArrayList;
-			import java.util.HashMap;
-			import java.util.List;
-			import java.util.Map;
-			import java.util.Optional;
-			import java.util.regex.Matcher;
-			import java.util.regex.Pattern;
-			import java.util.stream.Collectors;
-			
-			import lombok.extern.slf4j.Slf4j;
-			
-			import com.fasterxml.jackson.databind.node.ArrayNode;
-			import com.fasterxml.jackson.databind.node.ObjectNode;
+			import com.baomidou.mybatisplus.annotation.TableName;
 						
 ",
 ,
-			fromLine:"			292",
-			toLine:"			296",
+			fromLine:"			34",
+			toLine:"			36",
 			content:"
-			        TaskAlertInfo taskAlertInfo = new TaskAlertInfo();
-			        taskAlertInfo.setAlertGroupId(groupId);
-			        taskAlertInfo.setContent(content);
-			        taskAlertInfo.setTitle(title);
-			        setTaskAlertInfo(taskAlertInfo);			
+			    public WorkflowTaskRelationLog() {
+			        super();
+			    }			
+",
+,
+			fromLine:"			38",
+			toLine:"			52",
+			content:"
+			    public WorkflowTaskRelationLog(WorkflowTaskRelation workflowTaskRelation) {
+			        super();
+			        this.setName(workflowTaskRelation.getName());
+			        this.setWorkflowDefinitionCode(workflowTaskRelation.getWorkflowDefinitionCode());
+			        this.setWorkflowDefinitionVersion(workflowTaskRelation.getWorkflowDefinitionVersion());
+			        this.setProjectCode(workflowTaskRelation.getProjectCode());
+			        this.setPreTaskCode(workflowTaskRelation.getPreTaskCode());
+			        this.setPreTaskVersion(workflowTaskRelation.getPreTaskVersion());
+			        this.setPostTaskCode(workflowTaskRelation.getPostTaskCode());
+			        this.setPostTaskVersion(workflowTaskRelation.getPostTaskVersion());
+			        this.setConditionType(workflowTaskRelation.getConditionType());
+			        this.setConditionParams(workflowTaskRelation.getConditionParams());
+			        this.setCreateTime(workflowTaskRelation.getCreateTime());
+			        this.setUpdateTime(workflowTaskRelation.getUpdateTime());
+			    }			
 ",
 ,
 
 		],
-	
-}
-	role:"
-	user	
-",
-,
-	content:
-{
-			refactorings:
-{
-					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:
-			[
-				fromLine:"				292",
-				toLine:"				296",
-				oldContent:"
-				        TaskAlertInfo taskAlertInfo = new TaskAlertInfo();
-				        taskAlertInfo.setAlertGroupId(groupId);
-				        taskAlertInfo.setContent(content);
-				        taskAlertInfo.setTitle(title);
-				        setTaskAlertInfo(taskAlertInfo);				
-",
-				newContent:"
-				        TaskAlertInfo taskAlertInfo = new TaskAlertInfo(title, content, groupId);
-				        setTaskAlertInfo(taskAlertInfo);				
-",
-,
-
-			],
-		
-}
-		extractedClasses:
-{
-				
-}
-	
-}
-	role:"
-	assistant	
-",
-,
-	content:"
-	Correct the following errors. Use the same JSON format as in the initial refactoring.	
-",
-	role:"
-	user	
-",
-,
-	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-task-sql: Compilation failure
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:[292,39] constructor TaskAlertInfo in class org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo cannot be applied to given types;
-	[ERROR]   required: no arguments
-	[ERROR]   found:    java.lang.String,java.lang.String,int
-	[ERROR]   reason: actual and formal argument lists differ in length
-	[ERROR] 
-	[ERROR] -> [Help 1]
-	[ERROR] 
-	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-	[ERROR] 
-	[ERROR] For more information about the errors and possible solutions, please read the following articles:
-	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-	[ERROR] 
-	[ERROR] After correcting the problems, you can resume the build with the command
-	[ERROR]   mvn <args> -rf :dolphinscheduler-task-sql
-		
-",
-	role:"
-	user	
-",
-,
-	content:"
-	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
-",
-	role:"
-	user	
-",
-,
-	content:
-{
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskDefinitionLog.java:
 		[
 			fromLine:"			17",
-			toLine:"			62",
+			toLine:"			23",
 			content:"
 			
-			package org.apache.dolphinscheduler.plugin.task.sql;
+			package org.apache.dolphinscheduler.dao.entity;
 			
-			import org.apache.dolphinscheduler.common.utils.DateUtils;
-			import org.apache.dolphinscheduler.common.utils.JSONUtils;
-			import org.apache.dolphinscheduler.plugin.datasource.api.plugin.DataSourceClientProvider;
-			import org.apache.dolphinscheduler.plugin.datasource.api.plugin.DataSourceProcessorProvider;
-			import org.apache.dolphinscheduler.plugin.datasource.api.utils.DataSourceUtils;
-			import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
-			import org.apache.dolphinscheduler.plugin.task.api.SQLTaskExecutionContext;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskConstants;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskException;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.Direct;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.SqlType;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskTimeoutStrategy;
-			import org.apache.dolphinscheduler.plugin.task.api.model.Property;
-			import org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo;
-			import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
-			import org.apache.dolphinscheduler.plugin.task.api.parameters.SqlParameters;
-			import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
-			import org.apache.dolphinscheduler.spi.datasource.BaseConnectionParam;
-			import org.apache.dolphinscheduler.spi.enums.DbType;
+			import java.util.Date;
 			
-			import org.apache.commons.lang3.StringUtils;
-			
-			import java.sql.Connection;
-			import java.sql.PreparedStatement;
-			import java.sql.ResultSet;
-			import java.sql.ResultSetMetaData;
-			import java.sql.SQLException;
-			import java.util.ArrayList;
-			import java.util.HashMap;
-			import java.util.List;
-			import java.util.Map;
-			import java.util.Optional;
-			import java.util.regex.Matcher;
-			import java.util.regex.Pattern;
-			import java.util.stream.Collectors;
-			
-			import lombok.extern.slf4j.Slf4j;
-			
-			import com.fasterxml.jackson.databind.node.ArrayNode;
-			import com.fasterxml.jackson.databind.node.ObjectNode;
+			import com.baomidou.mybatisplus.annotation.TableName;
 						
 ",
 ,
-			fromLine:"			291",
-			toLine:"			293",
+			fromLine:"			40",
+			toLine:"			42",
 			content:"
-			        setNeedAlert(Boolean.TRUE);
-			        TaskAlertInfo taskAlertInfo = new TaskAlertInfo(title, content, groupId);
-			        setTaskAlertInfo(taskAlertInfo);			
+			    public TaskDefinitionLog() {
+			        super();
+			    }			
+",
+,
+			fromLine:"			44",
+			toLine:"			77",
+			content:"
+			    public TaskDefinitionLog(TaskDefinition taskDefinition) {
+			        super();
+			        this.setCode(taskDefinition.getCode());
+			        this.setVersion(taskDefinition.getVersion());
+			        this.setName(taskDefinition.getName());
+			        this.setDescription(taskDefinition.getDescription());
+			        this.setUserId(taskDefinition.getUserId());
+			        this.setUserName(taskDefinition.getUserName());
+			        this.setWorkerGroup(taskDefinition.getWorkerGroup());
+			        this.setEnvironmentCode(taskDefinition.getEnvironmentCode());
+			        this.setProjectCode(taskDefinition.getProjectCode());
+			        this.setProjectName(taskDefinition.getProjectName());
+			        this.setResourceIds(taskDefinition.getResourceIds());
+			        this.setTaskParams(taskDefinition.getTaskParams());
+			        this.setTaskParamList(taskDefinition.getTaskParamList());
+			        this.setTaskParamMap(taskDefinition.getTaskParamMap());
+			        this.setTaskPriority(taskDefinition.getTaskPriority());
+			        this.setTaskExecuteType(taskDefinition.getTaskExecuteType());
+			        this.setTimeoutNotifyStrategy(taskDefinition.getTimeoutNotifyStrategy());
+			        this.setTaskType(taskDefinition.getTaskType());
+			        this.setTimeout(taskDefinition.getTimeout());
+			        this.setDelayTime(taskDefinition.getDelayTime());
+			        this.setTimeoutFlag(taskDefinition.getTimeoutFlag());
+			        this.setUpdateTime(taskDefinition.getUpdateTime());
+			        this.setCreateTime(taskDefinition.getCreateTime());
+			        this.setFailRetryInterval(taskDefinition.getFailRetryInterval());
+			        this.setFailRetryTimes(taskDefinition.getFailRetryTimes());
+			        this.setFlag(taskDefinition.getFlag());
+			        this.setIsCache(taskDefinition.getIsCache());
+			        this.setModifyBy(taskDefinition.getModifyBy());
+			        this.setCpuQuota(taskDefinition.getCpuQuota());
+			        this.setMemoryMax(taskDefinition.getMemoryMax());
+			        this.setTaskExecuteType(taskDefinition.getTaskExecuteType());
+			    }			
 ",
 ,
 
 		],
-	
-}
-	role:"
-	user	
-",
-,
-	content:
-{
-			refactorings:
-{
-					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:
-			[
-				fromLine:"				291",
-				toLine:"				293",
-				oldContent:"
-				        setNeedAlert(Boolean.TRUE);
-				        TaskAlertInfo taskAlertInfo = new TaskAlertInfo(title, content, groupId);
-				        setTaskAlertInfo(taskAlertInfo);				
-",
-				newContent:"
-				        setNeedAlert(Boolean.TRUE);
-				        TaskAlertInfo taskAlertInfo = new TaskAlertInfo();
-				        taskAlertInfo.setTitle(title);
-				        taskAlertInfo.setContent(content);
-				        taskAlertInfo.setAlertGroupId(groupId);
-				        setTaskAlertInfo(taskAlertInfo);				
-",
-,
-
-			],
-		
-}
-		extractedClasses:
-{
-				
-}
-	
-}
-	role:"
-	assistant	
-",
-,
-	content:"
-	Correct the following errors. Use the same JSON format as in the initial refactoring.	
-",
-	role:"
-	user	
-",
-,
-	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-task-sql: Compilation failure: Compilation failure: 
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:[293,22] cannot find symbol
-	[ERROR]   symbol:   method setTitle(java.lang.String)
-	[ERROR]   location: variable taskAlertInfo of type org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:[294,22] cannot find symbol
-	[ERROR]   symbol:   method setContent(java.lang.String)
-	[ERROR]   location: variable taskAlertInfo of type org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:[295,22] cannot find symbol
-	[ERROR]   symbol:   method setAlertGroupId(int)
-	[ERROR]   location: variable taskAlertInfo of type org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] -> [Help 1]
-	[ERROR] 
-	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-	[ERROR] 
-	[ERROR] For more information about the errors and possible solutions, please read the following articles:
-	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-	[ERROR] 
-	[ERROR] After correcting the problems, you can resume the build with the command
-	[ERROR]   mvn <args> -rf :dolphinscheduler-task-sql
-		
-",
-	role:"
-	user	
-",
-,
-	content:"
-	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
-",
-	role:"
-	user	
-",
-,
-	content:
-{
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-sql/src/main/java/org/apache/dolphinscheduler/plugin/task/sql/SqlTask.java:
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/utils/WorkerGroupUtils.java:
 		[
 			fromLine:"			17",
-			toLine:"			62",
+			toLine:"			28",
 			content:"
 			
-			package org.apache.dolphinscheduler.plugin.task.sql;
+			package org.apache.dolphinscheduler.dao.utils;
 			
-			import org.apache.dolphinscheduler.common.utils.DateUtils;
-			import org.apache.dolphinscheduler.common.utils.JSONUtils;
-			import org.apache.dolphinscheduler.plugin.datasource.api.plugin.DataSourceClientProvider;
-			import org.apache.dolphinscheduler.plugin.datasource.api.plugin.DataSourceProcessorProvider;
-			import org.apache.dolphinscheduler.plugin.datasource.api.utils.DataSourceUtils;
-			import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
-			import org.apache.dolphinscheduler.plugin.task.api.SQLTaskExecutionContext;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskConstants;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskException;
-			import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.Direct;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.SqlType;
-			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskTimeoutStrategy;
-			import org.apache.dolphinscheduler.plugin.task.api.model.Property;
-			import org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo;
-			import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
-			import org.apache.dolphinscheduler.plugin.task.api.parameters.SqlParameters;
-			import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
-			import org.apache.dolphinscheduler.spi.datasource.BaseConnectionParam;
-			import org.apache.dolphinscheduler.spi.enums.DbType;
+			import org.apache.dolphinscheduler.dao.entity.WorkerGroup;
 			
 			import org.apache.commons.lang3.StringUtils;
 			
-			import java.sql.Connection;
-			import java.sql.PreparedStatement;
-			import java.sql.ResultSet;
-			import java.sql.ResultSetMetaData;
-			import java.sql.SQLException;
-			import java.util.ArrayList;
-			import java.util.HashMap;
+			import java.util.Collections;
 			import java.util.List;
-			import java.util.Map;
-			import java.util.Optional;
-			import java.util.regex.Matcher;
-			import java.util.regex.Pattern;
-			import java.util.stream.Collectors;
 			
-			import lombok.extern.slf4j.Slf4j;
-			
-			import com.fasterxml.jackson.databind.node.ArrayNode;
-			import com.fasterxml.jackson.databind.node.ObjectNode;
+			import com.google.common.collect.Lists;
 						
 ",
 ,
-			fromLine:"			292",
-			toLine:"			296",
+			fromLine:"			52",
+			toLine:"			54",
 			content:"
-			        TaskAlertInfo taskAlertInfo = new TaskAlertInfo();
-			        taskAlertInfo.setTitle(title);
-			        taskAlertInfo.setContent(content);
-			        taskAlertInfo.setAlertGroupId(groupId);
-			        setTaskAlertInfo(taskAlertInfo);			
+			    public static List<String> getWorkerAddressListFromWorkerGroup(WorkerGroup workerGroup) {
+			        String addrList = workerGroup.getAddrList();
+			        if (StringUtils.isEmpty(addrList)) {			
+",
+,
+
+		],
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/repository/impl/SessionDaoImpl.java:
+		[
+			fromLine:"			17",
+			toLine:"			32",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.repository.impl;
+			
+			import org.apache.dolphinscheduler.dao.entity.Session;
+			import org.apache.dolphinscheduler.dao.mapper.SessionMapper;
+			import org.apache.dolphinscheduler.dao.repository.BaseDao;
+			import org.apache.dolphinscheduler.dao.repository.SessionDao;
+			
+			import java.util.List;
+			
+			import lombok.NonNull;
+			
+			import org.springframework.stereotype.Repository;
+			
+			import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+						
+",
+,
+			fromLine:"			40",
+			toLine:"			42",
+			content:"
+			    public void deleteByUserId(Integer userId) {
+			        mybatisMapper.delete(new QueryWrapper<>(Session.builder().userId(userId).build()));
+			    }			
+",
+,
+			fromLine:"			45",
+			toLine:"			47",
+			content:"
+			    public List<Session> queryByUserId(Integer userId) {
+			        return mybatisMapper.selectList(new QueryWrapper<>(Session.builder().userId(userId).build()));
+			    }			
+",
+,
+
+		],
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/PluginDao.java:
+		[
+			fromLine:"			17",
+			toLine:"			33",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao;
+			
+			import static java.util.Objects.requireNonNull;
+			
+			import org.apache.dolphinscheduler.dao.entity.PluginDefine;
+			import org.apache.dolphinscheduler.dao.mapper.PluginDefineMapper;
+			import org.apache.dolphinscheduler.plugin.task.api.TaskPluginException;
+			
+			import java.util.Objects;
+			
+			import lombok.NonNull;
+			import lombok.extern.slf4j.Slf4j;
+			
+			import org.springframework.beans.factory.annotation.Autowired;
+			import org.springframework.stereotype.Repository;
+						
+",
+,
+			fromLine:"			56",
+			toLine:"			66",
+			content:"
+			    public int addOrUpdatePluginDefine(@NonNull PluginDefine pluginDefine) {
+			        requireNonNull(pluginDefine.getPluginName(), "pluginName is null");
+			        requireNonNull(pluginDefine.getPluginType(), "pluginType is null");
+			
+			        PluginDefine currPluginDefine =
+			                pluginDefineMapper.queryByNameAndType(pluginDefine.getPluginName(), pluginDefine.getPluginType());
+			        if (currPluginDefine == null) {
+			            try {
+			                if (pluginDefineMapper.insert(pluginDefine) == 1 && pluginDefine.getId() != null) {
+			                    return pluginDefine.getId();
+			                }			
+",
+,
+			fromLine:"			68",
+			toLine:"			70",
+			content:"
+			                        String.format("Failed to insert plugin definition, pluginName: %s, pluginType: %s",
+			                                pluginDefine.getPluginName(), pluginDefine.getPluginType()));
+			            } catch (TaskPluginException ex) {			
+",
+,
+			fromLine:"			72",
+			toLine:"			76",
+			content:"
+			            } catch (Exception ex) {
+			                log.error("Insert plugin definition error, there may already exist a plugin", ex);
+			                currPluginDefine = pluginDefineMapper.queryByNameAndType(pluginDefine.getPluginName(),
+			                        pluginDefine.getPluginType());
+			                if (currPluginDefine == null) {			
+",
+,
+			fromLine:"			78",
+			toLine:"			80",
+			content:"
+			                            String.format("Failed to insert plugin definition, pluginName: %s, pluginType: %s",
+			                                    pluginDefine.getPluginName(), pluginDefine.getPluginType()));
+			                }			
+",
+,
+			fromLine:"			82",
+			toLine:"			89",
+			content:"
+			        }
+			        if (!Objects.equals(currPluginDefine.getPluginParams(), pluginDefine.getPluginParams())) {
+			            currPluginDefine.setUpdateTime(pluginDefine.getUpdateTime());
+			            currPluginDefine.setPluginParams(pluginDefine.getPluginParams());
+			            pluginDefineMapper.updateById(currPluginDefine);
+			        }
+			        return currPluginDefine.getId();
+			    }			
+",
+,
+
+		],
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/WorkflowDefinitionLog.java:
+		[
+			fromLine:"			17",
+			toLine:"			25",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import java.util.Date;
+			
+			import lombok.Data;
+			
+			import com.baomidou.mybatisplus.annotation.TableName;
+						
+",
+,
+			fromLine:"			34",
+			toLine:"			49",
+			content:"
+			    public WorkflowDefinitionLog() {
+			        super();
+			    }
+			
+			    public WorkflowDefinitionLog(WorkflowDefinition workflowDefinition) {
+			        this.setCode(workflowDefinition.getCode());
+			        this.setName(workflowDefinition.getName());
+			        this.setVersion(workflowDefinition.getVersion());
+			        this.setReleaseState(workflowDefinition.getReleaseState());
+			        this.setProjectCode(workflowDefinition.getProjectCode());
+			        this.setDescription(workflowDefinition.getDescription());
+			        this.setGlobalParams(workflowDefinition.getGlobalParams());
+			        this.setGlobalParamList(workflowDefinition.getGlobalParamList());
+			        this.setGlobalParamMap(workflowDefinition.getGlobalParamMap());
+			        this.setCreateTime(workflowDefinition.getCreateTime());
+			        this.setUpdateTime(workflowDefinition.getUpdateTime());			
 ",
 ,
 

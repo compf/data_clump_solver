@@ -1,93 +1,1523 @@
 {
     "refactorings": {
+        "dolphinscheduler-api-test/dolphinscheduler-api-test-case/src/test/java/org/apache/dolphinscheduler/api/test/pages/workflow/ExecutorPage.java": [
+            {
+                "fromLine": 70,
+                "toLine": 74,
+                "oldContent": "    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {\n        Map<String, Object> params = new HashMap<>();\n        params.put(\"loginUser\", loginUser);",
+                "newContent": "    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {\n        ExecutionParameters params = new ExecutionParameters(loginUser);"
+            },
+            {
+                "fromLine": 84,
+                "toLine": 88,
+                "oldContent": "    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,\n                                    TaskDependType taskDependType) {\n        Map<String, Object> params = new HashMap<>();",
+                "newContent": "    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,\n                                    TaskDependType taskDependType) {\n        ExecutionParameters params = new ExecutionParameters(loginUser);"
+            }
+        ],
+        "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java": [
+            {
+                "fromLine": 269,
+                "toLine": 286,
+                "oldContent": "    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              @Param(\"projectCode\") Long projectCode,\n                                                              @Param(\"workflowDefinitionCode\") Long workflowDefinitionCode,\n                                                              @Param(\"name\") String name,\n                                                              @Param(\"startTime\") String startTime,\n                                                              @Param(\"endTime\") String endTime,\n                                                              @Param(\"state\") Integer state,\n                                                              @Param(\"host\") String host);\n\n    /**",
+                "newContent": "    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              WorkflowInstanceQuery instanceQuery);\n\n    /**"
+            }
+        ],
+        "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java": [
+            {
+                "fromLine": 142,
+                "toLine": 146,
+                "oldContent": "\n    public void init(String host, Date startTime, String executePath) {\n        this.host = host;\n        this.startTime = startTime;\n        this.executePath = executePath;",
+                "newContent": "\n    public void init(TaskExecutionEnvironment environment) {\n        this.host = environment.getHost();\n        this.startTime = environment.getStartTime();\n        this.executePath = environment.getExecutePath();"
+            }
+        ],
         "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java": [
             {
                 "fromLine": 17,
-                "toLine": 29,
-                "oldContent": "\npackage org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.api.utils.Result;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic interface ProjectParameterService {\n\n    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);\n\n    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);",
-                "newContent": "\npackage org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.api.utils.Result;\nimport org.apache.dolphinscheduler.dao.entity.User;\nimport org.apache.dolphinscheduler.api.dto.ProjectParameterDTO;\n\npublic interface ProjectParameterService {\n\n    Result createProjectParameter(User loginUser, long projectCode, ProjectParameterDTO parameter);\n\n    Result updateProjectParameter(User loginUser, long projectCode, long code, ProjectParameterDTO parameter);"
+                "toLine": 31,
+                "oldContent": "\npackage org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.api.utils.Result;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic interface ProjectParameterService {\n\n    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);\n\n    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,\n                                  String projectParameterValue, String projectParameterDataType);\n\n    Result deleteProjectParametersByCode(User loginUser, long projectCode, long code);",
+                "newContent": "\npackage org.apache.dolphinscheduler.api.service;\n\nimport org.apache.dolphinscheduler.api.utils.Result;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic interface ProjectParameterService {\n\n    Result createProjectParameter(ProjectParameterSetting setting);\n\n    Result updateProjectParameter(ProjectParameterSetting setting);\n\n    Result deleteProjectParametersByCode(User loginUser, long projectCode, long code);"
             }
         ],
         "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/ProjectParameterController.java": [
             {
-                "fromLine": 67,
-                "toLine": 77,
-                "oldContent": "    @PostMapping()\n    @ResponseStatus(HttpStatus.CREATED)\n    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)\n    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {\n        return projectParameterService.createProjectParameter(loginUser, projectCode, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n    }",
-                "newContent": "    @PostMapping()\n    @ResponseStatus(HttpStatus.CREATED)\n    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)\n    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {\n        ProjectParameterDTO parameter = new ProjectParameterDTO(projectParameterName, projectParameterValue, projectParameterDataType);\n        return projectParameterService.createProjectParameter(loginUser, projectCode, parameter);\n    }"
+                "fromLine": 68,
+                "toLine": 78,
+                "oldContent": "    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {\n        return projectParameterService.createProjectParameter(loginUser, projectCode, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n    }\n",
+                "newContent": "    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {\n        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n        return projectParameterService.createProjectParameter(setting);\n    }\n"
             },
             {
-                "fromLine": 86,
-                "toLine": 97,
-                "oldContent": "    @PutMapping(value = \"/{code}\")\n    @ResponseStatus(HttpStatus.OK)\n    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)\n    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {\n        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n    }",
-                "newContent": "    @PutMapping(value = \"/{code}\")\n    @ResponseStatus(HttpStatus.OK)\n    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)\n    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {\n        ProjectParameterDTO parameter = new ProjectParameterDTO(projectParameterName, projectParameterValue, projectParameterDataType);\n        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, parameter);\n    }"
+                "fromLine": 87,
+                "toLine": 98,
+                "oldContent": "    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @PathVariable(\"code\") Long code,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {\n        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n    }\n",
+                "newContent": "    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,\n                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,\n                                         @PathVariable(\"code\") Long code,\n                                         @RequestParam(\"projectParameterName\") String projectParameterName,\n                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,\n                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {\n        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, code, projectParameterName,\n                projectParameterValue, projectParameterDataType);\n        return projectParameterService.updateProjectParameter(setting);\n    }\n"
             }
         ],
         "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/controller/ProjectParameterControllerTest.java": [
             {
-                "fromLine": 48,
-                "toLine": 54,
-                "oldContent": "    public void testCreateProjectParameter() {\n        User loginUser = getGeneralUser();\n\n        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.any(),\n                Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.createProjectParameter(loginUser, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "    public void testCreateProjectParameter() {\n        User loginUser = getGeneralUser();\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n\n        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.createProjectParameter(loginUser, 1, parameter);\n    }"
+                "fromLine": 49,
+                "toLine": 55,
+                "oldContent": "        Result result = projectParameterController.createProjectParameter(loginUser, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        Result result = projectParameterController.createProjectParameter(setting);\n        Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode());"
             },
             {
-                "fromLine": 59,
-                "toLine": 65,
-                "oldContent": "    public void testUpdateProjectParameter() {\n        User loginUser = getGeneralUser();\n\n        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),\n                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, \"key\", \"value\",\n                DataType.LONG.name());",
-                "newContent": "    public void testUpdateProjectParameter() {\n        User loginUser = getGeneralUser();\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.LONG.name());\n\n        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),\n                Mockito.any())).thenReturn(getSuccessResult());\n        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, parameter);\n    }"
+                "fromLine": 60,
+                "toLine": 66,
+                "oldContent": "        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, \"key\", \"value\",\n                DataType.LONG.name());\n        Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, 1, 1L, \"key\", \"value\",\n                DataType.LONG.name());\n        Result result = projectParameterController.updateProjectParameter(setting);\n        Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode());"
             }
         ],
         "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/service/ProjectParameterServiceTest.java": [
             {
-                "fromLine": 77,
-                "toLine": 81,
-                "oldContent": "        // PERMISSION DENIED\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "        // PERMISSION DENIED\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+                "fromLine": 78,
+                "toLine": 82,
+                "oldContent": "        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        assertNull(result.getData());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        Result result = projectParameterService.createProjectParameter(setting);\n        assertNull(result.getData());"
             },
             {
-                "fromLine": 90,
-                "toLine": 94,
-                "oldContent": "        try (MockedStatic<CodeGenerateUtils> ignored = Mockito.mockStatic(CodeGenerateUtils.class)) {\n            when(CodeGenerateUtils.genCode()).thenThrow(CodeGenerateUtils.CodeGenerateException.class);\n\n            result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                    DataType.VARCHAR.name());",
-                "newContent": "        try (MockedStatic<CodeGenerateUtils> ignored = Mockito.mockStatic(CodeGenerateUtils.class)) {\n            when(CodeGenerateUtils.genCode()).thenThrow(CodeGenerateUtils.CodeGenerateException.class);\n\n            ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n            result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+                "fromLine": 91,
+                "toLine": 95,
+                "oldContent": "            result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                    DataType.VARCHAR.name());\n            assertEquals(Status.CREATE_PROJECT_PARAMETER_ERROR.getCode(), result.getCode());",
+                "newContent": "            ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, \"key\", \"value\",\n                    DataType.VARCHAR.name());\n            result = projectParameterService.createProjectParameter(setting);\n            assertEquals(Status.CREATE_PROJECT_PARAMETER_ERROR.getCode(), result.getCode());"
             },
             {
-                "fromLine": 98,
-                "toLine": 102,
-                "oldContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectMapper.queryByCode(projectCode)).thenReturn(getProject(projectCode));\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectMapper.queryByCode(projectCode)).thenReturn(getProject(projectCode));\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+                "fromLine": 99,
+                "toLine": 103,
+                "oldContent": "        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        assertEquals(Status.PROJECT_PARAMETER_ALREADY_EXISTS.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        result = projectParameterService.createProjectParameter(setting);\n        assertEquals(Status.PROJECT_PARAMETER_ALREADY_EXISTS.getCode(), result.getCode());"
             },
             {
-                "fromLine": 105,
-                "toLine": 109,
-                "oldContent": "        // INSERT DATA ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key1\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "        // INSERT DATA ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key1\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.createProjectParameter(loginUser, projectCode, parameter);"
+                "fromLine": 106,
+                "toLine": 110,
+                "oldContent": "        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key1\", \"value\",\n                DataType.VARCHAR.name());\n        assertEquals(Status.CREATE_PROJECT_PARAMETER_ERROR.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, \"key1\", \"value\",\n                DataType.VARCHAR.name());\n        result = projectParameterService.createProjectParameter(setting);\n        assertEquals(Status.CREATE_PROJECT_PARAMETER_ERROR.getCode(), result.getCode());"
             },
             {
-                "fromLine": 123,
-                "toLine": 127,
-                "oldContent": "        // NO PERMISSION\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "        // NO PERMISSION\n        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(false);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+                "fromLine": 112,
+                "toLine": 116,
+                "oldContent": "        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key1\", \"value\",\n                DataType.VARCHAR.name());\n        assertEquals(Status.SUCCESS.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, \"key1\", \"value\",\n                DataType.VARCHAR.name());\n        result = projectParameterService.createProjectParameter(setting);\n        assertEquals(Status.SUCCESS.getCode(), result.getCode());"
             },
             {
-                "fromLine": 134,
-                "toLine": 138,
-                "oldContent": "        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(true);\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))\n                .thenReturn(true);\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+                "fromLine": 124,
+                "toLine": 128,
+                "oldContent": "        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        assertNull(result.getData());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        Result result = projectParameterService.updateProjectParameter(setting);\n        assertNull(result.getData());"
             },
             {
-                "fromLine": 141,
-                "toLine": 145,
-                "oldContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(getProjectParameter());\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "        // PROJECT_PARAMETER_ALREADY_EXISTS\n        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(getProjectParameter());\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+                "fromLine": 135,
+                "toLine": 139,
+                "oldContent": "        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        assertEquals(Status.PROJECT_PARAMETER_NOT_EXISTS.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(setting);\n        assertEquals(Status.PROJECT_PARAMETER_NOT_EXISTS.getCode(), result.getCode());"
             },
             {
-                "fromLine": 148,
-                "toLine": 152,
-                "oldContent": "        // PROJECT_UPDATE_ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1);\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key1\", \"value\",\n                DataType.VARCHAR.name());",
-                "newContent": "        // PROJECT_UPDATE_ERROR\n        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);\n        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1;\n        ProjectParameterDTO parameter = new ProjectParameterDTO(\"key1\", \"value\", DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, parameter);"
+                "fromLine": 142,
+                "toLine": 146,
+                "oldContent": "        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        assertEquals(Status.PROJECT_PARAMETER_ALREADY_EXISTS.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, 1, \"key\", \"value\",\n                DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(setting);\n        assertEquals(Status.PROJECT_PARAMETER_ALREADY_EXISTS.getCode(), result.getCode());"
+            },
+            {
+                "fromLine": 149,
+                "toLine": 153,
+                "oldContent": "        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key1\", \"value\",\n                DataType.VARCHAR.name());\n        assertEquals(Status.UPDATE_PROJECT_PARAMETER_ERROR.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, 1, \"key1\", \"value\",\n                DataType.VARCHAR.name());\n        result = projectParameterService.updateProjectParameter(setting);\n        assertEquals(Status.UPDATE_PROJECT_PARAMETER_ERROR.getCode(), result.getCode());"
+            },
+            {
+                "fromLine": 155,
+                "toLine": 159,
+                "oldContent": "        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key1\", \"value\",\n                DataType.LONG.name());\n        assertEquals(Status.SUCCESS.getCode(), result.getCode());",
+                "newContent": "        ProjectParameterSetting setting = new ProjectParameterSetting(loginUser, projectCode, 1, \"key1\", \"value\",\n                DataType.LONG.name());\n        result = projectParameterService.updateProjectParameter(setting);\n        assertEquals(Status.SUCCESS.getCode(), result.getCode());"
+            }
+        ],
+        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/SchedulerController.java": [
+            {
+                "fromLine": 108,
+                "toLine": 133,
+                "oldContent": "        Map<String, Object> result = schedulerService.insertSchedule(\n                loginUser,\n                projectCode,\n                workflowDefinitionCode,\n                schedule,\n                warningType,\n                warningGroupId,\n                failureStrategy,\n                workflowInstancePriority,\n                workerGroup,\n                tenantCode,\n                environmentCode);\n",
+                "newContent": "        ScheduleSetting setting = new ScheduleSetting(loginUser,\n                projectCode,\n                workflowDefinitionCode,\n                schedule,\n                warningType,\n                warningGroupId,\n                failureStrategy,\n                workflowInstancePriority,\n                workerGroup,\n                tenantCode,\n                environmentCode);\n        Map<String, Object> result = schedulerService.insertSchedule(setting);\n"
+            },
+            {
+                "fromLine": 334,
+                "toLine": 351,
+                "oldContent": "        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(loginUser, projectCode,\n                workflowDefinitionCode, schedule,\n                warningType, warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode,\n                environmentCode);\n        return returnDataList(result);",
+                "newContent": "        ScheduleSetting setting = new ScheduleSetting(loginUser, projectCode, workflowDefinitionCode, schedule, warningType,\n                warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode, environmentCode);\n        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(setting);\n        return returnDataList(result);"
             }
         ]
     },
     "extractedClasses": {
-        "org/apache/dolphinscheduler/api/dto/ProjectParameterDTO.java": "package org.apache.dolphinscheduler.api.dto;\n\npublic class ProjectParameterDTO {\n\n    private String projectParameterName;\n    private String projectParameterValue;\n    private String projectParameterDataType;\n\n    public ProjectParameterDTO(String projectParameterName, String projectParameterValue, String projectParameterDataType) {\n        this.projectParameterName = projectParameterName;\n        this.projectParameterValue = projectParameterValue;\n        this.projectParameterDataType = projectParameterDataType;\n    }\n\n    public String getProjectParameterName() {\n        return projectParameterName;\n    }\n\n    public String getProjectParameterValue() {\n        return projectParameterValue;\n    }\n\n    public String getProjectParameterDataType() {\n        return projectParameterDataType;\n    }\n\n    // Include additional methods such as validation or conversion logic if applicable\n}\n"
+        "org/apache/dolphinscheduler/api/test/entities/ExecutionParameters.java": "package org.apache.dolphinscheduler.api.test.entities;\n\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ExecutionParameters {\n\n    private User loginUser;\n\n    public ExecutionParameters(User loginUser) {\n        this.loginUser = loginUser;\n    }\n\n    public User getLoginUser() {\n        return loginUser;\n    }\n}",
+        "org/apache/dolphinscheduler/dao/model/WorkflowInstanceQuery.java": "package org.apache.dolphinscheduler.dao.model;\n\npublic class WorkflowInstanceQuery {\n\n    private Long projectCode;\n    private Long workflowDefinitionCode;\n    private String name;\n    private String startTime;\n    private String endTime;\n    private Integer state;\n    private String host;\n\n    // getters and setters for the fields\n}",
+        "org/apache/dolphinscheduler/dao/entities/TaskExecutionEnvironment.java": "package org.apache.dolphinscheduler.dao.entities;\n\nimport java.util.Date;\n\npublic class TaskExecutionEnvironment {\n\n    private String host;\n    private Date startTime;\n    private String executePath;\n\n    public TaskExecutionEnvironment(String host, Date startTime, String executePath) {\n        this.host = host;\n        this.startTime = startTime;\n        this.executePath = executePath;\n    }\n\n    public String getHost() {\n        return host;\n    }\n\n    public Date getStartTime() {\n        return startTime;\n    }\n\n    public String getExecutePath() {\n        return executePath;\n    }\n}",
+        "org/apache/dolphinscheduler/api/entities/ProjectParameterSetting.java": "package org.apache.dolphinscheduler.api.entities;\n\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ProjectParameterSetting {\n\n    private User loginUser;\n    private long projectCode;\n    private String projectParameterName;\n    private String projectParameterValue;\n    private String projectParameterDataType;\n\n    public ProjectParameterSetting(User loginUser, long projectCode, String projectParameterName,\n                                   String projectParameterValue, String projectParameterDataType) {\n        this.loginUser = loginUser;\n        this.projectCode = projectCode;\n        this.projectParameterName = projectParameterName;\n        this.projectParameterValue = projectParameterValue;\n       
+        {"newContent": "this.projectParameterDataType = projectParameterDataType;\n    }\n\n    // getters and setters for the fields\n}"}
+   				      
+			      
+       		      
+       	    		    	       	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       	     	
+      
+        
+       	     	      
+       
+{
+    "extractedClasses": {
+        "org/apache/dolphinscheduler/api/entities/ScheduleSetting.java": "package org.apache.dolphinscheduler.api.entities;\n\nimport org.apache.dolphinscheduler.common.enums.FailureStrategy;\nimport org.apache.dolphinscheduler.common.enums.Priority;\nimport org.apache.dolphinscheduler.common.enums.WarningType;\nimport org.apache.dolphinscheduler.dao.entity.User;\n\npublic class ScheduleSetting {\n\n    private User loginUser;\n    private long projectCode;\n    private long workflowDefinitionCode;\n    private String schedule;\n    private WarningType warningType;\n    private int warningGroupId;\n    private FailureStrategy failureStrategy;\n    private Priority workflowInstancePriority;\n    private String workerGroup;\n    private String tenantCode;\n    private Long environmentCode;\n\n    public ScheduleSetting(User loginUser, long projectCode, long workflowDefinitionCode, String schedule,\n                           WarningType warningType, int warningGroupId, FailureStrategy failureStrategy,\n                           Priority workflowInstancePriority, String workerGroup, String tenantCode, Long environmentCode) {\n        this.loginUser = loginUser;\n        this.projectCode = projectCode;\n        this.workflowDefinitionCode = workflowDefinitionCode;\n        this.schedule = schedule;\n        this.warningType = warningType;\n        this.warningGroupId = warningGroupId;\n        this.failureStrategy = failureStrategy;\n        this.workflowInstancePriority = workflowInstancePriority;\n        this.workerGroup = workerGroup;\n        this.tenantCode = tenantCode;\n        this.environmentCode = environmentCode;\n    }\n\n    // getters and setters for the fields\n}",
+        "org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java": "package org.apache.dolphinscheduler.plugin.task.api.model;\n\npublic class TaskAlertInfo {\n\n    private String title;\n    private String content;\n    private Integer alertGroupId;\n\n    public TaskAlertInfo(String title, String content, Integer alertGroupId) {\n        this.title = title;\n        this.content = content;\n        this.alertGroupId = alertGroupId;\n    }\n\n    public String getTitle() {\n        return title;\n    }\n\n    public String getContent() {\n        return content;\n    }\n\n    public Integer getAlertGroupId() {\n        return alertGroupId;\n    }\n}"
     }
 }

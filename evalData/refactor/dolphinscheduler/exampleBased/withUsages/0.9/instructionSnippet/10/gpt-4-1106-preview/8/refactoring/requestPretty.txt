@@ -346,10 +346,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			61",
-			toLine:"			95",
+			fromLine:"			62",
+			toLine:"			96",
 			content:"
-			    public HttpResponse queryExecutingWorkflow(User loginUser, long projectCode, long workflowInstanceCode) {
 			        Map<String, Object> params = new HashMap<>();
 			        params.put("loginUser", loginUser);
 			        params.put("id", workflowInstanceCode);
@@ -383,7 +382,8 @@ messages:
 			        params.put("taskDependType", taskDependType);
 			        Map<String, String> headers = new HashMap<>();
 			        headers.put(Constants.SESSION_ID_KEY, sessionId);
-						
+			
+			        RequestClient requestClient = new RequestClient();			
 ",
 ,
 
@@ -414,10 +414,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			260",
-			toLine:"			286",
+			fromLine:"			261",
+			toLine:"			294",
 			content:"
-			                                                                  @Param("states") int[] states);
 			
 			    List<WorkflowInstance> queryByWorkflowCodeVersionStatus(@Param("workflowDefinitionCode") long workflowDefinitionCode,
 			                                                            @Param("workflowDefinitionVersion") int workflowDefinitionVersion,
@@ -443,7 +442,15 @@ messages:
 			                                                              @Param("state") Integer state,
 			                                                              @Param("host") String host);
 			
-			    /**			
+			    /**
+			     * Statistics workflow instance state v2
+			     * <p>
+			     * We only need project codes to determine whether the workflow instance belongs to the user or not.
+			     *
+			     * @param startTime    startTime
+			     * @param endTime      endTime
+			     * @param projectCode  projectCode
+			     * @param workflowCode workflowCode			
 ",
 ,
 
@@ -451,7 +458,7 @@ messages:
 		dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
 		[
 			fromLine:"			17",
-			toLine:"			60",
+			toLine:"			61",
 			content:"
 			
 			package org.apache.dolphinscheduler.dao.entity;
@@ -496,13 +503,13 @@ messages:
 			    @TableField(exist = false)
 			    private String processDefinitionName;
 			
-			    @TableField(exist = false)			
+			    @TableField(exist = false)
+			    private int taskGroupPriority;			
 ",
 ,
-			fromLine:"			62",
-			toLine:"			82",
+			fromLine:"			63",
+			toLine:"			83",
 			content:"
-			
 			    private TaskExecutionStatus state;
 			
 			    private Date firstSubmitTime;
@@ -522,13 +529,13 @@ messages:
 			    private int retryTimes;
 			
 			    private Flag alertFlag;
-						
+			
+			    @TableField(exist = false)			
 ",
 ,
-			fromLine:"			133",
-			toLine:"			153",
+			fromLine:"			134",
+			toLine:"			154",
 			content:"
-			    private int taskGroupId;
 			
 			    private Integer cpuQuota;
 			
@@ -552,10 +559,9 @@ messages:
 		],
 		dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java:
 		[
-			fromLine:"			14",
-			toLine:"			37",
+			fromLine:"			15",
+			toLine:"			39",
 			content:"
-			 * See the License for the specific language governing permissions and
 			 * limitations under the License.
 			 */
 			
@@ -578,7 +584,9 @@ messages:
 			
 			    Result queryProjectParameterListPaging(User loginUser, long projectCode, Integer pageSize, Integer pageNo,
 			                                           String searchVal, String projectParameterDataType);
-						
+			
+			    Result queryProjectParameterByCode(User loginUser, long projectCode, long code);
+			}			
 ",
 ,
 
@@ -625,10 +633,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			59",
-			toLine:"			105",
+			fromLine:"			60",
+			toLine:"			106",
 			content:"
-			    private ProjectParameterService projectParameterService;
 			
 			    @Operation(summary = "createProjectParameter", description = "CREATE_PROJECT_PARAMETER_NOTES")
 			    @Parameters({
@@ -674,7 +681,8 @@ messages:
 			    })
 			    @PostMapping(value = "/delete")
 			    @ResponseStatus(HttpStatus.OK)
-			    @ApiException(DELETE_PROJECT_PARAMETER_ERROR)			
+			    @ApiException(DELETE_PROJECT_PARAMETER_ERROR)
+			    public Result deleteProjectParametersByCode(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,			
 ",
 ,
 
@@ -706,10 +714,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			40",
-			toLine:"			73",
+			fromLine:"			41",
+			toLine:"			74",
 			content:"
-			
 			    @InjectMocks
 			    private ProjectParameterController projectParameterController;
 			
@@ -742,7 +749,8 @@ messages:
 			    public void testDeleteProjectParametersByCode() {
 			        User loginUser = getGeneralUser();
 			
-			        Mockito.when(projectParameterService.deleteProjectParametersByCode(Mockito.any(), Mockito.anyLong(),			
+			        Mockito.when(projectParameterService.deleteProjectParametersByCode(Mockito.any(), Mockito.anyLong(),
+			                Mockito.anyLong())).thenReturn(getSuccessResult());			
 ",
 ,
 
@@ -792,10 +800,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			69",
-			toLine:"			166",
+			fromLine:"			70",
+			toLine:"			167",
 			content:"
-			    private ProjectServiceImpl projectService;
 			
 			    protected final static long projectCode = 1L;
 			
@@ -892,7 +899,8 @@ messages:
 			        assertEquals(DataType.LONG.name(), projectParameter.getParamDataType());
 			    }
 			
-			    @Test			
+			    @Test
+			    public void testDeleteProjectParametersByCode() {			
 ",
 ,
 
@@ -950,10 +958,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			71",
-			toLine:"			140",
+			fromLine:"			72",
+			toLine:"			141",
 			content:"
-			    public static final String DEFAULT_WARNING_TYPE = "NONE";
 			    public static final String DEFAULT_NOTIFY_GROUP_ID = "1";
 			    public static final String DEFAULT_FAILURE_POLICY = "CONTINUE";
 			    public static final String DEFAULT_WORKFLOW_INSTANCE_PRIORITY = "MEDIUM";
@@ -1022,13 +1029,13 @@ messages:
 			    /**
 			     * updateWorkflowInstance schedule
 			     *
-			     * @param loginUser login user			
+			     * @param loginUser login user
+			     * @param projectCode project code			
 ",
 ,
-			fromLine:"			298",
-			toLine:"			358",
+			fromLine:"			299",
+			toLine:"			359",
 			content:"
-			    @ResponseStatus(HttpStatus.CREATED)
 			    @ApiException(PREVIEW_SCHEDULE_ERROR)
 			    public Result previewSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
 			                                  @RequestParam(value = "schedule") String schedule) {
@@ -1089,83 +1096,11 @@ messages:
 ,
 
 		],
-		dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:
-		[
-			fromLine:"			17",
-			toLine:"			37",
-			content:"
-			
-			package org.apache.dolphinscheduler.dao.entity;
-			
-			import org.apache.dolphinscheduler.common.enums.AlertStatus;
-			import org.apache.dolphinscheduler.common.enums.AlertType;
-			import org.apache.dolphinscheduler.common.enums.WarningType;
-			
-			import java.util.Date;
-			import java.util.HashMap;
-			import java.util.Map;
-			
-			import lombok.AllArgsConstructor;
-			import lombok.Builder;
-			import lombok.Data;
-			import lombok.NoArgsConstructor;
-			
-			import com.baomidou.mybatisplus.annotation.IdType;
-			import com.baomidou.mybatisplus.annotation.TableField;
-			import com.baomidou.mybatisplus.annotation.TableId;
-			import com.baomidou.mybatisplus.annotation.TableName;
-						
-",
-,
-			fromLine:"			41",
-			toLine:"			76",
-			content:"
-			@AllArgsConstructor
-			@TableName("t_ds_alert")
-			public class Alert {
-			
-			    @TableId(value = "id", type = IdType.AUTO)
-			    private Integer id;
-			
-			    @TableField(value = "sign")
-			    private String sign;
-			
-			    @TableField(value = "title")
-			    private String title;
-			
-			    @TableField(value = "content")
-			    private String content;
-			
-			    @TableField(value = "alert_status")
-			    private AlertStatus alertStatus;
-			
-			    @TableField(value = "warning_type")
-			    private WarningType warningType;
-			
-			    @TableField(value = "log")
-			    private String log;
-			
-			    @TableField("alertgroup_id")
-			    private Integer alertGroupId;
-			
-			    @TableField("create_time")
-			    private Date createTime;
-			
-			    @TableField("update_time")
-			    private Date updateTime;
-			
-			    @TableField("project_code")
-			    private Long projectCode;			
-",
-,
-
-		],
 		dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
 		[
-			fromLine:"			11",
-			toLine:"			58",
+			fromLine:"			12",
+			toLine:"			59",
 			content:"
-			 * Unless required by applicable law or agreed to in writing, software
 			 * distributed under the License is distributed on an "AS IS" BASIS,
 			 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 			 * See the License for the specific language governing permissions and
@@ -1206,6 +1141,77 @@ messages:
 			        this.alertGroupId = alertGroupId;
 			    }
 			}
+						
+",
+,
+
+		],
+		dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:
+		[
+			fromLine:"			17",
+			toLine:"			37",
+			content:"
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import org.apache.dolphinscheduler.common.enums.AlertStatus;
+			import org.apache.dolphinscheduler.common.enums.AlertType;
+			import org.apache.dolphinscheduler.common.enums.WarningType;
+			
+			import java.util.Date;
+			import java.util.HashMap;
+			import java.util.Map;
+			
+			import lombok.AllArgsConstructor;
+			import lombok.Builder;
+			import lombok.Data;
+			import lombok.NoArgsConstructor;
+			
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableField;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+						
+",
+,
+			fromLine:"			42",
+			toLine:"			77",
+			content:"
+			@TableName("t_ds_alert")
+			public class Alert {
+			
+			    @TableId(value = "id", type = IdType.AUTO)
+			    private Integer id;
+			
+			    @TableField(value = "sign")
+			    private String sign;
+			
+			    @TableField(value = "title")
+			    private String title;
+			
+			    @TableField(value = "content")
+			    private String content;
+			
+			    @TableField(value = "alert_status")
+			    private AlertStatus alertStatus;
+			
+			    @TableField(value = "warning_type")
+			    private WarningType warningType;
+			
+			    @TableField(value = "log")
+			    private String log;
+			
+			    @TableField("alertgroup_id")
+			    private Integer alertGroupId;
+			
+			    @TableField("create_time")
+			    private Date createTime;
+			
+			    @TableField("update_time")
+			    private Date updateTime;
+			
+			    @TableField("project_code")
+			    private Long projectCode;
 						
 ",
 ,

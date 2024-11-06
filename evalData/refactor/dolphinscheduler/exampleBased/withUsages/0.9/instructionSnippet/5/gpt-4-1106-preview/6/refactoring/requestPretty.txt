@@ -346,10 +346,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			66",
-			toLine:"			76",
+			fromLine:"			67",
+			toLine:"			77",
 			content:"
-			        headers.put(Constants.SESSION_ID_KEY, sessionId);
 			        RequestClient requestClient = new RequestClient();
 			        String url = String.format("/projects/%s/executors/query-executing-workflow", projectCode);
 			        return requestClient.get(url, headers, params);
@@ -359,13 +358,13 @@ messages:
 			        Map<String, Object> params = new HashMap<>();
 			        params.put("loginUser", loginUser);
 			        params.put("projectCode", projectCode);
-			        params.put("workflowInstanceId", workflowInstanceId);			
+			        params.put("workflowInstanceId", workflowInstanceId);
+			        params.put("executeType", executeType);			
 ",
 ,
-			fromLine:"			80",
-			toLine:"			90",
+			fromLine:"			81",
+			toLine:"			91",
 			content:"
-			
 			        RequestClient requestClient = new RequestClient();
 			        String url = String.format("/projects/%s/executors/execute", projectCode);
 			        return requestClient.post(url, headers, params);
@@ -375,7 +374,8 @@ messages:
 			                                    TaskDependType taskDependType) {
 			        Map<String, Object> params = new HashMap<>();
 			        params.put("loginUser", loginUser);
-			        params.put("workflowInstanceId", workflowInstanceId);			
+			        params.put("workflowInstanceId", workflowInstanceId);
+			        params.put("startNodeList", startNodeList);			
 ",
 ,
 
@@ -406,10 +406,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			265",
-			toLine:"			281",
+			fromLine:"			266",
+			toLine:"			289",
 			content:"
-			
 			    /**
 			     * Filter workflow instance
 			     *
@@ -425,7 +424,15 @@ messages:
 			                                                              @Param("projectCode") Long projectCode,
 			                                                              @Param("workflowDefinitionCode") Long workflowDefinitionCode,
 			                                                              @Param("name") String name,
-			                                                              @Param("startTime") String startTime,			
+			                                                              @Param("startTime") String startTime,
+			                                                              @Param("endTime") String endTime,
+			                                                              @Param("state") Integer state,
+			                                                              @Param("host") String host);
+			
+			    /**
+			     * Statistics workflow instance state v2
+			     * <p>
+			     * We only need project codes to determine whether the workflow instance belongs to the user or not.			
 ",
 ,
 
@@ -456,10 +463,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			37",
-			toLine:"			55",
+			fromLine:"			38",
+			toLine:"			56",
 			content:"
-			@TableName("t_ds_task_instance")
 			public class TaskInstance implements Serializable {
 			
 			    @TableId(value = "id", type = IdType.AUTO)
@@ -477,13 +483,13 @@ messages:
 			
 			    private long taskCode;
 			
-			    private int taskDefinitionVersion;			
+			    private int taskDefinitionVersion;
+						
 ",
 ,
-			fromLine:"			67",
-			toLine:"			77",
+			fromLine:"			68",
+			toLine:"			78",
 			content:"
-			    private Date submitTime;
 			
 			    private Date startTime;
 			
@@ -493,13 +499,13 @@ messages:
 			
 			    private String executePath;
 			
-			    private String logPath;			
+			    private String logPath;
+						
 ",
 ,
-			fromLine:"			138",
-			toLine:"			148",
+			fromLine:"			139",
+			toLine:"			149",
 			content:"
-			
 			    private TaskExecuteType taskExecuteType;
 			
 			    private int testFlag;
@@ -509,7 +515,8 @@ messages:
 			        this.startTime = startTime;
 			        this.executePath = executePath;
 			    }
-						
+			
+			}			
 ",
 ,
 
@@ -517,7 +524,7 @@ messages:
 		dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java:
 		[
 			fromLine:"			17",
-			toLine:"			32",
+			toLine:"			34",
 			content:"
 			
 			package org.apache.dolphinscheduler.api.service;
@@ -534,6 +541,8 @@ messages:
 			                                  String projectParameterValue, String projectParameterDataType);
 			
 			    Result deleteProjectParametersByCode(User loginUser, long projectCode, long code);
+			
+			    Result batchDeleteProjectParametersByCodes(User loginUser, long projectCode, String codes);
 						
 ",
 ,
@@ -581,10 +590,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			64",
-			toLine:"			80",
+			fromLine:"			65",
+			toLine:"			81",
 			content:"
-			            @Parameter(name = "projectParameterValue", description = "PROJECT_PARAMETER_VALUE", schema = @Schema(implementation = String.class)),
 			            @Parameter(name = "projectParameterDataType", description = "PROJECT_PARAMETER_DATA_TYPE", schema = @Schema(implementation = String.class))
 			    })
 			    @PostMapping()
@@ -600,13 +608,13 @@ messages:
 			    }
 			
 			    @Operation(summary = "updateProjectParameter", description = "UPDATE_PROJECT_PARAMETER_NOTES")
-			    @Parameters({			
+			    @Parameters({
+			            @Parameter(name = "code", description = "PROJECT_PARAMETER_CODE", schema = @Schema(implementation = long.class, example = "123456")),			
 ",
 ,
-			fromLine:"			83",
-			toLine:"			100",
+			fromLine:"			84",
+			toLine:"			101",
 			content:"
-			            @Parameter(name = "projectParameterValue", description = "PROJECT_PARAMETER_VALUE", schema = @Schema(implementation = String.class)),
 			            @Parameter(name = "projectParameterDataType", description = "PROJECT_PARAMETER_DATA_TYPE", schema = @Schema(implementation = String.class))
 			    })
 			    @PutMapping(value = "/{code}")
@@ -623,7 +631,8 @@ messages:
 			    }
 			
 			    @Operation(summary = "deleteProjectParametersByCode", description = "DELETE_PROJECT_PARAMETER_NOTES")
-			    @Parameters({			
+			    @Parameters({
+			            @Parameter(name = "code", description = "PROJECT_PARAMETER_CODE", required = true, schema = @Schema(implementation = String.class))			
 ",
 ,
 
@@ -655,10 +664,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			45",
-			toLine:"			68",
+			fromLine:"			46",
+			toLine:"			69",
 			content:"
-			    private ProjectParameterServiceImpl projectParameterService;
 			
 			    @Test
 			    public void testCreateProjectParameter() {
@@ -681,7 +689,8 @@ messages:
 			                DataType.LONG.name());
 			        Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode());
 			    }
-						
+			
+			    @Test			
 ",
 ,
 
@@ -731,10 +740,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			74",
-			toLine:"			84",
+			fromLine:"			75",
+			toLine:"			85",
 			content:"
-			    public void testCreateProjectParameter() {
 			        User loginUser = getGeneralUser();
 			
 			        // PERMISSION DENIED
@@ -744,13 +752,13 @@ messages:
 			                DataType.VARCHAR.name());
 			        assertNull(result.getData());
 			        assertNull(result.getCode());
-			        assertNull(result.getMsg());			
+			        assertNull(result.getMsg());
+						
 ",
 ,
-			fromLine:"			87",
-			toLine:"			118",
+			fromLine:"			88",
+			toLine:"			119",
 			content:"
-			                .thenReturn(true);
 			
 			        // CODE GENERATION ERROR
 			        try (MockedStatic<CodeGenerateUtils> ignored = Mockito.mockStatic(CodeGenerateUtils.class)) {
@@ -781,13 +789,13 @@ messages:
 			                DataType.VARCHAR.name());
 			        assertEquals(Status.SUCCESS.getCode(), result.getCode());
 			    }
-						
+			
+			    @Test			
 ",
 ,
-			fromLine:"			120",
-			toLine:"			161",
+			fromLine:"			121",
+			toLine:"			162",
 			content:"
-			    public void testUpdateProjectParameter() {
 			        User loginUser = getGeneralUser();
 			
 			        // NO PERMISSION
@@ -828,7 +836,8 @@ messages:
 			                DataType.LONG.name());
 			        assertEquals(Status.SUCCESS.getCode(), result.getCode());
 			        ProjectParameter projectParameter = (ProjectParameter) result.getData();
-			        assertNotNull(projectParameter.getOperator());			
+			        assertNotNull(projectParameter.getOperator());
+			        assertNotNull(projectParameter.getUpdateTime());			
 ",
 ,
 
@@ -886,10 +895,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			76",
-			toLine:"			95",
+			fromLine:"			77",
+			toLine:"			96",
 			content:"
-			    @Autowired
 			    private SchedulerService schedulerService;
 			
 			    /**
@@ -908,13 +916,13 @@ messages:
 			     * @return create result code
 			     */
 			    @Operation(summary = "createSchedule", description = "CREATE_SCHEDULE_NOTES")
-			    @Parameters({			
+			    @Parameters({
+			            @Parameter(name = "workflowDefinitionCode", description = "WORKFLOW_DEFINITION_CODE", required = true, schema = @Schema(implementation = long.class, example = "100")),			
 ",
 ,
-			fromLine:"			104",
-			toLine:"			114",
+			fromLine:"			105",
+			toLine:"			136",
 			content:"
-			            @Parameter(name = "workflowInstancePriority", description = "WORKFLOW_INSTANCE_PRIORITY", schema = @Schema(implementation = Priority.class)),
 			    })
 			    @PostMapping()
 			    @ResponseStatus(HttpStatus.CREATED)
@@ -924,12 +932,8 @@ messages:
 			                                 @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
 			                                 @RequestParam(value = "workflowDefinitionCode") long workflowDefinitionCode,
 			                                 @RequestParam(value = "schedule") String schedule,
-			                                 @RequestParam(value = "warningType", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,			
-",
-,
-			fromLine:"			116",
-			toLine:"			135",
-			content:"
+			                                 @RequestParam(value = "warningType", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,
+			                                 @RequestParam(value = "warningGroupId", required = false, defaultValue = DEFAULT_NOTIFY_GROUP_ID) int warningGroupId,
 			                                 @RequestParam(value = "failureStrategy", required = false, defaultValue = DEFAULT_FAILURE_POLICY) FailureStrategy failureStrategy,
 			                                 @RequestParam(value = "workerGroup", required = false, defaultValue = "default") String workerGroup,
 			                                 @RequestParam(value = "tenantCode", required = false, defaultValue = "default") String tenantCode,
@@ -949,13 +953,13 @@ messages:
 			                environmentCode);
 			
 			        return returnDataList(result);
-			    }			
+			    }
+						
 ",
 ,
-			fromLine:"			303",
-			toLine:"			321",
+			fromLine:"			304",
+			toLine:"			322",
 			content:"
-			        return returnDataList(result);
 			    }
 			
 			    /**
@@ -973,13 +977,13 @@ messages:
 			     * @return update result code
 			     */
 			    @Operation(summary = "updateScheduleByWorkflowDefinitionCode", description = "UPDATE_SCHEDULE_BY_WORKFLOW_DEFINITION_CODE_NOTES")
-			    @Parameters({			
+			    @Parameters({
+			            @Parameter(name = "workflowDefinitionCode", description = "WORKFLOW_DEFINITION_CODE", required = true, schema = @Schema(implementation = long.class, example = "12345678")),			
 ",
 ,
-			fromLine:"			330",
-			toLine:"			353",
+			fromLine:"			331",
+			toLine:"			354",
 			content:"
-			            @Parameter(name = "environmentCode", description = "ENVIRONMENT_CODE", schema = @Schema(implementation = long.class)),
 			    })
 			    @PutMapping("/update/{code}")
 			    @ResponseStatus(HttpStatus.OK)
@@ -1002,17 +1006,17 @@ messages:
 			                environmentCode);
 			        return returnDataList(result);
 			    }
-			}			
+			}
+						
 ",
 ,
 
 		],
 		dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
 		[
-			fromLine:"			16",
-			toLine:"			53",
+			fromLine:"			17",
+			toLine:"			54",
 			content:"
-			 */
 			
 			package org.apache.dolphinscheduler.plugin.task.api.model;
 			
@@ -1081,10 +1085,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			46",
-			toLine:"			59",
+			fromLine:"			47",
+			toLine:"			60",
 			content:"
-			    private Integer id;
 			
 			    @TableField(value = "sign")
 			    private String sign;
@@ -1097,13 +1100,13 @@ messages:
 			
 			    @TableField(value = "alert_status")
 			    private AlertStatus alertStatus;
-						
+			
+			    @TableField(value = "warning_type")			
 ",
 ,
-			fromLine:"			61",
-			toLine:"			71",
+			fromLine:"			62",
+			toLine:"			72",
 			content:"
-			    private WarningType warningType;
 			
 			    @TableField(value = "log")
 			    private String log;
@@ -1113,7 +1116,8 @@ messages:
 			
 			    @TableField("create_time")
 			    private Date createTime;
-						
+			
+			    @TableField("update_time")			
 ",
 ,
 

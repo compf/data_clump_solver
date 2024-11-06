@@ -346,20 +346,20 @@ messages:
 						
 ",
 ,
-			fromLine:"			70",
-			toLine:"			72",
+			fromLine:"			71",
+			toLine:"			73",
 			content:"
-			    }
 			
-			    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {			
+			    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {
+			        Map<String, Object> params = new HashMap<>();			
 ",
 ,
-			fromLine:"			84",
-			toLine:"			86",
+			fromLine:"			85",
+			toLine:"			87",
 			content:"
-			    }
 			
-			    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,			
+			    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,
+			                                    TaskDependType taskDependType) {			
 ",
 ,
 
@@ -390,21 +390,32 @@ messages:
 						
 ",
 ,
-			fromLine:"			269",
-			toLine:"			272",
+			fromLine:"			270",
+			toLine:"			273",
 			content:"
-			     * @param page                  page
 			     * @param workflowDefinitionCode workflowDefinitionCode
 			     * @param name                  name
-			     * @param host                  host			
+			     * @param host                  host
+			     * @param startTime             startTime			
 ",
 ,
-			fromLine:"			275",
-			toLine:"			277",
+			fromLine:"			276",
+			toLine:"			281",
 			content:"
-			     * @return workflow instance IPage
 			     */
-			    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,			
+			    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,
+			                                                              @Param("projectCode") Long projectCode,
+			                                                              @Param("workflowDefinitionCode") Long workflowDefinitionCode,
+			                                                              @Param("name") String name,
+			                                                              @Param("startTime") String startTime,			
+",
+,
+			fromLine:"			283",
+			toLine:"			285",
+			content:"
+			                                                              @Param("state") Integer state,
+			                                                              @Param("host") String host);
+						
 ",
 ,
 
@@ -435,36 +446,36 @@ messages:
 						
 ",
 ,
-			fromLine:"			41",
-			toLine:"			43",
+			fromLine:"			42",
+			toLine:"			44",
 			content:"
-			    private Integer id;
 			
-			    private String name;			
+			    private String name;
+						
 ",
 ,
-			fromLine:"			49",
-			toLine:"			51",
+			fromLine:"			50",
+			toLine:"			52",
 			content:"
-			    private String workflowInstanceName;
 			
-			    private Long projectCode;			
+			    private Long projectCode;
+						
 ",
 ,
-			fromLine:"			71",
-			toLine:"			73",
+			fromLine:"			72",
+			toLine:"			74",
 			content:"
-			    private Date endTime;
 			
-			    private String host;			
+			    private String host;
+						
 ",
 ,
-			fromLine:"			142",
-			toLine:"			144",
+			fromLine:"			143",
+			toLine:"			145",
 			content:"
-			
 			    public void init(String host, Date startTime, String executePath) {
-			        this.host = host;			
+			        this.host = host;
+			        this.startTime = startTime;			
 ",
 ,
 
@@ -472,20 +483,26 @@ messages:
 		dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java:
 		[
 			fromLine:"			17",
-			toLine:"			28",
+			toLine:"			22",
 			content:"
 			
 			package org.apache.dolphinscheduler.api.service;
 			
 			import org.apache.dolphinscheduler.api.utils.Result;
 			import org.apache.dolphinscheduler.dao.entity.User;
-			
-			public interface ProjectParameterService {
+						
+",
+,
+			fromLine:"			24",
+			toLine:"			30",
+			content:"
 			
 			    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,
 			                                  String projectParameterValue, String projectParameterDataType);
 			
-			    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,			
+			    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,
+			                                  String projectParameterValue, String projectParameterDataType);
+						
 ",
 ,
 
@@ -532,38 +549,33 @@ messages:
 						
 ",
 ,
-			fromLine:"			68",
-			toLine:"			70",
+			fromLine:"			69",
+			toLine:"			77",
 			content:"
-			    @ResponseStatus(HttpStatus.CREATED)
 			    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)
-			    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			73",
-			toLine:"			76",
-			content:"
+			    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+			                                         @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                         @RequestParam("projectParameterName") String projectParameterName,
 			                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
 			                                         @RequestParam(value = "projectParameterDataType", defaultValue = "VARCHAR") String projectParameterDataType) {
 			        return projectParameterService.createProjectParameter(loginUser, projectCode, projectParameterName,
-			                projectParameterValue, projectParameterDataType);			
+			                projectParameterValue, projectParameterDataType);
+			    }			
 ",
 ,
-			fromLine:"			87",
-			toLine:"			89",
+			fromLine:"			88",
+			toLine:"			97",
 			content:"
-			    @ResponseStatus(HttpStatus.OK)
 			    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)
-			    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			93",
-			toLine:"			96",
-			content:"
+			    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+			                                         @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                         @PathVariable("code") Long code,
+			                                         @RequestParam("projectParameterName") String projectParameterName,
 			                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
 			                                         @RequestParam(value = "projectParameterDataType") String projectParameterDataType) {
 			        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, projectParameterName,
-			                projectParameterValue, projectParameterDataType);			
+			                projectParameterValue, projectParameterDataType);
+			    }			
 ",
 ,
 
@@ -595,24 +607,24 @@ messages:
 						
 ",
 ,
-			fromLine:"			49",
-			toLine:"			53",
+			fromLine:"			50",
+			toLine:"			54",
 			content:"
-			        User loginUser = getGeneralUser();
 			
 			        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.any(),
 			                Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());
-			        Result result = projectParameterController.createProjectParameter(loginUser, 1, "key", "value",			
+			        Result result = projectParameterController.createProjectParameter(loginUser, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			60",
-			toLine:"			64",
+			fromLine:"			61",
+			toLine:"			65",
 			content:"
-			        User loginUser = getGeneralUser();
 			
 			        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),
 			                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());
-			        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, "key", "value",			
+			        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, "key", "value",
+			                DataType.LONG.name());			
 ",
 ,
 
@@ -662,84 +674,84 @@ messages:
 						
 ",
 ,
-			fromLine:"			78",
-			toLine:"			80",
+			fromLine:"			79",
+			toLine:"			81",
 			content:"
-			        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))
 			                .thenReturn(false);
-			        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",			
+			        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			91",
-			toLine:"			93",
+			fromLine:"			92",
+			toLine:"			94",
 			content:"
-			            when(CodeGenerateUtils.genCode()).thenThrow(CodeGenerateUtils.CodeGenerateException.class);
 			
-			            result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",			
+			            result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",
+			                    DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			99",
-			toLine:"			101",
+			fromLine:"			100",
+			toLine:"			102",
 			content:"
-			        when(projectMapper.queryByCode(projectCode)).thenReturn(getProject(projectCode));
 			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
-			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",			
+			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			106",
-			toLine:"			108",
+			fromLine:"			107",
+			toLine:"			109",
 			content:"
-			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);
 			        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);
-			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",			
+			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			112",
-			toLine:"			114",
+			fromLine:"			113",
+			toLine:"			115",
 			content:"
-			        // SUCCESS
 			        when(projectParameterMapper.insert(Mockito.any())).thenReturn(1);
-			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",			
+			        result = projectParameterService.createProjectParameter(loginUser, projectCode, "key1", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			124",
-			toLine:"			126",
+			fromLine:"			125",
+			toLine:"			127",
 			content:"
-			        when(projectService.hasProjectAndWritePerm(Mockito.any(), Mockito.any(), Mockito.any(Result.class)))
 			                .thenReturn(false);
-			        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",			
+			        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			135",
-			toLine:"			137",
+			fromLine:"			136",
+			toLine:"			138",
 			content:"
-			                .thenReturn(true);
 			        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			142",
-			toLine:"			144",
+			fromLine:"			143",
+			toLine:"			145",
 			content:"
-			        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(getProjectParameter());
 			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			149",
-			toLine:"			151",
+			fromLine:"			150",
+			toLine:"			152",
 			content:"
-			        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(null);
 			        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1);
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",
+			                DataType.VARCHAR.name());			
 ",
 ,
-			fromLine:"			155",
-			toLine:"			157",
+			fromLine:"			156",
+			toLine:"			158",
 			content:"
-			        // SUCCESS
 			        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(1);
-			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",			
+			        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, "key1", "value",
+			                DataType.LONG.name());			
 ",
 ,
 
@@ -797,10 +809,9 @@ messages:
 						
 ",
 ,
-			fromLine:"			80",
-			toLine:"			91",
+			fromLine:"			81",
+			toLine:"			92",
 			content:"
-			     * create schedule
 			     *
 			     * @param loginUser login user
 			     * @param projectCode project code
@@ -811,20 +822,24 @@ messages:
 			     * @param failureStrategy failure strategy
 			     * @param workflowInstancePriority workflow instance priority
 			     * @param workerGroup worker group
-			     * @param tenantCode tenant code			
+			     * @param tenantCode tenant code
+			     * @return create result code			
 ",
 ,
-			fromLine:"			108",
-			toLine:"			110",
+			fromLine:"			109",
+			toLine:"			132",
 			content:"
-			    @ApiException(CREATE_SCHEDULE_ERROR)
 			    @OperatorLog(auditType = AuditType.SCHEDULE_CREATE)
-			    public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			120",
-			toLine:"			131",
-			content:"
+			    public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+			                                 @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                 @RequestParam(value = "workflowDefinitionCode") long workflowDefinitionCode,
+			                                 @RequestParam(value = "schedule") String schedule,
+			                                 @RequestParam(value = "warningType", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,
+			                                 @RequestParam(value = "warningGroupId", required = false, defaultValue = DEFAULT_NOTIFY_GROUP_ID) int warningGroupId,
+			                                 @RequestParam(value = "failureStrategy", required = false, defaultValue = DEFAULT_FAILURE_POLICY) FailureStrategy failureStrategy,
+			                                 @RequestParam(value = "workerGroup", required = false, defaultValue = "default") String workerGroup,
+			                                 @RequestParam(value = "tenantCode", required = false, defaultValue = "default") String tenantCode,
+			                                 @RequestParam(value = "environmentCode", required = false, defaultValue = "-1") Long environmentCode,
 			                                 @RequestParam(value = "workflowInstancePriority", required = false, defaultValue = DEFAULT_WORKFLOW_INSTANCE_PRIORITY) Priority workflowInstancePriority) {
 			        Map<String, Object> result = schedulerService.insertSchedule(
 			                loginUser,
@@ -836,13 +851,13 @@ messages:
 			                failureStrategy,
 			                workflowInstancePriority,
 			                workerGroup,
-			                tenantCode,			
+			                tenantCode,
+			                environmentCode);			
 ",
 ,
-			fromLine:"			307",
-			toLine:"			317",
+			fromLine:"			308",
+			toLine:"			318",
 			content:"
-			     * update workflow definition schedule
 			     *
 			     * @param loginUser login user
 			     * @param projectCode project code
@@ -852,25 +867,29 @@ messages:
 			     * @param warningGroupId warning group id
 			     * @param failureStrategy failure strategy
 			     * @param workerGroup worker group
-			     * @param workflowInstancePriority workflow instance priority			
+			     * @param workflowInstancePriority workflow instance priority
+			     * @return update result code			
 ",
 ,
-			fromLine:"			334",
-			toLine:"			336",
+			fromLine:"			335",
+			toLine:"			350",
 			content:"
-			    @ApiException(UPDATE_SCHEDULE_ERROR)
 			    @OperatorLog(auditType = AuditType.SCHEDULE_UPDATE)
-			    public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,			
-",
-,
-			fromLine:"			345",
-			toLine:"			349",
-			content:"
+			    public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+			                                                         @Parameter(name = "projectCode", description = "PROJECT_CODE", required = true) @PathVariable long projectCode,
+			                                                         @PathVariable(value = "code") long workflowDefinitionCode,
+			                                                         @RequestParam(value = "schedule") String schedule,
+			                                                         @RequestParam(value = "warningType", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,
+			                                                         @RequestParam(value = "warningGroupId", required = false) int warningGroupId,
+			                                                         @RequestParam(value = "failureStrategy", required = false, defaultValue = "END") FailureStrategy failureStrategy,
+			                                                         @RequestParam(value = "workerGroup", required = false, defaultValue = "default") String workerGroup,
+			                                                         @RequestParam(value = "tenantCode", required = false, defaultValue = "default") String tenantCode,
 			                                                         @RequestParam(value = "environmentCode", required = false, defaultValue = "-1") long environmentCode,
 			                                                         @RequestParam(value = "workflowInstancePriority", required = false) Priority workflowInstancePriority) {
 			        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(loginUser, projectCode,
 			                workflowDefinitionCode, schedule,
-			                warningType, warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode,			
+			                warningType, warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode,
+			                environmentCode);			
 ",
 ,
 
@@ -878,12 +897,16 @@ messages:
 		dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
 		[
 			fromLine:"			17",
-			toLine:"			29",
+			toLine:"			19",
 			content:"
 			
 			package org.apache.dolphinscheduler.plugin.task.api.model;
-			
-			public class TaskAlertInfo {
+						
+",
+,
+			fromLine:"			21",
+			toLine:"			30",
+			content:"
 			
 			    private String title;
 			
@@ -892,47 +915,48 @@ messages:
 			    private Integer alertGroupId;
 			
 			    public String getTitle() {
-			        return title;			
+			        return title;
+			    }			
 ",
 ,
-			fromLine:"			31",
-			toLine:"			33",
+			fromLine:"			32",
+			toLine:"			34",
 			content:"
-			
 			    public void setTitle(String title) {
-			        this.title = title;			
+			        this.title = title;
+			    }			
 ",
 ,
-			fromLine:"			35",
-			toLine:"			37",
+			fromLine:"			36",
+			toLine:"			38",
 			content:"
-			
 			    public String getContent() {
-			        return content;			
+			        return content;
+			    }			
 ",
 ,
-			fromLine:"			39",
-			toLine:"			41",
+			fromLine:"			40",
+			toLine:"			42",
 			content:"
-			
 			    public void setContent(String content) {
-			        this.content = content;			
+			        this.content = content;
+			    }			
 ",
 ,
-			fromLine:"			43",
-			toLine:"			45",
+			fromLine:"			44",
+			toLine:"			46",
 			content:"
-			
 			    public Integer getAlertGroupId() {
-			        return alertGroupId;			
+			        return alertGroupId;
+			    }			
 ",
 ,
-			fromLine:"			47",
-			toLine:"			49",
+			fromLine:"			48",
+			toLine:"			50",
 			content:"
-			
 			    public void setAlertGroupId(Integer alertGroupId) {
-			        this.alertGroupId = alertGroupId;			
+			        this.alertGroupId = alertGroupId;
+			    }			
 ",
 ,
 
@@ -965,23 +989,455 @@ messages:
 						
 ",
 ,
-			fromLine:"			50",
-			toLine:"			55",
+			fromLine:"			51",
+			toLine:"			56",
 			content:"
-			
 			    @TableField(value = "title")
 			    private String title;
 			
 			    @TableField(value = "content")
-			    private String content;			
+			    private String content;
+						
 ",
 ,
-			fromLine:"			65",
-			toLine:"			67",
+			fromLine:"			66",
+			toLine:"			68",
+			content:"
+			    @TableField("alertgroup_id")
+			    private Integer alertGroupId;
+						
+",
+,
+
+		],
+	
+}
+	role:"
+	user	
+",
+,
+	content:"
+	{
+	    "refactorings": {
+	        "dolphinscheduler-api-test/dolphinscheduler-api-test-case/src/test/java/org/apache/dolphinscheduler/api/test/pages/workflow/ExecutorPage.java": [
+	            {
+	                "fromLine": 71,
+	                "toLine": 73,
+	                "oldContent": "
+	    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {
+	        Map<String, Object> params = new HashMap<>();",
+	                "newContent": "
+	    public HttpResponse execute(ExecutionRequest executionRequest) {
+	        Map<String, Object> params = new HashMap<>();"
+	            },
+	            {
+	                "fromLine": 85,
+	                "toLine": 87,
+	                "oldContent": "
+	    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,
+	                                    TaskDependType taskDependType) {",
+	                "newContent": "
+	    public HttpResponse executeTask(TaskExecutionRequest taskExecutionRequest) {"
+	            }
+	        ],
+	        "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java": [
+	            {
+	                "fromLine": 276,
+	                "toLine": 281,
+	                "oldContent": "
+	    */
+	    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,
+	                                                              @Param(\"projectCode\") Long projectCode,
+	                                                              @Param(\"workflowDefinitionCode\") Long workflowDefinitionCode,
+	                                                              @Param(\"name\") String name,
+	                                                              @Param(\"startTime\") String startTime,",
+	                "newContent": "
+	    */
+	    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,
+	                                                              WorkflowInstanceQuery workflowInstanceQuery,"
+	            },
+	            {
+	                "fromLine": 283,
+	                "toLine": 285,
+	                "oldContent": "                                                              @Param(\"state\") Integer state,
+	                                                              @Param(\"host\") String host);
+	",
+	                "newContent": "                                                              @Param(\"query\") WorkflowInstanceQuery workflowInstanceQuery);
+	"
+	            }
+	        ],
+	        "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java": [
+	            {
+	                "fromLine": 42,
+	                "toLine": 74,
+	                "oldContent": "
+	    private String name;
+	
+	    private Long projectCode;
+	
+	    private String host;
+	",
+	                "newContent": "
+	    private TaskInstanceKey key;
+	"
+	            },
+	            {
+	                "fromLine": 143,
+	                "toLine": 145,
+	                "oldContent": "    public void init(String host, Date startTime, String executePath) {
+	        this.host = host;
+	        this.startTime = startTime;",
+	                "newContent": "    public void init(TaskInstanceInitialization initialization) {
+	        this.key.setHost(initialization.getHost());
+	        this.startTime = initialization.getStartTime();"
+	            }
+	        ],
+	        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java": [
+	            {
+	                "fromLine": 24,
+	                "toLine": 30,
+	                "oldContent": "
+	    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,
+	                                  String projectParameterValue, String projectParameterDataType);
+	
+	    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,
+	                                  String projectParameterValue, String projectParameterDataType);
+	",
+	                "newContent": "
+	    Result createProjectParameter(ProjectParameterRequest parameterRequest);
+	
+	    Result updateProjectParameter(ProjectParameterUpdateRequest updateRequest);
+	"
+	            }
+	        ],
+	        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/ProjectParameterController.java": [
+	            {
+	                "fromLine": 69,
+	                "toLine": 77,
+	                "oldContent": "    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)
+	    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+	                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,
+	                                         @RequestParam(\"projectParameterName\") String projectParameterName,
+	                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,
+	                                         @RequestParam(value = \"projectParameterDataType\", defaultValue = \"VARCHAR\") String projectParameterDataType) {
+	        return projectParameterService.createProjectParameter(loginUser, projectCode, projectParameterName,
+	                projectParameterValue, projectParameterDataType);
+	    }",
+	                "newContent": "    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)
+	    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+	                                         ProjectParameterRequest parameterRequest) {
+	        return projectParameterService.createProjectParameter(parameterRequest);
+	    }"
+	            },
+	            {
+	                "fromLine": 88,
+	                "toLine": 97,
+	                "oldContent": "    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)
+	    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+	                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,
+	                                         @PathVariable(\"code\") Long code,
+	                                         @RequestParam(\"projectParameterName\") String projectParameterName,
+	                                         @RequestParam(value = \"projectParameterValue\") String projectParameterValue,
+	                                         @RequestParam(value = \"projectParameterDataType\") String projectParameterDataType) {
+	        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, projectParameterName,
+	                projectParameterValue, projectParameterDataType);
+	    }",
+	                "newContent": "    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)
+	    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+	                                         ProjectParameterUpdateRequest updateRequest) {
+	        return projectParameterService.updateProjectParameter(updateRequest);
+	    }"
+	            }
+	        ],
+	        "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/controller/ProjectParameterControllerTest.java": [
+	            {
+	                "fromLine": 50,
+	                "toLine": 54,
+	                "oldContent": "
+	        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.any(),
+	                Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());
+	        Result result = projectParameterController.createProjectParameter(loginUser, 1, \"key\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "
+	        Mockito.when(projectParameterService.createProjectParameter(Mockito.any(ProjectParameterRequest.class))).thenReturn(getSuccessResult());
+	        Result result = projectParameterController.createProjectParameter(loginUser, new ProjectParameterRequest(1, \"key\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 61,
+	                "toLine": 65,
+	                "oldContent": "
+	        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),
+	                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(getSuccessResult());
+	        Result result = projectParameterController.updateProjectParameter(loginUser, 1, 1L, \"key\", \"value\",
+	                DataType.LONG.name());",
+	                "newContent": "
+	        Mockito.when(projectParameterService.updateProjectParameter(Mockito.any(ProjectParameterUpdateRequest.class))).thenReturn(getSuccessResult());
+	        Result result = projectParameterController.updateProjectParameter(loginUser, new ProjectParameterUpdateRequest(1, 1L, \"key\", \"value\", DataType.LONG.name()));"
+	            }
+	        ],
+	        "dolphinscheduler-api/src/test/java/org/apache/dolphinscheduler/api/service/ProjectParameterServiceTest.java": [
+	            {
+	                "fromLine": 79,
+	                "toLine": 81,
+	                "oldContent": "
+	                .thenReturn(false);
+	        Result result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "
+	                .thenReturn(false);
+	        Result result = projectParameterService.createProjectParameter(new ProjectParameterRequest(loginUser, projectCode, \"key\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 92,
+	                "toLine": 94,
+	                "oldContent": "
+	            result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",
+	                    DataType.VARCHAR.name());",
+	                "newContent": "
+	            result = projectParameterService.createProjectParameter(new ProjectParameterRequest(loginUser, projectCode, \"key\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 100,
+	                "toLine": 102,
+	                "oldContent": "        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
+	        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
+	        result = projectParameterService.createProjectParameter(new ProjectParameterRequest(loginUser, projectCode, \"key\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 107,
+	                "toLine": 109,
+	                "oldContent": "        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);
+	        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key1\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "        when(projectParameterMapper.insert(Mockito.any())).thenReturn(-1);
+	        result = projectParameterService.createProjectParameter(new ProjectParameterRequest(loginUser, projectCode, \"key1\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 113,
+	                "toLine": 115,
+	                "oldContent": "        when(projectParameterMapper.insert(Mockito.any())).thenReturn(1);
+	        result = projectParameterService.createProjectParameter(loginUser, projectCode, \"key1\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "        when(projectParameterMapper.insert(Mockito.any())).thenReturn(1);
+	        result = projectParameterService.createProjectParameter(new ProjectParameterRequest(loginUser, projectCode, \"key1\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 125,
+	                "toLine": 127,
+	                "oldContent": "
+	                .thenReturn(false);
+	        Result result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "
+	                .thenReturn(false);
+	        Result result = projectParameterService.updateProjectParameter(new ProjectParameterUpdateRequest(loginUser, projectCode, 1, \"key\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 136,
+	                "toLine": 138,
+	                "oldContent": "        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);
+	        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "        when(projectParameterMapper.queryByCode(Mockito.anyLong())).thenReturn(null);
+	        result = projectParameterService.updateProjectParameter(new ProjectParameterUpdateRequest(loginUser, projectCode, 1, \"key\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 143,
+	                "toLine": 145,
+	                "oldContent": "        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
+	        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "        when(projectParameterMapper.selectOne(Mockito.any())).thenReturn(getProjectParameter());
+	        result = projectParameterService.updateProjectParameter(new ProjectParameterUpdateRequest(loginUser, projectCode, 1, \"key\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 150,
+	                "toLine": 152,
+	                "oldContent": "        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1);
+	        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key1\", \"value\",
+	                DataType.VARCHAR.name());",
+	                "newContent": "        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(-1);
+	        result = projectParameterService.updateProjectParameter(new ProjectParameterUpdateRequest(loginUser, projectCode, 1, \"key1\", \"value\", DataType.VARCHAR.name()));"
+	            },
+	            {
+	                "fromLine": 156,
+	                "toLine": 158,
+	                "oldContent": "        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(1);
+	        result = projectParameterService.updateProjectParameter(loginUser, projectCode, 1, \"key1\", \"value\",
+	                DataType.LONG.name());",
+	                "newContent": "        when(projectParameterMapper.updateById(Mockito.any())).thenReturn(1);
+	        result = projectParameterService.updateProjectParameter(new ProjectParameterUpdateRequest(loginUser, projectCode, 1, \"key1\", \"value\", DataType.LONG.name()));"
+	            }
+	        ],
+	        "dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/SchedulerController.java": [
+	            {
+	                "fromLine": 109,
+	                "toLine": 132,
+	                "oldContent": "    @OperatorLog(auditType = AuditType.SCHEDULE_CREATE)
+	    public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+	                                 @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,
+	                                 @RequestParam(value = \"workflowDefinitionCode\") long workflowDefinitionCode,
+	                                 @RequestParam(value = \"schedule\") String schedule,
+	                                 @RequestParam(value = \"warningType\", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,
+	                                 @RequestParam(value = \"warningGroupId\", required = false, defaultValue = DEFAULT_NOTIFY_GROUP_ID) int warningGroupId,
+	                                 @RequestParam(value = \"failureStrategy\", required = false, defaultValue = DEFAULT_FAILURE_POLICY) FailureStrategy failureStrategy,
+	                                 @RequestParam(value = \"workerGroup\", required = false, defaultValue = \"default\") String workerGroup,
+	                                 @RequestParam(value = \"tenantCode\", required = false, defaultValue = \"default\") String tenantCode,
+	                                 @RequestParam(value = \"environmentCode\", required = false, defaultValue = \"-1\") Long environmentCode,
+	                                 @RequestParam(value = \"workflowInstancePriority\", required = false, defaultValue = DEFAULT_WORKFLOW_INSTANCE_PRIORITY) Priority workflowInstancePriority) {
+	        Map<String, Object> result = schedulerService.insertSchedule(
+	                loginUser,
+	                projectCode,
+	                workflowDefinitionCode,
+	                schedule,
+	                warningType,
+	                warningGroupId,
+	                failureStrategy,
+	                workflowInstancePriority,
+	                workerGroup,
+	                tenantCode,
+	                environmentCode);",
+	                "newContent": "    @OperatorLog(auditType = AuditType.SCHEDULE_CREATE)
+	    public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+	                                 ScheduleCreateRequest scheduleCreateRequest) {
+	        Map<String, Object> result = schedulerService.insertSchedule(scheduleCreateRequest);"
+	            },
+	            {
+	                "fromLine": 335,
+	                "toLine": 350,
+	                "oldContent": "    @OperatorLog(auditType = AuditType.SCHEDULE_UPDATE)
+	    public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+	                                                         @Parameter(name = \"projectCode\", description = \"PROJECT_CODE\", required = true) @PathVariable long projectCode,
+	                                                         @PathVariable(value = \"code\") long workflowDefinitionCode,
+	                                                         @RequestParam(value = \"schedule\") String schedule,
+	                                                         @RequestParam(value = \"warningType\", required = false, defaultValue = DEFAULT_WARNING_TYPE) WarningType warningType,
+	                                                         @RequestParam(value = \"warningGroupId\", required = false) int warningGroupId,
+	                                                         @RequestParam(value = \"failureStrategy\", required = false, defaultValue = \"END\") FailureStrategy failureStrategy,
+	                                                         @RequestParam(value = \"workerGroup\", required = false, defaultValue = \"default\") String workerGroup,
+	                                                         @RequestParam(value = \"tenantCode\", required = false, defaultValue = \"default\") String tenantCode,
+	                                                         @RequestParam(value = \"environmentCode\", required = false, defaultValue = \"-1\") long environmentCode,
+	                                                         @RequestParam(value = \"workflowInstancePriority\", required = false) Priority workflowInstancePriority) {
+	        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(loginUser, projectCode,
+	                workflowDefinitionCode, schedule,
+	                warningType, warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode,
+	                environmentCode);",
+	                "newContent": "    @OperatorLog(auditType = AuditType.SCHEDULE_UPDATE)
+	    public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,
+	                                                         ScheduleUpdateRequest scheduleUpdateRequest) {
+	        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(scheduleUpdateRequest);"
+	            }
+	        ],
+	        "dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java": [
+	            {
+	                "fromLine": 21,
+	                "toLine": 50,
+	                "oldContent": "
+	    private String title;
+	
+	    private String content;
+	
+	    private Integer alertGroupId;
+	
+	    public String getTitle() {
+	        return title;
+	    }
+	
+	    public void setTitle(String title) {
+	        this.title = title;
+	    }
+	
+	    public String getContent() {
+	        return content;
+	    }
+	
+	    public void setContent(String content) {
+	        this.content = content;
+	    }
+	
+	    public Integer getAlertGroupId() {
+	        return alertGroupId;
+	    }
+	
+	    public void setAlertGroupId(Integer alertGroupId) {
+	        this.alertGroupId = alertGroupId;
+	    }",
+	                "newContent": "
+	    private AlertInfo alertInfo;
+	"
+	            }
+	        ],
+	        "dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java": [
+	            {
+	                "fromLine": 51,
+	                "toLine": 68,
+	                "oldContent": "    @TableField(value = \"title\")
+	    private String title;
+	
+	    @TableField(value = \"content\")
+	    private String content;
+	
+	    @TableField(\"alertgroup_id	
+",
+	role:"
+	assistant	
+",
+,
+	content:"
+	Correct the following errors. Use the same JSON format as in the initial refactoring.	
+",
+	role:"
+	user	
+",
+,
+	content:"
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-task-api: Compilation failure
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:[22,13] cannot find symbol
+	[ERROR]   symbol:   class AlertInfo
+	[ERROR]   location: class org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
+	[ERROR] 
+	[ERROR] -> [Help 1]
+	[ERROR] 
+	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+	[ERROR] 
+	[ERROR] For more information about the errors and possible solutions, please read the following articles:
+	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+	[ERROR] 
+	[ERROR] After correcting the problems, you can resume the build with the command
+	[ERROR]   mvn <args> -rf :dolphinscheduler-task-api
+		
+",
+	role:"
+	user	
+",
+,
+	content:"
+	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
+",
+	role:"
+	user	
+",
+,
+	content:
+{
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
+		[
+			fromLine:"			17",
+			toLine:"			19",
 			content:"
 			
-			    @TableField("alertgroup_id")
-			    private Integer alertGroupId;			
+			package org.apache.dolphinscheduler.plugin.task.api.model;
+						
+",
+,
+			fromLine:"			21",
+			toLine:"			23",
+			content:"
+			
+			    private AlertInfo alertInfo;
+						
 ",
 ,
 
@@ -996,347 +1452,21 @@ messages:
 {
 			refactorings:
 {
-					dolphinscheduler-api-test/dolphinscheduler-api-test-case/src/test/java/org/apache/dolphinscheduler/api/test/pages/workflow/ExecutorPage.java:
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
 			[
-				fromLine:"				70",
-				toLine:"				72",
+				fromLine:"				21",
+				toLine:"				23",
 				oldContent:"
-				    }
 				
-				    public HttpResponse execute(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {				
+				    private AlertInfo alertInfo;
+								
 ",
 				newContent:"
-				    }
-				
-				    public HttpResponse execute(ExecutionParameters parameters) {				
-",
-,
-				fromLine:"				84",
-				toLine:"				86",
-				oldContent:"
-				    }
-				
-				    public HttpResponse executeTask(User loginUser, long projectCode, int workflowInstanceId, String startNodeList,				
-",
-				newContent:"
-				    }
-				
-				    public HttpResponse executeTask(ExecutionParameters parameters, String startNodeList,				
-",
-,
-
-			],
-			dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:
-			[
-				fromLine:"				269",
-				toLine:"				272",
-				oldContent:"
-				     * @param page                  page
-				     * @param workflowDefinitionCode workflowDefinitionCode
-				     * @param name                  name
-				     * @param host                  host				
-",
-				newContent:"
-				     * @param page                  page
-				     * @param queryParameters       query parameters				
-",
-,
-				fromLine:"				275",
-				toLine:"				277",
-				oldContent:"
-				     * @return workflow instance IPage
-				     */
-				    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,				
-",
-				newContent:"
-				     * @return workflow instance IPage
-				     */
-				    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page, QueryParameters queryParameters,				
-",
-,
-
-			],
-			dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
-			[
-				fromLine:"				142",
-				toLine:"				144",
-				oldContent:"
-				
-				    public void init(String host, Date startTime, String executePath) {
-				        this.host = host;				
-",
-				newContent:"
-				
-				    public void init(InitializationParameters parameters) {
-				        this.host = parameters.getHost();				
-",
-,
-
-			],
-			dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/service/ProjectParameterService.java:
-			[
-				fromLine:"				17",
-				toLine:"				28",
-				oldContent:"
-				
-				package org.apache.dolphinscheduler.api.service;
-				
-				import org.apache.dolphinscheduler.api.utils.Result;
-				import org.apache.dolphinscheduler.dao.entity.User;
-				
-				public interface ProjectParameterService {
-				
-				    Result createProjectParameter(User loginUser, long projectCode, String projectParameterName,
-				                                  String projectParameterValue, String projectParameterDataType);
-				
-				    Result updateProjectParameter(User loginUser, long projectCode, long code, String projectParameterName,				
-",
-				newContent:"
-				
-				package org.apache.dolphinscheduler.api.service;
-				
-				import org.apache.dolphinscheduler.api.utils.Result;
-				import org.apache.dolphinscheduler.dao.entity.User;
-				
-				public interface ProjectParameterService {
-				
-				    Result createProjectParameter(ProjectParameterInfo parameterInfo);
-				
-				    Result updateProjectParameter(ProjectParameterInfo parameterInfo,				
-",
-,
-
-			],
-			dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/ProjectParameterController.java:
-			[
-				fromLine:"				68",
-				toLine:"				70",
-				oldContent:"
-				    @ResponseStatus(HttpStatus.CREATED)
-				    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)
-				    public Result createProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,				
-",
-				newContent:"
-				    @ResponseStatus(HttpStatus.CREATED)
-				    @ApiException(CREATE_PROJECT_PARAMETER_ERROR)
-				    public Result createProjectParameter(ProjectParameterInfo parameterInfo,				
-",
-,
-				fromLine:"				73",
-				toLine:"				76",
-				oldContent:"
-				                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
-				                                         @RequestParam(value = "projectParameterDataType", defaultValue = "VARCHAR") String projectParameterDataType) {
-				        return projectParameterService.createProjectParameter(loginUser, projectCode, projectParameterName,
-				                projectParameterValue, projectParameterDataType);				
-",
-				newContent:"
-				                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
-				                                         @RequestParam(value = "projectParameterDataType", defaultValue = "VARCHAR") String projectParameterDataType) {
-				        return projectParameterService.createProjectParameter(parameterInfo);				
-",
-,
-				fromLine:"				87",
-				toLine:"				89",
-				oldContent:"
-				    @ResponseStatus(HttpStatus.OK)
-				    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)
-				    public Result updateProjectParameter(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,				
-",
-				newContent:"
-				    @ResponseStatus(HttpStatus.OK)
-				    @ApiException(UPDATE_PROJECT_PARAMETER_ERROR)
-				    public Result updateProjectParameter(ProjectParameterInfo parameterInfo,				
-",
-,
-				fromLine:"				93",
-				toLine:"				96",
-				oldContent:"
-				                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
-				                                         @RequestParam(value = "projectParameterDataType") String projectParameterDataType) {
-				        return projectParameterService.updateProjectParameter(loginUser, projectCode, code, projectParameterName,
-				                projectParameterValue, projectParameterDataType);				
-",
-				newContent:"
-				                                         @RequestParam(value = "projectParameterValue") String projectParameterValue,
-				                                         @RequestParam(value = "projectParameterDataType") String projectParameterDataType) {
-				        return projectParameterService.updateProjectParameter(parameterInfo);				
-",
-,
-
-			],
-			dolphinscheduler-api/src/main/java/org/apache/dolphinscheduler/api/controller/SchedulerController.java:
-			[
-				fromLine:"				108",
-				toLine:"				110",
-				oldContent:"
-				    @ApiException(CREATE_SCHEDULE_ERROR)
-				    @OperatorLog(auditType = AuditType.SCHEDULE_CREATE)
-				    public Result createSchedule(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,				
-",
-				newContent:"
-				    @ApiException(CREATE_SCHEDULE_ERROR)
-				    @OperatorLog(auditType = AuditType.SCHEDULE_CREATE)
-				    public Result createSchedule(ScheduleDefinitionInfo scheduleDefinitionInfo,				
-",
-,
-				fromLine:"				120",
-				toLine:"				131",
-				oldContent:"
-				                                 @RequestParam(value = "workflowInstancePriority", required = false, defaultValue = DEFAULT_WORKFLOW_INSTANCE_PRIORITY) Priority workflowInstancePriority) {
-				        Map<String, Object> result = schedulerService.insertSchedule(
-				                loginUser,
-				                projectCode,
-				                workflowDefinitionCode,
-				                schedule,
-				                warningType,
-				                warningGroupId,
-				                failureStrategy,
-				                workflowInstancePriority,
-				                workerGroup,
-				                tenantCode,				
-",
-				newContent:"
-				                                 @RequestParam(value = "workflowInstancePriority", required = false, defaultValue = DEFAULT_WORKFLOW_INSTANCE_PRIORITY) Priority workflowInstancePriority) {
-				        Map<String, Object> result = schedulerService.insertSchedule(scheduleDefinitionInfo,				
-",
-,
-				fromLine:"				334",
-				toLine:"				336",
-				oldContent:"
-				    @ApiException(UPDATE_SCHEDULE_ERROR)
-				    @OperatorLog(auditType = AuditType.SCHEDULE_UPDATE)
-				    public Result updateScheduleByWorkflowDefinitionCode(@Parameter(hidden = true) @RequestAttribute(value = SESSION_USER) User loginUser,				
-",
-				newContent:"
-				    @ApiException(UPDATE_SCHEDULE_ERROR)
-				    @OperatorLog(auditType = AuditType.SCHEDULE_UPDATE)
-				    public Result updateScheduleByWorkflowDefinitionCode(ScheduleDefinitionInfo scheduleDefinitionInfo,				
-",
-,
-				fromLine:"				345",
-				toLine:"				349",
-				oldContent:"
-				                                                         @RequestParam(value = "environmentCode", required = false, defaultValue = "-1") long environmentCode,
-				                                                         @RequestParam(value = "workflowInstancePriority", required = false) Priority workflowInstancePriority) {
-				        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(loginUser, projectCode,
-				                workflowDefinitionCode, schedule,
-				                warningType, warningGroupId, failureStrategy, workflowInstancePriority, workerGroup, tenantCode,				
-",
-				newContent:"
-				                                                         @RequestParam(value = "environmentCode", required = false, defaultValue = "-1") long environmentCode,
-				                                                         @RequestParam(value = "workflowInstancePriority", required = false) Priority workflowInstancePriority) {
-				        Map<String, Object> result = schedulerService.updateScheduleByWorkflowDefinitionCode(scheduleDefinitionInfo,				
-",
-,
-
-			],
-			dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
-			[
-				fromLine:"				17",
-				toLine:"				49",
-				oldContent:"
-				
-				package org.apache.dolphinscheduler.plugin.task.api.model;
-				
-				public class TaskAlertInfo {
 				
 				    private String title;
-				
 				    private String content;
-				
 				    private Integer alertGroupId;
-				
-				    public String getTitle() {
-				        return title;
-				    }
-				
-				    public void setTitle(String title) {
-				        this.title = title;
-				    }
-				
-				    public String getContent() {
-				        return content;
-				    }
-				
-				    public void setContent(String content) {
-				        this.content = content;
-				    }
-				
-				    public Integer getAlertGroupId() {
-				        return alertGroupId;
-				    }
-				
-				    public void setAlertGroupId(Integer alertGroupId) {
-				        this.alertGroupId = alertGroupId;				
-",
-				newContent:"
-				package org.apache.dolphinscheduler.plugin.task.api.model;
-				
-				public class TaskAlertInfo {
-				
-				    private final AlertData alertData;
-				
-				    public TaskAlertInfo(AlertData alertData) {
-				        this.alertData = alertData;
-				    }
-				
-				    public String getTitle() {
-				        return alertData.getTitle();
-				    }
-				
-				    public String getContent() {
-				        return alertData.getContent();
-				    }
-				
-				    public Integer getAlertGroupId() {
-				        return alertData.getAlertGroupId();
-				    }
-				
-				    // Other methods and logic
-				}				
-",
-,
-
-			],
-			dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java:
-			[
-				fromLine:"				50",
-				toLine:"				67",
-				oldContent:"
-				
-				    @TableField(value = "title")
-				    private String title;
-				
-				    @TableField(value = "content")
-				    private String content;
-				
-				    @TableField("alertgroup_id")
-				    private Integer alertGroupId;				
-",
-				newContent:"
-				
-				    @TableField(value = "title")
-				    private final AlertData alertData;
-				
-				    public Alert(AlertData alertData) {
-				        this.alertData = alertData;
-				    }
-				
-				    public String getTitle() {
-				        return alertData.getTitle();
-				    }
-				
-				    public String getContent() {
-				        return alertData.getContent();
-				    }
-				
-				    public Integer getAlertGroupId() {
-				        return alertData.getAlertGroupId();
-				    }
-				
-				    // Other methods and logic
-				}				
+								
 ",
 ,
 
@@ -1345,134 +1475,16 @@ messages:
 }
 		extractedClasses:
 {
-					org/apache/dolphinscheduler/api/test/pages/workflow/ExecutionParameters.java:"
-			package org.apache.dolphinscheduler.api.test.pages.workflow;
-			
-			import org.apache.dolphinscheduler.api.enums.ExecuteType;
-			import org.apache.dolphinscheduler.dao.entity.User;
-			
-			public class ExecutionParameters {
-			    private final User loginUser;
-			    private final long projectCode;
-			    private final int workflowInstanceId;
-			    private final ExecuteType executeType;
-			
-			    public ExecutionParameters(User loginUser, long projectCode, int workflowInstanceId, ExecuteType executeType) {
-			        this.loginUser = loginUser;
-			        this.projectCode = projectCode;
-			        this.workflowInstanceId = workflowInstanceId;
-			        this.executeType = executeType;
-			    }
-			
-			    // Getters and additional methods
-			}			
-",
-			org/apache/dolphinscheduler/dao/mapper/QueryParameters.java:"
-			package org.apache.dolphinscheduler.dao.mapper;
-			
-			public class QueryParameters {
-			    private final long workflowDefinitionCode;
-			    private final String name;
-			    private final String host;
-			
-			    public QueryParameters(long workflowDefinitionCode, String name, String host) {
-			        this.workflowDefinitionCode = workflowDefinitionCode;
-			        this.name = name;
-			        this.host = host;
-			    }
-			
-			    // Getters and additional methods
-			}			
-",
-			org/apache/dolphinscheduler/dao/entity/InitializationParameters.java:"
-			package org.apache.dolphinscheduler.dao.entity;
-			
-			import java.util.Date;
-			
-			public class InitializationParameters {
-			    private final String host;
-			    private final Date startTime;
-			    private final String executePath;
-			
-			    public InitializationParameters(String host, Date startTime, String executePath) {
-			        this.host = host;
-			        this.startTime = startTime;
-			        this.executePath = executePath;
-			    }
-			
-			    // Getters and additional methods
-			}			
-",
-			org/apache/dolphinscheduler/api/service/ProjectParameterInfo.java:"
-			package org.apache.dolphinscheduler.api.service;
-			
-			import org.apache.dolphinscheduler.dao.entity.User;
-			
-			public class ProjectParameterInfo {
-			    private final User loginUser;
-			    private final long projectCode;
-			    private final long code;
-			    private final String projectParameterName;
-			    private final String projectParameterValue;
-			    private final String projectParameterDataType;
-			
-			    public ProjectParameterInfo(User loginUser, long projectCode, long code, String projectParameterName, String projectParameterValue, String projectParameterDataType) {
-			        this.loginUser = loginUser;
-			        this.projectCode = projectCode;
-			        this.code = code;
-			        this.projectParameterName = projectParameterName;
-			        this.projectParameterValue = projectParameterValue;
-			        this.projectParameterDataType = projectParameterDataType;
-			    }
-			
-			    // Getters and additional methods
-			}			
-",
-			org/apache/dolphinscheduler/api/controller/ScheduleDefinitionInfo.java:"
-			package org.apache.dolphinscheduler.api.controller;
-			
-			import org.apache.dolphinscheduler.common.enums.FailureStrategy;
-			import org.apache.dolphinscheduler.common.enums.Priority;
-			import org.apache.dolphinscheduler.common.enums.WarningType;
-			import org.apache.dolphinscheduler.dao.entity.User;
-			
-			public class ScheduleDefinitionInfo {
-			    private final User loginUser;
-			    private final long projectCode;
-			    private final long workflowDefinitionCode;
-			    private final String schedule;
-			    private final WarningType warningType;
-			    private final Integer warningGroupId;
-			    private final FailureStrategy failureStrategy;
-			    private final Priority workflowInstancePriority;
-			    private final String workerGroup;
-			    private final String tenantCode;
-			
-			    public ScheduleDefinitionInfo(User loginUser, long projectCode, long workflowDefinitionCode, String schedule, WarningType warningType, Integer warningGroupId, FailureStrategy failureStrategy, Priority workflowInstancePriority, String workerGroup, String tenantCode) {
-			        this.loginUser = loginUser;
-			        this.projectCode = projectCode;
-			        this.workflowDefinitionCode = workflowDefinitionCode;
-			        this.schedule = schedule;
-			        this.warningType = warningType;
-			        this.warningGroupId = warningGroupId;
-			        this.failureStrategy = failureStrategy;
-			        this.workflowInstancePriority = workflowInstancePriority;
-			        this.workerGroup = workerGroup;
-			        this.tenantCode = tenantCode;
-			    }
-			
-			    // Getters and additional methods
-			}			
-",
-			org/apache/dolphinscheduler/plugin/task/api/model/AlertData.java:"
+					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/AlertInfo.java:"
 			package org.apache.dolphinscheduler.plugin.task.api.model;
 			
-			public class AlertData {
-			    private final String title;
-			    private final String content;
-			    private final Integer alertGroupId;
+			public class AlertInfo {
 			
-			    public AlertData(String title, String content, Integer alertGroupId) {
+			    private String title;
+			    private String content;
+			    private Integer alertGroupId;
+			
+			    public AlertInfo(String title, String content, Integer alertGroupId) {
 			        this.title = title;
 			        this.content = content;
 			        this.alertGroupId = alertGroupId;
@@ -1490,8 +1502,9 @@ messages:
 			        return alertGroupId;
 			    }
 			
-			    // Other methods and logic
-			}			
+			    // Additional functionality can be added here as needed
+			}
+						
 ",
 		
 }
@@ -1509,9 +1522,25 @@ messages:
 ",
 ,
 	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-task-api: Compilation failure
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:[41,5] class, interface, or enum expected
-	[ERROR] 
+	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-dao: Compilation failure: Compilation failure: 
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[43,13] cannot find symbol
+	[ERROR]   symbol:   class TaskInstanceKey
+	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[140,22] cannot find symbol
+	[ERROR]   symbol:   class TaskInstanceInitialization
+	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[43,29] cannot find symbol
+	[ERROR]   symbol:   class TaskInstanceKey
+	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:[36,1] cannot find symbol
+	[ERROR]   symbol:   class TaskInstanceKey
+	[ERROR]   location: class org.apache.dolphinscheduler.dao.entity.TaskInstance
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:[278,63] cannot find symbol
+	[ERROR]   symbol:   class WorkflowInstanceQuery
+	[ERROR]   location: interface org.apache.dolphinscheduler.dao.mapper.WorkflowInstanceMapper
+	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:[280,79] cannot find symbol
+	[ERROR]   symbol:   class WorkflowInstanceQuery
+	[ERROR]   location: interface org.apache.dolphinscheduler.dao.mapper.WorkflowInstanceMapper
 	[ERROR] -> [Help 1]
 	[ERROR] 
 	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
@@ -1521,7 +1550,7 @@ messages:
 	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 	[ERROR] 
 	[ERROR] After correcting the problems, you can resume the build with the command
-	[ERROR]   mvn <args> -rf :dolphinscheduler-task-api
+	[ERROR]   mvn <args> -rf :dolphinscheduler-dao
 		
 ",
 	role:"
@@ -1537,121 +1566,86 @@ messages:
 ,
 	content:
 {
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
+			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java:
 		[
-			fromLine:"			16",
-			toLine:"			18",
+			fromLine:"			17",
+			toLine:"			37",
 			content:"
-			 */
-			package org.apache.dolphinscheduler.plugin.task.api.model;
+			
+			package org.apache.dolphinscheduler.dao.entity;
+			
+			import org.apache.dolphinscheduler.common.enums.Flag;
+			import org.apache.dolphinscheduler.common.enums.Priority;
+			import org.apache.dolphinscheduler.common.enums.TaskExecuteType;
+			import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
+			
+			import java.io.Serializable;
+			import java.util.Date;
+			
+			import lombok.Data;
+			
+			import com.baomidou.mybatisplus.annotation.FieldStrategy;
+			import com.baomidou.mybatisplus.annotation.IdType;
+			import com.baomidou.mybatisplus.annotation.TableField;
+			import com.baomidou.mybatisplus.annotation.TableId;
+			import com.baomidou.mybatisplus.annotation.TableName;
+			
+			@Data
+			@TableName("t_ds_task_instance")			
+",
+,
+			fromLine:"			42",
+			toLine:"			44",
+			content:"
+			
+			    private TaskInstanceKey key;
 						
 ",
 ,
-			fromLine:"			40",
-			toLine:"			42",
+			fromLine:"			139",
+			toLine:"			141",
 			content:"
-			}
-			    }
-			}			
+			
+			    public void init(TaskInstanceInitialization initialization) {
+			        this.key.setHost(initialization.getHost());			
 ",
 ,
 
 		],
-	
-}
-	role:"
-	user	
-",
-,
-	content:
-{
-			refactorings:
-{
-					/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
-			[
-				fromLine:"				40",
-				toLine:"				42",
-				oldContent:"
-				}
-				    }
-				}				
-",
-				newContent:"
-				}				
-",
-,
-
-			],
-		
-}
-		extractedClasses:
-{
-				
-}
-	
-}
-	role:"
-	assistant	
-",
-,
-	content:"
-	Correct the following errors. Use the same JSON format as in the initial refactoring.	
-",
-	role:"
-	user	
-",
-,
-	content:"
-	[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.3:compile (default-compile) on project dolphinscheduler-task-api: Compilation failure: Compilation failure: 
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:[21,19] cannot find symbol
-	[ERROR]   symbol:   class AlertData
-	[ERROR]   location: class org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] /root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:[23,26] cannot find symbol
-	[ERROR]   symbol:   class AlertData
-	[ERROR]   location: class org.apache.dolphinscheduler.plugin.task.api.model.TaskAlertInfo
-	[ERROR] -> [Help 1]
-	[ERROR] 
-	[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-	[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-	[ERROR] 
-	[ERROR] For more information about the errors and possible solutions, please read the following articles:
-	[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-	[ERROR] 
-	[ERROR] After correcting the problems, you can resume the build with the command
-	[ERROR]   mvn <args> -rf :dolphinscheduler-task-api
-		
-",
-	role:"
-	user	
-",
-,
-	content:"
-	Below you find the current state of all the files affected by the errors in the same format as in the initial request.	
-",
-	role:"
-	user	
-",
-,
-	content:
-{
-			/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java:
+		/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java:
 		[
-			fromLine:"			16",
-			toLine:"			18",
+			fromLine:"			17",
+			toLine:"			35",
 			content:"
-			 */
-			package org.apache.dolphinscheduler.plugin.task.api.model;
+			
+			package org.apache.dolphinscheduler.dao.mapper;
+			
+			import org.apache.dolphinscheduler.common.enums.WorkflowExecutionStatus;
+			import org.apache.dolphinscheduler.dao.entity.ExecuteStatusCount;
+			import org.apache.dolphinscheduler.dao.entity.WorkflowInstance;
+			import org.apache.dolphinscheduler.dao.model.WorkflowInstanceStatusCountDto;
+			
+			import org.apache.ibatis.annotations.Param;
+			
+			import java.util.Collection;
+			import java.util.Date;
+			import java.util.List;
+			import java.util.Set;
+			
+			import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+			import com.baomidou.mybatisplus.core.metadata.IPage;
+			import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 						
 ",
 ,
-			fromLine:"			20",
-			toLine:"			24",
+			fromLine:"			277",
+			toLine:"			281",
 			content:"
-			
-			    private final AlertData alertData;
-			
-			    public TaskAlertInfo(AlertData alertData) {
-			        this.alertData = alertData;			
+			    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,
+			                                                              WorkflowInstanceQuery workflowInstanceQuery,
+			                                                              @Param("endTime") String endTime,
+			                                                              @Param("query") WorkflowInstanceQuery workflowInstanceQuery);
+						
 ",
 ,
 

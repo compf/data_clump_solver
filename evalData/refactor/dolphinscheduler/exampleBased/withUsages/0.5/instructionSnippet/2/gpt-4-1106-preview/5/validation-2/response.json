@@ -1,15 +1,41 @@
 {
     "refactorings": {
-        "/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-task-plugin/dolphinscheduler-task-api/src/main/java/org/apache/dolphinscheduler/plugin/task/api/model/TaskAlertInfo.java": [
+        "/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/Alert.java": [
+            {
+                "fromLine": 50,
+                "toLine": 54,
+                "oldContent": "\n    @TableField(value = \"alert_content\")\n    private AlertContent alertContent;\n\n    @TableField(value = \"alert_status\")",
+                "newContent": "\n    @TableField(value = \"title\")\n    private String title;\n\n    @TableField(value = \"content\")\n    private String content;\n\n    @TableField(value = \"alertgroup_id\")\n    private Integer alertGroupId;\n\n    @TableField(value = \"alert_status\")"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/entity/TaskInstance.java": [
             {
                 "fromLine": 17,
-                "toLine": 24,
-                "oldContent": "import org.apache.dolphinscheduler.plugin.task.api.model.AlertData;\n\nprivate AlertData alertData;",
-                "newContent": "import org.apache.dolphinscheduler.plugin.task.api.model.AlertData;\n\npublic class TaskAlertInfo {\n\n    private AlertData alertData;"
+                "toLine": 47,
+                "oldContent": "\npackage org.apache.dolphinscheduler.dao.entity;\n\nimport org.apache.dolphinscheduler.common.enums.Flag;\nimport org.apache.dolphinscheduler.common.enums.Priority;\nimport org.apache.dolphinscheduler.common.enums.TaskExecuteType;\nimport org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;\n\nimport java.io.Serializable;\nimport java.util.Date;\n\nimport lombok.Data;\n\nimport com.baomidou.mybatisplus.annotation.FieldStrategy;\nimport com.baomidou.mybatisplus.annotation.IdType;\nimport com.baomidou.mybatisplus.annotation.TableField;\nimport com.baomidou.mybatisplus.annotation.TableId;\nimport com.baomidou.mybatisplus.annotation.TableName;\n\n@Data\n@TableName(\"t_ds_task_instance\")\npublic class TaskInstance implements Serializable {\n\n    @TableId(value = \"id\", type = IdType.AUTO)\n    private TaskIdentifier taskIdentifier;\n\n    private int workflowInstanceId;\n\n    private WorkflowInstanceIdentifier workflowInstanceIdentifier;\n\n    private int taskDefinitionVersion;",
+                "newContent": "\npackage org.apache.dolphinscheduler.dao.entity;\n\nimport org.apache.dolphinscheduler.common.enums.Flag;\nimport org.apache.dolphinscheduler.common.enums.Priority;\nimport org.apache.dolphinscheduler.common.enums.TaskExecuteType;\nimport org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;\n\nimport java.io.Serializable;\nimport java.util.Date;\n\nimport lombok.Data;\n\nimport com.baomidou.mybatisplus.annotation.FieldStrategy;\nimport com.baomidou.mybatisplus.annotation.IdType;\nimport com.baomidou.mybatisplus.annotation.TableField;\nimport com.baomidou.mybatisplus.annotation.TableId;\nimport com.baomidou.mybatisplus.annotation.TableName;\n\n@Data\n@TableName(\"t_ds_task_instance\")\npublic class TaskInstance implements Serializable {\n\n    @TableId(value = \"id\", type = IdType.AUTO)\n    private int id;\n\n    private int workflowInstanceId;\n\n    private String name;\n\n    private String taskType;\n\n    private int taskDefinitionVersion;"
+            },
+            {
+                "fromLine": 61,
+                "toLine": 65,
+                "oldContent": "    private Date startTime;\n\n    private TaskExecutionEnvironment taskExecutionEnvironment;\n\n    private String logPath;",
+                "newContent": "    private Date startTime;\n\n    private Date endTime;\n\n    private String host;\n\n    private String executePath;\n\n    private String logPath;"
+            },
+            {
+                "fromLine": 129,
+                "toLine": 133,
+                "oldContent": "    private int testFlag;\n\n    public void init(TaskExecutionEnvironment taskExecutionEnvironment) {\n        this.taskExecutionEnvironment = taskExecutionEnvironment;\n        this.startTime = taskExecutionEnvironment.getStartTime();",
+                "newContent": "    private int testFlag;\n\n    public void init(String host, Date startTime, String executePath) {\n        this.host = host;\n        this.startTime = startTime;\n        this.executePath = executePath;"
+            }
+        ],
+        "/root/data_clump_solver/cloned_projects/dolphinscheduler/dolphinscheduler-dao/src/main/java/org/apache/dolphinscheduler/dao/mapper/WorkflowInstanceMapper.java": [
+            {
+                "fromLine": 272,
+                "toLine": 276,
+                "oldContent": "     */\n    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              WorkflowInstanceQuery workflowInstanceQuery);\n\n    /**",
+                "newContent": "     */\n    IPage<WorkflowInstance> queryWorkflowInstanceListV2Paging(Page<WorkflowInstance> page,\n                                                              @Param(\"projectCode\") Long projectCode,\n                                                              @Param(\"workflowDefinitionCode\") Long workflowDefinitionCode,\n                                                              @Param(\"name\") String name,\n                                                              @Param(\"startTime\") Date startTime,\n                                                              @Param(\"endTime\") Date endTime,\n                                                              @Param(\"state\") Integer state,\n                                                              @Param(\"host\") String host);\n\n    /**"
             }
         ]
     },
-    "extractedClasses": {
-        "org/apache/dolphinscheduler/plugin/task/api/model/AlertData.java": "package org.apache.dolphinscheduler.plugin.task.api.model;\n\npublic class AlertData {\n    private String title;\n    private String content;\n    private Integer alertGroupId;\n\n    public AlertData(String title, String content, Integer alertGroupId) {\n        this.title = title;\n        this.content = content;\n        this.alertGroupId = alertGroupId;\n    }\n\n    public String getTitle() {\n        return title;\n    }\n\n    public void setTitle(String title) {\n        this.title = title;\n    }\n\n    public String getContent() {\n        return content;\n    }\n\n    public void setContent(String content) {\n        this.content = content;\n    }\n\n    public Integer getAlertGroupId() {\n        return alertGroupId;\n    }\n\n    public void setAlertGroupId(Integer alertGroupId) {\n        this.alertGroupId = alertGroupId;\n    }\n}"
-    }
+    "extractedClasses": {}
 }
