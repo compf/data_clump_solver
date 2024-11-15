@@ -30,6 +30,7 @@ export const ImprovedMaintainability = counter++;
 export const IsolatedComponents = counter++;
 export const DeveloperMustOverseeLLM = counter++;
 export const Good_Idea = counter++;
+export const Verbosity = counter++;
 
 export const MAX_COUNTER_VALUE=counter; // maximum value for counter
 
@@ -58,6 +59,7 @@ export type PR_Data_Entry = {
     url: string,
     merged: boolean,
     state: "open"|"closed",
+    occurence?:number,
     key?: string,
     type: string,
     size: number,

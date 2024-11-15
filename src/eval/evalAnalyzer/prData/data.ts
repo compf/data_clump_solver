@@ -39,12 +39,13 @@ import {
   ImportsIssues,
   InvalidPR,
   DeveloperMustOverseeLLM,
-  NoSetterNeeded
+  NoSetterNeeded,
+  Verbosity
 } from "./structures";
 
 export const data: PR_Data = {
   "https://github.com/junit-pioneer/junit-pioneer": {
-    url: "https://github.com/junit-pioneer/junit-pioneer",
+    url: "https://github.com/junit-pioneer/junit-pioneer", "occurence": 6,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-src/test/java/org/junitpioneer/testkit/PioneerTestKit.java-org.junitpioneer.testkit.PioneerTestKit/method/executeTestMethodWithParameterTypesAndConfigurationParameters(java.util.Map<java.lang.String, java.lang.String> configurationParameters, java.lang.Class<?> testClass, java.lang.String testMethodName, java.lang.Class<?>[] methodParameterTypes)-org.junitpioneer.testkit.PioneerTestKit/method/executeTestMethodWithParameterTypes(java.lang.Class<?> testClass, java.lang.String testMethodName, java.lang.Class<?>[] methodParameterTypes)-testClasstestMethodNamemethodParameterTypes",
@@ -84,7 +85,7 @@ export const data: PR_Data = {
         comments: `Data clumps can be a code smell, but only if it breaks principles - sometimes you can have data clumps that actually do not break any. Just because similar or the same data exists in different objects does not inherently constitute a problem - I asked ChatGPT for an example here (paraphrasing):
 Consider the classes WeatherReport and FinancialStatement: both could have the following fields: LocalDate date, String location, double value (and any additional fields). These fields could be considered a 'data clump' by your definition but have vastly different applications and contexts. Can you extract these values in a meaningful way? Sure! Should you? Probably not - sharing these fields (even if it's through composition and not inheritence) would limit or hinder maintenance if any of these objects evolve in the future.
 I believe it would be straightforward to come up with a counter-example where extracting fields from two rather similar objects that have the same (or almost the same) context is beneficial, so I'm not going to do that.`,
-        keywords: [-RefactoringNotWorthIt, -IntentionalDesignChoice]
+        keywords: [-RefactoringNotWorthIt, -IntentionalDesignChoice,-ImprovedMaintainability]
       },
       {
         scale: StronglyAgree,
@@ -120,7 +121,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
     }]
   },
   "https://github.com/grpc/grpc-java": {
-    url: "https://github.com/grpc/grpc-java",
+    url: "https://github.com/grpc/grpc-java", "occurence": 2,
     state: "closed",
     merged: false,
     size: 4,
@@ -244,7 +245,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       {
         scale: Agree,
         comments: "It's important too keep the semantic and don't invent some crazy class with very mixed fields.",
-        keywords: [SmallerDataClump]
+        keywords: [-SmallerDataClump]
       },
       {
         scale: Agree
@@ -296,7 +297,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
     ],
   },
   "https://github.com/JabRef/jabref": {
-    url: "https://github.com/JabRef/jabref",
+    url: "https://github.com/JabRef/jabref", "occurence": 12,
     state: "closed",
     merged: true,
     manualChanges: true,
@@ -309,7 +310,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       -NotEnough,
       -ExtractedClassLocation,
     ],
-    "key": "org.jabref.model.openoffice.uno.UnoNamed/method/insertNamedTextContent(org.jabref.model.openoffice.uno.com.sun.star.text.XTextDocument doc, java.lang.String service, java.lang.String name, org.jabref.model.openoffice.uno.com.sun.star.text.XTextRange range, boolean absorb)/parameter/absorb",
+    "key": "parameters_to_parameters_data_clump-src/main/java/org/jabref/model/openoffice/uno/UnoBookmark.java-org.jabref.model.openoffice.uno.UnoBookmark/method/create(org.jabref.model.openoffice.uno.com.sun.star.text.XTextDocument doc, java.lang.String name, org.jabref.model.openoffice.uno.com.sun.star.text.XTextRange range, boolean absorb)-org.jabref.model.openoffice.uno.UnoNamed/method/insertNamedTextContent(org.jabref.model.openoffice.uno.com.sun.star.text.XTextDocument doc, java.lang.String service, java.lang.String name, org.jabref.model.openoffice.uno.com.sun.star.text.XTextRange range, boolean absorb)-docnamerangeabsorb",
 
     reviewComments: [],
     generalCommentsRaw: [
@@ -440,7 +441,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
     }]
   },
   "https://github.com/karatelabs/karate": {
-    url: "https://github.com/karatelabs/karate",
+    url: "https://github.com/karatelabs/karate", "occurence": 2,
     state: "closed",
     merged: false,
     size: 7,
@@ -448,7 +449,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
 
     type: fields_to_fields_data_clump,
     category: "nameSuggestion",
-    generalComments: [-Readability, -IntentionalDesignChoice, -Complexity],
+    generalComments: [-Readability, -IntentionalDesignChoice, -Complexity,-ImprovedMaintainability,-Verbosity],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -499,7 +500,7 @@ Also code is structured to suit the convenience of the original author or mainta
     }]
   },
   "https://github.com/flyway/flyway": {
-    url: "https://github.com/flyway/flyway",
+    url: "https://github.com/flyway/flyway", "occurence": 2,
     state: "open",
     merged: false,
     "key": "fields_to_fields_data_clump-flyway-core/src/main/java/org/flywaydb/core/internal/command/DbValidate.java-org.flywaydb.core.internal.command.DbValidate-org.flywaydb.core.internal.command.DbMigrate-configurationmigrationResolverschemadatabasecallbackExecutorschemaHistory",
@@ -520,7 +521,7 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/liquibase/liquibase": {
-    url: "https://github.com/liquibase/liquibase",
+    url: "https://github.com/liquibase/liquibase", "occurence": 3886,
     state: "closed",
     merged: true,
     size: 3,
@@ -528,7 +529,7 @@ Also code is structured to suit the convenience of the original author or mainta
 
     type: fields_to_fields_data_clump,
     category: "nameSuggestion",
-    generalComments: [],
+    generalComments: [+Readability],
     reviewComments: [-StyleAdaption],
     generalCommentsRaw: [
       [
@@ -566,7 +567,7 @@ Also code is structured to suit the convenience of the original author or mainta
     ],
   },
   "https://github.com/opensearch-project/data-prepper": {
-    url: "https://github.com/opensearch-project/data-prepper",
+    url: "https://github.com/opensearch-project/data-prepper", "occurence": 6,
     state: "open",
     merged: false,
     size: 3,
@@ -574,7 +575,7 @@ Also code is structured to suit the convenience of the original author or mainta
 
     type: fields_to_fields_data_clump,
     category: "detectAndRefactor",
-    generalComments: [-NotEnough],
+    generalComments: [-NotEnough,-ExtractedClassShouldNotBePublic],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -656,7 +657,7 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/kestra-io/kestra": {
-    url: "https://github.com/kestra-io/kestra",
+    url: "https://github.com/kestra-io/kestra", "occurence": 14,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-core/src/main/java/io/kestra/core/runners/FlowableUtils.java-io.kestra.core.runners.FlowableUtils/method/resolveState(io.kestra.core.runners.io.kestra.core.models.executions.Execution execution, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> tasks, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> errors, io.kestra.core.runners.io.kestra.core.models.executions.TaskRun parentTaskRun, io.kestra.core.runners.RunContext runContext, boolean allowFailure)-io.kestra.core.runners.FlowableUtils/method/resolveParallelNexts(io.kestra.core.runners.io.kestra.core.models.executions.Execution execution, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> tasks, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> errors, io.kestra.core.runners.io.kestra.core.models.executions.TaskRun parentTaskRun, java.lang.Integer concurrency, java.util.function.BiFunction<java.util.stream.Stream<io.kestra.core.runners.io.kestra.core.models.executions.NextTaskRun>, java.util.List<io.kestra.core.runners.io.kestra.core.models.executions.TaskRun>, java.util.stream.Stream<io.kestra.core.runners.io.kestra.core.models.executions.NextTaskRun>> nextTaskRunFunction)-executiontaskserrorsparentTaskRun",
@@ -677,8 +678,8 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/skylot/jadx": {
-    url: "https://github.com/skylot/jadx",
-    state: "open",
+    url: "https://github.com/skylot/jadx", "occurence": 20,
+    state: "closed",
     "key": "parameters_to_parameters_data_clump-jadx-core/src/main/java/jadx/core/dex/visitors/typeinference/TypeUpdate.java-jadx.core.dex.visitors.typeinference.TypeUpdate/method/applyWithWiderIgnSame(jadx.core.dex.visitors.typeinference.jadx.core.dex.nodes.MethodNode mth, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.SSAVar ssaVar, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.ArgType candidateType)-jadx.core.dex.visitors.typeinference.TypeUpdate/method/apply(jadx.core.dex.visitors.typeinference.jadx.core.dex.nodes.MethodNode mth, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.SSAVar ssaVar, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.ArgType candidateType, jadx.core.dex.visitors.typeinference.TypeUpdateFlags flags)-mthssaVarcandidateType",
 
     merged: false,
@@ -711,8 +712,8 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/plantuml/plantuml": {
-    url: "https://github.com/plantuml/plantuml",
-    state: "open",
+    url: "https://github.com/plantuml/plantuml", "occurence": 1254,
+    state: "closed",
     merged: false,
     category: "nameSuggestion",
     generalComments: [
@@ -756,7 +757,7 @@ Also code is structured to suit the convenience of the original author or mainta
     ],
   },
   "https://github.com/dtinit/data-transfer-project": {
-    url: "https://github.com/dtinit/data-transfer-project",
+    url: "https://github.com/dtinit/data-transfer-project", "occurence": 12,
     state: "open",
     merged: false,
     size: 3,
@@ -777,7 +778,7 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/alibaba/Sentinel": {
-    url: "https://github.com/alibaba/Sentinel",
+    url: "https://github.com/alibaba/Sentinel", "occurence": 2,
     state: "closed",
     merged: false,
     "key": "fields_to_fields_data_clump-sentinel-transport/sentinel-transport-common/src/main/java/com/alibaba/csp/sentinel/command/vo/NodeVo.java-com.alibaba.csp.sentinel.command.vo.NodeVo-com.alibaba.csp.sentinel.dashboard.domain.ResourceTreeNode-resourceblockQpsidthreadNumparentIdsuccessQpsaverageRtoneMinuteBlockoneMinuteExceptiontotalQpspassQpsoneMinuteTotalexceptionQpsoneMinutePass",
@@ -797,7 +798,7 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/Netflix/zuul": {
-    url: "https://github.com/Netflix/zuul",
+    url: "https://github.com/Netflix/zuul", "occurence": 8,
     state: "open",
     merged: false,
     "key": "parameters_to_parameters_data_clump-zuul-core/src/main/java/com/netflix/netty/common/throttle/RejectionUtils.java-com.netflix.netty.common.throttle.RejectionUtils/method/notifyHandlers(com.netflix.netty.common.throttle.io.netty.channel.ChannelHandlerContext ctx, com.netflix.netty.common.throttle.com.netflix.zuul.stats.status.StatusCategory nfStatus, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpResponseStatus status, java.lang.String reason, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpRequest request)-com.netflix.netty.common.throttle.RejectionUtils/method/rejectByClosingConnection(com.netflix.netty.common.throttle.io.netty.channel.ChannelHandlerContext ctx, com.netflix.netty.common.throttle.com.netflix.zuul.stats.status.StatusCategory nfStatus, java.lang.String reason, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpRequest request, java.lang.Integer injectedLatencyMillis)-ctxnfStatusreasonrequest",
@@ -822,7 +823,7 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/pmd/pmd": {
-    url: "https://github.com/pmd/pmd",
+    url: "https://github.com/pmd/pmd", "occurence": 2,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-pmd-core/src/main/java/net/sourceforge/pmd/cache/internal/CachedRuleMapper.java-net.sourceforge.pmd.cache.internal.CachedRuleMapper/method/getRuleForClass(java.lang.String className, java.lang.String ruleName, java.lang.String languageName)-net.sourceforge.pmd.cache.internal.CachedRuleMapper/method/getRuleKey(java.lang.String className, java.lang.String ruleName, java.lang.String languageName)-classNameruleNamelanguageName",
@@ -833,6 +834,8 @@ Also code is structured to suit the convenience of the original author or mainta
     generalComments: [
       -SemanticChanges,
       -Performance,
+      -Complexity,
+      -Readability,
       +ClassName,
       +ExtractedClassLocation,
     ],
@@ -849,7 +852,8 @@ Also code is structured to suit the convenience of the original author or mainta
         comments: `It adds object instantiations without adding additional value, as we are replacing a getter to create a key with a constructor of an object + toString to obtain the same thing. It's not even type-enforced, as the key of the map remains a String rather than trying to leverage the newly introduced type.
 
 Overall, this is 100% overhead`,
-        keywords: [-Performance, -NotEnough,]
+        keywords: [-Performance, -NotEnough,-RefactoringNotWorthIt
+        ]
       },
       {
         scale: StronglyAgree
@@ -894,7 +898,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/traccar/traccar": {
-    url: "https://github.com/traccar/traccar",
+    url: "https://github.com/traccar/traccar", "occurence": 86,
     state: "closed",
     merged: false,
     size: 5,
@@ -915,7 +919,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/apache/linkis": {
-    url: "https://github.com/apache/linkis",
+    url: "https://github.com/apache/linkis", "occurence": 2,
     state: "closed",
     merged: true,
     manualChanges: false,
@@ -934,7 +938,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/micrometer-metrics/micrometer": {
-    url: "https://github.com/micrometer-metrics/micrometer",
+    url: "https://github.com/micrometer-metrics/micrometer", "occurence": 2,
     state: "closed",
     merged: false,
     "key": "fields_to_fields_data_clump-micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java-io.micrometer.core.instrument.binder.grpc.GrpcClientObservationContext-io.micrometer.core.instrument.binder.grpc.GrpcServerObservationContext-fullMethodNameserviceNamemethodNameauthoritymethodTypetrailersheadersstatusCode",
@@ -984,7 +988,7 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/uber/NullAway": {
-    url: "https://github.com/uber/NullAway",
+    url: "https://github.com/uber/NullAway", "occurence": 124,
     state: "closed",
     merged: true,
     manualChanges: true,
@@ -1025,7 +1029,8 @@ Overall, this is 100% overhead`,
       -StyleAdaption,
       -NotEnough,
       -DocumentationIssues,
-      -NoSetterNeeded
+      -NoSetterNeeded,
+      -Readability
     ],
     generalCommentsRaw: [
       [
@@ -1108,7 +1113,7 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/spockframework/spock": {
-    url: "https://github.com/spockframework/spock",
+    url: "https://github.com/spockframework/spock", "occurence": 2,
     state: "closed",
     merged: false,
     size: 6,
@@ -1122,6 +1127,7 @@ Overall, this is 100% overhead`,
       -StyleAdaption,
       -NotEnough,
       -Readability,
+      -ImprovedMaintainability
     ],
     generalCommentsRaw: [
       [
@@ -1158,7 +1164,7 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/projectlombok/lombok": {
-    url: "https://github.com/projectlombok/lombok",
+    url: "https://github.com/projectlombok/lombok", "occurence": 2,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java-lombok.javac.handlers.HandleEqualsAndHashCode/method/generateMethods(lombok.javac.handlers.lombok.javac.JavacNode typeNode, lombok.javac.handlers.lombok.javac.JavacNode source, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, java.lang.Boolean callSuper, boolean whineIfExists, boolean cacheHashCode, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-lombok.javac.handlers.HandleEqualsAndHashCode/method/createEquals(lombok.javac.handlers.lombok.javac.JavacNode typeNode, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, boolean callSuper, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, boolean needsCanEqual, lombok.javac.handlers.lombok.javac.JavacNode source, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-typeNodesourcemembersfieldAccessonParam",
@@ -1196,7 +1202,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/bitcoinj/bitcoinj": {
-    url: "https://github.com/bitcoinj/bitcoinj",
+    url: "https://github.com/bitcoinj/bitcoinj", "occurence": 4,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-core/src/main/java/org/bitcoinj/core/Transaction.java-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutput output, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutPoint prevOut, org.bitcoinj.core.org.bitcoinj.script.Script scriptPubKey, org.bitcoinj.core.org.bitcoinj.base.Coin amount, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-sigKeysigHashanyoneCanPay",
@@ -1211,7 +1217,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/jenkinsci/jenkins": {
-    url: "https://github.com/jenkinsci/jenkins",
+    url: "https://github.com/jenkinsci/jenkins", "occurence": 18,
     state: "open",
     merged: false,
     size: 3,
@@ -1270,7 +1276,7 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/real-logic/aeron": {
-    url: "https://github.com/real-logic/aeron",
+    url: "https://github.com/real-logic/aeron", "occurence": 6,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-aeron-cluster/src/main/java/io/aeron/cluster/service/SnapshotTaker.java-io.aeron.cluster.service.SnapshotTaker/method/markEnd(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-io.aeron.cluster.service.SnapshotTaker/method/markBegin(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-snapshotTypeIdlogPositionleadershipTermIdsnapshotIndextimeUnitappVersion",
@@ -1294,7 +1300,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/Stirling-Tools/Stirling-PDF": {
-    url: "https://github.com/Stirling-Tools/Stirling-PDF",
+    url: "https://github.com/Stirling-Tools/Stirling-PDF", "occurence": 2,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-src/main/java/stirling/software/SPDF/controller/api/PdfOverlayController.java-stirling.software.SPDF.controller.api.PdfOverlayController/method/sequentialOverlay(java.util.Map<java.lang.Integer, java.lang.String> overlayGuide, java.io.File[] overlayFiles, int basePageCount, java.util.List<java.io.File> tempFiles)-stirling.software.SPDF.controller.api.PdfOverlayController/method/prepareOverlayGuide(int basePageCount, java.io.File[] overlayFiles, java.lang.String mode, int[] counts, java.util.List<java.io.File> tempFiles)-overlayFilesbasePageCounttempFiles",
@@ -1347,7 +1353,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/jOOQ/jOOQ": {
-    url: "https://github.com/jOOQ/jOOQ",
+    url: "https://github.com/jOOQ/jOOQ", "occurence": 2,
     state: "closed",
     merged: false,
     size: 6,
@@ -1374,7 +1380,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/junit-team/junit5": {
-    url: "https://github.com/junit-team/junit5",
+    url: "https://github.com/junit-team/junit5", "occurence": 20,
     state: "closed",
     merged: true,
     "key": "fields_to_fields_data_clump-junit-jupiter-engine/src/test/java/org/junit/jupiter/engine/extension/LifecycleMethodExecutionExceptionHandlerTests.java-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.RethrowExceptionHandler-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.UnrecoverableExceptionHandler-beforeEachCallsbeforeAllCallsafterEachCallsafterAllCalls",
@@ -1388,6 +1394,7 @@ Overall, this is 100% overhead`,
       -ExtractedClassShouldNotBePublic,
       -NotEnough,
       -OverEngineered,
+      -Verbosity
     ],
     generalCommentsRaw: [
       [
@@ -1425,7 +1432,7 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/apache/logging-log4j2": {
-    url: "https://github.com/apache/logging-log4j2",
+    url: "https://github.com/apache/logging-log4j2", "occurence": 10,
     state: "closed",
     merged: false,
     "key": "parameters_to_parameters_data_clump-log4j-1.2-api/src/main/java/org/apache/log4j/builders/appender/SyslogAppenderBuilder.java-org.apache.log4j.builders.appender.SyslogAppenderBuilder/method/createAppender(java.lang.String name, org.apache.log4j.builders.appender.org.apache.log4j.config.Log4j1Configuration configuration, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, java.lang.String facility, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String syslogHost, java.lang.String level, org.apache.log4j.builders.appender.org.apache.logging.log4j.core.net.Protocol protocol, boolean header, boolean facilityPrinting)-org.apache.log4j.builders.appender.SocketAppenderBuilder/method/createAppender(java.lang.String name, java.lang.String host, int port, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String level, boolean immediateFlush, int reconnectDelayMillis, T configuration)-namelayoutfilterlevel",
@@ -1535,7 +1542,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/apache/iceberg": {
-    url: "https://github.com/apache/iceberg",
+    url: "https://github.com/apache/iceberg", "occurence": 2,
     state: "closed",
     merged: false,
     size: 6,
@@ -1577,7 +1584,7 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/google/error-prone": {
-    url: "https://github.com/google/error-prone",
+    url: "https://github.com/google/error-prone", "occurence": 6,
     state: "open",
     merged: false,
     size: 3,
@@ -1591,7 +1598,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/apache/gravitino": {
-    url: "https://github.com/apache/gravitino",
+    url: "https://github.com/apache/gravitino", "occurence": 1838,
     state: "open",
     merged: false,
     size: 4,
@@ -1620,7 +1627,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/eclipse-vertx/vert.x": {
-    url: "https://github.com/eclipse-vertx/vert.x",
+    url: "https://github.com/eclipse-vertx/vert.x", "occurence": 13,
     state: "closed",
     merged: false,
     size: 5,
@@ -1634,7 +1641,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/spring-io/initializr": {
-    url: "https://github.com/spring-io/initializr",
+    url: "https://github.com/spring-io/initializr", "occurence": 2,
     state: "closed",
     "key": "fields_to_fields_data_clump-initializr-actuator/src/main/java/io/spring/initializr/actuate/stat/ProjectRequestDocument.java-io.spring.initializr.actuate.stat.ProjectRequestDocument-io.spring.initializr.web.project.ProjectRequest-groupIdartifactIdjavaVersiontypelanguagepackageNamepackaging",
 
@@ -1642,7 +1649,7 @@ Overall, this is 100% overhead`,
     size: 7,
     type: fields_to_fields_data_clump,
     category: "filterManual",
-    generalComments: [-LLM_LegalIssues, -Readability],
+    generalComments: [-LLM_LegalIssues, -Readability,-Verbosity],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -1658,7 +1665,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/AutoMQ/automq": {
-    url: "https://github.com/AutoMQ/automq",
+    url: "https://github.com/AutoMQ/automq", "occurence": 2,
     state: "closed",
     "key": "parameters_to_parameters_data_clump-core/src/main/java/kafka/autobalancer/goals/AbstractGoal.java-kafka.autobalancer.goals.AbstractGoal/method/trySwapPartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica srcReplica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup, java.util.Comparator<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaComparator, java.util.function.BiPredicate<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaBiPredicate)-kafka.autobalancer.goals.AbstractGoal/method/tryMovePartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica replica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup)-clustersrcBrokercandidatesgoalsByPriorityoptimizedGoalsgoalsByGroup",
 
@@ -1689,7 +1696,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/thingsboard/thingsboard": {
-    url: "https://github.com/thingsboard/thingsboard",
+    url: "https://github.com/thingsboard/thingsboard", "occurence": 2,
     state: "closed",
     "key": "fields_to_fields_data_clump-common/queue/src/main/java/org/thingsboard/server/queue/provider/KafkaTbCoreQueueFactory.java-org.thingsboard.server.queue.provider.KafkaTbCoreQueueFactory-org.thingsboard.server.queue.provider.KafkaMonolithQueueFactory-transportApiSettingskafkaSettingsconsumerStatsServicetransportApiResponseAdminconsumerCountjsInvokeSettingsvcSettingsjsExecutorRequestAdminhousekeeperAdminvcAdmintransportNotificationSettingshousekeeperReprocessingAdmincoreAdminserviceInfoProviderjsExecutorResponseAdmintransportApiRequestAdmincoreSettingstopicServiceruleEngineSettingsnotificationAdminfwUpdatesAdmin",
 
@@ -1710,7 +1717,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/OpenRefine/OpenRefine": {
-    url: "https://github.com/OpenRefine/OpenRefine",
+    url: "https://github.com/OpenRefine/OpenRefine", "occurence": 2,
     state: "closed",
     merged: false,
     "key": "fields_to_fields_data_clump-main/src/com/google/refine/browsing/facets/RangeFacet.java-com.google.refine.browsing.facets.RangeFacet-com.google.refine.browsing.facets.TimeRangeFacet-_blankCount_cellIndex_step_baseBlankCount_max_binsMINTO_baseErrorCountFROM_errorCountMAX_errorMessage_min_eval_baseBins",
@@ -1754,7 +1761,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/mybatis/mybatis-3": {
-    url: "https://github.com/mybatis/mybatis-3",
+    url: "https://github.com/mybatis/mybatis-3", "occurence": 2,
     state: "closed",
     merged: false,
     size: 6,
@@ -1788,7 +1795,7 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/OpenFeign/feign": {
-    url: "https://github.com/OpenFeign/feign",
+    url: "https://github.com/OpenFeign/feign", "occurence": 2,
     state: "closed",
     merged: true,
     size: 9,
