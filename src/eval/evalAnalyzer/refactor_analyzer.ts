@@ -10,7 +10,7 @@ import { PipeLineStep } from "../../pipeline/PipeLineStep";
 import { getRelevantFilesRec, makeUnique, nop } from "../../util/Utils";
 import { all, get } from "axios";
 import { DataClumpsTypeContext, DataClumpTypeContext } from "data-clumps-type-context";
-import { AST_Class } from "../../context/AST_Type";
+import { AST_Class, AST_Type } from "../../context/AST_Type";
 import { ChangeType, parse_piecewise_output_from_file } from "../../pipeline/stepHandler/languageModelSpecific/OutputHandler";
 import { loadExistingContext } from "../../context/ExistingContextLoader";
 
@@ -30,7 +30,8 @@ export class RefactorAnalyzer extends EvalAnalyzer {
     }
     getMetrics(): EvalMetric[] {
         let metrics = [new FailureCountMetric(), new RemainingAttemptCountMetric(), new RemovedDataClumpsMetric(), new GitChangesMetric(), new CommentOutMetric(), new InvalidJsonMetric(),
-        new EmptyResponseMetric(), new ResponseSizeDecrease(), new RichClassMetric(), new HarmlessErrorCategoryMetric()
+        new EmptyResponseMetric(), new ResponseSizeDecrease(), new RichClassMetric(), new HarmlessErrorCategoryMetric(),
+        new RemovedVariables()
         ];
        
         metrics.push(new ChangeTypeMetric("None"))
@@ -38,10 +39,10 @@ export class RefactorAnalyzer extends EvalAnalyzer {
         metrics.push(new ChangeTypeMetric("SpecificLine"))
         metrics.push(new ChangeTypeMetric("SpecificLineAll"))
         metrics.push(new ChangeTypeMetric("NoneButReplace"))
+        addDataClumpSpecificMetrics(metrics)
+        //metrics=[new RemovedVariables()]
 
-       // metrics=[new ResponseSizeDecrease()]
-
-       addDataClumpSpecificMetrics(metrics)
+      
         //  metrics=[new RichClassMetric()]
         return metrics
     }
@@ -113,7 +114,7 @@ export class RefactorAnalyzer extends EvalAnalyzer {
         let g = await git.checkout(branchName, ["-f"])
         let branchedContext = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), ".data_clump_solver_data", "dataClumpDetectorContext.json")).toString()) as DataClumpsTypeContext
         data.dataClumpDetectionResult = (branchedContext?.report_summary?.fields_to_fields_data_clump! + branchedContext?.report_summary?.parameters_to_parameters_data_clump!)!
-
+        data.numberVariables=(branchedContext.project_info.number_of_data_fields!+branchedContext.project_info.number_of_method_parameters!)
         let g1 = await git.diffSummary([branchName, "context"])
         data.gitDiff = g1
 
@@ -169,8 +170,9 @@ class FailureCountMetric implements EvalMetric {
 
 class RemovedDataClumpsMetric implements EvalMetric {
     private initial?: number;
+    private projectPath=""
     private async getInitial(context: DataClumpRefactoringContext): Promise<number> {
-        if (this.initial) {
+        if (this.initial && context.getProjectPath()==this.projectPath) {
             return this.initial;
         }
         else {
@@ -179,6 +181,7 @@ class RemovedDataClumpsMetric implements EvalMetric {
             let ctx = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), ".data_clump_solver_data/dataClumpDetectorContext.json")).toString()) as DataClumpsTypeContext
             this.initial = ctx.report_summary.fields_to_fields_data_clump! + ctx.report_summary.parameters_to_parameters_data_clump!;
             this.initial=Math.sqrt(this.initial)
+            this.projectPath=context.getProjectPath()
             return this.initial
         }
     }
@@ -194,11 +197,47 @@ class RemovedDataClumpsMetric implements EvalMetric {
             nop();
         }
         removed = Math.max(removed, 0)
-        return removed
+        return removed;
     }
     getName(): string {
         return "RemovedDataClumps";
     }
+}
+const SCALE=100;
+class RemovedVariables implements EvalMetric{
+    async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?: EvalAnalyzer): Promise<any> {
+        let originalContext = context.getFirstByType(DataClumpDetectorContext)!
+        let afterRefactoring =( instance.numberVariables!)!
+        let initial = await this.getInitial(context)
+
+        let removed = initial - afterRefactoring
+        if(removed>0){
+            nop();
+        }
+       
+        removed = Math.max(removed, 0)
+        return removed
+    }
+    getName(): string {
+        return "RemovedVariables"
+    }
+    private initial?: number;
+    private projectPath=""
+    private async getInitial(context: DataClumpRefactoringContext): Promise<number> {
+        if (this.initial && context.getProjectPath()==this.projectPath) {
+            return this.initial;
+        }
+        else {
+            let g = simpleGit(context.getProjectPath())
+            await g.checkout("context")
+            let ctx = JSON.parse(fs.readFileSync(resolve(context.getProjectPath(), ".data_clump_solver_data/dataClumpDetectorContext.json")).toString()) as DataClumpsTypeContext
+            this.initial = ctx.project_info.number_of_method_parameters!+ctx.project_info.number_of_data_fields!
+            this.projectPath=context.getProjectPath()
+            return this.initial
+        }
+    }
+   
+
 }
 
 class GitChangesMetric implements EvalMetric {

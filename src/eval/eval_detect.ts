@@ -87,8 +87,8 @@ export class DetectEval extends BaseEvaluator{
                 projectName:[],
             instructionType: [
                 "definitionBased",
-                "exampleBased", 
-            "noDefinitionBased"
+               // "exampleBased", 
+            //"noDefinitionBased"
                 ]
         } 
         if(isDebug()){

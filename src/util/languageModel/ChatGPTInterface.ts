@@ -46,6 +46,11 @@ export class ChatGPTInterface extends AbstractLanguageModel{
     }
     clear(): void {
         this.completions.messages=[]
+        this.lastUsage={
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            total_tokens: 0
+        }
     }
     private completions:OpenAI.ChatCompletionCreateParamsNonStreaming
     private lastUsage:TokenStats={
@@ -91,14 +96,14 @@ export class ChatGPTInterface extends AbstractLanguageModel{
         }while(shallContinue);
         this.lastUsage.elapsedTime=responseTimes.reduce((partialSum, a) => partialSum + a, 0)/responseTimes.length;
         //throw this.format
-        
+        writeFileSync("stats.json",JSON.stringify(this.lastUsage,undefined,4))
         if(clear){
             this.clear()
         }
         writeFileSync("response.json",(messages.join("\n")))
         let responsePretty=prettyInvalidJson(messages.join("\n"))
         writeFileSync("responsePretty.txt",responsePretty)
-        writeFileSync("stats.json",JSON.stringify(this.lastUsage,undefined,4))
+        
         //throw this.format
         
         return {messages:messages,messageType:"output"}

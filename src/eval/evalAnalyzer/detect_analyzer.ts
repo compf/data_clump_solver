@@ -167,6 +167,9 @@ class OutputFormatCorrectnessMetric implements EvalMetric {
             parsed
         }
         )
+        if(counters.match+counters.miss==0){
+            return 0;
+        }
         return counters.match / (counters.match + counters.miss)
     }
     checkCorrectness(byLLM: any, counters: { match: number, miss: number }) {

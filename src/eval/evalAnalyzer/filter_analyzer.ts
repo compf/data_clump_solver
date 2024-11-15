@@ -44,6 +44,11 @@ export class FilterAnalyzer extends EvalAnalyzer {
         if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
             return [];
         }
+        let llm = new DataClumpLanguageModelFilter({ handlers: [] } as any)
+
+        let withNumericIds = llm.simplifyKeys(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
+
+        context = context.buildNewContext(new DataClumpDetectorContext(withNumericIds));
 
        let bestFittingDataClump = getBestFittingDataClump(context,[parsed.key,parsed.justification])
        if(bestFittingDataClump.dataClump==null || bestFittingDataClump.dataClump==undefined){
@@ -55,19 +60,16 @@ export class FilterAnalyzer extends EvalAnalyzer {
 export class PositionOnGroundTruthMetric extends DataClumpBasedMetric {
 
 private instance?:InstanceGeneratedData
-    eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer: EvalAnalyzer): Promise<any> {
+   async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer: EvalAnalyzer): Promise<any> {
         this.instance=instance
-        return super.eval(instance,context,analyzer)
+        return await  super.eval(instance,context,analyzer)
     }
     async  evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext):Promise<any> {
 
         let filterResults = JSON.parse(fs.readFileSync(resolve("evalData/filter",(this.instance!.instance).projectName,"basicMetrics.json"), { encoding: "utf-8" }).toString())
-        let llm = new DataClumpLanguageModelFilter({ handlers: [] } as any)
         for(let f of Object.keys(filterResults)){
             filterResults[f]=filterResults[f].map((it)=>it.name)
         }
-        let withNumericIds = llm.simplifyKeys(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
-        context = context.buildNewContext(new DataClumpDetectorContext(withNumericIds));
 
 
 

@@ -30,6 +30,7 @@ import { CloneObtainingStepHandler } from "../pipeline/stepHandler/codeObtaining
 import { loadExistingContext } from "../context/ExistingContextLoader";
 import { LanguageServerReferenceStepHandler } from "../pipeline/stepHandler/referenceFinding/LanguageServerReferenceStepHandler";
 import { LanguageServerAPI } from "../util/languageServer/LanguageServerAPI";
+import { DataClumpDoctorASTGeneratorStep } from "../pipeline/stepHandler/astGeneration/DataClumpDoctorASTGeneratorStepHandler";
 const constantScores = {
     "instanceType": -1000,
     "projectName": -999,
@@ -112,7 +113,8 @@ export abstract class BaseEvaluator {
         let originalDcContext:DataClumpDetectorContext;
         let ctx=loadExistingContext(PipeLineStep.ASTGeneration,obtainingContext)
         if(ctx==null){
-            ctx=obtainingContext;
+            let astDetector=new DataClumpDoctorASTGeneratorStep({})
+            ctx=obtainingContext.buildNewContext(await astDetector.handle(PipeLineStep.ASTGeneration,obtainingContext,null))
         }
         else{
             ctx=obtainingContext.buildNewContext(ctx)

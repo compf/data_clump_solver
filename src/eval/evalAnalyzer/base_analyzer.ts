@@ -41,7 +41,8 @@ export type InstanceGeneratedData = {
     validationResults: number[],
     gitDiff: DiffResult | null,
     errorPaths?:string[],
-    dataClumpDetectionResult: number | null,
+    dataClumpDetectionResult?: number ,
+    numberVariables?:number
     handledDataClumps?: DataClumpTypeContext[]
 
 }
@@ -131,7 +132,6 @@ export abstract class EvalAnalyzer {
             fileContents: {},
             validationResults: [],
             gitDiff: null,
-            dataClumpDetectionResult: null
         })
         return res;
 
@@ -300,13 +300,14 @@ function getMaxSize(metric:EvalMetric|null){
     }
 }
 export function logMetric(metric:EvalMetric|null,obj:any){
+    return;
     const PERC=0.05;
     if(Math.random()>PERC){
 return ;
     }
     let metricName="null";
     if(metric){
-        metricName=metric.getName()
+        //metricName=metric.getName()
     }
     let path="stuff/logs/"+metricName
     let content="";
@@ -476,7 +477,13 @@ export function getBestFittingDataClump(context: DataClumpRefactoringContext, in
         input = [input]
     }
     for (let inp of input) {
-
+        if(inp in groundTruthUnFiltered.data_clumps) return {
+            dataClump:groundTruthFiltered.data_clumps[inp],
+            fromFiltered: inp in groundTruthFiltered,
+            score:1,
+            maxMatches:[inp],
+            maxFails:[]
+        }
         for (let dc of Object.values(groundTruthFiltered.data_clumps)) {
             let matchesFails = getProbabilityCorrectDataClump(inp, dc)
             let value = (matchesFails.matches.length - matchesFails.fails.length) / (matchesFails.matches.length + matchesFails.fails.length)
@@ -798,11 +805,11 @@ class TimeMetric implements EvalMetric{
         return "Time"
     }
     async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?: EvalAnalyzer): Promise<any> {
-        let result:number[]=[]
+        let result=0;
         
         for(let s of instance.statsPaths){
             let stat=JSON.parse(fs.readFileSync(s).toString()) as StatTemplate
-            result.push(stat.elapsedTime/1000)
+            result+=(stat.elapsedTime/1000)
 
         }
         return result
@@ -813,14 +820,14 @@ class TokenMetric implements EvalMetric{
         return "Price"
     }
     async eval(instance: InstanceGeneratedData, context: DataClumpRefactoringContext, analyzer?: EvalAnalyzer): Promise<any> {
-        let result:number[]=[]
+        let result=0;
         const INPUT_PRICE=0.01;
         const OUTPUT_PRICE=0.03
         
         for(let s of instance.statsPaths){
             let stat=JSON.parse(fs.readFileSync(s).toString()) as StatTemplate
             let price=INPUT_PRICE*stat.prompt_tokens/1000+OUTPUT_PRICE*stat.completion_tokens/1000
-            result.push(price)
+            result+=price
 
         }
         return result

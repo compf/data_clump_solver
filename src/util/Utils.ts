@@ -328,17 +328,18 @@ export function parseUsingJsonRepair(jsonString:string){
         let repaired="{"
         try{
             repaired=jsonrepair(jsonString)
-            if(Array.isArray(repaired)){
-                repaired=repaired[0]
+            let res=tryParseJSON(repaired)
+            if(Array.isArray(res)){
+                res=res[0]
                 
             }
-            return tryParseJSON(repaired);
+            return res;
 
         }
         catch{
             
         }
-        return tryParseJSON(repaired)
+        return 
     }
     else{
         return result;

@@ -21,7 +21,7 @@ export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
 
         applyIncludeExclude(context,ruleset_jar_location)
         
-         this.analyzeSourceCodeFiles(context.getProjectPath(),ast_out_path,context)
+         await this.analyzeSourceCodeFiles(context.getProjectPath(),ast_out_path,context)
          let paths: string[] = []
 
          getRelevantFilesRec(ast_out_path, paths, new FileFilteringContext([".*json"], []))

@@ -2,6 +2,7 @@ import simpleGit, { SimpleGit } from "simple-git";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { CodeObtainingContext, DataClumpRefactoringContext, FileFilteringContext, LargeLanguageModelContext, RelevantLocationsContext, ValidationResult } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
+import {spawnSync} from 'child_process';
 import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { LanguageModelDetectOrRefactorHandler } from "../pipeline/stepHandler/languageModelSpecific/LanguageModelDetectOrRefactorHandler";
 import { AllFilesHandler, AllFilesWithErrorHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SendHandler, SimpleInstructionHandler, SystemInstructionHandler, ValidationResultHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
@@ -71,10 +72,10 @@ export class RefactorEval extends BaseEvaluator {
                 0.9
             ],
             instructionType: [
-                 "definitionBased",
+                // "definitionBased",
                 "exampleBased"
-                ,
-                "noDefinitionBased"
+                //,
+                //"noDefinitionBased"
             ],
             inputFormat: [
 
@@ -131,7 +132,7 @@ export class RefactorEval extends BaseEvaluator {
             context = context.buildNewContext(await this.getUsageInformation(context as RelevantLocationsContext))
 
         }
-
+        spawnSync("mvn",["clean"],{cwd:context.getProjectPath()});
         await git.checkout("-Bcontext")
         await git.add(["-f", ".data_clump_solver_data"])
         await git.commit("context")
@@ -342,6 +343,9 @@ export class ReplayRefactorEvaluator extends RefactorEval {
     getValidationInstance(): ValidationStepHandler {
         return new DummyValidationStep({ skipTests: true })
     }
+    async getUsageInformation(context: RelevantLocationsContext): Promise<RelevantLocationsContext> {
+        return context
+    }
 
 
 }
@@ -353,7 +357,7 @@ class DummyValidationStep extends ValidationStepHandler {
 }
 
 if (require.main === module) {
-    const replay = true;
+    const replay = false;
     if (replay) {
         FileIO.instance = new DummyInstanceBasedIO()
         let refactorEval = new ReplayRefactorEvaluator();
@@ -367,3 +371,5 @@ if (require.main === module) {
 
 
 }
+
+

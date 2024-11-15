@@ -90,3 +90,12 @@ export class SingleUseStubInterface extends StubInterface{
         throw "single use"
     }
 }
+
+export class ReturnInputInterface extends StubInterface{
+    async sendMessages(clear: boolean): Promise<ChatMessage> {
+        return {
+            messages:this.messages,
+            messageType:"output"
+        }
+    }
+}
