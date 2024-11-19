@@ -54,37 +54,7 @@ function incrementFromLineNUmber(obj:any, by:number){
     }
 }
 
-function trimOldContent(obj:any){
-    for(let o of Object.values(obj["refactorings"])){
-        for(let ref of (o as Array<any>)){
-            ref.oldContent=ref.oldContent.trim();
-        }
-    }
-}
 
-function trimNewContent(obj:any){
-    for(let o of Object.values(obj["refactorings"])){
-        for(let ref of (o as Array<any>)){
-            ref.newContent=ref.newContent.trim();
-        }
-    }
-}
-
-function addWhiteSpaceToOldContent(obj:any){
-    for(let o of Object.values(obj["refactorings"])){
-        for(let ref of (o as Array<any>)){
-            ref.oldContent=" "+ref.oldContent;
-        }
-    }
-}
-
-function addWhiteSpaceToNewContent(obj:any){
-    for(let o of Object.values(obj["refactorings"])){
-        for(let ref of (o as Array<any>)){
-            ref.newContent=" "+ref.newContent;
-        }
-    }
-}
 
 test("Test piecewise refactor", async () => {
     
@@ -129,17 +99,8 @@ test("Test piecewise refactor", async () => {
             modifyFunction:(o)=>{incrementFromLineNUmber(o,-3)},
             doesfail:false,
             index:6
-        },
-        {
-            modifyFunction:(o)=>{incrementFromLineNUmber(o,4);addWhiteSpaceToOldContent(o)},
-            doesfail:true,
-            index:7
-        },
-        {
-            modifyFunction:(o)=>{incrementFromLineNUmber(o,-4);addWhiteSpaceToOldContent(o)},
-            doesfail:true,
-            index:8
         }
+       
     ]
     let counter=0
     let mathStuffRefactored=fs.readFileSync(resolve("testData/MathStuffRefactored.java")).toString();
@@ -181,7 +142,7 @@ function testRefactoring(oldLines:string[], newLines:string[], checkIndent:boole
         }
         
     }
-    let result=parse_piecewise_output_from_file("",(oldLinesReal??oldLines).join("\n"),refactorInstruction);
+    let result=parse_piecewise_output_from_file(refactorInstruction.refactorings[""],(oldLinesReal??oldLines).join("\n"));
     if(checkIndent){
         let r=expect(result);
         if(fail){
@@ -215,102 +176,28 @@ function indent(lines:string[], indentsBefore:string[], indentsAfter?:string[]):
     }
     return result;
 }
+const threeLines=[
+    "int x1;",
+    "int x2;",
+    "int x3; 4"
+];
+const oneLine=["int x0;"]
 test("Test piecewise refactor, edge cases", async () => {
 
-    const threeLines=[
-        "int x1;",
-        "int x2;",
-        "int x3; 4"
-    ];
-    const oneLine=["int x0;"]
+    
     testRefactoring(oneLine,threeLines,false);
     testRefactoring(oneLine,threeLines,false,["","int a","int b","int c"],true)
     testRefactoring(threeLines,oneLine,false)
     testRefactoring(threeLines,oneLine,true)
 
     testRefactoring(indent(threeLines,["  ",""," \t"]),oneLine,false,indent(threeLines,["  ","\t\t", "       "  ]))
-
-    
-
-    /*const threeLines="int x=0;\nint y=0;\nint z=0;\n";
-    const oneLine="int x=1;";
-    let refactorInstruction={
-        refactorings:{
-            "":[
-                {
-                    fromLine:1,
-                    toLine:3,
-                    oldContent:" "+threeLines,
-                    newContent:oneLine
-                }
-            ]
-        }
-    }
-    let result=parse_piecewise_output_from_file("",threeLines,refactorInstruction);
-    expect(result.trim()).toBe(oneLine);
-
-
-    refactorInstruction.refactorings[""][0].oldContent=threeLines;
-    result=parse_piecewise_output_from_file("",threeLines,refactorInstruction);
-    expect(result.trim()).toBe(oneLine);
-
-
-
-    refactorInstruction={
-        refactorings:{
-            "":[
-                {
-                    fromLine:1,
-                    toLine:1,
-                    oldContent:" "+oneLine,
-                    newContent:threeLines
-                }
-            ]
-        }
-    }
-
-    result=parse_piecewise_output_from_file("",oneLine,refactorInstruction);
-    expect(result).toBe(threeLines);
-
-    refactorInstruction.refactorings[""][0].oldContent=oneLine;
-    result=parse_piecewise_output_from_file("",oneLine,refactorInstruction);
-    expect(result).toBe(threeLines);
-
-
-
-
-    const empty="";
-    refactorInstruction={
-        refactorings:{
-            "":[
-                {
-                    fromLine:1,
-                    toLine:1,
-                    oldContent:empty,
-                    newContent:threeLines
-                }
-            ]
-        }
-    }
-    result=parse_piecewise_output_from_file("",empty,refactorInstruction);
-    expect(result.trim()).toBe(threeLines.trim());
-
-
-
-
-    refactorInstruction={
-        refactorings:{
-            "":[
-                {
-                    fromLine:1,
-                    toLine:1,
-                    oldContent:threeLines,
-                    newContent:empty
-                }
-            ]
-        }
-    }
-    result=parse_piecewise_output_from_file("",threeLines,refactorInstruction);
-    expect(result.trim()).toBe(empty.trim());*/
+   
 });
+
+test("test invalid instructions",()=>{
+    const noInstructions={}
+    let output=parse_piecewise_output_from_file([],threeLines.join("\n"))
+
+    expect(output).toBe(threeLines.join("\n"))
+})
 

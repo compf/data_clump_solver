@@ -61,6 +61,7 @@ export class RedcliffManualRefactoringStepHandler extends AbstractStepHandler{
            
             
            ];
+        fs.rmSync("REDCLIFF-Java/demo-cli/build/idea-sandbox/system",{recursive:true})
         console.log("spawn")
         let cp=spawnSync("gradle",args,{cwd:"REDCLIFF-Java",stdio:"inherit"})
         console.log("finished")

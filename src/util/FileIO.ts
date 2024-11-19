@@ -27,3 +27,16 @@ export class StubPathIO extends FileIO{
         return "stuff/"+p;
     }
 }
+
+export class PathBasedIO extends FileIO{
+    constructor(private path:string){
+        super()
+    }
+    resolvePath(p: string): string {
+        let outPath=path.resolve(this.path,".data_clump_solver_data","proposals")
+        fs.mkdirSync(outPath,{recursive:true})
+        let p2=path.basename(p,path.extname(p))
+        p2+=Date.now().toString();
+        return path.resolve(outPath,p2+path.extname(p))
+    }
+}

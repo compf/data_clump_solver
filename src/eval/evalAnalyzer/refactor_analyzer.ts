@@ -448,7 +448,8 @@ class ChangeTypeMetric implements EvalMetric {
                 let path = resolve(context.getProjectPath(), p)
                 if (!fs.existsSync(path)) continue;
                 let fileContent = fs.readFileSync(path).toString();
-                fileContent = parse_piecewise_output_from_file(p, fileContent, instance.responsesParsed[index], (changeType,ch, fContent) => {
+                let changes=instance.responsesParsed[index]?.refactorings[p]
+                fileContent = parse_piecewise_output_from_file(changes, fileContent, (changeType,ch, fContent) => {
                     if (changeType == this.changeType) {
                         counter++;
                         let splitted=fileContent.split("\n")

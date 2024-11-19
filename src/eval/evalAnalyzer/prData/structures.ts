@@ -63,6 +63,7 @@ export type PR_Data_Entry = {
     key?: string,
     type: string,
     size: number,
+    affected_files?:number,
     manualChanges?: boolean,
     category: string
     likertData?: {

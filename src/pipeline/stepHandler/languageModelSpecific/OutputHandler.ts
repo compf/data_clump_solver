@@ -10,57 +10,68 @@ import { getRelevantFilesRec, nop, parseInvalidJSON, tryParseJSON, tryParseJSONW
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { FileIO } from "../../../util/FileIO";
 import { AllFilesHandler } from "./LargeLanguageModelHandlers";
+import { skipPartiallyEmittedExpressions } from "typescript";
+import { Metric } from "../../../util/filterUtils/Metric";
+import { DataClumpTypeContext } from "data-clumps-type-context";
+function checkPath(p: string): boolean {
+    if (fs.existsSync(p) && fs.statSync(p).isFile()) {
+        return true;
+    }
 
-export function parsePath(filePath: string, context: DataClumpRefactoringContext) {
-
-    if (fs.existsSync(resolve(context.getProjectPath(), filePath)) && fs.statSync(resolve(context.getProjectPath(), filePath)).isFile()) {
-        console.log("exists")
-        return resolve(context.getProjectPath(), filePath)
+    let folder = path.dirname(p)
+    if (fs.existsSync(folder) && fs.statSync(folder).isDirectory()) {
+        return true;
     }
-    let relevantFiles: string[] = []
-    getRelevantFilesRec(context.getProjectPath(), relevantFiles, context.getByType(FileFilteringContext))
-    let bestMatchingResults = relevantFiles.filter((it) => it.endsWith(filePath)).sort((a, b) => a.length - b.length)
-    if (bestMatchingResults.length > 0) {
-        console.log("best matching", bestMatchingResults[0])
-        return bestMatchingResults[0]
-    }
-    else {
-        if (filePath.endsWith(".java")) {
-            let dir = resolve(context.getProjectPath(), path.dirname(filePath))
-            if (fs.existsSync(dir)) {
-                console.log("existing file")
-                return resolve(context.getProjectPath(), filePath)
-            }
-            else {
-                let somePath = relevantFiles[0]
-                console.log("somepath", somePath)
-                return resolve(path.dirname(somePath), filePath)
-            }
-        }
-    }
-    throw "Could not parse " + filePath
+    return false;
 }
-export function parseMarkdown(context: DataClumpRefactoringContext, message: string, outputHandler: OutputHandler) {
+export function parsePath(filePath: string, context: DataClumpRefactoringContext): string {
+    let start = 0;
+    let p = filePath;
+    let resolvedPath = resolve(context.getProjectPath(), p)
+    let end = filePath.length - 1;
+    while (p != "" && start <= end && !checkPath(resolvedPath)) {
+        let m = filePath.charAt(start).match(/\w/)
+        if (!filePath.charAt(start).match(/\w/)) {
+            start++;
+        }
+        else if (!filePath.charAt(end).match(/\w/)) {
+            end--;
+        }
+        p = filePath.substring(start, end + 1)
+        resolvedPath = resolve(context.getProjectPath(), p)
+
+    }
+    if (start > end) return ""
+    return p;
+}
+
+
+
+export async function parseMarkdown(context: DataClumpRefactoringContext, message: string, outputHandler: OutputHandler) {
     let insideCodeBlock = false;
     let path = "";
     let code = ""
     let foundPath = false;
     let foundCode = false;
     let changes = {}
-    const pathRegex = /([a-zA-Z]:\\)?(\\?\w+)+\.java/gm
     let lines = message.split("\n")
     for (let line of lines) {
         console.log("line", line)
-        if (false && !insideCodeBlock && !line.includes("\\n") && line.match(pathRegex)) {
-            let m = line.match(pathRegex)!
-            console.log(line)
-            console.log(m)
-            line = m[0]
-            console.log("detected", line)
-            console.log("parsing path")
+        nop();
+
+        let splitted = line.split(/\s/)
+
+        if (!insideCodeBlock && line.includes(".java")) {
             path = parsePath(line, context);
             // throw path
             foundPath = path != "";
+        }
+        else if (!insideCodeBlock && line != "" && fs.existsSync(resolve(context.getProjectPath(), line.replaceAll("*", "")))) {
+            if (fs.statSync(path).isFile()) {
+                path = resolve(context.getProjectPath(), line.replaceAll("*", ""))
+                foundPath = true;
+            }
+
         }
         else if (line.includes("``") && !insideCodeBlock) {
             insideCodeBlock = true;
@@ -90,7 +101,7 @@ export function parseMarkdown(context: DataClumpRefactoringContext, message: str
         }
     }
 
-    outputHandler.handleProposal(new ModifiedFilesProposal(changes, [
+    await outputHandler.handleProposal(new ModifiedFilesProposal(changes, [
         {
             messageType: "output",
             messages: [message]
@@ -130,19 +141,28 @@ function getIndentation(line: string) {
     }
     return result
 }
-export type ChangeType="None"|"ReplaceText"|"SpecificLine"|"SpecificLineAll"|"NoneButReplace"
+export type ChangeType = "None" | "ReplaceText" | "SpecificLine" | "SpecificLineAll" | "NoneButReplace"
+export type Change = {
+    fromLine: number,
+    toLine: number,
+    oldContent: string,
+    newContent: string
+}
 
-export function parse_piecewise_output_from_file(refactoredPath: string, fileContent: string, content: any, changeCallBack?:{(changeType:ChangeType,change:any, newContent:string)}): string {
+export function parse_piecewise_output_from_file(changes: Change[], fileContent: string, changeCallBack?: { (changeType: ChangeType, change: Change, newContent: string) }): string {
     let fileContentSplitted = fileContent.split("\n")
     let oldFileContent = fileContent
     let foundOriginal = false;
     let faultyInstance = false;
     let oldContentNewContentDiff: string[] = [];
-
-    for (let change of content.refactorings[refactoredPath]) {
+    console.log("changes", changes)
+    for (let change of changes) {
         let start = change.fromLine
         if (typeof (start) == "string") {
             start = parseInt(start)
+        }
+        else if (start == undefined) {
+            start = 0
         }
 
         let newContent = change.newContent
@@ -150,26 +170,21 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
         if (typeof (newContent) != "string") {
             continue;
         }
-        let index = fileContent.indexOf(oldContent)
-        let oldIndex = index;
-        if (oldContent != "" && newContent != oldContent && index != -1) {
-            oldContentNewContentDiff = [oldContent, newContent, start, fileContentSplitted.slice(start - 6, start + 6),
-                index,
-                fileContent.slice(index, index + oldContent.length)
-            ]
+        else if (oldContent == undefined) {
+            return fileContent
         }
+        let oldContentPos = fileContent.indexOf(oldContent)
+
         if (oldContent == undefined || newContent == undefined || change.fromLine == undefined || change.toLine == undefined) {
             continue;
         }
 
 
-        //index=-1
         const MIN_LENGTH = 10
-        //console.log("change", change)
-        const MAX_OFFSET = 5
-        if (index == -1 || oldContent.length <= MIN_LENGTH) {
-            let allLinesChanged=true;
-            let anyLineChanged=false;
+
+        if (oldContentPos == -1 || oldContent.length <= MIN_LENGTH) {
+            let allLinesChanged = true;
+            let anyLineChanged = false;
             let newContentSplitted = newContent.split("\n")
             let oldContentSplitted = oldContent.split("\n")
             if (newContentSplitted.length > oldContentSplitted.length) {
@@ -178,7 +193,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
             for (let i = 0; i < oldContentSplitted.length; i++) {
                 let otherIndex = findBestFittingLine(fileContentSplitted, start + i, oldContentSplitted[i])
                 if (otherIndex != undefined) {
-                    anyLineChanged=true;
+                    anyLineChanged = true;
                     let indentOld = getIndentation(fileContentSplitted[otherIndex])
                     let indentNew = getIndentation(newContentSplitted[i])
                     let indent = indentOld.length > indentNew.length ? indentOld : indentNew;
@@ -193,12 +208,12 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
 
                 }
-                else if (oldIndex != -1 && oldContent != "") {
+                else if (oldContentPos != -1 && oldContent != "") {
                     faultyInstance = true;
-                    allLinesChanged=false;
+                    allLinesChanged = false;
                 }
-                else{
-                    allLinesChanged=false;
+                else {
+                    allLinesChanged = false;
                 }
 
 
@@ -211,21 +226,21 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
 
             fileContent = fileContentSplitted.join("\n")
-            if(allLinesChanged){
-                changeCallBack?.call(undefined,"SpecificLineAll",change,fileContent)
+            if (allLinesChanged) {
+                changeCallBack?.call(undefined, "SpecificLineAll", change, fileContent)
             }
-            else{
-                if(anyLineChanged){
-                    changeCallBack?.call(undefined,"SpecificLine",change,fileContent)
+            else {
+                if (anyLineChanged) {
+                    changeCallBack?.call(undefined, "SpecificLine", change, fileContent)
 
                 }
-                else{
-                    if(index==-1){
-                        changeCallBack?.call(undefined,"None",change,fileContent)
+                else {
+                    if (oldContentPos == -1) {
+                        changeCallBack?.call(undefined, "None", change, fileContent)
 
                     }
-                    else{
-                        changeCallBack?.call(undefined,"NoneButReplace",change,fileContent)
+                    else {
+                        changeCallBack?.call(undefined, "NoneButReplace", change, fileContent)
 
                     }
 
@@ -237,7 +252,7 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
         else {
             if (oldContent != "") {
                 fileContent = fileContent.replaceAll(oldContent, newContent)
-                changeCallBack?.call(undefined,"ReplaceText",change,fileContent)
+                changeCallBack?.call(undefined, "ReplaceText", change, fileContent)
                 fileContentSplitted = fileContent.split("\n")
 
 
@@ -248,22 +263,8 @@ export function parse_piecewise_output_from_file(refactoredPath: string, fileCon
 
         }
     }
-    if (false) {
-        trueCounter++;
-        let c = fs.readFileSync("stuff/interesting.txt").toString()
-        let instance = JSON.parse(JSON.stringify((FileIO.instance as any).instance))
-        let s = JSON.stringify(instance, undefined, 2)
-        if (!c.includes(s)) {
-            instance.diff = oldContentNewContentDiff
-            s = JSON.stringify(instance, undefined, 2)
-            c += ",\n" + (s)
-            fs.writeFileSync("stuff/interesting.txt", c)
-        }
 
 
-    }
-    allCounter++;
-    
     return fileContent;
 
 }
@@ -271,6 +272,7 @@ let allCounter = 0;
 let trueCounter = 0;
 export function parse_piecewise_output(content: any, fullChat: ChatMessage[], context: DataClumpRefactoringContext, outputHandler: OutputHandler): string | null {
     let changes = {};
+    console.log("content", content)
 
     if (typeof content == "object") {
         content.date = (new Date()).toISOString();
@@ -281,38 +283,35 @@ export function parse_piecewise_output(content: any, fullChat: ChatMessage[], co
                 delete content.refactorings["extractedClasses"]
                 continue
             }
-            console.log(refactoredPath)
             let path = resolve(context.getProjectPath(), refactoredPath)
             if (!fs.existsSync(path) || fs.statSync(path).isDirectory()) {
                 continue;
             }
             let fileContent = fs.readFileSync(path, { encoding: "utf-8" })
-            fileContent = parse_piecewise_output_from_file(refactoredPath, fileContent, content)
-            console.log(path)
+            fileContent = parse_piecewise_output_from_file(content.refactorings[refactoredPath], fileContent)
             changes[path] = fileContent;
-            if ("extractedClasses" in content) {
 
 
-                for (let extractedClassPath of Object.keys(content.extractedClasses)) {
-                    let outPath = resolve(context.getProjectPath(), extractedClassPath)
-                    let classContent = content.extractedClasses[extractedClassPath]
-                    if (Array.isArray(classContent)) {
-                        classContent = classContent[0]
-                    }
-                    else if (typeof (classContent) == "object") {
-                        continue;
-                    }
-                    else if (extractedClassPath == "") {
-                        continue;
-                    }
-                    changes[outPath] = classContent
+        }
+        if ("extractedClasses" in content) {
+
+            for (let extractedClassPath of Object.keys(content.extractedClasses)) {
+                let outPath = resolve(context.getProjectPath(), extractedClassPath)
+                let classContent = content.extractedClasses[extractedClassPath]
+                if (Array.isArray(classContent)) {
+                    classContent = classContent[0]
                 }
+                else if (typeof (classContent) == "object") {
+                    continue;
+                }
+                else if (extractedClassPath == "") {
+                    continue;
+                }
+                changes[outPath] = classContent
             }
-
         }
 
     }
-    console.log("handle proposal")
     outputHandler.handleProposal(new ModifiedFilesProposal(changes, fullChat), context);
     return content
 
@@ -329,8 +328,6 @@ export async function parseChat(fullChat: ChatMessage[], step: PipeLineStepType 
             for (let m of c.messages) {
                 let json = tryParseJSONWithSlice(m)
 
-
-
                 if (step == PipeLineStep.Refactoring) {
                     if (json == null) {
                         json = parseInvalidJSON(m, " }]}}")
@@ -338,27 +335,27 @@ export async function parseChat(fullChat: ChatMessage[], step: PipeLineStepType 
                     if (json == null) {
 
 
-                        parseMarkdown(context, m, outputHandler)
+                        await parseMarkdown(context, m, outputHandler)
                     }
                     else if (typeof (json) == "object" && ("refactorings" in json)) {
-                        parse_piecewise_output(json, fullChat, context, outputHandler)
+                        await parse_piecewise_output(json, fullChat, context, outputHandler)
                     }
-                    else if(typeof (json) == "object" && Object.values(json).length>0  && typeof(Object.values(json)[0])=="object"){
-                        json={
-                            refactorings:json
+                    else if (typeof (json) == "object" && Object.values(json).length > 0 && typeof (Object.values(json)[0]) == "object") {
+                        json = {
+                            refactorings: json
                         }
                         parse_piecewise_output(json, fullChat, context, outputHandler)
                     }
                     else {
                         let changes = {}
                         for (let p of Object.keys(json)) {
-                            let pAbs=resolve(context.getProjectPath(),p)
-                            changes[pAbs]=json[p]
+                            let pAbs = resolve(context.getProjectPath(), p)
+                            changes[pAbs] = json[p]
                             AllFilesHandler.processed.add(pAbs)
-                            
+
 
                         }
-                        outputHandler.handleProposal(new ModifiedFilesProposal(changes, fullChat), context);
+                        await outputHandler.handleProposal(new ModifiedFilesProposal(changes, fullChat), context);
 
                     }
 
@@ -390,7 +387,7 @@ export interface Proposal {
     apply(context: DataClumpRefactoringContext): DataClumpRefactoringContext
     delete(context: DataClumpRefactoringContext);
     getFullOutput(): ChatMessage[]
-    evaluate(context: DataClumpRefactoringContext): number
+    evaluate(context: DataClumpRefactoringContext): Promise<number>
 }
 
 export class ModifiedFilesProposal implements Proposal {
@@ -400,7 +397,7 @@ export class ModifiedFilesProposal implements Proposal {
     }
     private fullOutput: ChatMessage[]
     private metric: ProposalMetric = new NumberOfLinesProposalMetric()
-    evaluate(context: DataClumpRefactoringContext): number {
+    evaluate(context: DataClumpRefactoringContext): Promise<number>  {
         return this.metric.evaluate(this.modifiedFiles, context)
     }
     getFullOutput(): ChatMessage[] {
@@ -413,10 +410,9 @@ export class ModifiedFilesProposal implements Proposal {
         let modifiedFiles = this.modifiedFiles;
         for (let p of Object.keys(modifiedFiles)) {
             let content = modifiedFiles[p]
-            if(typeof(content)!="string"){
-                content=content+""
+            if (typeof (content) != "string") {
+                content = content + ""
             }
-           // writeFileSync(path.relative(context.getProjectPath(), p), content)
 
             p = resolve(context.getProjectPath(), p);
             if (!(p in this.existingFiles) && fs.existsSync(p)) {
@@ -444,12 +440,66 @@ export class ModifiedFilesProposal implements Proposal {
     private existingFiles: { [key: string]: string } = {}
     private newFiles: { [key: string]: boolean } = {}
     writeToFile(fullPath: string, content: string) {
-        if(Array.isArray(content)){
+        if (Array.isArray(content)) {
             nop()
         }
         fs.mkdirSync(path.dirname(fullPath), { recursive: true })
         fs.writeFileSync(fullPath, content)
     }
+}
+
+export class DataClumpDetectionProposal implements Proposal {
+    constructor(private dcContext: DataClumpDetectorContext, private fullOutput: ChatMessage[]) {
+
+    }
+    async evaluate(context: DataClumpRefactoringContext): Promise<number> {
+        return 0;
+    }
+    getFullOutput(): ChatMessage[] {
+        return this.fullOutput;
+    }
+
+    apply(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
+        return context.buildNewContext(this.dcContext)
+    }
+    delete(context: DataClumpRefactoringContext) {
+        return context
+    }
+
+
+}
+
+export class DataClumpFilteringProposal implements Proposal {
+    private metric?: Metric
+
+    constructor(private dc: DataClumpTypeContext, private fullOutput: ChatMessage[]) {
+
+    }
+    async evaluate(context: DataClumpRefactoringContext): Promise<number> {
+        return this.metric?.evaluate(this.dc, context) || 0;
+    }
+    getFullOutput(): ChatMessage[] {
+        return this.fullOutput;
+    }
+
+    apply(context: DataClumpRefactoringContext): DataClumpRefactoringContext {
+        let dcContext = context.getByType(DataClumpDetectorContext)!
+        let related = dcContext.getRelatedDataClumpKeys(this.dc)
+        let filtered = dcContext.cloneLastItem();
+        filtered.data_clumps = {}
+
+
+        for (let r of related) {
+            console.log("related", r.key)
+            filtered.data_clumps[r.key] = r
+
+        }
+        return dcContext.buildNewContext(new DataClumpDetectorContext(filtered))
+    }
+    delete(context: DataClumpRefactoringContext) {
+        return context
+    }
+
 }
 
 export abstract class OutputHandler {
@@ -475,13 +525,14 @@ export class StubOutputHandler extends OutputHandler {
 }
 export class MultipleBrancheHandler extends OutputHandler {
     private originalBranch: string = "main"
+    private counter = 0;
 
     async handleProposal(proposal: Proposal, context: DataClumpRefactoringContext) {
         let git = simpleGit(context.getProjectPath());
         let status = await git.status()
         let originalBranch = status.current!
         this.originalBranch = originalBranch;
-        await git.checkout("-b data_clump_proposal" + (new Date()).getTime().toString())
+        await git.checkout("-Bdata_clump_proposal_" + this.counter++)
         proposal.apply(context)
 
         await git.add("-A");
@@ -493,7 +544,6 @@ export class MultipleBrancheHandler extends OutputHandler {
         let git = simpleGit(context.getProjectPath());
         let currBranch = (await git.status()).current!;
         await git.checkout(this.originalBranch);
-        await git.merge([currBranch]);
         return context;
     }
 
@@ -589,19 +639,19 @@ export class InteractiveProposalHandler extends SimpleProposalHandler {
     }
 }
 export interface ProposalMetric {
-    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): number
+    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): Promise<number> 
 }
 export interface ValidationMetric {
-    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, validationResult: ValidationContext, fullOutput?: any): number
+    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, validationResult: ValidationContext, fullOutput?: any): Promise<number> 
 
 }
 export class MetricBasedProposalHandler extends SimpleProposalHandler {
 
-    chooseProposal(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
+    async chooseProposal(context: DataClumpRefactoringContext): Promise<DataClumpRefactoringContext> {
         let mostScoredProposalIndex = 0;
         let bestScore = 0;
         for (let i = 0; i < this.proposals.length; i++) {
-            let score = this.proposals[i].evaluate(context)
+            let score = await this.proposals[i].evaluate(context)
             if (score > bestScore) {
                 bestScore = score;
                 mostScoredProposalIndex = i
@@ -622,13 +672,13 @@ export class MetricBasedProposalHandler extends SimpleProposalHandler {
 }
 
 export class AffectedFilesProposalMetric implements ProposalMetric {
-    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): number {
+    async evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): Promise<number>  {
         return Object.keys(modifiedFiles).length
     }
 
 }
 export class NumberOfLinesProposalMetric implements ProposalMetric {
-    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): number {
+    async evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): Promise<number>  {
         let result = 0
         if (fullOutput) {
             for (let key in fullOutput.refactorings) {
@@ -642,7 +692,7 @@ export class NumberOfLinesProposalMetric implements ProposalMetric {
 
 }
 export class SizeChangeProposalMetric implements ProposalMetric {
-    evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): number {
+    async evaluate(modifiedFiles: { [key: string]: string; }, context: DataClumpRefactoringContext, fullOutput?: any): Promise<number> {
         let oldSize = 0;
         let newSize = 0
         if (fullOutput) {

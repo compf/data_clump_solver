@@ -6,6 +6,7 @@ import { PipeLineStep } from "../pipeline/PipeLineStep"
 import { PipeLine } from "../pipeline/PipeLine"
 import { DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../context/DataContext"
 import { getRelevantFilesRec } from "../util/Utils"
+import { ProgrammingLanguageService } from "./ProgrammingLanguageService"
 export type PipeLineStepConf={
     handler:string,
     contextSerializationPath?:string,
@@ -82,8 +83,30 @@ export function resolveFromConcreteName(concreteName:string):any{
     return container.get(concreteName) 
 }
 
+export function  isRegistered(concreteName:string):boolean{
+    return container.has(concreteName)
+}
+
+export function assignOrResolve(target:any, args:any){
+    for(let key of Object.keys(args)){
+        if(typeof(args[key])=="string" && isRegistered(args[key])){
+            target[key]=resolveFromConcreteName(args[key])
+        }
+        else{
+            target[key]=args[key]
+        }
+    }
+}
+let programmingLanguageService:ProgrammingLanguageService
+function setProgrammingLanguageService(name:string){
+    switch(name){
+        case "Java":
+            programmingLanguageService=resolveFromConcreteName("JavaProgrammingLanguageService")
+            break;
+    }
+}
 export function processConfiguration(config:Configuration){
-    // register as objects
+    setProgrammingLanguageService(config.ProgrammingLanguageIdentifier)
     for(let step of Object.keys(PipeLineStep)){
         if(config.PipeLine[step] && config.PipeLine[step].handler){
             registerFromName(config.PipeLine[step].handler,step,config.PipeLine[step].args)

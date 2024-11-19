@@ -9,7 +9,7 @@ const Levenshtein = require("levenshtein")
 import { files } from "node-dir"
 import path from "path";
 import { resolve } from "path"
-import {  registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
+import {  assignOrResolve, registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
 import { ChatMessage, AbstractLanguageModel, AbstractLanguageModelCategory } from "../../../util/languageModel/AbstractLanguageModel";
 import { PipeLine } from "../../PipeLine";
@@ -49,11 +49,11 @@ export class ProposalsNumberAttemptsProvider implements NumberAttemptsProvider{
 export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     private handlers: LargeLanguageModelHandler[] = []
     private providedApi: AbstractLanguageModel | null = null
-    private temperatures: number[] = [0.1,0.5]
+    private temperatures: number[] = [0.9]
     private lastTemp = 0;
     private models: string[] = [""]
     private numberAttempts: NumberAttemptsProvider;;
-    private outputHandler: OutputHandler = new  InteractiveProposalHandler();
+    private outputHandler: OutputHandler|null=null; 
 
    
     async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
@@ -90,9 +90,9 @@ export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 chat.push(...messages)
             }
             let reply = chat[chat.length - 1];
-            await parseChat(chat, step, context,this.outputHandler)
+            await parseChat(chat, step, context,this.outputHandler!)
         }
-        let proposal=await this.outputHandler.chooseProposal(context)
+        let proposal=await this.outputHandler!.chooseProposal(context)
         return proposal
 
 
@@ -109,7 +109,7 @@ export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     }
     constructor(args: { handlers: string[], numberAttempts:string | number }) {
         super();
-        Object.assign(this, args)
+        assignOrResolve(this, args)
         if(typeof(args.numberAttempts)=="number"){
             this.numberAttempts=new ConstantNumberAttemptsProvider(args.numberAttempts)
         }

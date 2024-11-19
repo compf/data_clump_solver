@@ -9,9 +9,9 @@ import { prettyInvalidJson, readFileSync, tryParseJSON, tryParseJSONWithSlice, w
 import {GPT4Tokenizer} from "gpt4-tokenizer"
 export class StubInterface extends AbstractLanguageModel{
 
-    private responsePath:string="response.json"
+    private responsePath:string="stuff/response.json"
     public writeRequest=true
-    public useFullPath=false
+    public useFullPath=true
     constructor(args:any){
         super();
         Object.assign(this,args)

@@ -9,28 +9,19 @@ import { SimpleCodeObtainingStepHandler } from "./pipeline/stepHandler/codeObtai
 import { sys } from "typescript";
 
 import { loadConfiguration, activateLoader } from "./config/Configuration";
-import { FileIO, StubPathIO } from "./util/FileIO"
+import { FileIO, PathBasedIO, StubPathIO } from "./util/FileIO"
 
 async function main(){
-    FileIO.instance=new StubPathIO()
     activateLoader()
     let args=handleArguments(process.argv.slice(2))
+    FileIO.instance=new PathBasedIO(args.project_path!)
     let context=loadConfiguration(args.config_path)
     context.sharedData.path=args.project_path
-    /*PipeLine.Instance.registerHandler([PipeLineStep.CodeObtaining],new SimpleCodeObtainingStepHandler(project_path));
-    PipeLine.Instance.registerHandler([PipeLineStep.DataClumpDetection],new dataClumpDoctorStepHandler());
-    PipeLine.Instance.registerHandler([PipeLineStep.NameFinding],new TrivialNameFindingStep());
-    PipeLine.Instance.registerHandler([PipeLineStep.ClassExtraction],  new JavaManualClassExtractor());
-    PipeLine.Instance.registerHandler([PipeLineStep.ReferenceFinding],   new LanguageServerReferenceAPI(new EclipseLSP_API()));
-    PipeLine.Instance.registerHandler([PipeLineStep.Refactoring],   new LanguageModelRefactoringStep());*/
-    /*let result=analyser.analyse(null).then((x)=>{
-        console.log("finnish")
-    })*/
+
 
     let finalContext=await PipeLine.Instance.executeAllSteps( context)
     console.log("program finished")
     process.exit(0)
-    //console.log(DataContext.NameFinding.names)
 }
 type Arguments={
     project_path?:string

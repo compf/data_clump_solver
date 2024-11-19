@@ -116,6 +116,7 @@ function init() {
     }
     metrics["size"] = (instances) => instances.map((it) => it.size)
     metrics["occurence"] = (instances) => instances.map((it) => Math.sqrt(it.occurence ?? 0))
+    metrics["affected_files"] = (instances) => instances.map((it) => (it.affected_files ?? 0))
 
 }
 export function analyzeCommentData() {
@@ -145,6 +146,10 @@ function likertData() {
 
     let likertZeroToFour = new Array(numberQuestions).fill(0)
     let likertNegativeTwoToTwo = new Array(numberQuestions).fill(0)
+    let likertZeroToFourRaw= new Array(numberQuestions);
+    for(let i=0;i<numberQuestions;i++){
+        likertZeroToFourRaw[i]=[]
+    }
     for (let d of Object.values(data)) {
         if (d.likertData) {
 
@@ -153,12 +158,21 @@ function likertData() {
                 for (let j = 0; j < d.likertData![i].length; j++) {
                     let val = d.likertData![i][j]
                     likertZeroToFour[j] += val.scale
+                    likertZeroToFourRaw[j].push(val.scale)
                     likertNegativeTwoToTwo[j] += (val.scale - 2)
                 }
             }
         }
 
     }
+    for(let i=0; i< likertZeroToFourRaw.length;i++){
+        console.log("[",i+1,"]")
+        for(let j =0;j<likertZeroToFourRaw[i].length;j++){
+            console.log(likertZeroToFourRaw[i][j])
+        }
+        console.log("####");
+    }
+    throw "test"
     const questions = [
         "Data clumps are a code smell that should be fixed.",
         "Using LLMs in software development can be helpful to improve code quality.",
@@ -375,10 +389,10 @@ function textualFeedback() {
 }
 if (require.main === module) {
     init()
-    //likertData()
+    likertData()
     //analyzeCommentData()
     //analyzePRData()
     //loadData()
-    analyzeCommentData()
+    //analyzeCommentData()
 }
 
