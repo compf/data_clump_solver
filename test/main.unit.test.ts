@@ -7,7 +7,7 @@ import { NoAbstractClassOrInterfaceFilter } from "../src/util/filterUtils/NoAbst
 import { DataClumpFilterStepHandler } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
 import { PipeLineStep } from "../src/pipeline/PipeLineStep";
 import { DataClumpOccurenceMetric } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
-import { RankSampler } from "../src/util/filterUtils/Ranker";
+import { Ranker } from "../src/util/filterUtils/Ranker";
 import { NumericalThresholdBasedFilter } from "../src/util/filterUtils/NumericalThresholdBasedFilter";
 import { registerFromName } from "../src/config/Configuration";
 
@@ -42,30 +42,7 @@ test("Test interfaces excluding",async() =>{
    expect(anyInterface).toBeFalsy();
 
 });
-jest.mock("fs",()=>({
-    ...jest.requireActual("fs"),
-    readdirSync:(baseDir:string)=>{
-        return [
-            {name:"file1",isDirectory:()=>false},
-            {name:"file2.java",isDirectory:()=>false},
-            {name:"file3.java",isDirectory:()=>false},
-            {name:"outsider",isDirectory:()=>false},
 
-
-
-        ]
-    }
-    
-}
-));
-test("File filtering",async()=>{
-
-
-
-let out=[]
-getRelevantFilesRec("test",out,null)
-console.log(out)
-})
 
 function getDataClumpByVariableNames(names:string[]){
     let values= Object.values(DATA_CLUMP_DATA.data_clumps)
@@ -75,5 +52,6 @@ function getDataClumpByVariableNames(names:string[]){
             return dc;
         }
     }
-    throw new Error("Data clump not found")}
+    throw new Error("Data clump not found")
+}
 

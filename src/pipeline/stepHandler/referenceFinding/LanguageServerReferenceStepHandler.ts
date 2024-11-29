@@ -5,7 +5,7 @@ import { Readable, Writable } from "stream"
 import { ResponseMessage } from "../../../util/languageServer/TypeDefinitions";
 import { DefinitionParams, InitializeParams, ReferenceParams } from "ts-lsp-client";
 import { resolve,relative } from "path"
-import { MyCapabilities } from "../../../util/languageServer/capabilities";
+import { MyCapabilities } from "../../../util/languageServer/Capabilities";
 import { readFileSync } from "fs"
 import fs from "fs"
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";

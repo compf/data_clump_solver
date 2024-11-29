@@ -7,14 +7,11 @@ import { setCurrLabel, writeFileSync } from "../../../util/Utils";
 import { PipeLine } from "../../PipeLine";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
-import { LanguageModelDetectOrRefactorHandler } from "../languageModelSpecific/LanguageModelDetectOrRefactorHandler";
-import { CodeSnippetHandler, LargeLanguageModelHandler, resolveHandlers } from "../languageModelSpecific/LargeLanguageModelHandlers";
-import { parse_piecewise_output, parseChat, StubOutputHandler } from "../languageModelSpecific/OutputHandler";
-import { GradleBuildValidationStepHandler } from "./GradleBuildValidationStepHandler";
-import { MavenBuildValidationStepHandler } from "./MavenBuildValidationStepHandler";
-import { ValidationInfo, ValidationStepHandler } from "./ValidationStepHandler";
+import { CodeSnippetHandler, LargeLanguageModelHandler, resolveHandlers } from "../languageModelSpecific/ContextToModelHandlers";
+import {  ValidationStepHandler } from "./ValidationStepHandler";
 import fs from 'fs'
 import { resolve } from "path"
+import { parseChat, StubOutputHandler } from "../languageModelSpecific/ModelToContextHandlers";
 
 export type MultipleAttemptsValidationArgs = {
     innerValidator?: ValidationStepHandler,

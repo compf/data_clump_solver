@@ -22,7 +22,7 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import GPT4Tokenizer from "gpt4-tokenizer";
 import { FilterOrMetric, SingleItemFilter } from "../util/filterUtils/SingleItemFilter";
 import { RandomRanker } from "../util/filterUtils/RandomRanker";
-import { RankSampler } from "../util/filterUtils/Ranker";
+import { Ranker } from "../util/filterUtils/Ranker";
 import { MetricNegator } from "../util/filterUtils/MetricNegator";
 import { AffectedFilesMetric } from "../pipeline/stepHandler/dataClumpFiltering/AffectedFilesMetric";
 import { Metric } from "../util/filterUtils/Metric";
@@ -284,8 +284,8 @@ export class InterestingDataClumpContextBuilder {
         let currMin = Number.MAX_VALUE;
         let currMinContext: DataClumpDetectorContext | undefined = undefined;
         let allDataClumps = Object.values(initialContext.getDataClumpDetectionResult().data_clumps);
-        let ranker = new RankSampler({ differentDataClumps: true, strictSize: true, rankThreshold: this.numDataClumpContextPerBlock });
-        let shuffleRanker = new RankSampler({ differentDataClumps: true, strictSize: true, rankThreshold: allDataClumps.length });
+        let ranker = new Ranker({ differentDataClumps: true, strictSize: true, rankThreshold: this.numDataClumpContextPerBlock });
+        let shuffleRanker = new Ranker({ differentDataClumps: true, strictSize: true, rankThreshold: allDataClumps.length });
         let iterationsNoImprovement = 0
         while (iterationsNoImprovement < this.numIterations) {
             console.log("No improvement", iterationsNoImprovement, "curr min",currMin)

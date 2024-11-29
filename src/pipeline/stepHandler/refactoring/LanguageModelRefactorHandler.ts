@@ -10,12 +10,12 @@ import { files } from "node-dir"
 import path from "path";
 import { resolve } from "path"
 import {  assignOrResolve, registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
-import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./LargeLanguageModelHandlers";
+import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "../languageModelSpecific/ContextToModelHandlers";
 import { ChatMessage, AbstractLanguageModel, AbstractLanguageModelCategory } from "../../../util/languageModel/AbstractLanguageModel";
 import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
 import {  OutputChecker } from "../../../util/languageModel/OutputChecker";
-import { InteractiveProposalHandler, MetricBasedProposalHandler, ModifiedFilesProposal, MultipleBrancheHandler, OutputHandler, parse_piecewise_output, parseChat, parseMarkdown, StubOutputHandler } from "./OutputHandler";
+import { InteractiveProposalHandler, MetricBasedProposalHandler, ModifiedFilesProposal, MultipleBrancheHandler, OutputHandler, parse_piecewise_output, parseChat, parseMarkdown, StubOutputHandler } from "../languageModelSpecific/ModelToContextHandlers";
 
 function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
     // replace 'property' with a unique property of ReExecutePreviousHandlers
@@ -109,7 +109,7 @@ export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
     }
     constructor(args: { handlers: string[], numberAttempts:string | number }) {
         super();
-        assignOrResolve(this, args)
+        assignOrResolve(this, args,{})
         if(typeof(args.numberAttempts)=="number"){
             this.numberAttempts=new ConstantNumberAttemptsProvider(args.numberAttempts)
         }

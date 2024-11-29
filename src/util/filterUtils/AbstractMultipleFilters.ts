@@ -5,7 +5,7 @@ import { resolveFromConcreteName } from "../../config/Configuration";
 
 export abstract class AbstractMultipleFilters implements SingleItemFilter {
     abstract shallRemain(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<boolean>;
-    protected filters: SingleItemFilter[] = []
+    public filters: SingleItemFilter[] = []
     constructor(args:{filters:string[]}) {
         this.filters = args.filters.map((it)=>resolveFromConcreteName(it))
 

@@ -9,7 +9,7 @@ import { ChatMessage } from "../../../util/languageModel/AbstractLanguageModel";
 import { getRelevantFilesRec, nop, parseInvalidJSON, tryParseJSON, tryParseJSONWithSlice, writeFileSync } from "../../../util/Utils";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { FileIO } from "../../../util/FileIO";
-import { AllFilesHandler } from "./LargeLanguageModelHandlers";
+import { AllFilesHandler } from "./ContextToModelHandlers";
 import { skipPartiallyEmittedExpressions } from "typescript";
 import { Metric } from "../../../util/filterUtils/Metric";
 import { DataClumpTypeContext } from "data-clumps-type-context";

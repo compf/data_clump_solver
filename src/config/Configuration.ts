@@ -95,13 +95,19 @@ export function  isRegistered(concreteName:string):boolean{
     return container.has(concreteName)
 }
 
-export function assignOrResolve(target:any, args:any){
+export function assignOrResolve(target:any, args:any, defaultValues:any){
     for(let key of Object.keys(args)){
         if(typeof(args[key])=="string" && isRegistered(args[key])){
             target[key]=resolveFromConcreteName(args[key])
         }
         else{
             target[key]=args[key]
+        }
+    }
+
+    for(let key of Object.keys(defaultValues)){
+        if(target[key]==undefined){
+            target[key]=defaultValues[key]
         }
     }
 }

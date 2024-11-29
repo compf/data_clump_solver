@@ -4,7 +4,7 @@ import { compareTo } from "../Utils";
 import { SingleItemFilter } from "./SingleItemFilter";
 import { filter } from "minimatch";
 import { Metric } from "./Metric";
-import { resolveFromConcreteName } from "../../config/Configuration";
+import { assignOrResolve, resolveFromConcreteName } from "../../config/Configuration";
 
 export type ComparisionSign=">"|"<"|"<="|">="|"="
 export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
@@ -12,9 +12,10 @@ export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
     private  requiredCompareSigns:number[];
 
     private metric?:Metric=undefined;
-    constructor(args:{rankThreshold?:number,rankSign?:number,comparisonSign?:ComparisionSign,filterThreshold:number,metricName?:string}) {
+    constructor(args:{rankThreshold?:number,comparisonSign?:ComparisionSign,filterThreshold:number,metric?:Metric|string}) {
         this.threshold = args.filterThreshold;
         let sign=args.comparisonSign
+        assignOrResolve(this, args,{rankThreshold:0,comparsionSign:">"})
         if(sign==">"){
             this.requiredCompareSigns=[1];
         }else if(sign=="<"){
@@ -32,10 +33,7 @@ export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
         else{
             throw new Error("invalid sign "+sign)
         }
-        if(args.metricName){
-            this.metric=resolveFromConcreteName(args.metricName)
-
-        }
+        
 
     }
     isCompatibleWithDataClump(): boolean {

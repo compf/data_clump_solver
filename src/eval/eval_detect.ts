@@ -1,20 +1,14 @@
-import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
+import { resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { ASTBuildingContext, CodeObtainingContext, DataClumpDetectorContext, DataClumpRefactoringContext, GitRepositoryContext, RelevantLocationsContext } from "../context/DataContext";
 import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpDoctorStepHandler } from "../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
-import { DataClumpFilterStepHandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpFilterStepHandler";
-import { FileFilterHandler } from "../pipeline/stepHandler/fileFiltering/FileFilterHandler";
-import { RecentlyChangedFilesStephandler } from "../pipeline/stepHandler/fileFiltering/RecentlyChangedFilesStephandler";
-import { AllAST_FilesHandler, AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SendAndClearHandler, SystemInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
-import { OutputHandler } from "../pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { AllAST_FilesHandler, AllFilesHandler, CodeSnippetHandler, LargeLanguageModelHandler, SystemInstructionHandler } from "../pipeline/stepHandler/languageModelSpecific/ContextToModelHandlers";
 import { FileIO } from "../util/FileIO";
-import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
-import { RankSampler } from "../util/filterUtils/Ranker";
 import { AbstractLanguageModel, ChatMessage } from "../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
 import { waitSync, writeFileSync } from "../util/Utils";
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
-import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, InstanceCombination, isDebug } from "./base_eval";
+import { Arrayified, BaseEvaluator, init, Instance, InstanceBasedFileIO, isDebug } from "./base_eval";
 import {resolve} from "path"
 type DetectEvalInstance = Instance & {
 
@@ -106,7 +100,7 @@ export class DetectEval extends BaseEvaluator{
 
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         console.log(url);
-        if(this.combineDetectorAST){
+      
             let context=await super.initProject(url);
            // if(1==1)throw "tes"
             if(context==null){
@@ -115,26 +109,12 @@ export class DetectEval extends BaseEvaluator{
 
             context=context.buildNewContext(new RelevantLocationCombiner(context.getByType(ASTBuildingContext)!,(context as DataClumpDetectorContext)!))
             return context;
-        }
-        else{
-            let context: DataClumpRefactoringContext = new CodeObtainingContext(resolve("cloned_projects"+"/"+getRepoDataFromUrl(url).repo))
-            context=context.buildNewContext(new GitRepositoryContext())
-            let fileFilter= new RecentlyChangedFilesStephandler({});
-            context=await fileFilter.handle(PipeLineStep.FileFiltering,context,{})
-            let dcHandler = new DataClumpDoctorStepHandler({});
-          
-         
-            context= await dcHandler.handle(PipeLineStep.DataClumpDetection, context, {}) as DataClumpDetectorContext         
-            let resolver= resolveFromConcreteName("LanguageModelTemplateResolver") as LanguageModelTemplateResolver;
-            resolver.set("%{output_format}", "chatGPT_templates/data_clump_type_context_output_format.json");
-         
-            return context;
-        }
+        
+
        
       
        
     }
-    private combineDetectorAST=true;
     
 }
 

@@ -7,7 +7,7 @@ import { FileIO } from "./FileIO";
 const { jsonrepair } = require('jsonrepair')
 export const MiniMatchConf = { dot: true, matchBase: true,debug:false };
   /** 
-* Recursively traverse through the directory and find all relavant files
+* Recursively traverse through the directory and find all relevant files
 * @param baseDir the current directory to enumerate the files there
 * @param resultArray will be filled during the recursion to store all relevant files
 */
@@ -15,13 +15,12 @@ export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileF
     let entries = fs.readdirSync(baseDir, { withFileTypes: true });
     for (let entry of entries) {
         let fullname = path.join(baseDir, entry.name);
+        if (shallIgnore(fullname,fileFilteringContext)) {
+            continue;
+        }
         if (entry.isDirectory()) {
             getRelevantFilesRec(fullname, resultArray,fileFilteringContext);
         } else {
-            if (shallIgnore(fullname,fileFilteringContext)) {
-                continue;
-            }
-            shallIgnore(fullname,fileFilteringContext)
             resultArray.push(fullname);
         }
     }
@@ -52,7 +51,13 @@ export function  shallIgnore(filePath: string,fileFilteringContext:FileFiltering
             break
         }
     }
-    return  (includePrevails && (isExcluded || !isIncluded)) || (!includePrevails && (isExcluded ))
+    if(isExcluded){
+        if(isIncluded && includePrevails){
+            return false;
+        }
+        return true;
+    }
+    return !isIncluded
 }
 
 export function checkPath(path:string, include:string[],exclude:string[], includePrevails:boolean):boolean{
@@ -310,18 +315,7 @@ function loadProcessedInvalidJSON(jsonString:string):any{
         return null;
     }
 }
-function saveProcessedInvalidJson(jsonString,obj:any){
-    if(fs.existsSync(processedInvalidJsonPath)){
-        let dict=JSON.parse(fs.readFileSync(processedInvalidJsonPath).toString())
-        let key=createHash('sha256').update(jsonString).digest('base64');
-       dict[key]=obj;
-       fs.writeFileSync(processedInvalidJsonPath,JSON.stringify(dict))
-        
-    }
-    else{
-        return null;
-    }
-}
+
 export function parseUsingJsonRepair(jsonString:string){
     let result=tryParseJSON(jsonString)
     if(result==null){

@@ -3,9 +3,9 @@ import { PipeLineStep } from "../pipeline/PipeLineStep";
 import { DataClumpSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpSizeMetric";
 import { DataClumpOccurenceMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 import { AffectedFileSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/AffectedFileSizeMetric";
-import { RankSampler } from "../util/filterUtils/Ranker";
+import { Ranker } from "../util/filterUtils/Ranker";
 import { DataClumpLanguageModelFilter } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilter";
-import { AllFilesHandler, DataClumpCodeSnippetHandler, LargeLanguageModelHandler, SimpleInstructionHandler, SimplifiedDataClumpContextHandler } from "../pipeline/stepHandler/languageModelSpecific/LargeLanguageModelHandlers";
+import { AllFilesHandler, DataClumpCodeSnippetHandler, LargeLanguageModelHandler, SimpleInstructionHandler, SimplifiedDataClumpContextHandler } from "../pipeline/stepHandler/languageModelSpecific/ContextToModelHandlers";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
 import { AbstractLanguageModel } from "../util/languageModel/AbstractLanguageModel";
@@ -108,7 +108,7 @@ export class FilterEval extends BaseEvaluator {
     private all_result={}
     async initProject(url: string): Promise<DataClumpRefactoringContext | null> {
         registerFromName("RankSampler", "RankSampler", { "rankThreshold": 100, "differentDataClumps": true })
-         let ranker = resolveFromInterfaceName("RankSampler") as RankSampler;
+         let ranker = resolveFromInterfaceName("Ranker") as Ranker;
         let originalDcContext = await super.initProject(url) as DataClumpDetectorContext;
 
         let metrics = [

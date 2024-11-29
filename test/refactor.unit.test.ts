@@ -1,7 +1,7 @@
 
 import fs from "fs";
 import ts from "typescript";
-import { ModifiedFilesProposal, parse_piecewise_output, parse_piecewise_output_from_file, StubOutputHandler } from "../src/pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { ModifiedFilesProposal, parse_piecewise_output, parse_piecewise_output_from_file, StubOutputHandler } from "../src/pipeline/stepHandler/languageModelSpecific/ModelToContextHandlers";
 import { ChatMessage } from "../src/util/languageModel/AbstractLanguageModel";
 import { CodeObtainingContext } from "../src/context/DataContext";
 import { resolve } from "path";

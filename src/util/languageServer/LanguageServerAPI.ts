@@ -2,7 +2,7 @@ import { InitializeParams } from "ts-lsp-client";
 import { ResponseMessage } from "./TypeDefinitions";
 import { Readable, Writable } from "stream";
 import {resolve} from "path"
-import { MyCapabilities } from "./capabilities";
+import { MyCapabilities } from "./Capabilities";
 import { spawn ,ChildProcess} from "child_process"
 export enum Methods {
     Initialize = "initialize",

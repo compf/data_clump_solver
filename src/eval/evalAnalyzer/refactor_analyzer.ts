@@ -11,7 +11,7 @@ import { getRelevantFilesRec, makeUnique, nop } from "../../util/Utils";
 import { all, get } from "axios";
 import { DataClumpsTypeContext, DataClumpTypeContext } from "data-clumps-type-context";
 import { AST_Class, AST_Type } from "../../context/AST_Type";
-import { ChangeType, parse_piecewise_output_from_file } from "../../pipeline/stepHandler/languageModelSpecific/OutputHandler";
+import { ChangeType, parse_piecewise_output_from_file } from "../../pipeline/stepHandler/languageModelSpecific/ModelToContextHandlers";
 import { loadExistingContext } from "../../context/ExistingContextLoader";
 
 class StubRefactorEval extends BaseEvaluator {

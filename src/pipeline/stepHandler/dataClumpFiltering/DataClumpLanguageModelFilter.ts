@@ -6,7 +6,7 @@ import { LanguageModelTemplateResolver } from "../../../util/languageModel/Langu
 import { TolerantOutputParser } from "../../../util/languageModel/TolerantOutputParser";
 import { tryParseJSONWithSlice } from "../../../util/Utils";
 import { PipeLineStepType } from "../../PipeLineStep";
-import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/LargeLanguageModelHandlers";
+import { LargeLanguageModelHandler, SystemInstructionHandler } from "../languageModelSpecific/ContextToModelHandlers";
 import { DataClumpFilterArgs, DataClumpFilterStepHandler } from "./DataClumpFilterStepHandler";
 import fs from "fs";
 import { writeFileSync } from "../../../util/Utils";
