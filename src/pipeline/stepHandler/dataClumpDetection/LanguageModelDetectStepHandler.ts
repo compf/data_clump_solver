@@ -1,11 +1,10 @@
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
+import { LanguageModelStepHandler } from "../languageModelSpecific/LanguageModelStepHandler";
 
-export class LargeLanguageModelDetector extends AbstractStepHandler{
-    handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
-       return null as any
-    }
+export class LargeLanguageModelDetector extends LanguageModelStepHandler{
+
 
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.DataClumpDetection]

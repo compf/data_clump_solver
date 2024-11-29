@@ -10,17 +10,14 @@ import { files } from "node-dir"
 import path from "path";
 import { resolve } from "path"
 import {  assignOrResolve, registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
-import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "../languageModelSpecific/ContextToModelHandlers";
+import { LargeLanguageModelHandler, ReExecutePreviousHandlers } from "./ContextToModelHandlers";
 import { ChatMessage, AbstractLanguageModel, AbstractLanguageModelCategory } from "../../../util/languageModel/AbstractLanguageModel";
 import { PipeLine } from "../../PipeLine";
 import { getRelevantFilesRec, indexOfSubArray, randInt, tryParseJSON } from "../../../util/Utils";
 import {  OutputChecker } from "../../../util/languageModel/OutputChecker";
-import { InteractiveProposalHandler, MetricBasedProposalHandler, ModifiedFilesProposal, MultipleBrancheHandler, OutputHandler, parse_piecewise_output, parseChat, parseMarkdown, StubOutputHandler } from "../languageModelSpecific/ModelToContextHandlers";
+import { InteractiveProposalHandler, MetricBasedProposalHandler, ModifiedFilesProposal, MultipleBrancheHandler, OutputHandler, parse_piecewise_output, parseChat, parseMarkdown, StubOutputHandler } from "./ModelToContextHandlers";
 
-function isReExecutePreviousHandlers(object: any): object is ReExecutePreviousHandlers {
-    // replace 'property' with a unique property of ReExecutePreviousHandlers
-    return 'shallReExecute' in object;
-}
+
 export interface NumberAttemptsProvider{
     getNumberAttempts(context:DataClumpRefactoringContext):number
 
@@ -46,8 +43,8 @@ export class ProposalsNumberAttemptsProvider implements NumberAttemptsProvider{
     }
 
 }
-export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
-    private handlers: LargeLanguageModelHandler[] = []
+export  abstract class LanguageModelStepHandler extends AbstractStepHandler {
+    protected handlers: LargeLanguageModelHandler[] = []
     private providedApi: AbstractLanguageModel | null = null
     private temperatures: number[] = [0.9]
     private lastTemp = 0;
@@ -81,12 +78,6 @@ export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
                 let handler = this.handlers[handlerIndex]
                 console.log("Running attempt "+i+" with handler "+handler.constructor.name )
                 let messages = await handler.handle(context, api, templateResolver)
-                if (isReExecutePreviousHandlers(handler) && handler.shallReExecute()) {
-                    handlerIndex = -1;
-                }
-                else if (isReExecutePreviousHandlers(handler) && !handler.shallReExecute()) {
-                    api.clear();
-                }
                 chat.push(...messages)
             }
             let reply = chat[chat.length - 1];
@@ -101,12 +92,6 @@ export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
    
 
 
-    static createFromCreatedHandlers(handlers: LargeLanguageModelHandler[], api: AbstractLanguageModel): LanguageModelDetectOrRefactorHandler {
-        let step = new LanguageModelDetectOrRefactorHandler({ handlers: [],numberAttempts:1 })
-        step.handlers = handlers
-        step.providedApi = api
-        return step
-    }
     constructor(args: { handlers: string[], numberAttempts:string | number }) {
         super();
         assignOrResolve(this, args,{})
@@ -129,17 +114,6 @@ export  class LanguageModelDetectOrRefactorHandler extends AbstractStepHandler {
 
 
 
-    getExecutableSteps(): PipeLineStepType[] {
-        return [PipeLineStep.ASTGeneration, PipeLineStep.DataClumpDetection, PipeLineStep.Refactoring]
-    }
-    addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
-        if (pipeLineStep == PipeLineStep.DataClumpDetection) {
-            createdContexts.add(DataClumpDetectorContext.name)
-        }
-        else if (pipeLineStep == PipeLineStep.Refactoring) {
-            createdContexts.add(RefactoredContext.name)
-        }
-
-    }
+    
 
 }
