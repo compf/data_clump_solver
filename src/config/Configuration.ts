@@ -6,11 +6,19 @@ import { PipeLineStep } from "../pipeline/PipeLineStep"
 import { PipeLine } from "../pipeline/PipeLine"
 import { DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext } from "../context/DataContext"
 import { getRelevantFilesRec } from "../util/Utils"
-import { ProgrammingLanguageService } from "./ProgrammingLanguageService"
 export type PipeLineStepConf={
     handler:string,
     contextSerializationPath?:string,
     args:any
+}
+export interface ProgrammingLanguageService {
+    getExtension(): string
+}
+
+export class JavaService implements ProgrammingLanguageService {
+    getExtension(): string {
+        return ".java"
+    }
 }
 export type Configuration={
     ProgrammingLanguageIdentifier:string,
@@ -98,13 +106,18 @@ export function assignOrResolve(target:any, args:any){
     }
 }
 let programmingLanguageService:ProgrammingLanguageService
-function setProgrammingLanguageService(name:string){
+export function setProgrammingLanguageService(name:string){
+    name=name.toLowerCase()
     switch(name){
-        case "Java":
-            programmingLanguageService=resolveFromConcreteName("JavaProgrammingLanguageService")
+        case "java":
+            programmingLanguageService=new JavaService()
             break;
     }
 }
+
+export function getProgrammingLanguageService():ProgrammingLanguageService{
+    return programmingLanguageService
+}   
 export function processConfiguration(config:Configuration){
     setProgrammingLanguageService(config.ProgrammingLanguageIdentifier)
     for(let step of Object.keys(PipeLineStep)){

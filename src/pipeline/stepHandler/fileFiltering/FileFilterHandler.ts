@@ -1,4 +1,4 @@
-import { resolveFromConcreteName } from "../../../config/Configuration";
+import { getProgrammingLanguageService, resolveFromConcreteName } from "../../../config/Configuration";
 import { DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
 import { getRelevantFilesRec } from "../../../util/Utils";
 import { Metric } from "../../../util/filterUtils/Metric";
@@ -18,7 +18,7 @@ export class FileFilterHandler extends AbstractStepHandler {
     async handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         this.exclude.push(".*/.data_clump_solver_data/.*")
         this.exclude.push("-*.git/.*")
-        this.include.push(".*\\.java")
+        this.include.push(".*\\"+getProgrammingLanguageService().getExtension())
         if ( this.metric!=undefined && !this.metric?.isCompatibleWithString()) {
             throw new Error("ranker is not compatible with string")
         }

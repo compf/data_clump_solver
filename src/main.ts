@@ -47,6 +47,10 @@ function handleArguments(args:string[]):Arguments{
     }
     else if(args.length>=2){
         let configPartIndex=fs.lstatSync(args[0]).isFile()?0:1;
+        let projectPath=args[1-configPartIndex]
+        if(args.length>2){
+            fs.rmSync(resolve(projectPath,".data_clump_solver_data"),{recursive:true})
+        }
         return {
             project_path:args[1-configPartIndex],
             config_path:args[configPartIndex]
