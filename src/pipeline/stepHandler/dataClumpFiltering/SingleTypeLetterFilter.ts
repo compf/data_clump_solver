@@ -11,7 +11,6 @@ export class SingleTypeLetterFilter implements SingleItemFilter {
   }
   shallRemain(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<boolean> {
       let dc=data as DataClumpTypeContext;
-      //throw "cool"
       let types=Object.values(dc.data_clump_data).map(v=>v.type)
       return Promise.resolve(types.some((it)=>it.length>1));
   }

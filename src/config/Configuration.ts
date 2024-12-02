@@ -59,10 +59,10 @@ function createExcludePattern():string[]{
 function loadAllClasses(){
     let paths:string[]=[]
     let startTime=Date.now()
-    getRelevantFilesRec(resolve("./dist","src"),paths,new FileFilteringContext([".*\.js"],createExcludePattern()))
+    getRelevantFilesRec(resolve("./dist","src"),paths,new FileFilteringContext([".*\.js$"],createExcludePattern(),false))
     for(let path of paths){
         console.log("Loading "+path)
-        if (path.endsWith("Configuration.js")){
+        if (path.endsWith("Configuration.js") || path.endsWith(".map")){
             continue;
         }
         let relativized=relative(__dirname,path)

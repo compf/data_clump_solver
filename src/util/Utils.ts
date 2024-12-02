@@ -15,12 +15,13 @@ export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileF
     let entries = fs.readdirSync(baseDir, { withFileTypes: true });
     for (let entry of entries) {
         let fullname = path.join(baseDir, entry.name);
-        if (shallIgnore(fullname,fileFilteringContext)) {
-            continue;
-        }
+        
         if (entry.isDirectory()) {
             getRelevantFilesRec(fullname, resultArray,fileFilteringContext);
         } else {
+            if (shallIgnore(fullname,fileFilteringContext)) {
+                continue;
+            }
             resultArray.push(fullname);
         }
     }

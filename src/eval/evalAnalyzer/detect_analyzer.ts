@@ -1,15 +1,11 @@
 import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/DataClumpTypeContext";
-import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
-import { BaseEvaluator, Instance } from "../base_eval";
+import { DataClumpRefactoringContext } from "../../context/DataContext";
+import { BaseEvaluator } from "../base_eval";
 import { DetectEval } from "../eval_detect";
-import { addDataClumpSpecificMetrics, compareObjects, DataClumpBasedMetric, DataClumpSizeMetric, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, getProbabilityCorrectDataClump, InstanceGeneratedData, InvalidJsonMetric, logMetric, Surety } from "./base_analyzer";
+import { addDataClumpSpecificMetrics, EvalAnalyzer, EvalMetric, evaluateBestFittingDataClump, getBestFittingDataClump, InstanceGeneratedData, InvalidJsonMetric, logMetric } from "./base_analyzer";
 import fs from "fs"
 import { resolve } from "path"
-import { debugOnNull, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
-import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
-import { statFunctions } from "./utils";
 import { DataClumpsTypeContext } from "data-clumps-type-context";
-import { isOptionalChain } from "typescript";
 import simpleGit from "simple-git";
 import { EvalDetectSyn } from "../eval_detect_syn";
 export class DetectAnalyzer extends EvalAnalyzer {

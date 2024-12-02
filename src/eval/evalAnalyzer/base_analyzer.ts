@@ -675,7 +675,7 @@ export class DataClumpOccurenceMetricEval extends DataClumpBasedMetric {
         return "DataClumpOccurence"
     }
 }
-export class DataClumpSizeMetric extends DataClumpBasedMetric {
+export class DataClumpSizeMetricEval extends DataClumpBasedMetric {
 
     async evaluateDataClump(dc: DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
         if (dc.data_clump_data) {
@@ -782,7 +782,7 @@ class AffectedFilesMetricEval extends DataClumpBasedMetric {
 }
 
 export function addDataClumpSpecificMetrics(metrics: EvalMetric[]) {
-    metrics.push(new DataClumpSizeMetric())
+    metrics.push(new DataClumpSizeMetricEval())
     metrics.push(new DataClumpOccurenceMetricEval())
     metrics.push(new ParametersToParametersMetric())
     metrics.push(new FieldToFieldMetric())

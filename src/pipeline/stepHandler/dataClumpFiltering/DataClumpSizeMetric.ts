@@ -2,13 +2,11 @@ import { DataClumpTypeContext } from "data-clumps-type-context"
 import { ASTBuildingContext, DataClumpRefactoringContext } from "../../../context/DataContext"
 import { AST_Method } from "../../../context/AST_Type"
 import { Metric } from "../../../util/filterUtils/Metric"
+import { assignOrResolve } from "../../../config/Configuration"
 
 export class DataClumpSizeMetric implements Metric{
-    constructor(args:{normalize:boolean}){
-        if(args){
-            this.normalize=args.normalize
-
-        }
+    constructor(args:{normalize?:boolean}){
+        assignOrResolve(this,args,{normalize:false})
     }
     private normalize:boolean=false
     evaluate(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {

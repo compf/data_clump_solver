@@ -8,8 +8,8 @@ import {  Metric } from "../../../util/filterUtils/Metric";
 import { compareTo } from "../../../util/Utils";
 import { Ranker, RankerArgs } from "../../../util/filterUtils/Ranker";
 export type DataClumpFilterArgs=RankerArgs&{
-    filterName?:string,
-    metricName?:string,
+    metric?:string|Metric,
+    filter?:string|SingleItemFilter,
 }
 export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {

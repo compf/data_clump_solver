@@ -4,7 +4,7 @@ const Levenshtein = require("levenshtein")
 import { LanguageModelStepHandler } from "../languageModelSpecific/LanguageModelStepHandler";
 
 
-export  class LanguageModelDetectOrRefactorHandler extends LanguageModelStepHandler {
+export  class LanguageModelRefactorStepHandler extends LanguageModelStepHandler {
  
 
     getExecutableSteps(): PipeLineStepType[] {

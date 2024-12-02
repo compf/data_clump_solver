@@ -191,10 +191,11 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
     excludeGlobs: string[];
     includePrevails: boolean=true;
     customFilters:boolean=false;
-    constructor(includeGlobs: string[], excludeGlobs: string[]) {
+    constructor(includeGlobs: string[], excludeGlobs: string[], includePrevails?: boolean) {
         super()
         this.includeGlobs = includeGlobs
         this.excludeGlobs = excludeGlobs
+        this.includePrevails = includePrevails ?? true
     }
     getPosition(): number {
         return 1;
