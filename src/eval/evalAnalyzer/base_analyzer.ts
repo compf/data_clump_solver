@@ -1,6 +1,6 @@
 import { CodeObtainingContext, createDataClumpsTypeContext, DataClumpDetectorContext, DataClumpRefactoringContext, FileFilteringContext, RelevantLocationsContext } from "../../context/DataContext";
 import { DataClumpDoctorStepHandler } from "../../pipeline/stepHandler/dataClumpDetection/DataClumpDoctorStepHandler";
-import { getRelevantFilesRec, nop, parseInvalidJSON, parseUsingJsonRepair, tryParseJSON } from "../../util/Utils";
+import { getRelevantFilesRec, nop, parseInvalidJSON, tryParseJSON } from "../../util/Utils";
 import { BaseEvaluator, disableCloning, getInstancePath, Instance, InstanceBasedFileIO, InstanceCombination } from "../base_eval";
 import { DetectEval } from "../eval_detect";
 import fs, { Stats } from "fs"

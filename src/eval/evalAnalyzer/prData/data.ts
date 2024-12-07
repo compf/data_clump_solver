@@ -3,7 +3,6 @@ import {
   IntentionalDesignChoice,
   Complexity,
   RefactoringNotWorthIt,
-
   Readability,
   parameters_to_parameters_data_clump,
   fields_to_fields_data_clump,
@@ -16,7 +15,6 @@ import {
   ExtractedClassLocation,
   LLM_Useful,
   ClassName,
-
   OverEngineered,
   SameBaseClass,
   ExtractedClassShouldNotBePublic,
@@ -25,7 +23,6 @@ import {
   LicenseHeaderMissing,
   LLM_LegalIssues,
   LargerDataClump,
-
   Neutral,
   ImprovedMaintainability,
   StronglyAgree,
@@ -35,20 +32,22 @@ import {
   Disagree,
   Good_Idea,
   NoMeaningfulFeedback,
-
   ImportsIssues,
   InvalidPR,
   DeveloperMustOverseeLLM,
   NoSetterNeeded,
-  Verbosity
+  Verbosity,
 } from "./structures";
 
 export const data: PR_Data = {
   "https://github.com/junit-pioneer/junit-pioneer": {
-    url: "https://github.com/junit-pioneer/junit-pioneer", "occurence": 6,
+    url: "https://github.com/junit-pioneer/junit-pioneer",
+    occurence: 6,
+    prUrl: "https://github.com/junit-pioneer/junit-pioneer/pull/811",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-src/test/java/org/junitpioneer/testkit/PioneerTestKit.java-org.junitpioneer.testkit.PioneerTestKit/method/executeTestMethodWithParameterTypesAndConfigurationParameters(java.util.Map<java.lang.String, java.lang.String> configurationParameters, java.lang.Class<?> testClass, java.lang.String testMethodName, java.lang.Class<?>[] methodParameterTypes)-org.junitpioneer.testkit.PioneerTestKit/method/executeTestMethodWithParameterTypes(java.lang.Class<?> testClass, java.lang.String testMethodName, java.lang.Class<?>[] methodParameterTypes)-testClasstestMethodNamemethodParameterTypes","affected_files":1,
+    key: "parameters_to_parameters_data_clump-src/test/java/org/junitpioneer/testkit/PioneerTestKit.java-org.junitpioneer.testkit.PioneerTestKit/method/executeTestMethodWithParameterTypesAndConfigurationParameters(java.util.Map<java.lang.String, java.lang.String> configurationParameters, java.lang.Class<?> testClass, java.lang.String testMethodName, java.lang.Class<?>[] methodParameterTypes)-org.junitpioneer.testkit.PioneerTestKit/method/executeTestMethodWithParameterTypes(java.lang.Class<?> testClass, java.lang.String testMethodName, java.lang.Class<?>[] methodParameterTypes)-testClasstestMethodNamemethodParameterTypes",
+    affected_files: 1,
     size: 4,
     type: parameters_to_parameters_data_clump,
     category: "detectAndRefactor",
@@ -79,53 +78,67 @@ export const data: PR_Data = {
         " But free to grab an open issue if you want to contribute (now or in the future)!\r\n\r\nLast but not least I wish you all the best for your master thesis and feel free to reach out to me when you are done - would be happy to read it! ",
       ],
     ],
-    likertData: [[
-      {
-        scale: Neutral,
-        comments: `Data clumps can be a code smell, but only if it breaks principles - sometimes you can have data clumps that actually do not break any. Just because similar or the same data exists in different objects does not inherently constitute a problem - I asked ChatGPT for an example here (paraphrasing):
+    likertData: [
+      [
+        {
+          scale: Neutral,
+          comments: `Data clumps can be a code smell, but only if it breaks principles - sometimes you can have data clumps that actually do not break any. Just because similar or the same data exists in different objects does not inherently constitute a problem - I asked ChatGPT for an example here (paraphrasing):
 Consider the classes WeatherReport and FinancialStatement: both could have the following fields: LocalDate date, String location, double value (and any additional fields). These fields could be considered a 'data clump' by your definition but have vastly different applications and contexts. Can you extract these values in a meaningful way? Sure! Should you? Probably not - sharing these fields (even if it's through composition and not inheritence) would limit or hinder maintenance if any of these objects evolve in the future.
 I believe it would be straightforward to come up with a counter-example where extracting fields from two rather similar objects that have the same (or almost the same) context is beneficial, so I'm not going to do that.`,
-        keywords: [-RefactoringNotWorthIt, -IntentionalDesignChoice,-ImprovedMaintainability]
-      },
-      {
-        scale: StronglyAgree,
-        comments: "Yes, LLMs can speed up (and already speed up!) work by helping search for documentation, explain things with examples, collating large data chunks, etc. I believe GitHub co-pilot is an LLM",
-        keywords: [+LLM_Useful]
-      },
-      {
-        scale: StronglyDisagree,
-        comments: `Our project is very small and most parts are very isolated. This initiative is probably better suited for projects with lots of moving/interacting parts.
+          keywords: [
+            -RefactoringNotWorthIt,
+            -IntentionalDesignChoice,
+            -ImprovedMaintainability,
+          ],
+        },
+        {
+          scale: StronglyAgree,
+          comments:
+            "Yes, LLMs can speed up (and already speed up!) work by helping search for documentation, explain things with examples, collating large data chunks, etc. I believe GitHub co-pilot is an LLM",
+          keywords: [+LLM_Useful],
+        },
+        {
+          scale: StronglyDisagree,
+          comments: `Our project is very small and most parts are very isolated. This initiative is probably better suited for projects with lots of moving/interacting parts.
 While the LLM did identify a 'data clump', extracting it did not improve readability or maintainability - in fact, it did the opposite. It added unnecessary boilerplate to code that was already very readable and straightforward to use.`,
-        keywords: [-ImprovedMaintainability, -Readability]
-      },
-      {
-        scale: Agree,
-        comments: "It's rather clear that the exercise did not break any code or functionality - however it often adds unnecessary 'null' values and creates wrapper objects.",
-        keywords: [-IntentionalDesignChoice]
-      },
-      {
-        scale: StronglyAgree,
-        comments: "Sure. If we needed the wrapper around the parameters, TestSelector is a good name for them.",
-        keywords: [+ClassName, -DocumentationIssues]
-      },
-      {
-        scale: StronglyAgree,
-        comments: "Sure",
-        keywords: []
-      }
-    ]],
+          keywords: [-ImprovedMaintainability, -Readability],
+        },
+        {
+          scale: Agree,
+          comments:
+            "It's rather clear that the exercise did not break any code or functionality - however it often adds unnecessary 'null' values and creates wrapper objects.",
+          keywords: [-IntentionalDesignChoice],
+        },
+        {
+          scale: StronglyAgree,
+          comments:
+            "Sure. If we needed the wrapper around the parameters, TestSelector is a good name for them.",
+          keywords: [+ClassName, -DocumentationIssues],
+        },
+        {
+          scale: StronglyAgree,
+          comments: "Sure",
+          keywords: [],
+        },
+      ],
+    ],
     reviewCommentsRaw: [],
-    experience: [{
-      java: "<=5 years>",
-      project: ">2 years"
-    }]
+    experience: [
+      {
+        java: "<=5 years>",
+        project: ">2 years",
+      },
+    ],
   },
   "https://github.com/grpc/grpc-java": {
-    url: "https://github.com/grpc/grpc-java", "occurence": 2,
+    url: "https://github.com/grpc/grpc-java",
+    occurence: 2,
+    prUrl: "https://github.com/grpc/grpc-java/pull/11100",
     state: "closed",
     merged: false,
     size: 4,
-    "key": "parameters_to_parameters_data_clump-api/src/main/java/io/grpc/InternalServiceProviders.java-io.grpc.InternalServiceProviders/method/load(java.lang.Class<T> klass, java.lang.Iterable<java.lang.Class<?>> hardcoded, java.lang.ClassLoader classLoader, io.grpc.InternalServiceProviders$PriorityAccessor<T> priorityAccessor)-io.grpc.InternalServiceProviders/method/loadAll(java.lang.Class<T> klass, java.lang.Iterable<java.lang.Class<?>> hardCodedClasses, java.lang.ClassLoader classLoader, io.grpc.InternalServiceProviders$PriorityAccessor<T> priorityAccessor)-klassclassLoaderpriorityAccessor","affected_files":1,
+    key: "parameters_to_parameters_data_clump-api/src/main/java/io/grpc/InternalServiceProviders.java-io.grpc.InternalServiceProviders/method/load(java.lang.Class<T> klass, java.lang.Iterable<java.lang.Class<?>> hardcoded, java.lang.ClassLoader classLoader, io.grpc.InternalServiceProviders$PriorityAccessor<T> priorityAccessor)-io.grpc.InternalServiceProviders/method/loadAll(java.lang.Class<T> klass, java.lang.Iterable<java.lang.Class<?>> hardCodedClasses, java.lang.ClassLoader classLoader, io.grpc.InternalServiceProviders$PriorityAccessor<T> priorityAccessor)-klassclassLoaderpriorityAccessor",
+    affected_files: 1,
 
     type: parameters_to_parameters_data_clump,
     category: "detectAndRefactor",
@@ -189,6 +202,7 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
   },
   "https://github.com/LibrePDF/OpenPDF": {
     url: "https://github.com/LibrePDF/OpenPDF",
+    prUrl: "https://github.com/LibrePDF/OpenPDF/pull/1140",
     state: "closed",
     merged: true,
     size: 4,
@@ -238,34 +252,39 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
         "",
       ],
     ],
-    likertData: [[
+    likertData: [
+      [
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+          comments:
+            "It's important too keep the semantic and don't invent some crazy class with very mixed fields.",
+          keywords: [-SmallerDataClump],
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+          comments: "The new Object was not initialized.",
+          keywords: [-SemanticChanges],
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+        },
+      ],
+    ],
+    experience: [
       {
-        scale: Agree
+        project: ">2 years",
+        java: ">10 years",
       },
-      {
-        scale: Agree,
-        comments: "It's important too keep the semantic and don't invent some crazy class with very mixed fields.",
-        keywords: [-SmallerDataClump]
-      },
-      {
-        scale: Agree
-      },
-      {
-        scale: Agree,
-        comments: "The new Object was not initialized.",
-        keywords: [-SemanticChanges]
-      },
-      {
-        scale: Agree
-      },
-      {
-        scale: Agree
-      },
-    ]],
-    experience: [{
-      project: ">2 years",
-      java: ">10 years"
-    }],
+    ],
     reviewCommentsRaw: [
       [
         "These lines got really long, exploding the 180 chars limit",
@@ -297,7 +316,9 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
     ],
   },
   "https://github.com/JabRef/jabref": {
-    url: "https://github.com/JabRef/jabref", "occurence": 12,
+    url: "https://github.com/JabRef/jabref",
+    occurence: 12,
+    prUrl: "https://github.com/JabRef/jabref/pull/11181",
     state: "closed",
     merged: true,
     manualChanges: true,
@@ -310,7 +331,8 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       -NotEnough,
       -ExtractedClassLocation,
     ],
-    "key": "parameters_to_parameters_data_clump-src/main/java/org/jabref/model/openoffice/uno/UnoBookmark.java-org.jabref.model.openoffice.uno.UnoBookmark/method/create(org.jabref.model.openoffice.uno.com.sun.star.text.XTextDocument doc, java.lang.String name, org.jabref.model.openoffice.uno.com.sun.star.text.XTextRange range, boolean absorb)-org.jabref.model.openoffice.uno.UnoNamed/method/insertNamedTextContent(org.jabref.model.openoffice.uno.com.sun.star.text.XTextDocument doc, java.lang.String service, java.lang.String name, org.jabref.model.openoffice.uno.com.sun.star.text.XTextRange range, boolean absorb)-docnamerangeabsorb","affected_files":4,
+    key: "parameters_to_parameters_data_clump-src/main/java/org/jabref/model/openoffice/uno/UnoBookmark.java-org.jabref.model.openoffice.uno.UnoBookmark/method/create(org.jabref.model.openoffice.uno.com.sun.star.text.XTextDocument doc, java.lang.String name, org.jabref.model.openoffice.uno.com.sun.star.text.XTextRange range, boolean absorb)-org.jabref.model.openoffice.uno.UnoNamed/method/insertNamedTextContent(org.jabref.model.openoffice.uno.com.sun.star.text.XTextDocument doc, java.lang.String service, java.lang.String name, org.jabref.model.openoffice.uno.com.sun.star.text.XTextRange range, boolean absorb)-docnamerangeabsorb",
+    affected_files: 4,
 
     reviewComments: [],
     generalCommentsRaw: [
@@ -405,51 +427,68 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
         "",
       ],
     ],
-    likertData: [[
-      {
-        scale: Agree,
-      },
-      {
-        scale: Agree,
-        comments: `A developer needs to have the tool available in the IDE - or creating pull requests. Similar to OpenRewrite of Moderne. In contrast to OpenRewrite, code created by LLMs needs to have oversights.`,
-        keywords: [-DeveloperMustOverseeLLM]
-      },
-      {
-        scale: Disagree,
-        comments: `- Good, because new class factored out
+    likertData: [
+      [
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+          comments: `A developer needs to have the tool available in the IDE - or creating pull requests. Similar to OpenRewrite of Moderne. In contrast to OpenRewrite, code created by LLMs needs to have oversights.`,
+          keywords: [-DeveloperMustOverseeLLM],
+        },
+        {
+          scale: Disagree,
+          comments: `- Good, because new class factored out
 - Neutral, because a comparison to IntelliJs feature "Extract prameter object" (https://www.jetbrains.com/help/idea/extract-into-class-refactorings.html#extract_parameter_object) is missing. I think, IntelliJ's algorithm might be better. Your thesis needs to include that as comparison! Maybe, an LLM can be used to identify places where to refactor and let IntelliJ do the work!
 - Bad, because Comments have not been moved
 - Bad, because basic checkstyle checks fail
 - Bad, because Java "record" data type not used`,
-        keywords: [-JavaRecordBetter, -NotEnough, -DocumentationIssues, +Good_Idea, -ExtractedClassLocation]
-      },
+          keywords: [
+            -JavaRecordBetter,
+            -NotEnough,
+            -DocumentationIssues,
+            +Good_Idea,
+            -ExtractedClassLocation,
+          ],
+        },
+        {
+          scale: StronglyAgree,
+        },
+        {
+          scale: StronglyAgree,
+        },
+        {
+          scale: Disagree,
+        },
+      ],
+    ],
+    experience: [
       {
-        scale: StronglyAgree
+        project: ">20 years",
+        java: ">=10 years",
       },
-      {
-        scale: StronglyAgree
-      },
-      {
-        scale: Disagree
-      }
-
-
-    ]],
-    experience: [{
-      project: ">20 years",
-      java: ">=10 years",
-    }]
+    ],
   },
   "https://github.com/karatelabs/karate": {
-    url: "https://github.com/karatelabs/karate", "occurence": 2,
+    url: "https://github.com/karatelabs/karate",
+    occurence: 2,
+    prUrl: "https://github.com/karatelabs/karate/pull/2547",
     state: "closed",
     merged: false,
     size: 7,
-    "key": "fields_to_fields_data_clump-karate-core/src/main/java/com/intuit/karate/core/Scenario.java-com.intuit.karate.core.Scenario-com.intuit.karate.core.ScenarioOutline-sectionnamedescriptiontagslinestepsfeature","affected_files":2,
+    key: "fields_to_fields_data_clump-karate-core/src/main/java/com/intuit/karate/core/Scenario.java-com.intuit.karate.core.Scenario-com.intuit.karate.core.ScenarioOutline-sectionnamedescriptiontagslinestepsfeature",
+    affected_files: 2,
 
     type: fields_to_fields_data_clump,
     category: "nameSuggestion",
-    generalComments: [-Readability, -IntentionalDesignChoice, -Complexity,-ImprovedMaintainability,-Verbosity],
+    generalComments: [
+      -Readability,
+      -IntentionalDesignChoice,
+      -Complexity,
+      -ImprovedMaintainability,
+      -Verbosity,
+    ],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -467,43 +506,50 @@ While the LLM did identify a 'data clump', extracting it did not improve readabi
       ["@compf yes I have filled out the survey"],
     ],
     reviewCommentsRaw: [],
-    likertData: [[
-      {
-        scale: Disagree,
-        comments: `They may exist to represent real-word aspects, for example a) objects in the real world that may have similar properties - but need to be treated differently or that behave differently b) generated code that should not be edited by humans
+    likertData: [
+      [
+        {
+          scale: Disagree,
+          comments: `They may exist to represent real-word aspects, for example a) objects in the real world that may have similar properties - but need to be treated differently or that behave differently b) generated code that should not be edited by humans
 
 Also code is structured to suit the convenience of the original author or maintainers - so I personally give that preference.`,
-        keywords: [-IntentionalDesignChoice]
-      },
+          keywords: [-IntentionalDesignChoice],
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Disagree,
+        },
+        {
+          scale: Disagree,
+        },
+        {
+          scale: StronglyDisagree,
+          comments: "I did not like 'TestScenario' as a name.",
+        },
+        {
+          scale: Agree,
+          comments:
+            "I most cases, side-by-side with original code is the right choice, which is what was observed.",
+        },
+      ],
+    ],
+    experience: [
       {
-        scale: Agree
+        project: ">2 years",
+        java: ">10 years",
       },
-      {
-        scale: Disagree,
-      },
-      {
-        scale: Disagree
-      },
-      {
-        scale: StronglyDisagree,
-        comments: "I did not like 'TestScenario' as a name."
-      },
-      {
-        scale: Agree,
-        comments: "I most cases, side-by-side with original code is the right choice, which is what was observed."
-      }
-
-    ]],
-    experience: [{
-      project: ">2 years",
-      java: ">10 years"
-    }]
+    ],
   },
   "https://github.com/flyway/flyway": {
-    url: "https://github.com/flyway/flyway", "occurence": 2,
+    url: "https://github.com/flyway/flyway",
+    occurence: 2,
+    prUrl: "https://github.com/flyway/flyway/pull/3870",
     state: "open",
     merged: false,
-    "key": "fields_to_fields_data_clump-flyway-core/src/main/java/org/flywaydb/core/internal/command/DbValidate.java-org.flywaydb.core.internal.command.DbValidate-org.flywaydb.core.internal.command.DbMigrate-configurationmigrationResolverschemadatabasecallbackExecutorschemaHistory","affected_files":2,
+    key: "fields_to_fields_data_clump-flyway-core/src/main/java/org/flywaydb/core/internal/command/DbValidate.java-org.flywaydb.core.internal.command.DbValidate-org.flywaydb.core.internal.command.DbMigrate-configurationmigrationResolverschemadatabasecallbackExecutorschemaHistory",
+    affected_files: 2,
 
     type: fields_to_fields_data_clump,
     size: 5,
@@ -521,11 +567,14 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/liquibase/liquibase": {
-    url: "https://github.com/liquibase/liquibase", "occurence": 3886,
+    url: "https://github.com/liquibase/liquibase",
+    occurence: 3886,
+    prUrl: "https://github.com/liquibase/liquibase/pull/5802",
     state: "closed",
     merged: true,
     size: 3,
-    key: "fields_to_fields_data_clump-liquibase-standard/src/main/java/liquibase/statement/core/UpdateStatement.java-liquibase.statement.core.UpdateStatement-liquibase.statement.core.AddAutoIncrementStatement-tableNamecatalogNameschemaName","affected_files":65,
+    key: "fields_to_fields_data_clump-liquibase-standard/src/main/java/liquibase/statement/core/UpdateStatement.java-liquibase.statement.core.UpdateStatement-liquibase.statement.core.AddAutoIncrementStatement-tableNamecatalogNameschemaName",
+    affected_files: 65,
 
     type: fields_to_fields_data_clump,
     category: "nameSuggestion",
@@ -567,15 +616,18 @@ Also code is structured to suit the convenience of the original author or mainta
     ],
   },
   "https://github.com/opensearch-project/data-prepper": {
-    url: "https://github.com/opensearch-project/data-prepper", "occurence": 6,
+    url: "https://github.com/opensearch-project/data-prepper",
+    occurence: 6,
+    prUrl: "https://github.com/opensearch-project/data-prepper/pull/4445",
     state: "open",
     merged: false,
     size: 3,
-    "key": "fields_to_fields_data_clump-data-prepper-expression/src/main/java/org/opensearch/dataprepper/expression/AddBinaryOperator.java-org.opensearch.dataprepper.expression.AddBinaryOperator-org.opensearch.dataprepper.expression.ArithmeticBinaryOperator-operandsToOperationMapdisplayNamesymbol","affected_files":3,
+    key: "fields_to_fields_data_clump-data-prepper-expression/src/main/java/org/opensearch/dataprepper/expression/AddBinaryOperator.java-org.opensearch.dataprepper.expression.AddBinaryOperator-org.opensearch.dataprepper.expression.ArithmeticBinaryOperator-operandsToOperationMapdisplayNamesymbol",
+    affected_files: 3,
 
     type: fields_to_fields_data_clump,
     category: "detectAndRefactor",
-    generalComments: [-NotEnough,-ExtractedClassShouldNotBePublic],
+    generalComments: [-NotEnough, -ExtractedClassShouldNotBePublic],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -639,6 +691,7 @@ Also code is structured to suit the convenience of the original author or mainta
   },
   "https://github.com/elastic/logstash": {
     url: "https://github.com/elastic/logstash",
+    prUrl: "https://github.com/elastic/logstash/pull/16097",
     state: "closed",
     merged: false,
     category: "detectAndRefactor",
@@ -657,10 +710,13 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/kestra-io/kestra": {
-    url: "https://github.com/kestra-io/kestra", "occurence": 14,
+    url: "https://github.com/kestra-io/kestra",
+    occurence: 14,
+    prUrl: "https://github.com/kestra-io/kestra/pull/3588",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-core/src/main/java/io/kestra/core/runners/FlowableUtils.java-io.kestra.core.runners.FlowableUtils/method/resolveState(io.kestra.core.runners.io.kestra.core.models.executions.Execution execution, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> tasks, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> errors, io.kestra.core.runners.io.kestra.core.models.executions.TaskRun parentTaskRun, io.kestra.core.runners.RunContext runContext, boolean allowFailure)-io.kestra.core.runners.FlowableUtils/method/resolveParallelNexts(io.kestra.core.runners.io.kestra.core.models.executions.Execution execution, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> tasks, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> errors, io.kestra.core.runners.io.kestra.core.models.executions.TaskRun parentTaskRun, java.lang.Integer concurrency, java.util.function.BiFunction<java.util.stream.Stream<io.kestra.core.runners.io.kestra.core.models.executions.NextTaskRun>, java.util.List<io.kestra.core.runners.io.kestra.core.models.executions.TaskRun>, java.util.stream.Stream<io.kestra.core.runners.io.kestra.core.models.executions.NextTaskRun>> nextTaskRunFunction)-executiontaskserrorsparentTaskRun","affected_files":1,
+    key: "parameters_to_parameters_data_clump-core/src/main/java/io/kestra/core/runners/FlowableUtils.java-io.kestra.core.runners.FlowableUtils/method/resolveState(io.kestra.core.runners.io.kestra.core.models.executions.Execution execution, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> tasks, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> errors, io.kestra.core.runners.io.kestra.core.models.executions.TaskRun parentTaskRun, io.kestra.core.runners.RunContext runContext, boolean allowFailure)-io.kestra.core.runners.FlowableUtils/method/resolveParallelNexts(io.kestra.core.runners.io.kestra.core.models.executions.Execution execution, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> tasks, java.util.List<io.kestra.core.runners.io.kestra.core.models.tasks.ResolvedTask> errors, io.kestra.core.runners.io.kestra.core.models.executions.TaskRun parentTaskRun, java.lang.Integer concurrency, java.util.function.BiFunction<java.util.stream.Stream<io.kestra.core.runners.io.kestra.core.models.executions.NextTaskRun>, java.util.List<io.kestra.core.runners.io.kestra.core.models.executions.TaskRun>, java.util.stream.Stream<io.kestra.core.runners.io.kestra.core.models.executions.NextTaskRun>> nextTaskRunFunction)-executiontaskserrorsparentTaskRun",
+    affected_files: 1,
 
     category: "detectAndRefactor",
     size: 6,
@@ -678,9 +734,12 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/skylot/jadx": {
-    url: "https://github.com/skylot/jadx", "occurence": 20,
+    url: "https://github.com/skylot/jadx",
+    occurence: 20,
+    prUrl: "https://github.com/skylot/jadx/pull/2164",
     state: "closed",
-    "key": "parameters_to_parameters_data_clump-jadx-core/src/main/java/jadx/core/dex/visitors/typeinference/TypeUpdate.java-jadx.core.dex.visitors.typeinference.TypeUpdate/method/applyWithWiderIgnSame(jadx.core.dex.visitors.typeinference.jadx.core.dex.nodes.MethodNode mth, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.SSAVar ssaVar, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.ArgType candidateType)-jadx.core.dex.visitors.typeinference.TypeUpdate/method/apply(jadx.core.dex.visitors.typeinference.jadx.core.dex.nodes.MethodNode mth, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.SSAVar ssaVar, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.ArgType candidateType, jadx.core.dex.visitors.typeinference.TypeUpdateFlags flags)-mthssaVarcandidateType","affected_files":1,
+    key: "parameters_to_parameters_data_clump-jadx-core/src/main/java/jadx/core/dex/visitors/typeinference/TypeUpdate.java-jadx.core.dex.visitors.typeinference.TypeUpdate/method/applyWithWiderIgnSame(jadx.core.dex.visitors.typeinference.jadx.core.dex.nodes.MethodNode mth, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.SSAVar ssaVar, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.ArgType candidateType)-jadx.core.dex.visitors.typeinference.TypeUpdate/method/apply(jadx.core.dex.visitors.typeinference.jadx.core.dex.nodes.MethodNode mth, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.SSAVar ssaVar, jadx.core.dex.visitors.typeinference.jadx.core.dex.instructions.args.ArgType candidateType, jadx.core.dex.visitors.typeinference.TypeUpdateFlags flags)-mthssaVarcandidateType",
+    affected_files: 1,
 
     merged: false,
     category: "detectAndRefactor",
@@ -693,6 +752,7 @@ Also code is structured to suit the convenience of the original author or mainta
   },
   "https://github.com/dbeaver/dbeaver": {
     url: "https://github.com/dbeaver/dbeaver",
+    prUrl: "https://github.com/dbeaver/dbeaver/pull/26790",
     state: "closed",
     merged: false,
     type: parameters_to_parameters_data_clump,
@@ -712,7 +772,9 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/plantuml/plantuml": {
-    url: "https://github.com/plantuml/plantuml", "occurence": 1254,
+    url: "https://github.com/plantuml/plantuml",
+    occurence: 1254,
+    prUrl: "https://github.com/plantuml/plantuml/pull/1760",
     state: "closed",
     merged: false,
     category: "nameSuggestion",
@@ -724,7 +786,8 @@ Also code is structured to suit the convenience of the original author or mainta
       -NoSetterNeeded,
     ],
     size: 4,
-    key: "parameters_to_parameters_data_clump-src/net/sourceforge/plantuml/activitydiagram3/ftile/Worm.java-net.sourceforge.plantuml.activitydiagram3.ftile.Worm/method/drawLine(net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.klimt.drawing.UGraphic ug, double x1, double y1, double x2, double y2, net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.utils.Direction direction)-net.sourceforge.plantuml.braille.BrailleGrid/method/line(double x1, double y1, double x2, double y2)-x1y1x2y2","affected_files":28,
+    key: "parameters_to_parameters_data_clump-src/net/sourceforge/plantuml/activitydiagram3/ftile/Worm.java-net.sourceforge.plantuml.activitydiagram3.ftile.Worm/method/drawLine(net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.klimt.drawing.UGraphic ug, double x1, double y1, double x2, double y2, net.sourceforge.plantuml.activitydiagram3.ftile.net.sourceforge.plantuml.utils.Direction direction)-net.sourceforge.plantuml.braille.BrailleGrid/method/line(double x1, double y1, double x2, double y2)-x1y1x2y2",
+    affected_files: 28,
     type: parameters_to_parameters_data_clump,
     reviewComments: [],
     generalCommentsRaw: [
@@ -757,11 +820,14 @@ Also code is structured to suit the convenience of the original author or mainta
     ],
   },
   "https://github.com/dtinit/data-transfer-project": {
-    url: "https://github.com/dtinit/data-transfer-project", "occurence": 12,
+    url: "https://github.com/dtinit/data-transfer-project",
+    occurence: 12,
+    prUrl: "https://github.com/dtinit/data-transfer-project/pull/1355",
     state: "open",
     merged: false,
     size: 3,
-    "key": "parameters_to_parameters_data_clump-portability-api-launcher/src/main/java/org/datatransferproject/api/launcher/DtpInternalMetricRecorder.java-org.datatransferproject.api.launcher.DtpInternalMetricRecorder/method/importPageFinished(org.datatransferproject.api.launcher.org.datatransferproject.types.common.models.DataVertical dataType, java.lang.String service, boolean success, java.time.Duration duration)-org.datatransferproject.api.launcher.DtpInternalMetricRecorder/method/importPageAttemptFinished(org.datatransferproject.api.launcher.org.datatransferproject.types.common.models.DataVertical dataType, java.lang.String service, boolean success, java.time.Duration duration)-dataTypeservicesuccessduration","affected_files":1,
+    key: "parameters_to_parameters_data_clump-portability-api-launcher/src/main/java/org/datatransferproject/api/launcher/DtpInternalMetricRecorder.java-org.datatransferproject.api.launcher.DtpInternalMetricRecorder/method/importPageFinished(org.datatransferproject.api.launcher.org.datatransferproject.types.common.models.DataVertical dataType, java.lang.String service, boolean success, java.time.Duration duration)-org.datatransferproject.api.launcher.DtpInternalMetricRecorder/method/importPageAttemptFinished(org.datatransferproject.api.launcher.org.datatransferproject.types.common.models.DataVertical dataType, java.lang.String service, boolean success, java.time.Duration duration)-dataTypeservicesuccessduration",
+    affected_files: 1,
 
     type: parameters_to_parameters_data_clump,
     category: "nameSuggestion",
@@ -778,10 +844,13 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/alibaba/Sentinel": {
-    url: "https://github.com/alibaba/Sentinel", "occurence": 2,
+    url: "https://github.com/alibaba/Sentinel",
+    occurence: 2,
+    prUrl: "https://github.com/alibaba/Sentinel/pull/3389",
     state: "closed",
     merged: false,
-    "key": "fields_to_fields_data_clump-sentinel-transport/sentinel-transport-common/src/main/java/com/alibaba/csp/sentinel/command/vo/NodeVo.java-com.alibaba.csp.sentinel.command.vo.NodeVo-com.alibaba.csp.sentinel.dashboard.domain.ResourceTreeNode-resourceblockQpsidthreadNumparentIdsuccessQpsaverageRtoneMinuteBlockoneMinuteExceptiontotalQpspassQpsoneMinuteTotalexceptionQpsoneMinutePass","affected_files":2,
+    key: "fields_to_fields_data_clump-sentinel-transport/sentinel-transport-common/src/main/java/com/alibaba/csp/sentinel/command/vo/NodeVo.java-com.alibaba.csp.sentinel.command.vo.NodeVo-com.alibaba.csp.sentinel.dashboard.domain.ResourceTreeNode-resourceblockQpsidthreadNumparentIdsuccessQpsaverageRtoneMinuteBlockoneMinuteExceptiontotalQpspassQpsoneMinuteTotalexceptionQpsoneMinutePass",
+    affected_files: 2,
 
     category: "nameSuggestion",
     size: 14,
@@ -798,10 +867,13 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/Netflix/zuul": {
-    url: "https://github.com/Netflix/zuul", "occurence": 8,
+    url: "https://github.com/Netflix/zuul",
+    occurence: 8,
+    prUrl: "https://github.com/Netflix/zuul/pull/1770",
     state: "open",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-zuul-core/src/main/java/com/netflix/netty/common/throttle/RejectionUtils.java-com.netflix.netty.common.throttle.RejectionUtils/method/notifyHandlers(com.netflix.netty.common.throttle.io.netty.channel.ChannelHandlerContext ctx, com.netflix.netty.common.throttle.com.netflix.zuul.stats.status.StatusCategory nfStatus, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpResponseStatus status, java.lang.String reason, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpRequest request)-com.netflix.netty.common.throttle.RejectionUtils/method/rejectByClosingConnection(com.netflix.netty.common.throttle.io.netty.channel.ChannelHandlerContext ctx, com.netflix.netty.common.throttle.com.netflix.zuul.stats.status.StatusCategory nfStatus, java.lang.String reason, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpRequest request, java.lang.Integer injectedLatencyMillis)-ctxnfStatusreasonrequest","affected_files":1,
+    key: "parameters_to_parameters_data_clump-zuul-core/src/main/java/com/netflix/netty/common/throttle/RejectionUtils.java-com.netflix.netty.common.throttle.RejectionUtils/method/notifyHandlers(com.netflix.netty.common.throttle.io.netty.channel.ChannelHandlerContext ctx, com.netflix.netty.common.throttle.com.netflix.zuul.stats.status.StatusCategory nfStatus, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpResponseStatus status, java.lang.String reason, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpRequest request)-com.netflix.netty.common.throttle.RejectionUtils/method/rejectByClosingConnection(com.netflix.netty.common.throttle.io.netty.channel.ChannelHandlerContext ctx, com.netflix.netty.common.throttle.com.netflix.zuul.stats.status.StatusCategory nfStatus, java.lang.String reason, com.netflix.netty.common.throttle.io.netty.handler.codec.http.HttpRequest request, java.lang.Integer injectedLatencyMillis)-ctxnfStatusreasonrequest",
+    affected_files: 1,
 
     size: 5,
     type: parameters_to_parameters_data_clump,
@@ -823,10 +895,13 @@ Also code is structured to suit the convenience of the original author or mainta
     reviewCommentsRaw: [],
   },
   "https://github.com/pmd/pmd": {
-    url: "https://github.com/pmd/pmd", "occurence": 2,
+    url: "https://github.com/pmd/pmd",
+    occurence: 2,
+    prUrl: "https://github.com/pmd/pmd/pull/5001",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-pmd-core/src/main/java/net/sourceforge/pmd/cache/internal/CachedRuleMapper.java-net.sourceforge.pmd.cache.internal.CachedRuleMapper/method/getRuleForClass(java.lang.String className, java.lang.String ruleName, java.lang.String languageName)-net.sourceforge.pmd.cache.internal.CachedRuleMapper/method/getRuleKey(java.lang.String className, java.lang.String ruleName, java.lang.String languageName)-classNameruleNamelanguageName","affected_files":1,
+    key: "parameters_to_parameters_data_clump-pmd-core/src/main/java/net/sourceforge/pmd/cache/internal/CachedRuleMapper.java-net.sourceforge.pmd.cache.internal.CachedRuleMapper/method/getRuleForClass(java.lang.String className, java.lang.String ruleName, java.lang.String languageName)-net.sourceforge.pmd.cache.internal.CachedRuleMapper/method/getRuleKey(java.lang.String className, java.lang.String ruleName, java.lang.String languageName)-classNameruleNamelanguageName",
+    affected_files: 1,
 
     category: "detectAndRefactor",
     size: 3,
@@ -840,35 +915,38 @@ Also code is structured to suit the convenience of the original author or mainta
       +ExtractedClassLocation,
     ],
     reviewComments: [],
-    likertData: [[
-      {
-        scale: Agree
-      },
-      {
-        scale: Neutral
-      },
-      {
-        scale: StronglyDisagree,
-        comments: `It adds object instantiations without adding additional value, as we are replacing a getter to create a key with a constructor of an object + toString to obtain the same thing. It's not even type-enforced, as the key of the map remains a String rather than trying to leverage the newly introduced type.
+    likertData: [
+      [
+        {
+          scale: Agree,
+        },
+        {
+          scale: Neutral,
+        },
+        {
+          scale: StronglyDisagree,
+          comments: `It adds object instantiations without adding additional value, as we are replacing a getter to create a key with a constructor of an object + toString to obtain the same thing. It's not even type-enforced, as the key of the map remains a String rather than trying to leverage the newly introduced type.
 
 Overall, this is 100% overhead`,
-        keywords: [-Performance, -NotEnough,-RefactoringNotWorthIt
-        ]
-      },
+          keywords: [-Performance, -NotEnough, -RefactoringNotWorthIt],
+        },
+        {
+          scale: StronglyAgree,
+        },
+        {
+          scale: StronglyAgree,
+        },
+        {
+          scale: StronglyAgree,
+        },
+      ],
+    ],
+    experience: [
       {
-        scale: StronglyAgree
+        project: ">2 years",
+        java: ">10 years",
       },
-      {
-        scale: StronglyAgree
-      },
-      {
-        scale: StronglyAgree
-      },
-    ]],
-    experience: [{
-      project: ">2 years",
-      java: ">10 years"
-    }],
+    ],
 
     generalCommentsRaw: [
       [
@@ -898,11 +976,14 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/traccar/traccar": {
-    url: "https://github.com/traccar/traccar", "occurence": 86,
+    url: "https://github.com/traccar/traccar",
+    occurence: 86,
+    prUrl: "https://github.com/traccar/traccar/pull/5318",
     state: "closed",
     merged: false,
     size: 5,
-    "key": "parameters_to_parameters_data_clump-src/main/java/org/traccar/reports/TripsReportProvider.java-org.traccar.reports.TripsReportProvider/method/getObjects(long userId, java.util.Collection<java.lang.Long> deviceIds, java.util.Collection<java.lang.Long> groupIds, java.util.Date from, java.util.Date to)-org.traccar.reports.TripsReportProvider/method/getExcel(java.io.OutputStream outputStream, long userId, java.util.Collection<java.lang.Long> deviceIds, java.util.Collection<java.lang.Long> groupIds, java.util.Date from, java.util.Date to)-userIddeviceIdsgroupIdsfromto","affected_files":6,
+    key: "parameters_to_parameters_data_clump-src/main/java/org/traccar/reports/TripsReportProvider.java-org.traccar.reports.TripsReportProvider/method/getObjects(long userId, java.util.Collection<java.lang.Long> deviceIds, java.util.Collection<java.lang.Long> groupIds, java.util.Date from, java.util.Date to)-org.traccar.reports.TripsReportProvider/method/getExcel(java.io.OutputStream outputStream, long userId, java.util.Collection<java.lang.Long> deviceIds, java.util.Collection<java.lang.Long> groupIds, java.util.Date from, java.util.Date to)-userIddeviceIdsgroupIdsfromto",
+    affected_files: 6,
 
     type: parameters_to_parameters_data_clump,
     category: "nameSuggestion",
@@ -919,12 +1000,15 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/apache/linkis": {
-    url: "https://github.com/apache/linkis", "occurence": 2,
+    url: "https://github.com/apache/linkis",
+    occurence: 2,
+    prUrl: "https://github.com/apache/linkis/pull/5119",
     state: "closed",
     merged: true,
     manualChanges: false,
     size: 17,
-    "key": "fields_to_fields_data_clump-linkis-extensions/linkis-et-monitor/src/main/java/org/apache/linkis/monitor/jobhistory/entity/JobHistory.java-org.apache.linkis.monitor.jobhistory.entity.JobHistory-org.apache.linkis.jobhistory.entity.JobHistory-logPatherrorDescmetricsengineTypeobserveInfoparamserrorCodesubmitUserupdatedTimestatusupdateTimeMillsexecutionCodejobReqIdcreatedTimelabelsprogressidinstancesexecuteUsersource","affected_files":2,
+    key: "fields_to_fields_data_clump-linkis-extensions/linkis-et-monitor/src/main/java/org/apache/linkis/monitor/jobhistory/entity/JobHistory.java-org.apache.linkis.monitor.jobhistory.entity.JobHistory-org.apache.linkis.jobhistory.entity.JobHistory-logPatherrorDescmetricsengineTypeobserveInfoparamserrorCodesubmitUserupdatedTimestatusupdateTimeMillsexecutionCodejobReqIdcreatedTimelabelsprogressidinstancesexecuteUsersource",
+    affected_files: 2,
     type: fields_to_fields_data_clump,
     category: "detectAndRefactor",
     generalComments: [],
@@ -938,10 +1022,13 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/micrometer-metrics/micrometer": {
-    url: "https://github.com/micrometer-metrics/micrometer", "occurence": 2,
+    url: "https://github.com/micrometer-metrics/micrometer",
+    occurence: 2,
+    prUrl: "https://github.com/micrometer-metrics/micrometer/pull/5110",
     state: "closed",
     merged: false,
-    "key": "fields_to_fields_data_clump-micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java-io.micrometer.core.instrument.binder.grpc.GrpcClientObservationContext-io.micrometer.core.instrument.binder.grpc.GrpcServerObservationContext-fullMethodNameserviceNamemethodNameauthoritymethodTypetrailersheadersstatusCode","affected_files":2,
+    key: "fields_to_fields_data_clump-micrometer-core/src/main/java/io/micrometer/core/instrument/binder/grpc/GrpcClientObservationContext.java-io.micrometer.core.instrument.binder.grpc.GrpcClientObservationContext-io.micrometer.core.instrument.binder.grpc.GrpcServerObservationContext-fullMethodNameserviceNamemethodNameauthoritymethodTypetrailersheadersstatusCode",
+    affected_files: 2,
     category: "detectAndRefactor",
     size: 8,
     type: fields_to_fields_data_clump,
@@ -988,41 +1075,47 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/uber/NullAway": {
-    url: "https://github.com/uber/NullAway", "occurence": 124,
+    url: "https://github.com/uber/NullAway",
+    occurence: 124,
+    prUrl: "https://github.com/uber/NullAway/pull/960",
     state: "closed",
     merged: true,
     manualChanges: true,
     size: 3,
-    "key": "parameters_to_parameters_data_clump-nullaway/src/main/java/com/uber/nullaway/handlers/Handler.java-com.uber.nullaway.handlers.Handler/method/castToNonNullArgumentPositionsForMethod(com.uber.nullaway.handlers.com.uber.nullaway.NullAway analysis, com.uber.nullaway.handlers.com.google.errorprone.VisitorState state, com.sun.tools.javac.code.Symbol$MethodSymbol methodSymbol, java.util.List<? extends com.sun.source.tree.ExpressionTree> actualParams, java.lang.Integer previousArgumentPosition)-com.uber.nullaway.handlers.StreamNullabilityPropagator/method/onMatchMethodInvocation(com.uber.nullaway.handlers.com.uber.nullaway.NullAway analysis, com.sun.source.tree.MethodInvocationTree tree, com.uber.nullaway.handlers.com.google.errorprone.VisitorState state, com.sun.tools.javac.code.Symbol$MethodSymbol methodSymbol)-analysisstatemethodSymbol","affected_files":6,
+    key: "parameters_to_parameters_data_clump-nullaway/src/main/java/com/uber/nullaway/handlers/Handler.java-com.uber.nullaway.handlers.Handler/method/castToNonNullArgumentPositionsForMethod(com.uber.nullaway.handlers.com.uber.nullaway.NullAway analysis, com.uber.nullaway.handlers.com.google.errorprone.VisitorState state, com.sun.tools.javac.code.Symbol$MethodSymbol methodSymbol, java.util.List<? extends com.sun.source.tree.ExpressionTree> actualParams, java.lang.Integer previousArgumentPosition)-com.uber.nullaway.handlers.StreamNullabilityPropagator/method/onMatchMethodInvocation(com.uber.nullaway.handlers.com.uber.nullaway.NullAway analysis, com.sun.source.tree.MethodInvocationTree tree, com.uber.nullaway.handlers.com.google.errorprone.VisitorState state, com.sun.tools.javac.code.Symbol$MethodSymbol methodSymbol)-analysisstatemethodSymbol",
+    affected_files: 6,
 
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
     generalComments: [],
-    likertData: [[
+    likertData: [
+      [
+        {
+          scale: Neutral,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Disagree,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+        },
+      ],
+    ],
+    experience: [
       {
-        scale: Neutral
+        project: ">2 years",
+        java: ">10 years",
       },
-      {
-        scale: Agree
-      },
-      {
-        scale: Disagree
-      },
-      {
-        scale: Agree
-      },
-      {
-        scale: Agree
-      },
-      {
-        scale: Agree
-      },
-
-    ]],
-    experience: [{
-      project: ">2 years",
-      java: ">10 years"
-    }],
+    ],
     reviewComments: [
       -JavaRecordBetter,
       -Performance,
@@ -1030,7 +1123,7 @@ Overall, this is 100% overhead`,
       -NotEnough,
       -DocumentationIssues,
       -NoSetterNeeded,
-      -Readability
+      -Readability,
     ],
     generalCommentsRaw: [
       [
@@ -1113,11 +1206,14 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/spockframework/spock": {
-    url: "https://github.com/spockframework/spock", "occurence": 2,
+    url: "https://github.com/spockframework/spock",
+    occurence: 2,
+    prUrl: "https://github.com/spockframework/spock/pull/1962",
     state: "closed",
     merged: false,
     size: 6,
-    "key": "fields_to_fields_data_clump-spock-core/src/main/java/org/spockframework/mock/runtime/MockObject.java-org.spockframework.mock.runtime.MockObject-org.spockframework.mock.runtime.MockConfiguration-globaltypeinstancenamedefaultResponseverified","affected_files":2,
+    key: "fields_to_fields_data_clump-spock-core/src/main/java/org/spockframework/mock/runtime/MockObject.java-org.spockframework.mock.runtime.MockObject-org.spockframework.mock.runtime.MockConfiguration-globaltypeinstancenamedefaultResponseverified",
+    affected_files: 2,
 
     type: fields_to_fields_data_clump,
     category: "filterManual",
@@ -1127,7 +1223,7 @@ Overall, this is 100% overhead`,
       -StyleAdaption,
       -NotEnough,
       -Readability,
-      -ImprovedMaintainability
+      -ImprovedMaintainability,
     ],
     generalCommentsRaw: [
       [
@@ -1164,10 +1260,13 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/projectlombok/lombok": {
-    url: "https://github.com/projectlombok/lombok", "occurence": 2,
+    url: "https://github.com/projectlombok/lombok",
+    occurence: 2,
+    prUrl: "https://github.com/projectlombok/lombok/pull/3680",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java-lombok.javac.handlers.HandleEqualsAndHashCode/method/generateMethods(lombok.javac.handlers.lombok.javac.JavacNode typeNode, lombok.javac.handlers.lombok.javac.JavacNode source, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, java.lang.Boolean callSuper, boolean whineIfExists, boolean cacheHashCode, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-lombok.javac.handlers.HandleEqualsAndHashCode/method/createEquals(lombok.javac.handlers.lombok.javac.JavacNode typeNode, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, boolean callSuper, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, boolean needsCanEqual, lombok.javac.handlers.lombok.javac.JavacNode source, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-typeNodesourcemembersfieldAccessonParam","affected_files":1,
+    key: "parameters_to_parameters_data_clump-src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java-lombok.javac.handlers.HandleEqualsAndHashCode/method/generateMethods(lombok.javac.handlers.lombok.javac.JavacNode typeNode, lombok.javac.handlers.lombok.javac.JavacNode source, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, java.lang.Boolean callSuper, boolean whineIfExists, boolean cacheHashCode, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-lombok.javac.handlers.HandleEqualsAndHashCode/method/createEquals(lombok.javac.handlers.lombok.javac.JavacNode typeNode, java.util.List<lombok.javac.handlers.lombok.core.handlers.InclusionExclusionUtils.Included<lombok.javac.handlers.lombok.javac.JavacNode, lombok.javac.handlers.lombok.EqualsAndHashCode#lombok.javac.handlers.Include>> members, boolean callSuper, lombok.javac.handlers.lombok.core.handlers.HandlerUtil.FieldAccess fieldAccess, boolean needsCanEqual, lombok.javac.handlers.lombok.javac.JavacNode source, com.sun.tools.javac.util.List<com.sun.tools.javac.tree.JCTree$JCAnnotation> onParam)-typeNodesourcemembersfieldAccessonParam",
+    affected_files: 1,
 
     type: parameters_to_parameters_data_clump,
     size: 8,
@@ -1202,10 +1301,13 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/bitcoinj/bitcoinj": {
-    url: "https://github.com/bitcoinj/bitcoinj", "occurence": 4,
+    url: "https://github.com/bitcoinj/bitcoinj",
+    occurence: 4,
+    prUrl: "https://github.com/bitcoinj/bitcoinj/pull/3408",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-core/src/main/java/org/bitcoinj/core/Transaction.java-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutput output, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutPoint prevOut, org.bitcoinj.core.org.bitcoinj.script.Script scriptPubKey, org.bitcoinj.core.org.bitcoinj.base.Coin amount, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-sigKeysigHashanyoneCanPay","affected_files":1,
+    key: "parameters_to_parameters_data_clump-core/src/main/java/org/bitcoinj/core/Transaction.java-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutput output, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-org.bitcoinj.core.Transaction/method/addSignedInput(org.bitcoinj.core.TransactionOutPoint prevOut, org.bitcoinj.core.org.bitcoinj.script.Script scriptPubKey, org.bitcoinj.core.org.bitcoinj.base.Coin amount, org.bitcoinj.core.org.bitcoinj.crypto.ECKey sigKey, org.bitcoinj.core.Transaction$SigHash sigHash, boolean anyoneCanPay)-sigKeysigHashanyoneCanPay",
+    affected_files: 1,
 
     size: 5,
     type: parameters_to_parameters_data_clump,
@@ -1217,16 +1319,23 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/jenkinsci/jenkins": {
-    url: "https://github.com/jenkinsci/jenkins", "occurence": 18,
+    url: "https://github.com/jenkinsci/jenkins",
+    occurence: 18,
+    prUrl: "https://github.com/jenkinsci/jenkins/pull/9352",
     state: "open",
     merged: false,
     size: 3,
-    "key": "fields_to_fields_data_clump-core/src/main/java/hudson/util/ProcessTree.java-hudson.util.ProcessTree.FreeBSD.FreeBSDProcess-hudson.util.ProcessTree.Linux.LinuxProcess-ppidargumentsenvVars","affected_files":1,
+    key: "fields_to_fields_data_clump-core/src/main/java/hudson/util/ProcessTree.java-hudson.util.ProcessTree.FreeBSD.FreeBSDProcess-hudson.util.ProcessTree.Linux.LinuxProcess-ppidargumentsenvVars",
+    affected_files: 1,
 
     type: fields_to_fields_data_clump,
     category: "filterSnippet",
     generalComments: [-SameBaseClass],
-    reviewComments: [-ExtractedClassShouldNotBePublic, -NotEnough, -LicenseHeaderMissing],
+    reviewComments: [
+      -ExtractedClassShouldNotBePublic,
+      -NotEnough,
+      -LicenseHeaderMissing,
+    ],
     generalCommentsRaw: [
       [
         "Yay, your first pull request towards Jenkins core was created successfully! Thank you so much! <br> <br> A contributor will provide feedback soon",
@@ -1276,10 +1385,13 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/real-logic/aeron": {
-    url: "https://github.com/real-logic/aeron", "occurence": 6,
+    url: "https://github.com/real-logic/aeron",
+    occurence: 6,
+    prUrl: "https://github.com/real-logic/aeron/pull/1609",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-aeron-cluster/src/main/java/io/aeron/cluster/service/SnapshotTaker.java-io.aeron.cluster.service.SnapshotTaker/method/markEnd(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-io.aeron.cluster.service.SnapshotTaker/method/markBegin(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-snapshotTypeIdlogPositionleadershipTermIdsnapshotIndextimeUnitappVersion","affected_files":1,
+    key: "parameters_to_parameters_data_clump-aeron-cluster/src/main/java/io/aeron/cluster/service/SnapshotTaker.java-io.aeron.cluster.service.SnapshotTaker/method/markEnd(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-io.aeron.cluster.service.SnapshotTaker/method/markBegin(long snapshotTypeId, long logPosition, long leadershipTermId, int snapshotIndex, java.util.concurrent.TimeUnit timeUnit, int appVersion)-snapshotTypeIdlogPositionleadershipTermIdsnapshotIndextimeUnitappVersion",
+    affected_files: 1,
 
     size: 6,
     type: parameters_to_parameters_data_clump,
@@ -1300,10 +1412,13 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/Stirling-Tools/Stirling-PDF": {
-    url: "https://github.com/Stirling-Tools/Stirling-PDF", "occurence": 2,
+    url: "https://github.com/Stirling-Tools/Stirling-PDF",
+    occurence: 2,
+    prUrl: "https://github.com/Stirling-Tools/Stirling-PDF/pull/1395",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-src/main/java/stirling/software/SPDF/controller/api/PdfOverlayController.java-stirling.software.SPDF.controller.api.PdfOverlayController/method/sequentialOverlay(java.util.Map<java.lang.Integer, java.lang.String> overlayGuide, java.io.File[] overlayFiles, int basePageCount, java.util.List<java.io.File> tempFiles)-stirling.software.SPDF.controller.api.PdfOverlayController/method/prepareOverlayGuide(int basePageCount, java.io.File[] overlayFiles, java.lang.String mode, int[] counts, java.util.List<java.io.File> tempFiles)-overlayFilesbasePageCounttempFiles","affected_files":1,
+    key: "parameters_to_parameters_data_clump-src/main/java/stirling/software/SPDF/controller/api/PdfOverlayController.java-stirling.software.SPDF.controller.api.PdfOverlayController/method/sequentialOverlay(java.util.Map<java.lang.Integer, java.lang.String> overlayGuide, java.io.File[] overlayFiles, int basePageCount, java.util.List<java.io.File> tempFiles)-stirling.software.SPDF.controller.api.PdfOverlayController/method/prepareOverlayGuide(int basePageCount, java.io.File[] overlayFiles, java.lang.String mode, int[] counts, java.util.List<java.io.File> tempFiles)-overlayFilesbasePageCounttempFiles",
+    affected_files: 1,
 
     size: 5,
     type: parameters_to_parameters_data_clump,
@@ -1353,12 +1468,15 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/jOOQ/jOOQ": {
-    url: "https://github.com/jOOQ/jOOQ", "occurence": 2,
+    url: "https://github.com/jOOQ/jOOQ",
+    occurence: 2,
+    prUrl: "https://github.com/jOOQ/jOOQ/pull/16790",
     state: "closed",
     merged: false,
     size: 6,
     type: parameters_to_parameters_data_clump,
-    "key": "parameters_to_parameters_data_clump-jOOQ-codegen/src/main/java/org/jooq/codegen/JavaGenerator.java-org.jooq.codegen.JavaGenerator/method/getType(org.jooq.codegen.org.jooq.meta.Database db, org.jooq.codegen.org.jooq.meta.SchemaDefinition schema, org.jooq.codegen.JavaWriter out, java.lang.String t, int p, int s, org.jooq.codegen.org.jooq.Name u, java.lang.String javaType, java.lang.String defaultType, org.jooq.codegen.org.jooq.codegen.GeneratorStrategy.Mode udtMode)-org.jooq.codegen.JavaGenerator/method/getType(org.jooq.codegen.org.jooq.meta.Database db, org.jooq.codegen.org.jooq.meta.SchemaDefinition schema, org.jooq.codegen.JavaWriter out, java.lang.String t, int p, int s, org.jooq.codegen.org.jooq.Name u, java.lang.String javaType, java.lang.String defaultType, org.jooq.codegen.org.jooq.codegen.GeneratorStrategy.Mode udtMode, org.jooq.codegen.org.jooq.meta.XMLTypeDefinition xmlType)-dbschemaouttpsujavaTypedefaultTypeudtMode","affected_files":1,
+    key: "parameters_to_parameters_data_clump-jOOQ-codegen/src/main/java/org/jooq/codegen/JavaGenerator.java-org.jooq.codegen.JavaGenerator/method/getType(org.jooq.codegen.org.jooq.meta.Database db, org.jooq.codegen.org.jooq.meta.SchemaDefinition schema, org.jooq.codegen.JavaWriter out, java.lang.String t, int p, int s, org.jooq.codegen.org.jooq.Name u, java.lang.String javaType, java.lang.String defaultType, org.jooq.codegen.org.jooq.codegen.GeneratorStrategy.Mode udtMode)-org.jooq.codegen.JavaGenerator/method/getType(org.jooq.codegen.org.jooq.meta.Database db, org.jooq.codegen.org.jooq.meta.SchemaDefinition schema, org.jooq.codegen.JavaWriter out, java.lang.String t, int p, int s, org.jooq.codegen.org.jooq.Name u, java.lang.String javaType, java.lang.String defaultType, org.jooq.codegen.org.jooq.codegen.GeneratorStrategy.Mode udtMode, org.jooq.codegen.org.jooq.meta.XMLTypeDefinition xmlType)-dbschemaouttpsujavaTypedefaultTypeudtMode",
+    affected_files: 1,
 
     category: "filterSnippet",
     generalComments: [],
@@ -1380,10 +1498,13 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/junit-team/junit5": {
-    url: "https://github.com/junit-team/junit5", "occurence": 20,
+    url: "https://github.com/junit-team/junit5",
+    occurence: 20,
+    prUrl: "https://github.com/junit-team/junit5/pull/3867",
     state: "closed",
     merged: true,
-    "key": "fields_to_fields_data_clump-junit-jupiter-engine/src/test/java/org/junit/jupiter/engine/extension/LifecycleMethodExecutionExceptionHandlerTests.java-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.RethrowExceptionHandler-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.UnrecoverableExceptionHandler-beforeEachCallsbeforeAllCallsafterEachCallsafterAllCalls","affected_files":1,
+    key: "fields_to_fields_data_clump-junit-jupiter-engine/src/test/java/org/junit/jupiter/engine/extension/LifecycleMethodExecutionExceptionHandlerTests.java-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.RethrowExceptionHandler-org.junit.jupiter.engine.extension.LifecycleMethodExecutionExceptionHandlerTests.UnrecoverableExceptionHandler-beforeEachCallsbeforeAllCallsafterEachCallsafterAllCalls",
+    affected_files: 1,
 
     size: 4,
     type: parameters_to_parameters_data_clump,
@@ -1394,7 +1515,7 @@ Overall, this is 100% overhead`,
       -ExtractedClassShouldNotBePublic,
       -NotEnough,
       -OverEngineered,
-      -Verbosity
+      -Verbosity,
     ],
     generalCommentsRaw: [
       [
@@ -1432,66 +1553,68 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/apache/logging-log4j2": {
-    url: "https://github.com/apache/logging-log4j2", "occurence": 10,
+    url: "https://github.com/apache/logging-log4j2",
+    occurence: 10,
+    prUrl: "https://github.com/apache/logging-log4j2/pull/2688",
     state: "closed",
     merged: false,
-    "key": "parameters_to_parameters_data_clump-log4j-1.2-api/src/main/java/org/apache/log4j/builders/appender/SyslogAppenderBuilder.java-org.apache.log4j.builders.appender.SyslogAppenderBuilder/method/createAppender(java.lang.String name, org.apache.log4j.builders.appender.org.apache.log4j.config.Log4j1Configuration configuration, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, java.lang.String facility, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String syslogHost, java.lang.String level, org.apache.log4j.builders.appender.org.apache.logging.log4j.core.net.Protocol protocol, boolean header, boolean facilityPrinting)-org.apache.log4j.builders.appender.SocketAppenderBuilder/method/createAppender(java.lang.String name, java.lang.String host, int port, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String level, boolean immediateFlush, int reconnectDelayMillis, T configuration)-namelayoutfilterlevel","affected_files":6,
+    key: "parameters_to_parameters_data_clump-log4j-1.2-api/src/main/java/org/apache/log4j/builders/appender/SyslogAppenderBuilder.java-org.apache.log4j.builders.appender.SyslogAppenderBuilder/method/createAppender(java.lang.String name, org.apache.log4j.builders.appender.org.apache.log4j.config.Log4j1Configuration configuration, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, java.lang.String facility, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String syslogHost, java.lang.String level, org.apache.log4j.builders.appender.org.apache.logging.log4j.core.net.Protocol protocol, boolean header, boolean facilityPrinting)-org.apache.log4j.builders.appender.SocketAppenderBuilder/method/createAppender(java.lang.String name, java.lang.String host, int port, org.apache.log4j.builders.appender.org.apache.log4j.Layout layout, org.apache.log4j.builders.appender.org.apache.log4j.spi.Filter filter, java.lang.String level, boolean immediateFlush, int reconnectDelayMillis, T configuration)-namelayoutfilterlevel",
+    affected_files: 6,
 
     size: 4,
-    likertData: [[
-      {
-        scale: Neutral
-      },
-      {
-        scale: Agree
-      },
-      {
-        scale: StronglyDisagree,
-
-      },
-      {
-        scale: Agree
-
-      },
-      {
-        scale: Disagree,
-        comments: "`BasicAppenderConfiguration` or `CommonAppenderElements` would be a better choice IMHO.",
-        keywords: [-ClassName]
-      },
-      { scale: Agree },
+    likertData: [
+      [
+        {
+          scale: Neutral,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: StronglyDisagree,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Disagree,
+          comments:
+            "`BasicAppenderConfiguration` or `CommonAppenderElements` would be a better choice IMHO.",
+          keywords: [-ClassName],
+        },
+        { scale: Agree },
+      ],
+      [
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Neutral,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+        },
+        {
+          scale: Agree,
+        },
+      ],
     ],
-    [
+    experience: [
       {
-        scale: Agree
+        project: ">2 years",
+        java: "<=10 years",
       },
       {
-        scale: Agree
+        project: ">2 years",
+        java: ">10 years",
       },
-      {
-        scale: Neutral
-      },
-      {
-        scale: Agree
-      },
-      {
-        scale: Agree
-      },
-      {
-        scale: Agree
-
-      }
-    ]
-
     ],
-    experience: [{
-      project: ">2 years",
-      java: "<=10 years"
-
-    },
-    {
-      project: ">2 years",
-      java: ">10 years"
-    }],
     type: fields_to_fields_data_clump,
     category: "filterManual",
     generalComments: [-RefactoringNotWorthIt, -LLM_LegalIssues],
@@ -1542,11 +1665,14 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/apache/iceberg": {
-    url: "https://github.com/apache/iceberg", "occurence": 2,
+    url: "https://github.com/apache/iceberg",
+    occurence: 2,
+    prUrl: "https://github.com/apache/iceberg/pull/10558",
     state: "closed",
     merged: false,
     size: 6,
-    "key": "fields_to_fields_data_clump-core/src/main/java/org/apache/iceberg/FileMetadata.java-org.apache.iceberg.FileMetadata.Builder-org.apache.iceberg.DataFiles.Builder-isPartitionedspecIdspecvalueCountspartitionDatasplitOffsetsupperBoundssortOrderIdkeyMetadatacolumnSizesrecordCountlowerBoundsfilePathformatnullValueCountsfileSizeInBytesnanValueCounts","affected_files":2,
+    key: "fields_to_fields_data_clump-core/src/main/java/org/apache/iceberg/FileMetadata.java-org.apache.iceberg.FileMetadata.Builder-org.apache.iceberg.DataFiles.Builder-isPartitionedspecIdspecvalueCountspartitionDatasplitOffsetsupperBoundssortOrderIdkeyMetadatacolumnSizesrecordCountlowerBoundsfilePathformatnullValueCountsfileSizeInBytesnanValueCounts",
+    affected_files: 2,
 
     type: fields_to_fields_data_clump,
     category: "filterManual",
@@ -1584,11 +1710,14 @@ Overall, this is 100% overhead`,
     ],
   },
   "https://github.com/google/error-prone": {
-    url: "https://github.com/google/error-prone", "occurence": 6,
+    url: "https://github.com/google/error-prone",
+    occurence: 6,
+    prUrl: "https://github.com/google/error-prone/pull/4447",
     state: "open",
     merged: false,
     size: 3,
-    "key": "parameters_to_parameters_data_clump-core/src/main/java/com/google/errorprone/bugpatterns/DefaultCharset.java-com.google.errorprone.bugpatterns.DefaultCharset/method/guavaFileWriterFix(com.google.errorprone.bugpatterns.com.google.errorprone.VisitorState state, com.sun.source.tree.Tree fileArg, com.sun.source.tree.Tree toReplace, com.google.errorprone.bugpatterns.DefaultCharset$CharsetFix charset)-com.google.errorprone.bugpatterns.DefaultCharset/method/nioFileReaderFix(com.google.errorprone.bugpatterns.com.google.errorprone.VisitorState state, com.sun.source.tree.Tree arg, com.sun.source.tree.Tree toReplace, com.google.errorprone.bugpatterns.DefaultCharset$CharsetFix charset)-statetoReplacecharset","affected_files":1,
+    key: "parameters_to_parameters_data_clump-core/src/main/java/com/google/errorprone/bugpatterns/DefaultCharset.java-com.google.errorprone.bugpatterns.DefaultCharset/method/guavaFileWriterFix(com.google.errorprone.bugpatterns.com.google.errorprone.VisitorState state, com.sun.source.tree.Tree fileArg, com.sun.source.tree.Tree toReplace, com.google.errorprone.bugpatterns.DefaultCharset$CharsetFix charset)-com.google.errorprone.bugpatterns.DefaultCharset/method/nioFileReaderFix(com.google.errorprone.bugpatterns.com.google.errorprone.VisitorState state, com.sun.source.tree.Tree arg, com.sun.source.tree.Tree toReplace, com.google.errorprone.bugpatterns.DefaultCharset$CharsetFix charset)-statetoReplacecharset",
+    affected_files: 1,
 
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
@@ -1598,11 +1727,14 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/apache/gravitino": {
-    url: "https://github.com/apache/gravitino", "occurence": 1838,
+    url: "https://github.com/apache/gravitino",
+    occurence: 1838,
+    prUrl: "https://github.com/apache/gravitino/pull/3958",
     state: "open",
     merged: false,
     size: 4,
-    "key": "fields_to_fields_data_clump-core/src/main/java/com/datastrato/gravitino/meta/FilesetEntity.java-com.datastrato.gravitino.meta.FilesetEntity-com.datastrato.gravitino.listener.api.info.CatalogInfo-namecommentproperties","affected_files":39,
+    key: "fields_to_fields_data_clump-core/src/main/java/com/datastrato/gravitino/meta/FilesetEntity.java-com.datastrato.gravitino.meta.FilesetEntity-com.datastrato.gravitino.listener.api.info.CatalogInfo-namecommentproperties",
+    affected_files: 39,
 
     type: fields_to_fields_data_clump,
     category: "filterManual",
@@ -1627,11 +1759,14 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/eclipse-vertx/vert.x": {
-    url: "https://github.com/eclipse-vertx/vert.x", "occurence": 13,
+    url: "https://github.com/eclipse-vertx/vert.x",
+    occurence: 13,
+    prUrl: "https://github.com/eclipse-vertx/vert.x/pull/5243",
     state: "closed",
     merged: false,
     size: 5,
-    "key": "parameters_to_parameters_data_clump-src/main/java/io/vertx/core/http/impl/Http1xClientConnection.java-io.vertx.core.http.impl.Http1xClientConnection/method/createRequest(io.vertx.core.http.impl.io.vertx.core.http.HttpMethod method, java.lang.String uri, io.vertx.core.http.impl.MultiMap headerMap, java.lang.String authority, boolean chunked, io.vertx.core.http.impl.io.netty.buffer.ByteBuf buf, boolean end)-io.vertx.core.http.impl.Http1xClientConnection/method/beginRequest(io.vertx.core.http.impl.Http1xClientConnection$Stream stream, io.vertx.core.http.impl.HttpRequestHead request, boolean chunked, io.vertx.core.http.impl.io.netty.buffer.ByteBuf buf, boolean end, boolean connect, io.vertx.core.http.impl.io.vertx.core.internal.PromiseInternal<java.lang.Void> promise)-chunkedbufend","affected_files":5,
+    key: "parameters_to_parameters_data_clump-src/main/java/io/vertx/core/http/impl/Http1xClientConnection.java-io.vertx.core.http.impl.Http1xClientConnection/method/createRequest(io.vertx.core.http.impl.io.vertx.core.http.HttpMethod method, java.lang.String uri, io.vertx.core.http.impl.MultiMap headerMap, java.lang.String authority, boolean chunked, io.vertx.core.http.impl.io.netty.buffer.ByteBuf buf, boolean end)-io.vertx.core.http.impl.Http1xClientConnection/method/beginRequest(io.vertx.core.http.impl.Http1xClientConnection$Stream stream, io.vertx.core.http.impl.HttpRequestHead request, boolean chunked, io.vertx.core.http.impl.io.netty.buffer.ByteBuf buf, boolean end, boolean connect, io.vertx.core.http.impl.io.vertx.core.internal.PromiseInternal<java.lang.Void> promise)-chunkedbufend",
+    affected_files: 5,
 
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
@@ -1641,15 +1776,18 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/spring-io/initializr": {
-    url: "https://github.com/spring-io/initializr", "occurence": 2,
+    url: "https://github.com/spring-io/initializr",
+    occurence: 2,
+    prUrl: "https://github.com/spring-io/initializr/pull/1553",
     state: "closed",
-    "key": "fields_to_fields_data_clump-initializr-actuator/src/main/java/io/spring/initializr/actuate/stat/ProjectRequestDocument.java-io.spring.initializr.actuate.stat.ProjectRequestDocument-io.spring.initializr.web.project.ProjectRequest-groupIdartifactIdjavaVersiontypelanguagepackageNamepackaging","affected_files":2,
+    key: "fields_to_fields_data_clump-initializr-actuator/src/main/java/io/spring/initializr/actuate/stat/ProjectRequestDocument.java-io.spring.initializr.actuate.stat.ProjectRequestDocument-io.spring.initializr.web.project.ProjectRequest-groupIdartifactIdjavaVersiontypelanguagepackageNamepackaging",
+    affected_files: 2,
 
     merged: false,
     size: 7,
     type: fields_to_fields_data_clump,
     category: "filterManual",
-    generalComments: [-LLM_LegalIssues, -Readability,-Verbosity],
+    generalComments: [-LLM_LegalIssues, -Readability, -Verbosity],
     reviewComments: [],
     generalCommentsRaw: [
       [
@@ -1665,9 +1803,12 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/AutoMQ/automq": {
-    url: "https://github.com/AutoMQ/automq", "occurence": 2,
+    url: "https://github.com/AutoMQ/automq",
+    occurence: 2,
+    prUrl: "https://github.com/AutoMQ/automq/pull/1663",
     state: "closed",
-    "key": "parameters_to_parameters_data_clump-core/src/main/java/kafka/autobalancer/goals/AbstractGoal.java-kafka.autobalancer.goals.AbstractGoal/method/trySwapPartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica srcReplica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup, java.util.Comparator<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaComparator, java.util.function.BiPredicate<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaBiPredicate)-kafka.autobalancer.goals.AbstractGoal/method/tryMovePartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica replica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup)-clustersrcBrokercandidatesgoalsByPriorityoptimizedGoalsgoalsByGroup","affected_files":1,
+    key: "parameters_to_parameters_data_clump-core/src/main/java/kafka/autobalancer/goals/AbstractGoal.java-kafka.autobalancer.goals.AbstractGoal/method/trySwapPartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica srcReplica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup, java.util.Comparator<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaComparator, java.util.function.BiPredicate<kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica> replicaBiPredicate)-kafka.autobalancer.goals.AbstractGoal/method/tryMovePartitionOut(kafka.autobalancer.goals.kafka.autobalancer.model.ClusterModelSnapshot cluster, kafka.autobalancer.goals.kafka.autobalancer.model.TopicPartitionReplicaUpdater#kafka.autobalancer.goals.TopicPartitionReplica replica, kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker srcBroker, java.util.List<kafka.autobalancer.goals.kafka.autobalancer.model.BrokerUpdater#kafka.autobalancer.goals.Broker> candidates, java.util.Collection<kafka.autobalancer.goals.Goal> goalsByPriority, java.util.Collection<kafka.autobalancer.goals.Goal> optimizedGoals, java.util.Map<java.lang.String, java.util.Set<java.lang.String>> goalsByGroup)-clustersrcBrokercandidatesgoalsByPriorityoptimizedGoalsgoalsByGroup",
+    affected_files: 1,
 
     merged: true,
     size: 7,
@@ -1696,9 +1837,12 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/thingsboard/thingsboard": {
-    url: "https://github.com/thingsboard/thingsboard", "occurence": 2,
+    url: "https://github.com/thingsboard/thingsboard",
+    occurence: 2,
+    prUrl: "https://github.com/thingsboard/thingsboard/pull/11312",
     state: "closed",
-    "key": "fields_to_fields_data_clump-common/queue/src/main/java/org/thingsboard/server/queue/provider/KafkaTbCoreQueueFactory.java-org.thingsboard.server.queue.provider.KafkaTbCoreQueueFactory-org.thingsboard.server.queue.provider.KafkaMonolithQueueFactory-transportApiSettingskafkaSettingsconsumerStatsServicetransportApiResponseAdminconsumerCountjsInvokeSettingsvcSettingsjsExecutorRequestAdminhousekeeperAdminvcAdmintransportNotificationSettingshousekeeperReprocessingAdmincoreAdminserviceInfoProviderjsExecutorResponseAdmintransportApiRequestAdmincoreSettingstopicServiceruleEngineSettingsnotificationAdminfwUpdatesAdmin","affected_files":2,
+    key: "fields_to_fields_data_clump-common/queue/src/main/java/org/thingsboard/server/queue/provider/KafkaTbCoreQueueFactory.java-org.thingsboard.server.queue.provider.KafkaTbCoreQueueFactory-org.thingsboard.server.queue.provider.KafkaMonolithQueueFactory-transportApiSettingskafkaSettingsconsumerStatsServicetransportApiResponseAdminconsumerCountjsInvokeSettingsvcSettingsjsExecutorRequestAdminhousekeeperAdminvcAdmintransportNotificationSettingshousekeeperReprocessingAdmincoreAdminserviceInfoProviderjsExecutorResponseAdmintransportApiRequestAdmincoreSettingstopicServiceruleEngineSettingsnotificationAdminfwUpdatesAdmin",
+    affected_files: 2,
 
     merged: false,
     size: 21,
@@ -1717,10 +1861,13 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/OpenRefine/OpenRefine": {
-    url: "https://github.com/OpenRefine/OpenRefine", "occurence": 2,
+    url: "https://github.com/OpenRefine/OpenRefine",
+    occurence: 2,
+    prUrl: "https://github.com/OpenRefine/OpenRefine/pull/6741",
     state: "closed",
     merged: false,
-    "key": "fields_to_fields_data_clump-main/src/com/google/refine/browsing/facets/RangeFacet.java-com.google.refine.browsing.facets.RangeFacet-com.google.refine.browsing.facets.TimeRangeFacet-_blankCount_cellIndex_step_baseBlankCount_max_binsMINTO_baseErrorCountFROM_errorCountMAX_errorMessage_min_eval_baseBins","affected_files":2,
+    key: "fields_to_fields_data_clump-main/src/com/google/refine/browsing/facets/RangeFacet.java-com.google.refine.browsing.facets.RangeFacet-com.google.refine.browsing.facets.TimeRangeFacet-_blankCount_cellIndex_step_baseBlankCount_max_binsMINTO_baseErrorCountFROM_errorCountMAX_errorMessage_min_eval_baseBins",
+    affected_files: 2,
 
     size: 3,
     type: fields_to_fields_data_clump,
@@ -1761,11 +1908,14 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/mybatis/mybatis-3": {
-    url: "https://github.com/mybatis/mybatis-3", "occurence": 2,
+    url: "https://github.com/mybatis/mybatis-3",
+    occurence: 2,
+    prUrl: "https://github.com/mybatis/mybatis-3/pull/3210",
     state: "closed",
     merged: false,
     size: 6,
-    "key": "parameters_to_parameters_data_clump-src/main/java/org/apache/ibatis/executor/resultset/DefaultResultSetHandler.java-org.apache.ibatis.executor.resultset.DefaultResultSetHandler/method/applyConstructorAutomapping(org.apache.ibatis.executor.resultset.ResultSetWrapper rsw, org.apache.ibatis.executor.resultset.org.apache.ibatis.mapping.ResultMap resultMap, java.lang.String columnPrefix, java.lang.Class<?> resultType, java.util.List<java.lang.Class<?>> constructorArgTypes, java.util.List<java.lang.Object> constructorArgs, java.lang.reflect.Constructor<?> constructor)-org.apache.ibatis.executor.resultset.DefaultResultSetHandler/method/applyArgNameBasedConstructorAutoMapping(org.apache.ibatis.executor.resultset.ResultSetWrapper rsw, org.apache.ibatis.executor.resultset.org.apache.ibatis.mapping.ResultMap resultMap, java.lang.String columnPrefix, java.util.List<java.lang.Class<?>> constructorArgTypes, java.util.List<java.lang.Object> constructorArgs, java.lang.reflect.Constructor<?> constructor, boolean foundValues)-rswresultMapcolumnPrefixconstructorArgTypesconstructorArgsconstructor","affected_files":1,
+    key: "parameters_to_parameters_data_clump-src/main/java/org/apache/ibatis/executor/resultset/DefaultResultSetHandler.java-org.apache.ibatis.executor.resultset.DefaultResultSetHandler/method/applyConstructorAutomapping(org.apache.ibatis.executor.resultset.ResultSetWrapper rsw, org.apache.ibatis.executor.resultset.org.apache.ibatis.mapping.ResultMap resultMap, java.lang.String columnPrefix, java.lang.Class<?> resultType, java.util.List<java.lang.Class<?>> constructorArgTypes, java.util.List<java.lang.Object> constructorArgs, java.lang.reflect.Constructor<?> constructor)-org.apache.ibatis.executor.resultset.DefaultResultSetHandler/method/applyArgNameBasedConstructorAutoMapping(org.apache.ibatis.executor.resultset.ResultSetWrapper rsw, org.apache.ibatis.executor.resultset.org.apache.ibatis.mapping.ResultMap resultMap, java.lang.String columnPrefix, java.util.List<java.lang.Class<?>> constructorArgTypes, java.util.List<java.lang.Object> constructorArgs, java.lang.reflect.Constructor<?> constructor, boolean foundValues)-rswresultMapcolumnPrefixconstructorArgTypesconstructorArgsconstructor",
+    affected_files: 1,
 
     type: parameters_to_parameters_data_clump,
     category: "filterManual",
@@ -1795,11 +1945,14 @@ Overall, this is 100% overhead`,
     reviewCommentsRaw: [],
   },
   "https://github.com/OpenFeign/feign": {
-    url: "https://github.com/OpenFeign/feign", "occurence": 2,
+    url: "https://github.com/OpenFeign/feign",
+    occurence: 2,
+    prUrl: "https://github.com/OpenFeign/feign/pull/2497",
     state: "closed",
     merged: true,
     size: 9,
-    "key": "fields_to_fields_data_clump-core/src/main/java/feign/SynchronousMethodHandler.java-feign.SynchronousMethodHandler-feign.AsynchronousMethodHandler-loggerrequestInterceptorsbuildTemplateFromArgstargetpropagationPolicymetadataretryerlogLeveloptions","affected_files":2,
+    key: "fields_to_fields_data_clump-core/src/main/java/feign/SynchronousMethodHandler.java-feign.SynchronousMethodHandler-feign.AsynchronousMethodHandler-loggerrequestInterceptorsbuildTemplateFromArgstargetpropagationPolicymetadataretryerlogLeveloptions",
+    affected_files: 2,
 
     type: fields_to_fields_data_clump,
     category: "filterManual",

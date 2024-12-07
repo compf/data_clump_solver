@@ -2,6 +2,9 @@ import { DataClumpRefactoringContext, RefactoredContext } from "../../context/Da
 import { PipeLineStep,PipeLineStepType } from "../PipeLineStep";
 import { AbstractStepHandler } from "./AbstractStepHandler";
 
+/**
+ * A step handler that does nothing
+ */
 export class DoNothingStepHandler extends AbstractStepHandler {
     handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params:any) {
         return Promise.resolve(context);

@@ -34,6 +34,7 @@ export class PipeLine {
         let pipeLineSteps = Object.values(PipeLineStep)
         for (let i = 0; i < NumberPipeLineSteps; i++) {
             if (this.stepHandlerList[i] != null) {
+                this.stepHandlerList[i].checkCompatibleWithSystem()
                 this.stepHandlerList[i].addAditionalContextRequirementNames(pipeLineSteps[i], requiredContextNames)
                 if (difference(requiredContextNames, createdContextNames).size > 0) {
                     console.log("Not all required context names are created for step " + pipeLineSteps[i].name)

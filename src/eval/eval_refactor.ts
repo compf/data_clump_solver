@@ -10,7 +10,7 @@ import { MultipleAttemptsValidationHandler } from "../pipeline/stepHandler/valid
 import { FileIO } from "../util/FileIO";
 import { AbstractLanguageModel, ChatMessage, MessageType, TokenStats } from "../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver } from "../util/languageModel/LanguageModelTemplateResolver";
-import { getCurrLabel, getRelevantFilesRec, parseUsingJsonRepair, waitSync, writeFileSync } from "../util/Utils";
+import { getCurrLabel, getRelevantFilesRec, tryParseJSON, waitSync, writeFileSync } from "../util/Utils";
 import { basename, resolve } from "path";
 import fs from "fs"
 import { Arrayified, BaseEvaluator, getInstancePath, init, Instance, InstanceBasedFileIO, isDebug } from "./base_eval";
@@ -230,7 +230,7 @@ export class RefactorEval extends BaseEvaluator {
     }
 
     async writeExtractedClasses(msg: ChatMessage) {
-        let content = parseUsingJsonRepair(msg.messages[0])
+        let content = tryParseJSON(msg.messages[0])
 
         let sourcePath = FileIO.instance.resolvePath("extractedClassesSource")
         let astPath = FileIO.instance.resolvePath("extractedClassesAST");

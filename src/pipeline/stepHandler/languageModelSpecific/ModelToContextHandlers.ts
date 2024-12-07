@@ -330,7 +330,7 @@ export async function parseChat(fullChat: ChatMessage[], step: PipeLineStepType 
 
                 if (step == PipeLineStep.Refactoring) {
                     if (json == null) {
-                        json = parseInvalidJSON(m, " }]}}")
+                        json = parseInvalidJSON(m)
                     }
                     if (json == null) {
 

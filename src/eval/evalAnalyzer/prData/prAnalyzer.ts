@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import { data } from "./data"
 import { detectAndRefactor, open, closed, fields_to_fields_data_clump, filterManual, filterSnippet, MAX_COUNTER_VALUE, nameSuggestion, parameters_to_parameters_data_clump, PR_Data, PR_Data_Entry, GenerializedCommentCategories, Disagree } from "./structures";
-import { loadData } from "./dataClumpDataLoader";
 import { makeUnique, nop } from "../../../util/Utils";
 import { createCompareObjects, EvalAnalyzer, EvalMetric, SubSetChecker } from "../base_analyzer";
 import { Arrayified } from "../../base_eval";

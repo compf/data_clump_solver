@@ -10,6 +10,7 @@ export const MiniMatchConf = { dot: true, matchBase: true,debug:false };
 * Recursively traverse through the directory and find all relevant files
 * @param baseDir the current directory to enumerate the files there
 * @param resultArray will be filled during the recursion to store all relevant files
+* @param fileFilteringContext a context to filter the files
 */
 export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileFilteringContext:FileFilteringContext|null): void {
     let entries = fs.readdirSync(baseDir, { withFileTypes: true });
@@ -26,6 +27,13 @@ export function getRelevantFilesRec(baseDir: string, resultArray: string[],fileF
         }
     }
 }
+
+/**
+ * Determines if a file should be ignored based on the file path and the file filtering context
+ * @param filePath a file path
+ * @param fileFilteringContext the file filtering context 
+ * @returns true if file should be ignored
+ */
 export function  shallIgnore(filePath: string,fileFilteringContext:FileFilteringContext|null): boolean {
 
     if (fileFilteringContext == null) {
@@ -61,33 +69,21 @@ export function  shallIgnore(filePath: string,fileFilteringContext:FileFiltering
     return !isIncluded
 }
 
-export function checkPath(path:string, include:string[],exclude:string[], includePrevails:boolean):boolean{
-    let isIncluded = include.length == 0
-    let isExcluded = false
-    for (let includeGlob of include) {
-        if (path.endsWith(includeGlob)|| new Minimatch(includeGlob,MiniMatchConf).match(path,true)) {
-            isIncluded = true
-            break
-        }
-    }
-    for (let excludeGlob of exclude) {
-        if (new Minimatch(excludeGlob,MiniMatchConf).match(path)) {
-            isExcluded = true
-            break
-        }
-    }
-    return (isIncluded && !isExcluded) || (includePrevails && isIncluded)
-}
-
-export async function wait(ms:number){
-    return new Promise((resolve,reject)=>{
-        setTimeout(resolve,ms)
-    })
-}
+/**
+ * Waits for a certain amount of time
+ * @param ms  the time to wait in milliseconds
+ */
 export function waitSync(ms:number){
     let start = Date.now();
     while (Date.now() < start + ms);
 }
+
+/**
+ * compares two numbers
+ * @param a number 1
+ * @param b number 2
+ * @returns 0 if they are equal, 1 if a is greater than b, -1 if a is smaller than b
+ */
 export function compareTo(a:number,b:number){
     if(a==b){
         return 0
@@ -97,6 +93,12 @@ export function compareTo(a:number,b:number){
     }
     return -1
 }
+
+/**
+ * try to parse a JSON string or return null
+ * @param jsonString a JSON string
+ * @returns a JSON object or null
+ */
 export function tryParseJSON(jsonString:string){
     try{
         return JSON.parse(jsonString)
@@ -105,20 +107,32 @@ export function tryParseJSON(jsonString:string){
         return null
     }
 }
-export function tryParseJSONWithSlice(jsonString:string, remainaing?:{remaining:string}){
+
+/**
+ * try to parse JSON embedded in a string
+ * @param jsonString a text that might contain JSON
+ * @param remainaing used to return the text that is not part of the JSON
+ * @returns 
+ */
+export function tryParseJSONWithSlice(jsonString:string, remaining?:{remaining:string}){
     let original=jsonString;
     let parsed=tryParseJSON(jsonString);
     if(parsed==null){
         let start=jsonString.indexOf("{")
         let end=jsonString.lastIndexOf("}")+1
         jsonString=jsonString.slice(start,end);
-        if(remainaing){
-            remainaing.remaining=original.replace(jsonString,"")
+        if(remaining){
+            remaining.remaining=original.replace(jsonString,"")
         }
         return tryParseJSON(jsonString);
     }
     return parsed;
 }
+/**
+ * parse the JSON, if not valid returns extensive debugging information
+ * @param json  a JSON string
+ * @returns a JSON object and error message if the JSON is invalid
+ */
 export function parseJSONDetailed(json:string):{jsonResult:any,errorMessage?:string} {
     try {
         let result= JSON.parse(json);
@@ -149,29 +163,23 @@ export function parseJSONDetailed(json:string):{jsonResult:any,errorMessage?:str
 
 
 
-export function indexOfSubArray(array:any[],subArray:any[]){
-    for(let i=0;i<array.length-subArray.length;i++){
-        let found=true;
-        for(let j=0;j<subArray.length;j++){
-            if(array[i+j]!=subArray[j]){
-                console.log(array[i+j],subArray[j])
-                found=false;
-                break;
-            }
-        }
-        if(found){
-            return i;
-        }
-    }
-    return -1;
-}
-
+/**
+ * generates a random int
+ * @param max the maximum value (exclusive)
+ * @returns 
+ */
 export function randInt(max:number){
     return Math.floor(max*Math.random())
 }
 
 export function nop(){}
 
+/**
+ * Makes an array unique
+ * @param array the array to make unique
+ * @param keyFunction a mapper to obtain a key from the array elements
+ * @returns a unique array
+ */
 export function makeUnique<T>(array:T[], keyFunction?:{(o:T):string}):T[]{
     if(keyFunction){
         let keys=new Set<string>();
@@ -189,7 +197,11 @@ export function makeUnique<T>(array:T[], keyFunction?:{(o:T):string}):T[]{
     }
     return Array.from(new Set(array))
 }
-
+/**
+ * Helper function to print a Jsoon so that it is readable but invalid
+ * @param obj a object to print
+ * @returns a string representing the object
+ */
 export function prettyInvalidJson(obj:any){
     let  result=prettyInvalidJsonRec(obj,0)
     return result;
@@ -246,78 +258,50 @@ function prettyInvalidJsonRec(obj:any, depth:number):string{
     return text;
 }
 
+/**
+ * used to write content to a specific location depending on how the application is started
+ * @param key a key or file name
+ * @param content the file content
+ */
 export function writeFileSync(key:string,content:string){
     let fileIO=FileIO.instance;
     fileIO.writeFileSync(key,content)
 }
 
+/**
+ *  used to read content from a specific location depending on how the application is started
+ * @param key  a key or file name
+ * @returns the file content
+ */
 export function readFileSync(key:string):string{
     let fileIO=FileIO.instance;
     return fileIO.readFileSync(key)
 }
 let currLabel="";
+
+/**
+ * used for eval scripts to get the current label
+ * @returns 
+ */
 export function getCurrLabel():string{
     return currLabel;
 }
 
+/**
+ *  used for eval scripts to set the current label
+ * @param label 
+ */
 export function setCurrLabel(label:string){
     currLabel=label;
 }
 
-export function mergeObjects(objects:any[]){
-    let target={}
 
-    for(let o of objects){
-        mergeObject(target,o)
-    }
-    return target
-}
-
-function mergeObject(target:any, obj:any){
-    for(let key of Object.keys(obj)){
-        if(!(key in target)){
-           target[key]=obj[key]
-        }
-        else{
-            if(Array.isArray(obj[key])){
-                for(let o of obj[key]){
-                    target[key].push(o)
-                }
-                
-            }
-            else if(typeof(obj[key])=="object"){
-                mergeObject(target[key],obj[key])
-            }
-            else{
-                target[key]=obj[key]
-            }
-            
-        }
-    }
-}
-const processedInvalidJsonPath="stuff/processed_invalid.json"
-function loadProcessedInvalidJSON(jsonString:string):any{
-    let result=tryParseJSON(jsonString);
-    if(result!=null){
-        return result;
-    }
-    if(fs.existsSync(processedInvalidJsonPath)){
-       let dict=JSON.parse(fs.readFileSync(processedInvalidJsonPath).toString())
-        let key=createHash('sha256').update(jsonString).digest('base64');
-        if (key in dict){
-            return dict[key]
-        }
-        else{
-            return null;
-        }
-        
-    }
-    else{
-        return null;
-    }
-}
-
-export function parseUsingJsonRepair(jsonString:string){
+/**
+ * parse a JSON string using jsonrepair
+ * @param jsonString a JSON string, might be invalid
+ * @returns an object or null
+ */
+ function parseUsingJsonRepair(jsonString:string){
     let result=tryParseJSON(jsonString)
     if(result==null){
         let repaired="{"
@@ -340,32 +324,20 @@ export function parseUsingJsonRepair(jsonString:string){
         return result;
     }
 }
-export function parseInvalidJSON(jsonString:string, closingBrackets?:string){
-    
-   let result=tryParseJSONWithSlice(jsonString)
-   return parseUsingJsonRepair(jsonString)
-    /*let original=jsonString
-    let counter=0
-    while(result==null && jsonString.length>0){
-        jsonString=jsonString.slice(0,jsonString.length-1)
-       // console.log()
-        
-       // console.log(counter++,jsonString)
-        for(let i=0;i<closingBrackets.length;i++){
-            let temp=jsonString+closingBrackets.slice(undefined,i+1);
-            result=tryParseJSON(temp)
-            if(result!=null){
-                //saveProcessedInvalidJson(original,result)
-                return result;
-
-            }
-        }
-        
-    }
-    return result;*/
-    
+/**
+ * parse an  JSON strin, tries to repair it if it is invalid
+ * @param jsonString a string that should be a JSON
+ * @returns a JSON object or null
+ */
+export function parseInvalidJSON(jsonString:string){
+   return parseUsingJsonRepair(jsonString)  
 }
 
+/**
+ * Used to set a break point in the code
+ * @param f a function that might return null
+ * @returns the result of the function
+ */
 export function debugOnNull(f:any){
     let res=f();
     if(res==null || res==undefined){

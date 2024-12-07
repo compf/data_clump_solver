@@ -6,7 +6,9 @@ import {join,resolve,dirname} from "path"
 import fs from "fs"
 import { resolveFromInterfaceName } from "../../../config/Configuration";
 import { ValidationStepHandler } from "../validation/ValidationStepHandler";
-
+/**
+ * Creates a class for each data clump, must be extended for each programming language
+ */
 export abstract class ManualClassExtractionStepHandler extends AbstractStepHandler{
     abstract createField(fieldName:string, type:string):string;
     abstract createGetter(fieldName:string, type:string):string;

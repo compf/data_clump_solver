@@ -57,6 +57,7 @@ export const GenerializedCommentCategories = {
 export type PR_Data_Entry = {
 
     url: string,
+    prUrl: string,
     merged: boolean,
     state: "open"|"closed",
     occurence?:number,

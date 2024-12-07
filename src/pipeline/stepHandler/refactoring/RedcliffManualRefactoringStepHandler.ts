@@ -1,11 +1,14 @@
-import { DataClumpDetectorContext, DataClumpRefactoringContext, getContextSerializationPath, NameFindingContext, RefactoredContext, UsageFindingContext } from "../../../context/DataContext";
+import { DataClumpDetectorContext, DataClumpRefactoringContext, getContextSerializationBasePath, getContextSerializationPath, NameFindingContext, RefactoredContext, UsageFindingContext } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
+const commandExistsSync = require('command-exists').sync;
 import { resolve } from "path";
 import { spawnSync } from "child_process"
 
-
+/**
+ * Handles the manual refactoring step
+ */
 export class RedcliffManualRefactoringStepHandler extends AbstractStepHandler{
     handle(step:PipeLineStepType,context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
         const projectPath=context.getProjectPath()
@@ -13,7 +16,7 @@ export class RedcliffManualRefactoringStepHandler extends AbstractStepHandler{
         demo-cli:runDemoPluginCLI -Prunner=DemoPluginCLI -PmyProjectPath='/home/compf/data/uni/master/sem4/data_clump_solver/javaTest/moreComprehensiveJavaTest'
          -PdataPath='/home/compf/data/uni/master/sem4/data_clump_solver/data' --stacktrace
         */
-        const dataPath=resolve("./data")
+        const dataPath=getContextSerializationBasePath(context)
         /*
         (   val dataClumpContextPath:String?,
             val referenceFindingContextePath:String?,
@@ -72,6 +75,15 @@ export class RedcliffManualRefactoringStepHandler extends AbstractStepHandler{
     }
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
         createdContexts.add(RefactoredContext.name)
+    }
+
+    checkCompatibleWithSystem(): void {
+        if(!commandExistsSync("gradle")){
+            throw new Error("Gradle not found. Please install gradle")
+        }
+        if(!fs.existsSync("REDCLIFF-Java")){
+            throw new Error("Redcliff not found. Please clone the Redcliff repository")
+        }
     }
    
 

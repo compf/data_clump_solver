@@ -26,7 +26,6 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
        for(let h of this.handlers){
         await h.handle(dcContext,api,resolver)
        }
-       console.log("dcContext",dcContext.getDataClumpDetectionResult())
       try{
        let parsed=await this.parseOutput(api,dcContext);
        console.log("parsed",parsed)
@@ -59,6 +58,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
             [
                 (s,d)=>{
                     let res=tryParseJSONWithSlice(s)
+                    console.log("received",res)
                     let dcContext=d.getByType(DataClumpDetectorContext)!
                     let keys=Array.from(dcContext.getDataClumpKeys());
                     if(keys.includes(res.key)){

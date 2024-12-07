@@ -1,12 +1,16 @@
 import { ASTBuildingContext, DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
 import { ParserHelperJavaSourceCode } from "../../../data-clumps-doctor/analyse/src/ignoreCoverage/ParserHelperJavaSourceCode";
 import { DetectorUtils } from "../../../data-clumps-doctor/analyse/src/ignoreCoverage/detector/DetectorUtils";
-import { getRelevantFilesRec, wait, waitSync } from "../../../util/Utils";
+import { getRelevantFilesRec, waitSync } from "../../../util/Utils";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import { resolve } from "path"
 import fs from "fs"
 import AdmZip from "adm-zip";
+
+/**
+ * Creates the AST using the DataClumpDoctor, but nothing more
+ */
 export class DataClumpDoctorASTGeneratorStep extends AbstractStepHandler {
     constructor(args:{outPath?: string}) {
         super()

@@ -24,6 +24,7 @@ export abstract class LanguageServerAPI {
         let msg = this.create_request_message(2, Methods.Initialized, {})
         socket.write(msg)
     }
+    abstract checkCompatibleWithSystem():void
     create_request_message(id: string | number, method: Methods, params: any): string {
         let content = JSON.stringify({ jsonrpc: "2.0", id, method, params })
         let header = "Content-Length: " + content.length + "\r\n\r\n";
