@@ -2,6 +2,7 @@ import { InitializeParams } from "ts-lsp-client";
 import { ResponseMessage } from "./TypeDefinitions";
 import { Readable, Writable } from "stream";
 import {resolve} from "path"
+import url from "url"
 import { MyCapabilities } from "./Capabilities";
 import { spawn ,ChildProcess} from "child_process"
 export enum Methods {
@@ -44,7 +45,7 @@ export abstract class LanguageServerAPI {
         const initParam: InitializeParams = {
             processId: process.pid,
             //workspaceFolders: [{ name: "Pokemon_Sirius", uri: "PokemonSirius" }],
-            "rootUri": "file://"+resolve(path)+"/",
+            "rootUri":url.pathToFileURL(resolve(path)).toString(),
             capabilities: MyCapabilities,
             trace: "verbose",
             initializationOptions:{

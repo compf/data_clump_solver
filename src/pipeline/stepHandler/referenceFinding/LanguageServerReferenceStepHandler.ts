@@ -8,6 +8,7 @@ import { resolve, relative } from "path"
 import { MyCapabilities } from "../../../util/languageServer/Capabilities";
 import { readFileSync } from "fs"
 import fs from "fs"
+import url from "url";
 import { LanguageServerAPI, Methods } from "../../../util/languageServer/LanguageServerAPI";
 import { UsageType, VariableOrMethodUsage } from "../../../context/VariableOrMethodUsage";
 import { registerFromName, resolveFromInterfaceName } from "../../../config/Configuration";
@@ -93,7 +94,7 @@ export class LanguageServerReferenceStepHandler extends AbstractStepHandler {
                 let param = method.parameters.find((it) => it.name == paramName)!
                 let requestParam: ReferenceParams = {
                     textDocument: {
-                        uri: "file://" + resolve(context.getProjectPath(), currPath)
+                        uri:url.pathToFileURL( resolve(context.getProjectPath(), currPath)).toString()
                     },
                     position: {
                         line: param.position.startLine - 1,
@@ -130,7 +131,7 @@ export class LanguageServerReferenceStepHandler extends AbstractStepHandler {
             }
             let methodUsedReferenceParams: ReferenceParams = {
                 textDocument: {
-                    uri: "file://" + resolve(context.getProjectPath(), currPath)
+                    uri: url.pathToFileURL( resolve(context.getProjectPath(), currPath)).toString()
                 },
                 position: {
                     line: method.position.startLine - 1,
@@ -167,7 +168,7 @@ export class LanguageServerReferenceStepHandler extends AbstractStepHandler {
             let fieldDefRequest: DefinitionParams = {
 
                 textDocument: {
-                    uri: "file://" + resolve(context.getProjectPath(), fieldFile)
+                    uri:url.pathToFileURL(resolve(context.getProjectPath(), fieldFile)).toString()
                 },
                 position: {
                     line: pos.startLine - 1,
@@ -192,7 +193,7 @@ export class LanguageServerReferenceStepHandler extends AbstractStepHandler {
 
         let fieldUsageRequest: ReferenceParams = {
             textDocument: {
-                uri: "file://" + resolve(context.getProjectPath(), fieldFile)
+                uri: url.pathToFileURL( resolve(context.getProjectPath(), fieldFile)).toString()
             },
             position: {
                 line: pos.startLine - 1,
@@ -270,7 +271,7 @@ export class LanguageServerReferenceStepHandler extends AbstractStepHandler {
                     let usage: VariableOrMethodUsage = {
                         symbolType: info.usageType,
                         range: { startLine: result.range.start.line, startColumn: result.range.start.character, endLine: result.range.end.line, endColumn: result.range.end.character },
-                        filePath: result.uri.substring("file://".length).replace(context.getProjectPath(), "").replace("/", ""),
+                        filePath: url.fileURLToPath( result.uri),
                         name: info.variableName,
                         originKey: info.originKey,
                     }
