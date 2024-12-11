@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { data } from "./data"
-import { detectAndRefactor, open, closed, fields_to_fields_data_clump, filterManual, filterSnippet, MAX_COUNTER_VALUE, nameSuggestion, parameters_to_parameters_data_clump, PR_Data, PR_Data_Entry, GenerializedCommentCategories, Disagree } from "./structures";
+import { detectAndRefactor, open, closed, fields_to_fields_data_clump, MAX_COUNTER_VALUE, nameSuggestion, parameters_to_parameters_data_clump, PR_Data, PR_Data_Entry, GenerializedCommentCategories, Disagree } from "./structures";
 import { makeUnique, nop } from "../../../util/Utils";
 import { createCompareObjects, EvalAnalyzer, EvalMetric, SubSetChecker } from "../base_analyzer";
 import { Arrayified } from "../../base_eval";
@@ -79,12 +79,7 @@ function init() {
 
 
     for (let d of Object.values(data)) {
-        if (d.category == filterManual) {
-            d.category = nameSuggestion
-        }
-        if (d.category == filterSnippet) {
-            d.category = detectAndRefactor
-        }
+
         d.categorizedComments = []
         for (let c of d.generalComments) {
             c = Math.abs(c)

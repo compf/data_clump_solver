@@ -1,4 +1,3 @@
-import fs from "fs";
 let counter = 1;
 export const Readability = counter++;
 export const Complexity = counter++;
@@ -38,8 +37,6 @@ export const parameters_to_parameters_data_clump = "parameters_to_parameters_dat
 export const fields_to_fields_data_clump = "fields_to_fields_data_clump";
 export const detectAndRefactor="detectAndRefactor";
 export const nameSuggestion = "nameSuggestion";
-export const filterSnippet = "filterSnippet";
-export const filterManual="filterManual";
 export const open="open"
 export const closed="closed"
 
@@ -65,8 +62,7 @@ export type PR_Data_Entry = {
     type: string,
     size: number,
     affected_files?:number,
-    manualChanges?: boolean,
-    category: string
+    category: "detectAndRefactor"|"nameSuggestion"
     likertData?: {
         scale: number,
         comments?: string,
