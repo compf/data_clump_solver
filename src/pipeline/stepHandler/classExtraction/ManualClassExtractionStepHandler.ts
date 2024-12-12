@@ -56,7 +56,6 @@ export abstract class ManualClassExtractionStepHandler extends AbstractStepHandl
             let classPath=context.getByType(ClassPathContext)!.getExtractedClassPath(dataClumpKey)
             if(!fs.existsSync(classPath)){
                 fs.writeFileSync(classPath,classBody)
-                console.log("writing",classPath)
             }
             
 

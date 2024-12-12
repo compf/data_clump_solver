@@ -56,7 +56,6 @@ export async function parseMarkdown(context: DataClumpRefactoringContext, messag
     let changes = {}
     let lines = message.split("\n")
     for (let line of lines) {
-        console.log("line", line)
         nop();
 
         let splitted = line.split(/\s/)
@@ -79,25 +78,20 @@ export async function parseMarkdown(context: DataClumpRefactoringContext, messag
         }
         else if (line.startsWith("``") && insideCodeBlock) {
 
-            console.log("path", path)
             insideCodeBlock = false;
             if (path == "") {
-                console.log("path not found")
             }
             else {
                 changes[path] = code
-                //fs.writeFileSync(path,code);
 
             }
             path = ""
             code = ""
         }
         else if (insideCodeBlock) {
-            console.log("code", line)
             code += line + "\n"
         }
         else {
-            console.log("OTHER:", line)
         }
     }
 
@@ -155,7 +149,6 @@ export function parse_piecewise_output_from_file(changes: Change[], fileContent:
     let foundOriginal = false;
     let faultyInstance = false;
     let oldContentNewContentDiff: string[] = [];
-    console.log("changes", changes)
     for (let change of changes) {
         let start = change.fromLine
         if (typeof (start) == "string") {
@@ -272,7 +265,6 @@ let allCounter = 0;
 let trueCounter = 0;
 export function parse_piecewise_output(content: any, fullChat: ChatMessage[], context: DataClumpRefactoringContext, outputHandler: OutputHandler): string | null {
     let changes = {};
-    console.log("content", content)
 
     if (typeof content == "object") {
         content.date = (new Date()).toISOString();

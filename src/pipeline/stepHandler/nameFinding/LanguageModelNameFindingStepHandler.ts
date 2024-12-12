@@ -1,4 +1,4 @@
-import { resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
+import { resolveFromConcreteName, resolveFromInterfaceName, isRegistered, resolveOrRegister   } from "../../../config/Configuration";
 import { DataClumpRefactoringContext } from "../../../context/DataContext";
 import { AbstractLanguageModel } from "../../../util/languageModel/AbstractLanguageModel";
 import { LanguageModelTemplateResolver, LanguageModelTemplateType } from "../../../util/languageModel/LanguageModelTemplateResolver";
@@ -19,7 +19,7 @@ export class LanguageModelNameFindingsStepHandler extends AbstractNameFindingSte
             this.languageModel = resolveFromConcreteName(this.args.languageModelName) as AbstractLanguageModel;
             }
         }
-        let resolver=resolveFromConcreteName(LanguageModelTemplateResolver.name) as LanguageModelTemplateResolver
+        let resolver=resolveOrRegister(LanguageModelTemplateResolver.name,{}) as LanguageModelTemplateResolver
         let additionalReplacements={
             "${field_names}": this.getQueryKey(variableInfos),
             "${quantifier}":counter>0?"another":"a",

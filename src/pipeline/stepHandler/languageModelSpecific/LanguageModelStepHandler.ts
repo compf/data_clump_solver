@@ -3,7 +3,6 @@ import { LanguageModelTemplateResolver } from "../../../util/languageModel/Langu
 import { PipeLineStepType } from "../../PipeLineStep";
 import { AbstractStepHandler } from "../AbstractStepHandler";
 import fs from "fs"
-const Levenshtein = require("levenshtein")
 import { resolve } from "path"
 import {  assignOrResolve, resolveFromConcreteName, resolveFromInterfaceName } from "../../../config/Configuration";
 import { LargeLanguageModelHandler } from "./ContextToModelHandlers";

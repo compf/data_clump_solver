@@ -8,18 +8,6 @@ export class ByTypesFilter implements SingleItemFilter{
         let dc =data as DataClumpTypeContext
         let types=Object.values(dc.data_clump_data).map((it)=>(it as any).displayedType).sort()
 
-        if(this.types.length==types.length){
-            for(let i=0;i<types.length;i++){
-                if(types[i]!=this.types[i]){
-                    console.log("compare",this.types[i],types[i])
-                }
-            }
-        }
-        
-        if(types==this.types){
-            console.log(types,this.types);
-            throw "test"
-        }
         return Promise.resolve(this.types==types)
     }
     isCompatibleWithDataClump(): boolean {

@@ -163,7 +163,6 @@ export class AllAST_FilesHandler extends AllFilesHandler {
                 this.counter++;
             }
         }
-        console.log(content)
         return content
     }
 }

@@ -6,7 +6,6 @@ export class ByTypeNameKeyFilter implements SingleItemFilter{
     shallRemain(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<boolean> {
         let dcContext=context.getByType(DataClumpDetectorContext) as DataClumpDetectorContext;
         let remain=dcContext.createDataTypeNameClumpKey(data as DataClumpTypeContext)==this.typeNameKey
-        console.log("Check",remain,this.typeNameKey)
         return Promise.resolve(remain)
     }
     isCompatibleWithDataClump(): boolean {

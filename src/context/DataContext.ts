@@ -180,7 +180,6 @@ export class GitRepositoryContext extends DataClumpRefactoringContext {
                 break;
             }
         }
-        console.log("processed",Array.from(files))
         return Array.from(files)        
     }
     

@@ -44,12 +44,10 @@ test("Test file filtering",()=>{
   filter.handle(PipeLineStep.FileFiltering,new CodeObtainingContext(""),null).then((ctx)=>{
     paths=[]
     getRelevantFilesRec("baseDir",paths,ctx as FileFilteringContext)
-    console.log("paths",paths)
     expect(paths).toHaveLength(allPaths.length-1)
     filter.handle(PipeLineStep.FileFiltering,new CodeObtainingContext(""),null).then((ctx)=>{
         paths=[]
         getRelevantFilesRec("baseDir",paths,ctx as FileFilteringContext)
-        console.log("paths",paths)
         expect(paths).toHaveLength(allPaths.length-2)
         filter=new FileFilterStepHandler({exclude:["other*."]})
         filter.handle(PipeLineStep.FileFiltering,new CodeObtainingContext(""),null).then((ctx)=>{

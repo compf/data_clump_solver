@@ -1,6 +1,5 @@
 import { RefactoredContext } from "../../../context/DataContext";
 import { PipeLineStep, PipeLineStepType } from "../../PipeLineStep";
-const Levenshtein = require("levenshtein")
 import { LanguageModelStepHandler } from "../languageModelSpecific/LanguageModelStepHandler";
 
 

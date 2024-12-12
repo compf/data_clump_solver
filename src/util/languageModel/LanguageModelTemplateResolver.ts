@@ -56,7 +56,6 @@ export class LanguageModelTemplateResolver {
     resolveRemainingReferences(text:string):string{
         let matches=text.match(/(\$|%){(\w|_)+}/gm)
         if(matches){
-           console.log("TEX",text) 
             console.log(matches)
             throw "Not all references are resolved "
         }

@@ -80,19 +80,19 @@ function init() {
 
     for (let d of Object.values(data)) {
 
-        d.categorizedComments = []
+        (d as any).categorizedComments = []
         for (let c of d.generalComments) {
             c = Math.abs(c)
             for (let k of Object.keys(GenerializedCommentCategories)) {
                 if (GenerializedCommentCategories[k].includes(c)) {
-                    d.categorizedComments!.push(Object.keys(GenerializedCommentCategories).indexOf(k))
+                    (d as any).categorizedComments!.push(Object.keys(GenerializedCommentCategories).indexOf(k))
                 }
             }
             for (let c of d.reviewComments) {
                 c = Math.abs(c)
                 for (let k of Object.keys(GenerializedCommentCategories)) {
                     if (GenerializedCommentCategories[k].includes(c)) {
-                        d.categorizedComments!.push(Object.keys(GenerializedCommentCategories).indexOf(k))
+                        (d as any).categorizedComments!.push(Object.keys(GenerializedCommentCategories).indexOf(k))
                     }
                 }
             }
@@ -102,7 +102,7 @@ function init() {
     }
     for (let k of Object.keys(GenerializedCommentCategories)) {
         let k2 = k;
-        filters[k] = (d) => d.categorizedComments!.includes(Object.keys(GenerializedCommentCategories).indexOf(k2))
+        filters[k] = (d) => (d as any).categorizedComments!.includes(Object.keys(GenerializedCommentCategories).indexOf(k2))
     }
     for (let fKey of Object.keys(filters)) {
         let f = filters[fKey]

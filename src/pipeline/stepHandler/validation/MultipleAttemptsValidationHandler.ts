@@ -34,9 +34,7 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
         compilingResults:CompilingResult[]
     }|null> {
         let api = resolveFromInterfaceName(AbstractLanguageModel.name) as AbstractLanguageModel
-        console.log(api)
         let chat = context.getByType(LargeLanguageModelContext)!.getChat();
-        console.log(chat)
         api.clear()
         for (let c of chat) {
             api.prepareMessage(c.messages[0], c.messageType)
@@ -91,7 +89,6 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
             let git=simpleGit(context.getProjectPath())
             writeFileSync("errors.txt", result.raw!)
 
-            console.log("Refactoring", result)
 
         } while (attempts < maxAttempts && !result.success)
         if (result.success) {
