@@ -2,6 +2,9 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { Metric } from "../../../util/filterUtils/Metric";
 
+/**
+ * Returns the number of other data clumps in the same file
+ */
 export class OtherDataClumpsInFileMetric implements Metric{
     evaluate(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<number> {
         let dc =data as DataClumpTypeContext

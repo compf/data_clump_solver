@@ -2,7 +2,9 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 import { DataClumpRefactoringContext, FileFilteringContext } from "../../../context/DataContext";
 import { shallIgnore } from "../../../util/Utils";
-
+/**
+ * Use inclusion and exclusion patterns on paths to filter data clumps
+ */
 export class ByPathFilter implements SingleItemFilter{
     private  include: string[] = []
     private  exclude: string[] = []

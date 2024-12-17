@@ -4,7 +4,7 @@ import { DataClumpSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/
 import { DataClumpOccurenceMetric } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 import { AffectedFileSizeMetric } from "../pipeline/stepHandler/dataClumpFiltering/AffectedFileSizeMetric";
 import { Ranker } from "../util/filterUtils/Ranker";
-import { DataClumpLanguageModelFilter } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilter";
+import { DataClumpLanguageModelFilterStephandler } from "../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilterStepHandler";
 import { AllFilesHandler, DataClumpCodeSnippetHandler, LargeLanguageModelHandler, SimpleInstructionHandler, SimplifiedDataClumpContextHandler } from "../pipeline/stepHandler/languageModelSpecific/ContextToModelHandlers";
 import { MetricCombiner } from "../util/filterUtils/MetricCombiner";
 import { registerFromName, resolveFromConcreteName, resolveFromInterfaceName } from "../config/Configuration";
@@ -21,8 +21,7 @@ import { Metric } from "../util/filterUtils/Metric";
 import fs from "fs"
 import { getRepoDataFromUrl } from "../util/vcs/VCS_Service";
 import { FilterOrMetric } from "../util/filterUtils/SingleItemFilter";
-const MAX_ATTEMPTS = 5;
-const model = "codegemma"
+
 type FilterEvalInstance = Instance & {
 }
 
@@ -83,8 +82,11 @@ export class FilterEval extends BaseEvaluator {
             iteration: [0, 1, 2, 3, 4,5,6,7,8,9],
             projectName:[],
             inputFormat: [
+                //Data clump type context
                 "filter",
+                // Code snippets
                 "filter_code_snippet",
+                //Full code
                 "filter_full_code"],
             instructionType: [
                 "definitionBased"
@@ -125,12 +127,13 @@ export class FilterEval extends BaseEvaluator {
             }
 
         }
+        //save the most important data clumps per metric
         fs.writeFileSync(resolve(this.getProjectDataFolder(url),"basicMetrics.json"), JSON.stringify(this.all_result, null, 2));
 
         
     
     
-        let llmFilter = new DataClumpLanguageModelFilter({handlers:[]});
+        let llmFilter = new DataClumpLanguageModelFilterStephandler({handlers:[]});
         originalDcContext.sharedData.llmFilter = llmFilter;
         return originalDcContext;
     }

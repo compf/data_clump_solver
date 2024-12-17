@@ -1,6 +1,5 @@
 import { all } from "axios";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
-import { DataClumpLanguageModelFilter } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilter";
 import { StubInterface } from "../../util/languageModel/StubInterface";
 import { BaseEvaluator, Instance } from "../base_eval";
 import { FilterEval } from "../eval_filter";
@@ -11,6 +10,7 @@ import { DataClumpTypeContext } from "data-clumps-type-context";
 import { tryParseJSON } from "../../util/Utils";
 import { DataClumpOccurenceMetric } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 import { statFunctions } from "./utils";
+import { DataClumpLanguageModelFilterStephandler } from "../../pipeline/stepHandler/dataClumpFiltering/DataClumpLanguageModelFilterStepHandler";
 const reasons=[
     "size" ,
     "occurrence" ,
@@ -44,7 +44,7 @@ export class FilterAnalyzer extends EvalAnalyzer {
         if(parsed==undefined || parsed==null || Object.keys(parsed).length==0){
             return [];
         }
-        let llm = new DataClumpLanguageModelFilter({ handlers: [] } as any)
+        let llm = new DataClumpLanguageModelFilterStephandler({ handlers: [] } as any)
 
         let withNumericIds = llm.simplifyKeys(context.getByType(DataClumpDetectorContext)!.getDataClumpDetectionResult())
 

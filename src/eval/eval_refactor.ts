@@ -66,6 +66,7 @@ export class RefactorEval extends BaseEvaluator {
             ],
             instructionType: [
                 // "definitionBased",
+                // giving examples is the best prompt for the modelif refactoring is performed
                 "exampleBased"
                 //,
                 //"noDefinitionBased"
@@ -73,10 +74,10 @@ export class RefactorEval extends BaseEvaluator {
             inputFormat: [
 
 
-
+                // due to an oversight, the name is not good
+                // it should be "fullCode" and codeSnippet
                 "instruction",
                 "instructionSnippet",
-                //"fullCode"
             ],
             iteration: Array.from({ length: 10 }, (x, i) => i),
             margin: [0, 1, 2, 5, 10],
@@ -125,8 +126,10 @@ export class RefactorEval extends BaseEvaluator {
             context = context.buildNewContext(await this.getUsageInformation(context as RelevantLocationsContext))
 
         }
+        // clean the project
         spawnSync("mvn",["clean"],{cwd:context.getProjectPath()});
         await git.checkout("-Bcontext")
+        // add the context to the repo
         await git.add(["-f", ".data_clump_solver_data"])
         await git.commit("context")
 
@@ -137,13 +140,13 @@ export class RefactorEval extends BaseEvaluator {
         return new MavenBuildValidationStepHandler({ skipTests: true })
     }
     async validateInstance(context: DataClumpRefactoringContext) {
-        let valL = this.getValidationInstance()
-        let resL = await valL.validate(context)
-        if (!resL.success) {
+        let validationInstance = this.getValidationInstance()
+        let res = await validationInstance.validate(context)
+        if (!res.success) {
             throw "Project does not compile"
         }
     }
-    async detectDataClump(git: SimpleGit, context: DataClumpRefactoringContext) {
+    async detectDataClumps(git: SimpleGit, context: DataClumpRefactoringContext) {
         let detector = new DataClumpDoctorStepHandler({})
         let ctx = await detector.handle(PipeLineStep.DataClumpDetection, context.getByType(CodeObtainingContext)!, undefined)
         await git.add(["-f", ".data_clump_solver_data"])
@@ -151,6 +154,7 @@ export class RefactorEval extends BaseEvaluator {
     }
     async analyzeInstance(instance: RefactorInstance, context: DataClumpRefactoringContext): Promise<void> {
         let git = simpleGit(context.getProjectPath())
+        // creates a new branch with a name based on the instance
         let g = await git.checkout("-B" + getInstancePath([], "-", instance))
         await this.validateInstance(context)
         let refactorHandlers: LargeLanguageModelHandler[] = [
@@ -192,8 +196,11 @@ export class RefactorEval extends BaseEvaluator {
 
         })
         multiValidationHandler.afterValidationStep = async (attempt: number) => {
+
+            // every time thoe project is validated, the current state is committed
             await git.add("-A")
             await git.commit(getCurrLabel())
+            // creating a tag for the current state
             await git.raw(["tag", getInstancePath([], "-", instance) + "-" + getCurrLabel(), "-f"])
 
         }
@@ -221,14 +228,19 @@ export class RefactorEval extends BaseEvaluator {
 
         let count = await multiValidationHandler.getValidationCount(context);
 
-        await this.detectDataClump(git, context)
+        await this.detectDataClumps(git, context)
+        // commit the current data clump type context (e.g. the remainign data clumps)
         await git.checkout("context")
         writeFileSync("validation_count.json", JSON.stringify(count, null, 2))
         console.log("Validation count", count);
         waitSync(1000)
         AllFilesHandler.processed.clear()
     }
-
+    /**
+     * writes the AST of the extracted classes to the file system
+     * @param msg 
+     * @returns 
+     */
     async writeExtractedClasses(msg: ChatMessage) {
         let content = tryParseJSON(msg.messages[0])
 
@@ -318,7 +330,9 @@ class DummyInstanceBasedIO extends InstanceBasedFileIO {
 
     }
 }
-
+/**
+ * Used to replay the refactor evaluation without using the language model
+ */
 export class ReplayRefactorEvaluator extends RefactorEval {
 
     shallIgnore(instance: Instance): boolean {

@@ -2,6 +2,9 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpRefactoringContext } from "../../../context/DataContext";
 import { SingleItemFilter } from "../../../util/filterUtils/SingleItemFilter";
 
+/**
+ * Filters data clumps that have a type with more than one letter
+ */
 export class SingleTypeLetterFilter implements SingleItemFilter {
   isCompatibleWithDataClump(): boolean {
     return true;

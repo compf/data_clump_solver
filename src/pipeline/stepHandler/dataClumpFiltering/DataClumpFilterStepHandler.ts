@@ -11,6 +11,9 @@ export type DataClumpFilterArgs=RankerArgs&{
     metric?:string|Metric,
     filter?:string|SingleItemFilter,
 }
+/**
+ * The main stephandler that filters data clumps
+ */
 export  class DataClumpFilterStepHandler extends AbstractStepHandler {
     addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
 

@@ -4,6 +4,10 @@ import { Metric } from "../../../util/filterUtils/Metric";
 import {resolve} from "path"
 import fs from "fs"
 import { AffectedFilesMetric } from "./AffectedFilesMetric";
+
+/**
+ * Returns the total size of the affected files
+ */
 export class AffectedFileSizeMetric extends AffectedFilesMetric {
   
 

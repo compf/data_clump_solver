@@ -4,6 +4,9 @@ import { AST_Method } from "../../../context/AST_Type"
 import { Metric } from "../../../util/filterUtils/Metric"
 import { assignOrResolve } from "../../../config/Configuration"
 
+/**
+ * Returns the size of the data clump
+ */
 export class DataClumpSizeMetric implements Metric{
     constructor(args:{normalize?:boolean}){
         assignOrResolve(this,args,{normalize:false})

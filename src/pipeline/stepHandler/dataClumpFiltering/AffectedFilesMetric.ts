@@ -1,6 +1,9 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { Metric } from "../../../util/filterUtils/Metric";
+/**
+ * Returns the  number of affected files
+ */
 export class AffectedFilesMetric implements Metric {
   
 

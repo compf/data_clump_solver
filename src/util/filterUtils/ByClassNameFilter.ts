@@ -2,6 +2,9 @@ import { DataClumpTypeContext } from "data-clumps-type-context/ignoreCoverage/Da
 import { DataClumpRefactoringContext } from "../../context/DataContext";
 import { SingleItemFilter } from "./SingleItemFilter";
 
+/**
+ * Filters data clumps that have a specific class name
+ */
 export class ByClassNameFilter implements SingleItemFilter{
     private name?:string
     shallRemain(data: string | DataClumpTypeContext, context: DataClumpRefactoringContext): Promise<boolean> {

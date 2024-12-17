@@ -1,12 +1,14 @@
 import { DataClumpTypeContext } from "data-clumps-type-context";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../../context/DataContext";
 import { Metric } from "../../../util/filterUtils/Metric";
+
+/**
+ * Returns the number of occurences of a data clump.
+ *  Should be square rooted to make the number more realistic because
+ * it combinatorial: n*(n-1)/2
+ */
 export class DataClumpOccurenceMetric implements Metric {
   
-
-   
-    
-    
     isCompatibleWithDataClump(): boolean {
         return true;
     }

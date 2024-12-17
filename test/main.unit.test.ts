@@ -9,7 +9,6 @@ import { PipeLineStep } from "../src/pipeline/PipeLineStep";
 import { DataClumpOccurenceMetric } from "../src/pipeline/stepHandler/dataClumpFiltering/DataClumpOccurenceMetric";
 import { Ranker } from "../src/util/filterUtils/Ranker";
 import { NumericalThresholdBasedFilter } from "../src/util/filterUtils/NumericalThresholdBasedFilter";
-import { registerFromName } from "../src/config/Configuration";
 
 test("hello",()=>{
     expect(5).toBe(5);

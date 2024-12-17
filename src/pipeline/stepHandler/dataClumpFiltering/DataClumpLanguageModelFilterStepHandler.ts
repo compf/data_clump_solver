@@ -14,7 +14,7 @@ import readlineSync from "readline-sync"
 export type DataClumpLanguageModelFilterArgs= DataClumpFilterArgs& {
     handlers:string[]
 }
-export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
+export class DataClumpLanguageModelFilterStephandler extends DataClumpFilterStepHandler{
    async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
       context=await super.handle(step,context,params);
       let dcContext=context.getByType(DataClumpDetectorContext)!
@@ -147,7 +147,7 @@ export class DataClumpLanguageModelFilter extends DataClumpFilterStepHandler{
     
 }
 
-export class MultipleAlternativesLanguageModelFilter extends DataClumpLanguageModelFilter{
+export class MultipleAlternativesLanguageModelFilterStepHandler extends DataClumpLanguageModelFilterStephandler{
     private numberAlternatives:number=10;
     async parseOutput(api: AbstractLanguageModel, dcContext: DataClumpDetectorContext) {
         let tolerantParser=new TolerantOutputParser(api,

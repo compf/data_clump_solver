@@ -71,6 +71,9 @@ export class DetectEval extends BaseEvaluator{
                // "ast",
                 "fullFile",
                 "snippet"],
+            // Some of the margin values are commented out to reduce the number of combinations
+            // while the other experiments also used the remaining margin, the results show that the margin has a minimal effect, and using constant margins
+             // is not sufficient to get good results. Therefore, no more margins values were tested
             margin: [
                 0,
                 // 1, 
@@ -80,6 +83,7 @@ export class DetectEval extends BaseEvaluator{
                 ],
                 projectName:[],
             instructionType: [
+                // only definition based was used in the experiments
                 "definitionBased",
                // "exampleBased", 
             //"noDefinitionBased"
@@ -102,17 +106,12 @@ export class DetectEval extends BaseEvaluator{
         console.log(url);
       
             let context=await super.initProject(url);
-           // if(1==1)throw "tes"
             if(context==null){
                 return null;
             }
 
             context=context.buildNewContext(new RelevantLocationCombiner(context.getByType(ASTBuildingContext)!,(context as DataClumpDetectorContext)!))
             return context;
-        
-
-       
-      
        
     }
     
@@ -126,6 +125,11 @@ class RelevantLocationCombiner extends DataClumpRefactoringContext implements Re
         this.ast=ast;
         this.dataClumps=dataClumps;
     }
+
+    /**
+     * Get the relevant locations for the data clumps and the ast
+     * @param lines 
+     */
     getRelevantLocations(lines: { [path: string]: Set<number>; }): void {
     let astResult: {[path: string]: Set<number> }={}
     let dataClumpResult: {[path: string]: Set<number> }={}
