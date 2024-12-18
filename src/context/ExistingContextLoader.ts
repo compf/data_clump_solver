@@ -8,7 +8,6 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
     if(DEBUG)return null;
     switch (step) {
         case PipeLineStep.ASTGeneration:
-            //throw "cool"
             {
                 const ast_out_path = resolve(context.getProjectPath(),".data_clump_solver_data","astOut")
                 if(!fs.existsSync(ast_out_path)){
@@ -87,10 +86,7 @@ export function loadExistingContext(step: PipeLineStepType, context: DataClumpRe
                     let data = JSON.parse(fs.readFileSync(getContextSerializationPath(tempContext, context)).toString())
                     return context.buildNewContext(new UsageFindingContext(data))
                 }
-                else if(false){
-                    let data = JSON.parse(fs.readFileSync("stuff/usageFindingContext.json").toString())
-                    return context.buildNewContext(new UsageFindingContext(data))
-                }
+               
 
                 return null;
             }

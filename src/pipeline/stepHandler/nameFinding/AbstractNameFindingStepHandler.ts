@@ -106,6 +106,12 @@ export abstract class AbstractNameFindingStepHandler extends AbstractStepHandler
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.NameFinding]
      }
+     /**
+      * Suggests a name for the extracted class
+      * @param nvarInfo the information about the variables
+      * @param context the current context
+      * @param counter if >0 may be appended to the name
+      */
     abstract getSuggestedName(nvarInfo:{name:string,type:string}[],context:DataClumpRefactoringContext,counter:number):Promise<string|null>
      addCreatedContextNames(pipeLineStep: PipeLineStepType, createdContexts: Set<string>): void {
             createdContexts.add(NameFindingContext.name)

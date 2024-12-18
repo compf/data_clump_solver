@@ -18,6 +18,10 @@ export type MultipleAttemptsValidationArgs = {
     handlers: (string|LargeLanguageModelHandler)[]
 }
 export enum CompilingResult{Success,NotCompile, CompileButTestFail}
+/**
+ * Attempts multiple times via an LLM fix building issues
+ * Stops after 5 attempts or when the validation is successful
+ */
 export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
     getExecutableSteps(): PipeLineStepType[] {
         return [PipeLineStep.Validation];
@@ -28,6 +32,9 @@ export class MultipleAttemptsValidationHandler extends AbstractStepHandler {
     private validator: ValidationStepHandler;
     public handlers: LargeLanguageModelHandler[]
     public doTestRun=false;
+    /**
+     * executed after each validation step to allow for additional steps
+     */
     public afterValidationStep?:{(nr:number):Promise<void>}
     async getValidationCount(context: DataClumpRefactoringContext): Promise<{
         attempts: number,

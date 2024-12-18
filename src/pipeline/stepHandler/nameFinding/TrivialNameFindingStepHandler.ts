@@ -4,6 +4,9 @@ import { AbstractStepHandler } from "../AbstractStepHandler";
 import { AbstractNameFindingStepHandler } from "./AbstractNameFindingStepHandler";
 import { DataClumpRefactoringContext } from "../../../context/DataContext";
 
+/**
+ * This class is responsible for finding a name forthe extracted class by simply concatenating the names of the variables
+ */
 export class TrivialNameFindingStepHandler extends AbstractNameFindingStepHandler {
     getSuggestedName(nvarInfo: { name: string; type: string; }[], context: DataClumpRefactoringContext, counter: number): Promise<string | null> {
 

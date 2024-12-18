@@ -7,6 +7,9 @@ import { ChatMessage, AbstractLanguageModel, MessageType } from "./AbstractLangu
 import { OutputChecker } from "./OutputChecker"
 import { writeFileSync } from "../Utils";
 
+/**
+ * Iteratively returns the content of files in a directory
+ */
 export class DirectoryBasedStubInterface extends AbstractLanguageModel{
 
     private responsePath:string="response.txt"

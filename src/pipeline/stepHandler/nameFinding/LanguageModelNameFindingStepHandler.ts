@@ -9,6 +9,9 @@ type LanguageModelArgs = {
     languageModelName: string,
 }
 const FIELD_NAMES="${field_names}"
+/**
+ * This class is responsible for finding a name forthe extracted class using an LLM
+ */
 export class LanguageModelNameFindingsStepHandler extends AbstractNameFindingStepHandler {
     async getSuggestedName(variableInfos: {name:string,type:string}[],context:DataClumpRefactoringContext,counter:number): Promise<string | null> {
         if (!this.languageModel) {

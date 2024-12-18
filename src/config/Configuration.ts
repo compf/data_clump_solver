@@ -1,3 +1,7 @@
+/**
+ * The configuration fo the tool, especially the handling of objects and the pipeline
+ * is done here
+ */
 import { ContainerBuilder } from "node-dependency-injection"
 import { AbstractStepHandler } from "../pipeline/stepHandler/AbstractStepHandler"
 import fs from "fs"
@@ -56,6 +60,10 @@ function createExcludePattern():string[]{
         return ["dist/src/data-clumps-doctor/.*",".*js\.ma"]
     }
 }
+/**
+ * Loads all classes of the project and create a map of the class name to the actual class
+ * This creates a register that can be used to retrieve objects easily
+ */
 function loadAllClasses(){
     let paths:string[]=[]
     let startTime=Date.now()
@@ -84,9 +92,17 @@ const container=new ContainerBuilder();
     container.register(categoryName,loadedScript[typeName]).addArgument(args);
 }
 
+/**
+ * resolves a class from the interface name, e.g. "AbstractLanguageModel"
+ */
 export function resolveFromInterfaceName(interfaceName:string): any {
    return container.get(interfaceName)
 }
+/**
+ * 
+ * @param concreteName a class name
+ * @returns the existing instance of the class, fails if the class is not registered
+ */
 export function resolveFromConcreteName(concreteName:string):any{
     return container.get(concreteName) 
 }

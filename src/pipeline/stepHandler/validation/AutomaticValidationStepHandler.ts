@@ -6,6 +6,10 @@ import {resolve} from "path"
 import { GradleBuildValidationStepHandler } from "./GradleBuildValidationStepHandler";
 import { MavenBuildValidationStepHandler } from "./MavenBuildValidationStepHandler";
 import { AntBuildValidationStepHandler } from "./AntBuildValidationStepHandler";
+
+/**
+ * runs the correct validation step handler based on the build tool used in the project
+ */
 export class AutomaticValidationStepHandler extends ValidationStepHandler {
     validate(context: DataClumpRefactoringContext): Promise<ValidationResult>  {
         let handler:ValidationStepHandler|null=null;

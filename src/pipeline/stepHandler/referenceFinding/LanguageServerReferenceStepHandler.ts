@@ -19,6 +19,10 @@ type LanguageServerReferenceAPIParams = {
     apiName: string,
     apiArgs: any
 }
+/**
+ * This class is responsible for finding the references of the variables and methods in the data clumps
+ * It uses the language server to find the references
+ */
 export class LanguageServerReferenceStepHandler extends AbstractStepHandler {
     api: LanguageServerAPI | null = null;
     apiArgs: LanguageServerReferenceAPIParams

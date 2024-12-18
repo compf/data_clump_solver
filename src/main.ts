@@ -48,6 +48,8 @@ function handleArguments(args:string[]):Arguments{
     else if(args.length>=2){
         let configPartIndex=fs.lstatSync(args[0]).isFile()?0:1;
         let projectPath=args[1-configPartIndex]
+
+        // a third argument deletes the data folder
         if(args.length>2){
             fs.rmSync(resolve(projectPath,".data_clump_solver_data"),{recursive:true,force:true})
         }

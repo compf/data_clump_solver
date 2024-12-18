@@ -6,6 +6,10 @@ import { LanguageServerAPI, LSP_State } from "./LanguageServerAPI";
 import { ResponseMessage } from "./TypeDefinitions";
 import { tryParseJSON } from "../Utils";
 const commandExistsSync = require('command-exists').sync;
+
+/**
+ * API for Eclipse LSP
+ */
 export class EclipseLSP_API extends LanguageServerAPI {
 
     runEclipse(): ChildProcess {

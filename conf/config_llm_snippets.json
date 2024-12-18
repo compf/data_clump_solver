@@ -8,16 +8,20 @@
                 "temperature": 0.9
             }
         },
+        "LanguageServerAPI":{
+            "type":"EclipseLSP_API"
+        },
         
-     
+        "MultipleBrancheHandler":{
+            "type":"MultipleBrancheHandler"
+        },
        
         "SystemInstructionHandler": {
             "args": {
-                "instructionPath": "chatGPT_templates/dataClumpFiltering/filter.template"
+                "instructionPath": "chatGPT_templates/detectAndRefactor/definitionBased/fromScratch/instruction.template"
             }
         },
-
-        "AllFilesHandler": {},
+        "CodeSnippetHandler": {},
         "SendAndClearHandler": {},
         "LanguageModelTemplateResolver": {
             "args": {
@@ -26,10 +30,7 @@
                 "%{refactor_instruction}": "chatGPT_templates/refactor_one_data_clump.template",
                 "%{detected_data_clumps}": "chatGPT_templates/refactor/detected_data_clumps_minified.json",
                 "%{output_format_refactor}":"chatGPT_templates/json_format_refactor_piecewise.json",
-                "%{llm_output_format}":"chatGPT_templates/use_json.template",
-                "%{filter_output_format}":"chatGPT_templates/dataClumpFiltering/outputFormat.template",
-                "%{identification_key}":"chatGPT_templates/empty_file.template",
-                "%{data_clump_def}":"chatGPT_templates/data_clump_def.template"
+                "%{llm_output_format}":"chatGPT_templates/use_json.template"
             }
         }
 
@@ -47,21 +48,24 @@
         "DataClumpDetection": {
             "handler": "DataClumpDoctorStepHandler"
         },
-        "DataClumpFiltering": {
-            "handler": "DataClumpLanguageModelFilterStephandler",
-            "args":{
-                "rankThreshold":100,
-                "strictSize":true,
-                "handlers":[
-                    "SystemInstructionHandler",
-                    "AllFilesHandler"
-                ]
+        "ReferenceFinding": {
+            "handler": "LanguageServerReferenceStepHandler",
+            "args": {
+               "apiName":"EclipseLSP_API"
             }
         },
        
         "Refactoring": {
-            "handler": "DoNothingStepHandler"
-           
+            "handler": "LanguageModelRefactorStepHandler",
+            "args":{
+                "numberAttempts": 3,
+                "outputHandler":"MultipleBrancheHandler",
+                "handlers":[
+                    "SystemInstructionHandler",
+                    "CodeSnippetHandler",
+                    "SendAndClearHandler"
+                ]
+            }
         }
        
     }

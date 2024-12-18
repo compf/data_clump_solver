@@ -7,6 +7,10 @@ export enum LanguageModelTemplateType {
 export const FILE_REPLACE_START="%{";
 export const IS_OPTIONAL_REFERENCE="?}"
 export const TEMPLATE_EXTENSION=".template"
+
+/**
+ * This class is responsible for resolving templates for the language model
+ */
 export class LanguageModelTemplateResolver {
     private replaceMap:{[key:string]:string}
     constructor(replaceMap: {[key:string]:string}) {
@@ -20,6 +24,11 @@ export class LanguageModelTemplateResolver {
         const template = fs.readFileSync(`chatGPT_templates/${templateType}.template`, 'utf-8');
         return this.resolveTemplate(template,additionalReplacements);
     }
+    /**
+     * Resolves the template with the given replacements
+     * @param text the text to resolve
+     * @param additionalReplacements the additional replacements to use
+     */
     resolveTemplate(text:string,additionalReplacements?:{[key:string]:string}|undefined):string{
         let result=text
         if(additionalReplacements==undefined){

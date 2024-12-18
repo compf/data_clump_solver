@@ -8,6 +8,11 @@ import { resolve, basename, dirname, relative } from "path"
 import { getRelevantFilesRec, makeUnique, nop } from "../../../util/Utils";
 import { getDataClumpThreshold } from "../../../config/Configuration";
 type IncludedFiles = "data_clump" | "folder" | "folderRecursive"
+
+/** 
+ * find reference by only looking at the raw names without considering the scope
+ *  
+ */
 export class TextBasedReferenceStepHandler extends AbstractStepHandler {
 
     private fileContentCache: { [path: string]: string } = {}

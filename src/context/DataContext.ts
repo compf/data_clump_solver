@@ -57,22 +57,15 @@ export  class DataClumpRefactoringContext {
         }
         return result;
     }
-    getContextIds():Set<number>{
-        let result=new Set<number>();
-        let curr: DataClumpRefactoringContext = this;
-        while (curr != null && curr.constructor.name!=DataClumpRefactoringContext.name) {
-            let obj=Object.values(PipeLineStep).filter((it)=>it.associatedContext==curr.constructor.name)[0]
-            if(obj){
-                result.add(obj.position)
-            }
-            curr = curr.previousContext!
-        }
-        return result;
-    }
+
     setConfig(config: Configuration) {
         this.sharedData["config"]=config 
     }
     public sharedData: { [key: string]: any } = {}
+
+    /**
+     * traverse the context from tail to head until the context with the given type is found
+     */
     getByType<T>(ctor: new (...a: any) => T): T | null {
         let curr: DataClumpRefactoringContext = this;
         while (!(curr instanceof ctor)) {
@@ -84,6 +77,9 @@ export  class DataClumpRefactoringContext {
         }
         return curr as T
     }
+    /**
+     * Traverses the context from head to tail until the context with the given type is found
+     */
     getFirstByType<T>(ctor: new (...a: any) => T): T | null {
         let curr: DataClumpRefactoringContext|null = this;
         let best:DataClumpRefactoringContext|null=null;
@@ -108,6 +104,7 @@ export  class DataClumpRefactoringContext {
         }
         return curr as RelevantLocationsContext
     }
+
     getProgrammingLanguage():string{
         return this.sharedData["config"].ProgrammingLanguage
     }
@@ -124,7 +121,9 @@ export  class DataClumpRefactoringContext {
 }
 
 
-
+/**
+ * Contains only the path of the project
+ */
 export class CodeObtainingContext extends DataClumpRefactoringContext {
     path: string;
     getPath(): string {
@@ -139,6 +138,9 @@ export class CodeObtainingContext extends DataClumpRefactoringContext {
         this.path = path
     }
 }
+/**
+ * Provides additional Git operations
+ */
 export class GitRepositoryContext extends DataClumpRefactoringContext {
     async getLastCommittedDate(path:string):Promise<Date>{
         return new Promise<Date>(async (resolve,reject)=>{
@@ -185,6 +187,10 @@ export class GitRepositoryContext extends DataClumpRefactoringContext {
     
 
 }
+
+/**
+ * Context that contains include and exclude globs to filter files
+ */
 export class FileFilteringContext extends DataClumpRefactoringContext {
     includeGlobs: string[];
     excludeGlobs: string[];
@@ -200,7 +206,9 @@ export class FileFilteringContext extends DataClumpRefactoringContext {
         return 1;
     }
 }
-
+/**
+ * Context that contains the AST
+ */
 export class ASTBuildingContext extends DataClumpRefactoringContext implements RelevantLocationsContext {
     private ast_type:{[key:string]:AST_Class}={}
     load(path:string){
@@ -305,7 +313,9 @@ export class ASTBuildingContext extends DataClumpRefactoringContext implements R
 export  class RelevantLocationsContext extends DataClumpRefactoringContext{
      getRelevantLocations(lines:{[path:string]:Set<number>}):void{}
 }
-
+/**
+ * Context that contains detected data clumps
+ */
 export class DataClumpDetectorContext extends DataClumpRefactoringContext implements RelevantLocationsContext {
     setDataClumpDetectionResult(values: DataClumpsTypeContext) {
        this.currDataClumpDetectionResult=Object.assign(this.currDataClumpDetectionResult,values)
@@ -471,7 +481,9 @@ export class LargeLanguageModelContext extends DataClumpRefactoringContext {
         return this.chat
     }
 }
-
+/**
+ * Contains suggested name per type-name id
+ */
 export class NameFindingContext extends DataClumpRefactoringContext {
     private nameDataClumpKey: Map<string, string> = new Map<string, string>()
     private dataClumpKeyName: Map<string, string> = new Map<string, string>()
@@ -537,6 +549,11 @@ export class ClassPathContext extends DataClumpRefactoringContext {
     }
 
 }
+
+
+/**
+ * Contains references where a variable or method is used or declared
+ */
 export class UsageFindingContext extends DataClumpRefactoringContext implements RelevantLocationsContext {
     usages: { [key: string]: VariableOrMethodUsage[] } = {};
     constructor(usages: { [key: string]: VariableOrMethodUsage[] }) {
@@ -573,6 +590,9 @@ export class UsageFindingContext extends DataClumpRefactoringContext implements 
     }
  
 }
+/**
+ * Currently serves no suitable purpose, but could be expanded
+ */
 export class RefactoredContext extends DataClumpRefactoringContext {
     private returnedCode:{[key:string]:string}={}
     constructor() {
@@ -592,6 +612,9 @@ export type ValidationResult={
     success: boolean;
     raw?:string
 }
+/**
+ * Contains information about compiler errors and other information about the validity of the build
+ */
 export class ValidationContext extends DataClumpRefactoringContext  implements RelevantLocationsContext {
     errors: ValidationInfo[]
     success: boolean;
@@ -627,7 +650,9 @@ export class EvaluationContext extends DataClumpRefactoringContext {
 }
 export const MandatoryContextNames=[CodeObtainingContext.name,RefactoredContext.name]
 
-
+/**
+ * create a template for the data clump type context to ease the creation of the context
+ */
 export function createDataClumpsTypeContext(data_clumps: Dictionary<DataClumpTypeContext>,context?:DataClumpRefactoringContext): DataClumpsTypeContext {
     return {
         

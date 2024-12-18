@@ -63,6 +63,11 @@ export type PR_Data_Entry = {
      * The url of the project (not the forked one)
      */
     url: string,
+
+    /**
+     * The url of the forked project
+     */
+    forkUrl: string,
     /**
      * The url of the PR
      */

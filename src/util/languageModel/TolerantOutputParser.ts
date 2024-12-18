@@ -2,6 +2,11 @@ import { resolveFromInterfaceName } from "../../config/Configuration";
 import { DataClumpDetectorContext, DataClumpRefactoringContext } from "../../context/DataContext";
 import { AbstractLanguageModel } from "./AbstractLanguageModel";
 
+/**
+ * This class is responsible for parsing the output of the language model
+ * It uses a list of parsers to parse the output and returns the parsed output for the first parser that
+ * does not return null
+ */
 export class TolerantOutputParser{
     private parsers:{(text:string,context:DataClumpRefactoringContext):any}[]
     private api:AbstractLanguageModel;

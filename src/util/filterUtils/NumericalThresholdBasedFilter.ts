@@ -7,6 +7,9 @@ import { Metric } from "./Metric";
 import { assignOrResolve, resolveFromConcreteName } from "../../config/Configuration";
 
 export type ComparisionSign=">"|"<"|"<="|">="|"="
+/**
+ * This class is a filter that filters data clumps based on a numerical threshold given a metric
+ */
 export  class NumericalThresholdBasedFilter    implements SingleItemFilter{
     private threshold: number;
     private  requiredCompareSigns:number[];

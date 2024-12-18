@@ -14,6 +14,9 @@ export type ValidationArgs={
     useLocal?:boolean
 }
 
+/**
+ * Validates the refactoring by running the build tool (e.g. Maven) and checking for errors
+ */
 export abstract class ValidationStepHandler extends AbstractStepHandler {
     async handle(step: PipeLineStepType, context: DataClumpRefactoringContext, params: any): Promise<DataClumpRefactoringContext> {
 
