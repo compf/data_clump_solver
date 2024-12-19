@@ -6,12 +6,12 @@ Detect data clumps via the DataClumpDoctor, suggest a suitable name via an LLM, 
 
 ## config_llm_snippets.json
 
-Detect Detect data clumps via the DataClumpDoctor, use a LSP for reference finding and send code snippets to the LLM which performs the refactoring
+Detect Detect data clumps via the DataClumpDoctor, use a LSP for reference finding and send code snippets to the LLM which performs the refactoring. Three proposals are generated, each one in a separate branch.
 
 
 ## config_llm_markup_out.json
 
-Detect Detect data clumps via the DataClumpDoctor, use a LSP for reference finding and send code snippets to the LLM which performs the refactoring. In this case, the model uses markup for replying
+Detect Detect data clumps via the DataClumpDoctor, use a LSP for reference finding and send code snippets to the LLM which performs the refactoring. In this case, the model uses markup for replying. Three proposals are generated, each one in a separate branch.
 
 ## config_llm_markup_out.json
 
